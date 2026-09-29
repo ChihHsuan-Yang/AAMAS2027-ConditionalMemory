@@ -89,6 +89,40 @@ leave-one-task-out jackknife on every contrast, and proved both against construc
 Both the clustered CI and the jackknife appear in every results table, so the cell-level p
 is never the only number a reader sees.
 
+## 🟢 The headline contrast is fully WITHIN-MEMORY — stronger than stated
+
+Verified by the Master Agent from the design manifest: **all 60 memories appear in BOTH
+BEARING and MATCHED_CONTROL.** Not one bearing memory lacks a control cell.
+
+| | |
+|---|---|
+| BEARING memories | 60 |
+| MATCHED_CONTROL memories | 60 |
+| **shared** | **60** |
+| bearing memories with no control cell | **0** |
+| memories with both a bearing and a control cell (paired) | **60** |
+
+So the claim-carrying contrast is **paired within memory**: the same memory is compared
+against tasks it bears on and tasks it does not. **Memory identity cancels.** Any residual
+worry that BEARING memories are simply *better* memories — longer, richer, from more
+informative episodes — cannot explain the contrast, because it is the same 60 memories on
+both sides.
+
+This is a stronger design property than the composition-matching argument below, and it
+should be stated first in the paper. It was available in the design and I had not credited
+it.
+
+⚠️ It does **not** dissolve the task-side confound: the strata remain disjoint in tasks by
+construction, which is why ΔU (a within-cell contrast) rather than raw accuracy is the
+quantity compared, and why task-clustered intervals are still required.
+
+### Join safety, verified
+
+The cache carries no stratum field; stratum is recovered by joining
+`(memory_id, future_task_id)` to the design manifest. Checked: **1,157 design pairs, zero
+appearing more than once**, so the join is 1:1 and stratum assignment is unambiguous. All
+3,613 cache rows available at the time of checking joined successfully (100%).
+
 ## Ruling
 
 | contrast | status | what it answers |
