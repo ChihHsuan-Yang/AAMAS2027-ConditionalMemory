@@ -155,3 +155,49 @@ def test_excluding_a_drawn_memory_removes_only_that_unit():
         pool, exclude_ids={base[2]}, k=5, task_id="T")]
     assert base[2] not in got
     assert [x for x in base if x != base[2]] == got[:4], "surviving order must be stable"
+
+
+def test_replicates_are_byte_identical_requests():
+    """Replicates must differ ONLY in sampling -- so the prompt must not move.
+
+    PREREG section 2 defines F_exec as outcome variation "with everything else
+    fixed". The original seeded target position with ``replicate_id``, so each
+    replicate was a DIFFERENT prompt and the replicate spread measured a
+    position effect, not execution noise. That spread was then read as
+    endpoint nondeterminism at temperature 0.
+
+    Planting the defect to prove this test can fail: passing ``replicate_id``
+    into ``build_context``'s ``seed_parts`` makes positions vary, and the
+    assertion below catches it.
+    """
+    filler = _units(6)
+    seen_pos, seen_prompt = set(), set()
+    for rep in range(6):
+        arms = build_cell_pair(target=TARGET, filler=filler, task_id="t1",
+                               question="Q?", replicate_id=rep)
+        wi = next(c for c in arms if c["key_fields"]["arm"] == "with")
+        seen_pos.add(wi["target_position"])
+        seen_prompt.add(wi["messages"][1]["content"])
+    assert len(seen_pos) == 1, (
+        f"target position varied across replicates: {sorted(seen_pos)}. "
+        f"Replicates would then measure a position effect, not execution noise.")
+    assert len(seen_prompt) == 1, "replicate prompts are not byte-identical"
+
+
+def test_position_still_varies_across_cells():
+    """The counterpart: fixing position per replicate must NOT freeze it globally.
+
+    Without this, a builder that simply hard-coded position 0 would pass the
+    test above while silently confounding "memory present" with "memory first".
+    """
+    filler = _units(6)
+    positions = set()
+    for i in range(24):
+        tgt = MemoryUnit(f"m{i}", f"tr{i}:0-0", "BODY", 100, "web")
+        arms = build_cell_pair(target=tgt, filler=filler, task_id=f"t{i}",
+                               question="Q?", replicate_id=0)
+        wi = next(c for c in arms if c["key_fields"]["arm"] == "with")
+        positions.add(wi["target_position"])
+    assert len(positions) > 1, (
+        f"target position is constant at {positions} across 24 distinct cells; "
+        f"position would be perfectly confounded with the intervention")

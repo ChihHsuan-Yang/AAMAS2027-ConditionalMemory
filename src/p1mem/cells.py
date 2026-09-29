@@ -103,7 +103,18 @@ def build_cell_pair(
     noise floor would collapse to zero, and *every* delta-U would trivially
     clear it. See ANALYSIS_PREREGISTRATION.md Amendment A1.4.
     """
-    seed_parts = (task_id, target.memory_id, replicate_id)
+    # Position is seeded by (task, memory) and deliberately NOT by replicate.
+    # PREREG section 2 defines F_exec as outcome variation "with everything else
+    # fixed", so replicates must be BYTE-IDENTICAL requests. Including
+    # replicate_id here moved the target between replicates, which made the
+    # replicate spread a POSITION effect rather than execution noise: measured
+    # on the first noise-floor run, the WITH arm disagreed on 8 of 12 repeated
+    # cells while the WITHOUT arm -- whose prompt really was fixed -- disagreed
+    # on 0 of 11. That was misread as endpoint nondeterminism at temperature 0;
+    # a cache-disabled probe on real 23k-27k-token cell prompts at concurrency
+    # 16 returned 6/6 byte-identical, so the endpoint is deterministic and the
+    # spread was entirely the moving position.
+    seed_parts = (task_id, target.memory_id)
     out = []
     for arm in ("without", "with"):
         ctx, pos = build_context(
