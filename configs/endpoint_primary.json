@@ -1,0 +1,52 @@
+{
+  "_comment": "P1 frozen primary arm. Pinned by the Master Agent 2026-09-29 (docs/CLUSTER_DECISION.md) on Sub-agent C's measurements. Changing any field here creates a NEW experimental arm; it is never a backfill.",
+
+  "reader": {
+    "cluster": "metis",
+    "base_url": "https://inference-api.alcf.anl.gov/resource_server/metis/api/v1",
+    "model": "gpt-oss-120b",
+    "_model_note": "BARE name on Metis. Sophia requires 'openai/gpt-oss-120b'. These are NOT normalised to each other: they are separate arms.",
+    "reasoning_effort": "low",
+    "temperature": 0,
+    "max_tokens": 512,
+    "_max_tokens_note": "Reasoning tokens are drawn from this same budget. A 256-token answer needs >=512 or the call returns finish_reason='length' with null content, which the client raises on rather than scoring (see docs/ENDPOINT_THROUGHPUT.md and report C1.4)."
+  },
+
+  "failover_arm": {
+    "_comment": "SEPARATE ARM. Never pooled with the primary. Use only if Metis fails, and label the results distinctly.",
+    "cluster": "sophia",
+    "base_url": "https://inference-api.alcf.anl.gov/resource_server/sophia/vllm/v1",
+    "model": "openai/gpt-oss-120b",
+    "_caveat": "Sophia omits completion_tokens_details, so reasoning-token accounting is NOT available on this arm."
+  },
+
+  "embeddings": {
+    "cluster": "sophia",
+    "base_url": "https://inference-api.alcf.anl.gov/resource_server/sophia/vllm/v1",
+    "model": "Salesforce/SFR-Embedding-Mistral",
+    "dim": 4096,
+    "batch_size": 16,
+    "_verified": "dim 4096 and cos=1.000000 on identical text, re-measured live 2026-09-29.",
+    "_do_not_use": "google/embeddinggemma-300m is advertised on Sophia and returns 502."
+  },
+
+  "concurrency": {
+    "max_workers": 16,
+    "_justification": "Highest level with zero failures of any kind across 316 requests (docs/ENDPOINT_THROUGHPUT.md). HTTP 429 appears at 24 and 32 workers. Sustained 6-wave run at 16: 5.690 req/s, 341.4 completions/min, p50 2.588s, p95 4.392s, 0% errors.",
+    "_ceiling_caveat": "Measured 2026-09-29 17:53-17:56 UTC on a shared gateway from one laptop. This is an observed ceiling, not a service guarantee; the client must handle 429 regardless."
+  },
+
+  "retry": {
+    "max_retries": 5,
+    "base_backoff_s": 1.0,
+    "max_backoff_s": 60.0,
+    "timeout_s": 300.0,
+    "_retry_after_note": "Metis 429s carried NO Retry-After header, so the jittered-exponential path is what actually runs. The header is still honoured if one appears."
+  },
+
+  "known_dead": {
+    "minerva/gpt-oss-120b": "HTTP 503 'not currently live on Minerva', reproduced 4x on 2026-09-29. Advertised by /resource_server/minerva/models but does not serve.",
+    "sophia/google/embeddinggemma-300m": "HTTP 502.",
+    "tara": "listed by list-endpoints with empty frameworks; no models."
+  }
+}

@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -A AuroraGPT
+#PBS -q debug
+#PBS -l select=1
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:flare
+#PBS -r y
+#
+# NOTE: this job is provided for portability, not because we need it.
+# P1's workload is gateway-bound, not compute-bound: every call leaves the node
+# for inference-api.alcf.anl.gov, so a compute node adds queue wait and a proxy
+# requirement while buying no throughput. The laptop-driven path is the
+# recommended one -- see docs/ENDPOINT_THROUGHPUT.md and the C5 section of the
+# sub-agent C report.
+#
+# Project choice matters: datascience_collab EXPIRES 2026-10-01, before the
+# 8 Oct deadline. Use AuroraGPT (to 2027-02-01) as above. AuroraGPT's /lus/flare
+# pool is 95.7% full, so write bulk artifacts elsewhere.
+set -uo pipefail
+
+: "${REPO_ROOT:=/home/bellayang/repos/p1_memory_utility}"
+exec "$REPO_ROOT/jobs/p1_cells_aurora.sh"

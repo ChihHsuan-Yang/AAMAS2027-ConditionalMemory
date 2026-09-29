@@ -2,7 +2,7 @@
 name = "p1mem"
 version = "0.0.0"
 description = "Measuring task-conditional value in long-term agent memory"
-requires-python = ">=3.10"
+requires-python = ">=3.10"   # 3.9 FAILS: vendored scorer uses PEP 604 `str | None`
 
 # Dependencies are deliberately minimal and will grow with the experiment design.
 # Nothing is pinned yet because nothing is built yet: see docs/MASTER_TODO.md Phase 2.
