@@ -1,0 +1,22 @@
+{
+ "_note": "Slim slices carry every field the paper's headline numbers are computed from. The full artifacts (15 MB each) additionally carry output_with_memory / output_without_memory, the raw model text. Those are NOT tracked here for size, but their sha256 is recorded so a reviewer can verify any copy they are given is the one the paper used. Keeping the full text matters: a stored digest alone would block every later re-scoring under a corrected verifier.",
+ "_verified": "All headline numbers re-derived from the slim slices alone on 2026-09-29 and reproduce exactly.",
+ "official": {
+  "full_artifact": "results/deltau_official/cells.jsonl",
+  "full_bytes": 16093216,
+  "full_sha256": "8d16a661864cb51f03d26125912ab37fc0dc126fdcf4dbf90ec673866c4c4cc4",
+  "rows": 960,
+  "slim_artifact": "results/ledgers/repro/official_cells_slim.jsonl",
+  "slim_bytes": 439312,
+  "slim_sha256": "83d48e98a8a26ed9e43426b376d16f232635a4c6a3bc6b6a6948cf042e16190c"
+ },
+ "pilot": {
+  "full_artifact": "results/deltau_pilot/cells.jsonl",
+  "full_bytes": 15912872,
+  "full_sha256": "670f02306ea26bb663e5a882b93481f65f189961dbb10788b32cf7b9c0f6d99f",
+  "rows": 960,
+  "slim_artifact": "results/ledgers/repro/pilot_cells_slim.jsonl",
+  "slim_bytes": 430716,
+  "slim_sha256": "aefa92f794238966e432725a9473892598affe08db06da041e0dda3039654ae4"
+ }
+}
