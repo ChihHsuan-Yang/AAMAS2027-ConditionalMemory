@@ -65,7 +65,14 @@ KEY_FIELDS: tuple[str, ...] = (
     "benchmark",          # e.g. "longmemeval"
     "source_item_id",     # the source item the memory was written from
     "memory_repr",        # memory representation (raw trace / summary / insight ...)
-    "memory_id",          # the individual memory item
+    # The canonical memory identity from src/p1mem/schema.py: a CONTENT HASH
+    # (content + source episode id), stable across runs and re-segmentation.
+    # This cache treats it as an opaque string and never derives or rewrites
+    # it. Do NOT pass a positional locator such as "013696c4:0-0" here: a
+    # locator is not stable under re-segmentation, so two different memories
+    # could reuse one cache row after the corpus is rebuilt. A locator belongs
+    # in the schema's memory_source_span, not in this key.
+    "memory_id",
     "future_task_id",     # the future task being attempted
     "arm",                # "with_memory" | "without_memory"
     "retrieval_method",   # e.g. "oracle", "bm25", "sfr_embedding_top5"
