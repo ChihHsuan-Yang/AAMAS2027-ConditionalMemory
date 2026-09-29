@@ -90,8 +90,16 @@ class Decomposition:
             "component_ci": {k: list(v) for k, v in self.component_ci.items()},
             "total_variance": self.total_variance,
             "exec_floor_variance_comparator": self.exec_floor_variance,
+            # SECOND SITE of the same division. The guard added at the flag
+            # site did not cover this one, and to_dict() then raised
+            # ZeroDivisionError on the very next run -- one mechanism, two
+            # sites. F_exec = 0 is the EXPECTED measurement for a
+            # deterministic reader, so `exec_floor_variance == 0` is a normal
+            # input here and the ratio is simply undefined, not an error.
             "interaction_share_vs_exec_floor": (
-                None if self.exec_floor_variance is None or self.total_variance <= 0
+                None if (self.exec_floor_variance is None
+                         or self.exec_floor_variance <= 0
+                         or self.total_variance <= 0)
                 else self.components.get("interaction", 0.0) / self.exec_floor_variance
             ),
             "n_memories": self.n_memories,

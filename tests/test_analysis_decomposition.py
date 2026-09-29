@@ -404,3 +404,59 @@ def test_upper_boundary_is_flagged_on_the_real_pilot_rows():
     assert len(ups) >= 2, f"expected task AND interaction flagged; got {dec.flags}"
     assert set(dec.extra["info"]["components_at_upper_bound"]) >= {"task",
                                                                    "interaction"}
+
+
+def test_to_dict_does_not_divide_by_a_zero_exec_floor():
+    """SECOND SITE of the same division -- serialization, not the fit.
+
+    The first guard covered the flag site only, and `to_dict()` raised
+    ZeroDivisionError on the very next production run. One mechanism, two
+    sites: a fix tested against the instance closes the instance, not the
+    defect. This test covers the serializer directly.
+    """
+    from p1mem.analysis.decomposition import Decomposition
+
+    dec = Decomposition(
+        components={"memory": 0.1, "task": 0.2, "interaction": 0.3, "residual": 0.4},
+        shares={"memory": 0.1, "task": 0.2, "interaction": 0.3, "residual": 0.4},
+        exec_floor_variance=0.0,          # F_exec = 0 squared: the real input
+        method="REML", converged=True, n_obs=10, n_cells=5,
+        n_memories=3, n_tasks=2,
+    )
+    out = dec.to_dict()                    # must not raise
+    assert out["interaction_share_vs_exec_floor"] is None
+    assert out["exec_floor_variance_comparator"] == 0.0
+
+
+def test_to_dict_still_computes_the_ratio_when_the_floor_is_positive():
+    """Positive control for the serializer guard."""
+    from p1mem.analysis.decomposition import Decomposition
+
+    dec = Decomposition(
+        components={"memory": 0.1, "task": 0.2, "interaction": 0.3, "residual": 0.4},
+        shares={"memory": 0.1, "task": 0.2, "interaction": 0.3, "residual": 0.4},
+        exec_floor_variance=0.5, method="REML", converged=True, n_obs=10,
+        n_cells=5, n_memories=3, n_tasks=2,
+    )
+    assert dec.to_dict()["interaction_share_vs_exec_floor"] == pytest.approx(0.6)
+
+
+def test_every_exec_floor_division_is_guarded():
+    """Grep-level check that no THIRD site reintroduces the same defect.
+
+    A future edit that divides by exec_floor_variance without a positivity
+    guard fails here, rather than at 3am in a 40-minute production run.
+    """
+    import re
+    from pathlib import Path
+
+    src = (Path(__file__).resolve().parents[1]
+           / "src/p1mem/analysis/decomposition.py").read_text()
+    # every '/ ... exec_floor_variance' or '/ fvar' must sit near a positivity test
+    for m in re.finditer(r"/\s*(self\.exec_floor_variance|fvar)\b", src):
+        window = src[max(0, m.start() - 400):m.start()]
+        assert ("exec_floor_variance <= 0" in window
+                or "exec_floor_variance is None or self.exec_floor_variance <= 0" in window
+                or "fvar is not None and fvar > 0" in window), (
+            f"unguarded division by the exec floor near offset {m.start()}: "
+            f"F_exec = 0 is an EXPECTED measurement and will crash this")
