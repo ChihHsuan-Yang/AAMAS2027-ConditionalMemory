@@ -180,7 +180,9 @@ def main() -> int:
                       jsonable(dec.to_dict()))
     print(f"    {dec.method} converged={dec.converged} fallback={dec.used_fallback}")
     for c in dc.COMPONENTS:
-        print(f"      {c:<12} share {dec.shares.get(c, 0.0):.4f}")
+        share = ("UNMEASURED" if c not in dec.shares
+                 else f"{dec.shares[c]:.4f}")
+        print(f"      {c:<12} share {share}")
     print(f"\nwrote {args.out}")
     return 0
 

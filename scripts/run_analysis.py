@@ -125,7 +125,9 @@ def main(argv: list[str] | None = None) -> int:
     write_json_atomic(out / "03_variance_decomposition.json", jsonable(payload))
     print(f"      {dec.method}  converged={dec.converged} fallback={dec.used_fallback}")
     for c in dc.COMPONENTS:
-        print(f"        {c:<12} share {dec.shares.get(c, 0.0):.4f}")
+        share = ("UNMEASURED" if c not in dec.shares
+                 else f"{dec.shares[c]:.4f}")
+        print(f"        {c:<12} share {share}")
 
     # ---- 4. efficiency (section 10)
     print("[4/5] efficiency ...")

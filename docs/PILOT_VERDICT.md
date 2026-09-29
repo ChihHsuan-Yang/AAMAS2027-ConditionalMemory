@@ -35,7 +35,7 @@ byte-identical on real 23k–27k-token prompts, cache disabled, concurrency 16).
 | robust flip rate | **0.1333** [0.069, 0.242], denominator 60 |
 | additive-null expectation | **0.9667** |
 | excess over additive | **none**, p = 1.000 |
-| variance shares | all **0.0000** |
+| variance shares | 🔴 **RETRACTED — UNMEASURED.** The printed 0.0000 was `dec.shares.get(c, 0.0)` over an **empty** `shares` dict: the REML fit did not converge and the moments fallback refused (*"balanced sub-design is 0x220; needs >= 2x2"*). See `docs/OFFICIAL_PROMPT_ARM.md` §4 and RESULTS_LEDGER row 54a. |
 
 **Per Amendment A1.1, this data shows no evidence of memory × task interaction.**
 
@@ -86,6 +86,17 @@ but two things follow:
    uninformative rather than negative.
 
 ## 5. Decision
+
+> 🔵 **SUPERSEDED 2026-09-29 by the run this section ordered.** The re-run was executed
+> (`results/deltau_official/`, 1,920 real calls, 0 errors). **It did not remove the floor
+> effect — it made it worse:** accuracy fell to 0.1146 WITH / 0.1208 WITHOUT and
+> both-arms-fail rose to **402/480 = 83.75%**. The reasoning in §4 below — "a model that
+> always guesses lands near its guessing floor, so the official prompt should lift it" —
+> is **refuted**: the official prompt scores an abstention 0, identically to a wrong
+> answer, so it converted **128 correct guesses into abstentions** and could only lower
+> accuracy. Full result and diagnosis: `docs/OFFICIAL_PROMPT_ARM.md`.
+> The text below is retained as written, not edited, because the retraction is the point.
+
 
 **Re-run with the official `DOMAIN_SYSTEM_PROMPTS`.** ~1,920 calls, ~8 minutes.
 

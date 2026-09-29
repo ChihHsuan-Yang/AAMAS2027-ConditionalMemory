@@ -254,3 +254,82 @@ def test_reduced_likelihood_equals_the_dense_one():
                  method="Nelder-Mead", options=opt)
     b = minimize(dense_neg2, [0, 0, 0], args=(d,), method="Nelder-Mead", options=opt)
     assert np.max(np.abs(np.exp(a.x) - np.exp(b.x))) < 1e-4
+
+
+# ---------------------------------------------------------------------------
+# A FAILED FIT MUST NOT PRINT A NUMBER (regression, found by Sub-agent H)
+# ---------------------------------------------------------------------------
+# The pilot reported "variance shares all 0.0000". The fit had FAILED: shares
+# was {}, converged False, flags NON_CONVERGENCE + FIT_FAILED, and the moments
+# fallback refused with "balanced sub-design is 0x220; needs >= 2x2". The
+# 0.0000 came from `dec.shares.get(c, 0.0)` over an EMPTY dict -- absence
+# defaulting to a plausible zero, on the project's headline quantity.
+# See docs/OFFICIAL_PROMPT_ARM.md section 4 and RESULTS_LEDGER row 54a.
+
+def test_failed_fit_renders_unmeasured_not_zero():
+    """Plant the exact defect: an empty shares dict, and require no 0.0000."""
+    from p1mem.analysis.decomposition import COMPONENTS, Decomposition
+
+    dec = Decomposition(
+        components={}, shares={}, share_ci={},
+        method="method of moments [FALLBACK]", converged=False, used_fallback=True,
+        n_obs=958, n_cells=479, n_memories=60, n_tasks=220,
+        flags=["NON_CONVERGENCE", "FIT_FAILED"],
+    )
+    text = str(dec)
+    assert "0.0000" not in text, (
+        f"a FAILED fit printed a number; absence must not default to zero:\n{text}")
+    for c in COMPONENTS:
+        assert "UNMEASURED" in text
+    assert text.count("UNMEASURED") >= 2 * len(COMPONENTS)  # var + share each
+
+
+def test_successful_fit_still_prints_its_numbers():
+    """Positive control: the change must not silence a fit that DID produce shares."""
+    from p1mem.analysis.decomposition import Decomposition
+
+    dec = Decomposition(
+        components={"memory": 0.25, "task": 0.25, "interaction": 0.25,
+                    "residual": 0.25},
+        shares={"memory": 0.25, "task": 0.25, "interaction": 0.25, "residual": 0.25},
+        share_ci={}, method="REML", converged=True,
+        used_fallback=False, n_obs=100, n_cells=50, n_memories=10, n_tasks=5,
+    )
+    text = str(dec)
+    assert "UNMEASURED" not in text
+    # count the SHARE field specifically: "var=0.250000" also contains "0.2500"
+    assert text.count("share=0.2500") == 4
+
+
+def test_partial_fit_marks_only_the_missing_component():
+    """A component present prints; one absent says UNMEASURED. Both in one render."""
+    from p1mem.analysis.decomposition import Decomposition
+
+    dec = Decomposition(
+        components={"memory": 0.5}, shares={"memory": 0.5}, share_ci={}, method="partial", converged=False, used_fallback=True,
+        n_obs=10, n_cells=5, n_memories=3, n_tasks=2,
+    )
+    text = str(dec)
+    assert "0.5000" in text            # the one that exists
+    assert "UNMEASURED" in text        # the three that do not
+
+
+def test_recovery_error_does_not_score_a_missing_component_as_zero():
+    """A crashed fit must not look like a merely inaccurate one.
+
+    Substituting 0.0 for an absent component scores it as an error of exactly
+    the planted share -- a real, finite, comparable-looking number produced by
+    an estimate that does not exist.
+    """
+    from p1mem.analysis.decomposition import Decomposition, recovery_error
+
+    dec = Decomposition(
+        components={}, shares={}, share_ci={},
+        method="FAILED", converged=False, used_fallback=True,
+        n_obs=10, n_cells=5, n_memories=3, n_tasks=2, flags=["FIT_FAILED"],
+    )
+    rec = recovery_error(dec, {"memory": 0.4, "task": 0.3, "interaction": 0.2,
+                               "residual": 0.1})
+    for comp in ("memory", "task", "interaction", "residual"):
+        assert rec[comp]["recovered_share"] is None
+        assert rec[comp]["abs_error"] is None

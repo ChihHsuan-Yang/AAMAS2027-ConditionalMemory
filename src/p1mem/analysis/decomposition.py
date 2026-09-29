@@ -106,12 +106,19 @@ class Decomposition:
         lines = [f"{self.method} (converged={self.converged}, "
                  f"fallback={self.used_fallback})"]
         for c in COMPONENTS:
-            v = self.components.get(c, 0.0)
-            s = self.shares.get(c, 0.0)
             ci = self.share_ci.get(c)
             cis = ("" if not ci or ci[0] is None
                    else f"  share CI [{ci[0]:.3f}, {ci[1]:.3f}]")
-            lines.append(f"  {c:<12} var={v:.6f}  share={s:.4f}{cis}")
+            # A component the fit never produced prints UNMEASURED, never 0.0000.
+            # `.get(c, 0.0)` here reported "variance shares all 0.0000" for a fit
+            # that had FAILED (shares={}), which reads as the strongest possible
+            # null on this project's headline quantity. See
+            # docs/OFFICIAL_PROMPT_ARM.md section 4 and RESULTS_LEDGER row 54a.
+            if c not in self.shares:
+                lines.append(f"  {c:<12} var=UNMEASURED  share=UNMEASURED{cis}")
+                continue
+            lines.append(f"  {c:<12} var={self.components.get(c, float('nan')):.6f}  "
+                         f"share={self.shares[c]:.4f}{cis}")
         for f in self.flags:
             lines.append(f"  ! {f}")
         return "\n".join(lines)
@@ -612,7 +619,16 @@ def recovery_error(
     errs = []
     for k in COMPONENTS:
         t = float(truth_shares.get(k, 0.0))
-        f = float(fitted.shares.get(k, 0.0))
+        if k not in fitted.shares:
+            # A failed fit recovers NOTHING. Substituting 0.0 would score a
+            # non-existent estimate as an error of exactly the planted share,
+            # making a crashed fit look like a merely inaccurate one.
+            out[k] = {"planted_share": t, "recovered_share": None,
+                      "abs_error": None, "rel_error": None,
+                      "ci_covers_truth": None,
+                      "_note": "component absent from the fit: UNMEASURED, not 0.0"}
+            continue
+        f = float(fitted.shares[k])
         abs_err = f - t
         errs.append(abs(abs_err))
         ci = fitted.share_ci.get(k)
