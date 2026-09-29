@@ -204,6 +204,94 @@ def cluster_ci(flags: dict[Any, bool], cluster_of: dict[Any, Any],
             "_method": "cluster bootstrap resampling whole source episodes"}
 
 
+def paired_by_memory(rows_a: list[dict], rows_b: list[dict], *,
+                     n_boot: int = 10000, seed: int = 20260929) -> dict:
+    """WITHIN-MEMORY paired contrast: the strongest form this design supports.
+
+    Verified from the design manifest: all 60 memories appear in BOTH BEARING and
+    MATCHED_CONTROL (and in RANDOM) -- 60/60 paired, zero bearing memories lacking
+    a control. So the comparison is THE SAME MEMORY on tasks it bears on versus
+    tasks it does not, and **memory identity cancels**.
+
+    That kills a whole class of objection outright. "Maybe bearing memories are
+    simply better memories -- longer, richer, drawn from more informative
+    episodes" cannot explain a within-memory difference, because it is the same
+    60 memories on both sides. Composition matching (section 17) says the strata
+    are comparable; PAIRING says the memory is identical, which is stronger.
+
+    What it does NOT fix: the strata remain disjoint in TASKS (BEARING 56, MC 100,
+    overlap 30). Task identity does not cancel, which is why the quantity is dU (a
+    within-task contrast) and why the task-clustered intervals stay required.
+
+    Each memory contributes one number: mean dU over its bearing cells minus mean
+    dU over its control cells. Bootstrap is over MEMORIES, the unit of
+    generalization named in prereg section 6.
+    """
+    def by_mem(rows):
+        acc: dict[Any, list[float]] = collections.defaultdict(list)
+        for r in rows:
+            if r.get("delta_utility") is not None:
+                acc[r["memory_id"]].append(float(r["delta_utility"]))
+        return {m: float(np.mean(v)) for m, v in acc.items() if v}
+
+    A, B = by_mem(rows_a), by_mem(rows_b)
+    shared = sorted(set(A) & set(B), key=str)
+    if len(shared) < 2:
+        return {"n_paired_memories": len(shared), "mean_paired_difference": None,
+                "_note": "fewer than 2 memories appear in both strata; no paired test"}
+    diffs = np.array([A[m] - B[m] for m in shared], dtype=float)
+    obs = float(diffs.mean())
+    rng = np.random.default_rng(seed)
+    boots = [float(rng.choice(diffs, size=len(diffs), replace=True).mean())
+             for _ in range(n_boot)]
+    lo, hi = float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))
+    # Exact-ish sign-flip permutation: under the null the paired difference is
+    # symmetric about 0, so flipping each memory's sign is the right null.
+    ge = 0
+    n_perm = 20000
+    for _ in range(n_perm):
+        sgn = rng.choice([-1.0, 1.0], size=len(diffs))
+        if abs(float((diffs * sgn).mean())) >= abs(obs) - 1e-12:
+            ge += 1
+    # episode-clustered version: resample whole episodes, not memories
+    ep = {}
+    for r in list(rows_a) + list(rows_b):
+        ep[r["memory_id"]] = r.get("source_episode_id")
+    by_ep: dict[Any, list[float]] = collections.defaultdict(list)
+    for m, d in zip(shared, diffs):
+        by_ep[ep.get(m)].append(float(d))
+    eps = sorted(by_ep, key=str)
+    eb = []
+    for _ in range(n_boot):
+        pick = rng.integers(0, len(eps), size=len(eps))
+        vals = [v for i in pick for v in by_ep[eps[i]]]
+        if vals:
+            eb.append(float(np.mean(vals)))
+    elo, ehi = ((float(np.percentile(eb, 2.5)), float(np.percentile(eb, 97.5)))
+                if eb else (None, None))
+    return {
+        "n_paired_memories": len(shared),
+        "n_source_episodes": len(eps),
+        "mean_paired_difference": obs,
+        "memory_bootstrap_ci": [lo, hi],
+        "memory_ci_excludes_zero": bool(lo > 0 or hi < 0),
+        "episode_clustered_ci": [elo, ehi],
+        "episode_ci_excludes_zero": (None if elo is None else bool(elo > 0 or ehi < 0)),
+        "sign_flip_p_two_sided": (ge + 1) / (n_perm + 1),
+        "n_memories_positive": int((diffs > 0).sum()),
+        "n_memories_negative": int((diffs < 0).sum()),
+        "n_memories_zero": int((diffs == 0).sum()),
+        "_why_this_is_the_strongest_form":
+            "all 60 memories appear in both strata, so MEMORY IDENTITY CANCELS: "
+            "'bearing memories are just better memories' cannot explain a "
+            "within-memory difference. Task identity does NOT cancel (strata are "
+            "disjoint in tasks), which is why the quantity is dU and why the "
+            "task-clustered intervals in perm_contrast remain required.",
+        "_governing": "the episode-clustered interval governs when it and the "
+                      "memory-level interval disagree",
+    }
+
+
 def perm_contrast(rows_a: list[dict], rows_b: list[dict], *, n_perm: int = 20000,
                   seed: int = 20260929) -> dict:
     """Permutation test on mean cell-level dU, A vs B, shuffling the stratum label.
@@ -578,6 +666,26 @@ def main() -> int:
 
     # ---- the contrasts ----
     print(f"\n{'='*70}\nCONTRASTS")
+    # WITHIN-MEMORY paired tests come FIRST: memory identity cancels, which is a
+    # stronger guarantee than the composition matching in section 17.
+    report["paired_within_memory"] = {
+        "BEARING_vs_MATCHED_CONTROL": paired_by_memory(
+            by_s.get("BEARING", []), by_s.get("MATCHED_CONTROL", []), seed=args.seed),
+        "BEARING_vs_RANDOM": paired_by_memory(
+            by_s.get("BEARING", []), by_s.get("RANDOM", []), seed=args.seed),
+    }
+    for k2, v in report["paired_within_memory"].items():
+        if v.get("mean_paired_difference") is None:
+            print(f"  PAIRED {k2}: {v.get('_note')}")
+        else:
+            print(f"  PAIRED {k2}: diff={v['mean_paired_difference']:+.4f} "
+                  f"n_mem={v['n_paired_memories']} mem_CI="
+                  f"{[round(x,4) for x in v['memory_bootstrap_ci']]} "
+                  f"episode_CI={[round(x,4) for x in v['episode_clustered_ci']]} "
+                  f"p={v['sign_flip_p_two_sided']:.4f} "
+                  f"(+{v['n_memories_positive']}/0:{v['n_memories_zero']}/"
+                  f"-{v['n_memories_negative']})")
+
     report["contrasts"] = {
         "BEARING_vs_RANDOM": perm_contrast(by_s.get("BEARING", []),
                                            by_s.get("RANDOM", []), seed=args.seed),

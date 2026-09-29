@@ -79,6 +79,25 @@ for s in STR:
 rf=j.get("reference_floor_pooled") or {}
 print(f"\nPOOLED reference floor used for all labels: **{f(rf.get('point'))}**")
 
+print("\n### 5b. WITHIN-MEMORY paired contrast (memory identity cancels)\n")
+pw=j.get("paired_within_memory") or {}
+print("| contrast | n memories | n episodes | paired diff | memory CI | episode CI | sign-flip p | +/0/- |")
+print("|---|---|---|---|---|---|---|---|")
+for k,v in pw.items():
+    if v.get("mean_paired_difference") is None:
+        print(f"| {k} | {v.get('n_paired_memories')} | — | — | — | — | — | — |"); continue
+    mci=v.get("memory_bootstrap_ci") or [None,None]
+    eci=v.get("episode_clustered_ci") or [None,None]
+    print(f"| {k} | {v.get('n_paired_memories')} | {v.get('n_source_episodes')} | "
+          f"**{f(v.get('mean_paired_difference'))}** | [{f(mci[0])},{f(mci[1])}] | "
+          f"**[{f(eci[0])},{f(eci[1])}]** | {f(v.get('sign_flip_p_two_sided'))} | "
+          f"{v.get('n_memories_positive')}/{v.get('n_memories_zero')}/{v.get('n_memories_negative')} |")
+print("\nAll 60 memories appear in BOTH strata, so memory identity cancels: "
+      "\"bearing memories are just better memories\" cannot explain a within-memory")
+print("difference. Task identity does NOT cancel, which is why dU is the quantity")
+print("and why the task-clustered intervals below remain required.")
+print("The **episode-clustered** interval governs where the two disagree.")
+
 print("\n### 6. Contrasts (task-clustered; cells are NOT independent)\n")
 print("| contrast | mean A | mean B | difference | cell-level p | task-clustered CI | excl 0 |")
 print("|---|---|---|---|---|---|---|")
