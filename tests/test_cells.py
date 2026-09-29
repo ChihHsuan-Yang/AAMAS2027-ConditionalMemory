@@ -77,13 +77,27 @@ def test_seeded_position_is_reproducible_but_varies():
 
 
 def test_filler_is_identical_across_memories_within_a_task():
-    """delta-U is only comparable across memories if they share a context."""
+    """delta-U is only comparable across memories if they share a context.
+
+    Stated against the no-exclusion BASELINE, not by comparing two exclusions
+    to each other. Comparing two exclusions is a weak check: under the old
+    filter-then-shuffle defect BOTH draws shifted identically, so they matched
+    and the test passed while the property was broken. That is exactly how I
+    first failed to reproduce the defect Sub-agent G reported.
+
+    Each draw is also compared at equal length: excluding a drawn unit
+    legitimately backfills a different Kth element, so a K-vs-K comparison of
+    two different exclusions is not well posed.
+    """
     pool = _units(30)
-    f_a = select_filler(pool, exclude_ids={"f0"}, k=5, task_id="same-task")
-    f_b = select_filler(pool, exclude_ids={"f1"}, k=5, task_id="same-task")
-    assert [u.memory_id for u in f_a if u.memory_id != "f1"] == [
-        u.memory_id for u in f_b if u.memory_id != "f0"
-    ]
+    base = [u.memory_id for u in select_filler(pool, exclude_ids=set(), k=5,
+                                               task_id="same-task")]
+    for excluded in ("f0", "f1"):
+        got = [u.memory_id for u in select_filler(pool, exclude_ids={excluded},
+                                                  k=5, task_id="same-task")]
+        survivors = [x for x in base if x != excluded]
+        assert got[: len(survivors)] == survivors, (
+            f"excluding {excluded} perturbed the shared filler: {base} -> {got}")
 
 
 def test_filler_excludes_the_target():
