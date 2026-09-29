@@ -25,23 +25,29 @@ abstract that the results contradict is far more costly.
 > conclusion and the kill criterion fires, we would be forced either to withdraw or to
 > submit a paper whose abstract contradicts its results.
 
-## 2. Abstract — FINAL, 268 words
+## 2. Abstract — FINAL (v2), 268 words
 
-Plain text, no math symbols (the instructions require *"plain text"*). Verified 268 words,
-inside *"around 100-300 words"*. Forbidden-claim scan: clean.
+> ⚠️ **v1 is superseded.** v1 said we ask "a question the utility-based memory literature
+> has not". That is **false as of 2026-09-29**: EvoMemEval's released artifact contains
+> 46 memories evaluated on ≥2 distinct tasks, 17 of which flip between `useful` and
+> `harmful` (verified by the Master Agent from downloaded data — see
+> `docs/EVOMEMEVAL_VERDICT.md`). Registering v1 would have put an overclaim in the
+> permanent record. v2 **concedes the phenomenon is already observed** and claims only
+> what survives: signed + replicated + variance-decomposed, against a measured noise floor.
 
-The canonical copy is [`abstract_v1.txt`](abstract_v1.txt) — **paste from that file**, not
-from this table, to avoid markdown artifacts.
+Plain text, no math symbols. **268 words.** Forbidden-claim scan: clean.
+
+Canonical copy: [`abstract_v2.txt`](abstract_v2.txt) — **paste from that file.**
 
 ---
 
-Long-term memory is increasingly treated as a store of reusable value: agent memory systems score each retained item and keep the highest-scoring ones. That design assumes a memory's value is a scalar property of the item. We ask whether it is.
+Agent memory systems increasingly score each retained item by its downstream usefulness and keep the highest-scoring ones. That design treats a memory's value as a scalar property of the item. Recent work shows the same memory can be useful for one future task and harmful for another, but reports this categorically and one execution per pair, which leaves two questions open: how much of a memory's measured value is attributable to the memory itself rather than to the memory-task pairing, and how many observed reversals survive ordinary execution noise.
 
-We study the downstream causal utility of naturally occurring cross-episode memories, defined as the difference in task reward when a memory is available versus absent, measured by paired re-execution of a frozen agent rather than by semantic similarity or model-judged importance. Holding the executor, decoding, context budget, and scoring fixed, we evaluate the same memory against multiple distinct future tasks drawn at controlled semantic distances from the episode that produced it, and repeat every condition across seeds.
+We measure the downstream causal utility of naturally occurring cross-episode memories as a signed, repeated quantity: the difference in task reward when a memory is available versus absent, obtained by paired re-execution of a frozen agent, with the executor, decoding, context budget, and scoring held fixed between arms. We evaluate the same memory against several distinct future tasks drawn at controlled semantic distances from the episode that produced it, and repeat every condition across seeds.
 
-This lets us ask a question the utility-based memory literature has not: not how valuable a memory is on average, but how much of its value belongs to the memory itself rather than to the memory-task pairing. We decompose measured utility into a memory main effect, a task main effect, and a memory-by-task interaction, and compare that interaction against an execution-noise floor estimated from repeated identical conditions. We then measure how often a single naturally occurring memory helps one future task while harming another, counting only sign changes that clear the noise floor, and report how that rate varies with semantic distance from the source episode.
+We begin by estimating an execution-noise floor from repeated identical conditions, including a no-memory arm that is identical across all memory conditions. Against that floor we decompose measured utility into a memory main effect, a task main effect, and a memory-by-task interaction, reporting the interaction's share of variance. We then count how often one memory's utility changes sign across tasks, admitting only changes that clear the floor, and report how that rate varies with semantic distance.
 
-Methods that aggregate utility across semantically related queries treat this variation as noise to be averaged away. We report whether it is instead structure, and state the conditions under which a scalar memory score is an adequate summary of what a memory is worth.
+Methods that average utility over semantically neighboring queries treat this variation as noise. We report whether it is instead structure, and state when a scalar memory score suffices.
 
 ---
 
@@ -49,22 +55,22 @@ Methods that aggregate utility across semantically related queries treat this va
 
 | Choice | Reason |
 |---|---|
-| "We ask whether it is" | Registers a question, not a result. Survives the kill criterion. |
-| "naturally occurring" | The load-bearing word. Planted-fault benchmarks make harm prevalence a *design parameter*; the natural base rate is the defensible number. |
-| "paired re-execution of a frozen agent" | Signals the counterfactual is measured, and pre-empts the Memory-R2 fairness critique (shared memory state, single-item ablation). |
-| "rather than by semantic similarity or model-judged importance" | States the contrast **without** the forbidden "relevance is not utility" framing. |
-| "a question the utility-based memory literature has not" | Asserts a gap in *what is measured*, not priority of *idea*. Not a "first" claim. |
-| "how much of its value belongs to the memory itself rather than to the memory-task pairing" | The actual contribution in one sentence: a variance decomposition. |
-| "counting only sign changes that clear the noise floor" | Tells a reviewer up front we are not reporting noise as a phenomenon. |
-| "Methods that aggregate utility across semantically related queries" | Describes UMEM's neighbourhood averaging **without naming it** (abstract is not the place) and sets up the seam. |
-| "We report whether it is instead structure" | Honest. Not "we show that it is". |
-| No numbers | We have no results. Registering a number we cannot reproduce would be fabrication. |
+| "Recent work shows the same memory can be useful for one future task and harmful for another" | **Concedes EvoMemEval up front.** A reviewer who knows that work will otherwise stop reading. Conceding it costs nothing and buys credibility for what follows |
+| "but reports this categorically and one execution per pair" | The precise, verified gap. Their labels are `useful`/`neutral`/`harmful`, single-shot per cell — so no floor, and no way to know which reversals are real |
+| "signed, repeated quantity" | The three-word statement of the contribution |
+| "naturally occurring" | Load-bearing: planted-fault benchmarks make harm prevalence a design parameter |
+| "paired re-execution of a frozen agent" | Pre-empts the Memory-R2 fairness critique |
+| "held fixed between arms" | Pre-empts the verifier-drift confound |
+| "a no-memory arm that is identical across all memory conditions" | Names the free noise floor — a reviewer can check the logic without our data |
+| "admitting only changes that clear the floor" | Says up front we are not reporting noise as a phenomenon |
+| "Methods that average utility over semantically neighboring queries" | Describes UMEM's neighbourhood averaging without naming it; this is the verified seam |
+| No numbers | We have no results yet |
 
-### Forbidden-claim scan — clean
+### Forbidden-claim scan — CLEAN
 
-Automated scan for: `first`, `novel`, `we introduce`, `we propose`, `relevance`,
+Scanned for `first`, `novel`, `we introduce`, `we propose`, `relevance`,
 `learning what to remember`, `gate`, `state-of-the-art`, `outperform`, `demonstrate that`,
-`we show that`, and any `N%` numeric result. **Zero hits.**
+`we show that`, and any `N%`. **Zero hits.**
 
 ## 3. Keywords
 
@@ -103,7 +109,7 @@ methodology, which is the paper's mode. Up to 2 secondary areas are permitted.
 | Field | Our answer | Confidence |
 |---|---|---|
 | Title | option #2 (see §1) | ready |
-| Abstract | §2 | ready |
+| Abstract | §2 (**v2** — paste `abstract_v2.txt`) | ready |
 | Keywords | §3 | ready |
 | Primary / secondary area | §4 | ready |
 | Authors + OpenReview ids | 🔴 **user decision** | blocked |
