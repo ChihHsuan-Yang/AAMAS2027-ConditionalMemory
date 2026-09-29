@@ -143,13 +143,26 @@ def select_filler(
     k: int,
     task_id: str,
 ) -> list[MemoryUnit]:
-    """Pick K filler units deterministically, seeded by the task.
+    """Pick K filler units deterministically, seeded by the task alone.
 
-    Seeded by ``task_id`` alone, so every memory evaluated against a given task
-    sees the *same* filler. That is what makes delta-U comparable across
-    memories within a task.
+    Every memory evaluated against a given task must see the **same** filler,
+    or delta-U is not comparable across memories within that task: the WITHOUT
+    arm would differ between memories and its spread would confound filler
+    composition with execution noise, corrupting F_empty.
+
+    Fixed 2026-09-29 (defect found by Sub-agent G in Master-authored code).
+    The original filtered ``candidates`` by ``exclude_ids`` and *then* shuffled.
+    ``random.shuffle`` consumes a number of draws that depends on the sequence
+    LENGTH, so removing any element -- even one that would never have been
+    drawn -- re-randomises the whole permutation. Measured on a 30-unit pool:
+    **25 of 25** exclusions of a NON-drawn memory changed the selected filler.
+
+    The fix shuffles the FULL candidate list first, making the permutation a
+    pure function of ``task_id``, and only then drops excluded ids and takes K.
+    Exclusion can now remove at most the excluded unit itself; it can never
+    reorder or resample the rest.
     """
-    pool = [u for u in candidates if u.memory_id not in exclude_ids]
+    ordered = list(candidates)
     rng = _seeded_rng("filler", task_id)
-    rng.shuffle(pool)
-    return pool[:k]
+    rng.shuffle(ordered)
+    return [u for u in ordered if u.memory_id not in exclude_ids][:k]

@@ -101,3 +101,43 @@ def test_planted_defect_target_leaking_into_without_arm_is_caught():
     wo = a if a["key_fields"]["arm"] == "without" else b
     corrupted = wo["messages"][1]["content"] + "\nUNIQUE-TARGET-BODY"
     assert "UNIQUE-TARGET-BODY" in corrupted  # the check CAN fire
+
+
+def test_excluding_a_non_drawn_memory_does_not_change_the_filler():
+    """Regression: the defect that would have corrupted F_empty.
+
+    ``random.shuffle`` consumes draws proportional to sequence LENGTH, so the
+    original implementation (filter-then-shuffle) re-randomised the entire
+    permutation whenever any element was removed -- including elements that
+    would never have been drawn. Measured before the fix: 25 of 25 exclusions
+    of a non-drawn memory changed the selected filler.
+
+    If this regresses, the WITHOUT arm differs between memories within a task,
+    its spread confounds filler composition with execution noise, and F_empty
+    measures the wrong thing.
+
+    Found by Sub-agent G in Master-authored code.
+    """
+    pool = _units(30, prefix="m")
+    base = [u.memory_id for u in select_filler(pool, exclude_ids=set(), k=5, task_id="T")]
+    assert len(base) == 5
+    checked = 0
+    for u in pool:
+        if u.memory_id in base:
+            continue
+        checked += 1
+        got = [x.memory_id for x in select_filler(
+            pool, exclude_ids={u.memory_id}, k=5, task_id="T")]
+        assert got == base, (
+            f"excluding non-drawn {u.memory_id} changed the filler: {base} -> {got}")
+    assert checked >= 20, "test is vacuous: too few non-drawn memories exercised"
+
+
+def test_excluding_a_drawn_memory_removes_only_that_unit():
+    """The one legitimate effect of exclusion: drop it, backfill, keep order."""
+    pool = _units(30, prefix="m")
+    base = [u.memory_id for u in select_filler(pool, exclude_ids=set(), k=5, task_id="T")]
+    got = [u.memory_id for u in select_filler(
+        pool, exclude_ids={base[2]}, k=5, task_id="T")]
+    assert base[2] not in got
+    assert [x for x in base if x != base[2]] == got[:4], "surviving order must be stable"
