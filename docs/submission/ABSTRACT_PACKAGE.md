@@ -1,5 +1,19 @@
 # AAMAS 2027 Main Track — Abstract Submission Package
 
+> ## 🔴 REGISTER `abstract_v3.txt` (271 words). v1 and v2 are superseded.
+>
+> **Title:** *What Is This Memory Useful For? Conditional Evaluation of Long-Term Agent
+> Memory* · **Primary area:** LEARN · **Secondary:** GAAI, EMAS
+> **Keywords:** agent memory; long-term memory; counterfactual evaluation; memory utility;
+> memory representation; efficiency; LLM agents
+>
+> | Version | Status | Why superseded |
+> |---|---|---|
+> | v1 | ❌ | claimed a question "the literature has not" asked — falsified by EvoMemEval's released artifact |
+> | v2 | ❌ | accurate but too narrow: variance decomposition only; omitted representations and efficiency |
+> | **v3** | ✅ **REGISTER THIS** | the frozen story: conditional evaluation, three representations, reliability, efficiency frontier, released dataset |
+
+
 **Ready to paste. Due 1 Oct 2026 AoE.** Drafted 2026-09-29.
 
 ---
