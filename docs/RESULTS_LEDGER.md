@@ -58,6 +58,12 @@ that produced it and the date it was measured.
 | 38 | Metis sustained throughput | **5.690 req/s, 341.4 completed/min**, p50 2.588 s, p95 4.392 s, 61,323 tok/s @16 workers | Sub-agent C, 6-wave | 2026-09-29 | VERIFIED |
 | 39 | Concurrency ceiling | 0 failures /316 reqs at ≤16; **429s at 24 (12.50%)** and 32 (8.33%); 32 buys +2.6% throughput | Sub-agent C | 2026-09-29 | VERIFIED — ceiling observed, not assumed |
 | 40 | REML recovery error vs study size | 30×8: **0.0627** (worst 0.1175) · 60×8: 0.0238 · 120×8: 0.0231 · 240×8: 0.0155 · **120×16: 0.0103** | Master Agent, synthetic with known planted components | 2026-09-29 | VERIFIED — 60 memories minimum; widen the TASK axis |
+| 41 | **FIRST REAL EXECUTION** — noise-floor probe | 96 cells, **92 ok / 4 truncated** | `results/runs/noise_floor/ledger.jsonl` | 2026-09-29 | VERIFIED |
+| 42 | Truncation guard fires on real data | 4 cells, `reasoning_tokens=510` consumed the 512 budget → raised, not scored | same | 2026-09-29 | VERIFIED — would otherwise have manufactured false negatives |
+| 43 | **Replicate disagreement at temperature 0** | **1 of 23 groups = 4.3%**; mean per-arm score variance **0.0109** | same | 2026-09-29 | VERIFIED — **the endpoint is NOT deterministic; F_exec is real and nonzero** |
+| 44 | Probe accuracy | **2 / 92** | same | 2026-09-29 | VERIFIED — ⚠️ artifact of MY design (one arbitrary target memory per task, 2 distinct memories total), not a model result. Floor measured in an uninformative regime; superseded by the paired run |
+| 45 | `select_filler` defect (Master-authored, found by Sub-agent G) | **25/25** exclusions of a NON-drawn memory changed the filler → **0/25** after fix | `tests/test_cells.py` | 2026-09-29 | VERIFIED + regression-tested |
+| 46 | V2 leakage, FULL matrix | 423,664 cells, 114,207 flagged: ≤2ch **97.71%** · 3–5 44.74% · 6–12 23.48% · 13–30 6.84% · **>30 4.68%** · pooled 26.96% | Sub-agent A | 2026-09-29 | VERIFIED — **never quote the pooled 26.96%**; the 97.7% row is multiple-choice golds and measures the alphabet. **Credible rate: 4.68%** |
 
 ## Inherited numbers pending re-derivation
 
