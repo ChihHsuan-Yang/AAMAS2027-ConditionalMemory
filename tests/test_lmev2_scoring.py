@@ -210,3 +210,127 @@ def test_adapter_dispatches_every_spec_string_present_in_the_data() -> None:
             continue
         # must not raise
         eval_from_spec(spec, "probe prediction", "probe")
+
+
+# --------------------------------------------------------------------------
+# memory unit + pairing
+# --------------------------------------------------------------------------
+
+
+def _toy_trajectory() -> dict:
+    return {
+        "id": "T1", "domain": "web", "environment": "webarena",
+        "outcome": "success", "goal": "buy a thing", "start_url": "u0",
+        "states": [
+            {"state_index": i, "step": i, "url": url, "action": act,
+             "thought": None, "accessibility_tree": f"tree{i}"}
+            for i, (url, act) in enumerate(
+                [("u0", None), ("u0", "click('1')"), ("u1", "fill('2','x')"),
+                 ("u2", "click('3')"), ("u2", "click('4')"), ("u0", "back()")]
+            )
+        ],
+    }
+
+
+def test_page_visit_boundaries_are_url_runs() -> None:
+    units = lmev2.segment_page_visits(_toy_trajectory())
+    assert [u.span for u in units] == [(0, 1), (2, 2), (3, 4), (5, 5)]
+    assert [u.n_states for u in units] == [2, 1, 2, 1]
+    # a returning URL starts a NEW unit -- runs are contiguous, not grouped
+    assert units[0].url == units[3].url == "u0"
+
+
+def test_page_visits_partition_the_trajectory_exactly() -> None:
+    """No state may be dropped or double-counted by the segmentation."""
+    traj = _toy_trajectory()
+    units = lmev2.segment_page_visits(traj)
+    covered: list[int] = []
+    for u in units:
+        covered.extend(range(u.start_state_index, u.end_state_index + 1))
+    assert covered == list(range(len(traj["states"])))
+
+
+def test_memory_writer_cannot_see_the_future_task() -> None:
+    """The frozen object's central constraint, checked rather than asserted."""
+    lmev2.assert_writer_blind()
+
+
+def test_assert_writer_blind_can_actually_fail() -> None:
+    """Positive control for the blindness check itself.
+
+    A guard that has never been shown to fire is not evidence. Hand it a
+    deliberately leaky segmenter and require it to raise.
+    """
+
+    def leaky(traj: dict, **kw: object) -> list[lmev2.PageVisit]:
+        units = lmev2.segment_page_visits(traj)
+        if "question" in traj:  # peeks at the future task
+            units = [
+                lmev2.PageVisit(**{**u.__dict__, "text": u.text + traj["question"]})
+                for u in units
+            ]
+        return units
+
+    with pytest.raises(lmev2.DataError):
+        lmev2.assert_writer_blind(leaky)
+
+
+@needs_data
+def test_pairing_is_deterministic_and_seed_bound() -> None:
+    tasks = lmev2.load_tasks(DATA_ROOT)
+    units = lmev2.segment_page_visits(_toy_trajectory())
+    a = lmev2.select_pairs(units, tasks, seed=7, tasks_per_memory=5)
+    b = lmev2.select_pairs(units, tasks, seed=7, tasks_per_memory=5)
+    c = lmev2.select_pairs(units, tasks, seed=8, tasks_per_memory=5)
+    assert [p.__dict__ for p in a] == [p.__dict__ for p in b]
+    # the seed must actually bind -- otherwise determinism is vacuous
+    assert [p.__dict__ for p in a] != [p.__dict__ for p in c]
+
+
+@needs_data
+def test_pairing_never_crosses_domains() -> None:
+    tasks = lmev2.load_tasks(DATA_ROOT)
+    units = lmev2.segment_page_visits(_toy_trajectory())  # domain=web
+    pairs = lmev2.select_pairs(units, tasks, seed=7, tasks_per_memory=6)
+    by_id = {t.id: t for t in tasks}
+    assert pairs
+    assert all(by_id[p.task_id].domain == "web" for p in pairs)
+
+
+@needs_data
+def test_pairing_uses_only_deterministic_tasks_by_default() -> None:
+    tasks = lmev2.load_tasks(DATA_ROOT)
+    units = lmev2.segment_page_visits(_toy_trajectory())
+    pairs = lmev2.select_pairs(units, tasks, seed=7, tasks_per_memory=6)
+    by_id = {t.id: t for t in tasks}
+    assert all(by_id[p.task_id].deterministic for p in pairs)
+
+
+@needs_data
+def test_same_site_is_unknown_not_false_for_web() -> None:
+    """Regression test for a bug that made the field re-encode `domain`.
+
+    Question environments are finer-grained (webarena-reddit) than trajectory
+    environments (webarena), so site-level match is NOT derivable for web.
+    It must be recorded as None, never as False.
+    """
+    tasks = lmev2.load_tasks(DATA_ROOT)
+    units = lmev2.segment_page_visits(_toy_trajectory())
+    pairs = lmev2.select_pairs(units, tasks, seed=7, tasks_per_memory=6)
+    web = [p for p in pairs if p.domain == "web"]
+    assert web
+    assert all(p.same_site is None for p in web), (
+        "web site-level match is not derivable and must not be reported as False"
+    )
+    assert all(p.same_environment_coarse for p in web)
+
+
+@needs_data
+def test_question_environments_are_finer_than_trajectory_environments() -> None:
+    """Pins the data property the same_site fix depends on."""
+    q_envs = {t.environment for t in lmev2.load_tasks(DATA_ROOT)}
+    assert q_envs == {
+        "workarena", "webarena-reddit", "webarena-cms", "webarena-onestopshop"
+    }, q_envs
+    assert lmev2.coarse_environment("webarena-reddit") == "webarena"
+    assert lmev2.coarse_environment("workarena") == "workarena"
