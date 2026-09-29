@@ -1,8 +1,16 @@
-# P1 — Project Goal
+# P1 — Project Goal (FROZEN 2026-09-29)
 
-**Working title:** *Memory Utility Is Not a Scalar: Measuring Task-Conditional Value in Long-Term Agent Memory*
+**Working title:** *What Is This Memory Useful For? Conditional Evaluation of Long-Term
+Agent Memory*
 
-Status: **measurement phase. No experiments run yet.** (initialized 2026-09-29)
+**Target:** AAMAS 2027 main track. Abstract 1 Oct 2026 AoE, paper 8 Oct 2026 AoE.
+
+> ## This story is FROZEN.
+> New literature may change novelty wording, citations, baselines, or added experiments.
+> It does **not** change what this project studies. Only evidence that the entire planned
+> experiment has already been executed — same memory-acquisition comparison, same
+> cross-benchmark conditional utility, same harmfulness/reliability, same efficiency
+> framework, same derived dataset — may reopen the framing.
 
 ---
 
@@ -10,45 +18,78 @@ Status: **measurement phase. No experiments run yet.** (initialized 2026-09-29)
 
 > **What is this memory useful for?**
 
-Not "is this memory good?" — that presupposes the answer is a scalar.
+Past agent experience can be stored in different forms. A memory is valuable only insofar
+as it changes future behavior. So we evaluate: which future tasks a memory helps, which it
+leaves unaffected, which it harms, how stable those effects are, and what storage,
+retrieval, context, latency, and compute that benefit costs.
 
-## The scientific object
+## The object
 
-For a memory `m` written during a past episode, and a **later, different** future task `t`:
+```text
+U(memory, future_task)
+```
+
+measured behaviorally through actual downstream execution:
 
 ```text
 DeltaU(m, t) = Reward(t | m available) - Reward(t | m absent)
 ```
 
-measured by **actual downstream execution**. Never by semantic similarity. Never by an
-LLM's judgment of importance.
+This project is **conditional memory evaluation**. It is **not** a vector database, not a
+learned gate, not a RAG system, not a pure variance paper, and not a claim to have
+discovered task-conditioned memory.
 
-The hypothesis under test:
+## Four contributions
 
-> The downstream causal utility of a long-term memory contains a meaningful
-> **memory x future-task interaction** that cannot be explained by one global
-> memory-value scalar or by execution noise.
+### A — Conditional memory measurement
+Evaluate the same past experience across multiple future tasks. Characterize each memory
+as broadly useful, task-specific, neutral, conditionally harmful, or sign-flipping.
+**Do not reduce a memory to one global importance score.**
 
-This is a hypothesis. It is not an assumed conclusion. See `docs/EXPERIMENT_PLAN.md`
-for the kill criterion that would end the project.
+### B — Memory representation comparison
+The same source experience stored three ways: **Raw/Extractive**, **Abstractive Summary**,
+**Structured Experience**. This measures how memory *formation* affects downstream utility
+and harm.
 
-## What is NOT the contribution
+### C — Utility + efficiency evaluation
+Not only accuracy. Storage, retrieval, exposure, latency, API/compute, selectivity, and
+extraction efficiency — combining into a **Memory Utility–Efficiency Frontier**.
 
-This project is **not** a memory gate. The 2026 literature converged hard on learned
-memory-write policies; that framing is anticipated. See `docs/LITERATURE_BOUNDARY.md`
-for the forbidden-claims list, which is binding on every document in this repo and on
-the manuscript.
+### D — Reusable dataset + harness
+A **Conditional Memory Utility Dataset** capturing
+`memory × future task × representation × replicate × utility × cost`, designed so P3 can
+add `receiver / receiver subset` without redesign.
 
-A learned predictor appears only in a late stage, and only if the measurement survives.
-Its purpose is to test whether measured structure is *exploitable*, not to claim a small
-MLP is novel.
+## Benchmarks — frozen initial set
 
-## Non-negotiable scientific order
+| # | Benchmark | Role |
+|---|---|---|
+| 1 | **LongMemEval-V2** | primary long-term agent-memory benchmark; highest priority |
+| 2 | **BEAM** | multi-domain / memory-ability generalization |
+| 3 | **SciCode** | scientific & procedural memory |
 
-1. Establish the execution / seed noise floor.
-2. Construct memory x future-task counterfactual measurements.
-3. Determine whether the memory x task interaction is real.
-4. Measure natural sign flips.
-5. **Only if the phenomenon is meaningful**, train a predictor.
+No additional benchmarks until these are substantially complete.
 
-Do not start at step 5. A fast, honest falsification is a successful outcome.
+## Hard invariants
+
+1. **The memory writer never sees the future evaluation task.** Memory formation depends
+   only on past experience. This is the leakage guarantee the whole design rests on.
+2. **WITH and WITHOUT arms are identical** in model, cluster, serving config, decoding,
+   scaffold, context budget, and scoring. Any asymmetry is a confound.
+3. **Cluster is part of the experimental unit.** Never merge generations from different
+   clusters into one condition because the model names look alike.
+4. **Replication before interpretation.** A single-shot utility label cannot distinguish a
+   real effect from execution noise. Sign flips must clear a measured floor.
+5. **Continuous rewards are retained.** Do not collapse to binary early.
+6. **Every paper number traces** to an artifact, script, config, and model manifest.
+
+## What would stop the project
+
+If the conditional structure is entirely inside the noise floor — no robust sign flips, no
+interaction beyond execution variance, a single scalar explaining nearly everything — that
+is a reportable result, and the paper reports it plainly rather than building a system to
+rescue it.
+
+**Note:** this is now a weaker stopping condition than in the original plan, because
+Contributions B, C, and D do not depend on A finding a positive result. A null on A still
+leaves a representation comparison, an efficiency frontier, and a dataset.
