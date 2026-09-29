@@ -592,6 +592,77 @@ def main() -> int:
                   f"mean_b={v['mean_b']:+.4f} (n={v['n_cells_b']}) "
                   f"diff={v['observed_difference']:+.4f} p={v['p_two_sided']:.4f}")
 
+    # ---- cell concentration: a DESIGN CHARACTERISTIC, not only a correction ----
+    # The shared task grid is what separates the task main effect from the
+    # interaction (it is the identifiability fix), and it is ALSO what puts a
+    # third of the cells on ten tasks. One design tension, not two problems.
+    # Reported so a reader sees WHY the clustering is there rather than reading
+    # it as defensive statistics.
+    def concentration(rs: list[dict]) -> dict:
+        pt_ = collections.Counter(r["future_task_id"] for r in rs)
+        n_ = len(rs)
+        if not n_:
+            return {"n_cells": 0}
+        top = pt_.most_common()
+        cum, half = 0, None
+        for i, (_t, v) in enumerate(top, 1):
+            cum += v
+            if half is None and cum >= n_ / 2:
+                half = i
+        return {
+            "n_cells": n_, "n_tasks": len(pt_),
+            "max_cells_on_one_task": max(pt_.values()),
+            "n_tasks_with_ge20_cells": sum(1 for v in pt_.values() if v >= 20),
+            "top10_share": sum(v for _t, v in top[:10]) / n_,
+            "top20_share": sum(v for _t, v in top[:20]) / n_,
+            "n_tasks_holding_half_the_cells": half,
+        }
+
+    cell_rows = {(r["memory_id"], r["future_task_id"]): r for r in rows}
+    report["cell_concentration"] = {
+        "ALL": concentration(list(cell_rows.values())),
+        **{st: concentration([v for k2, v in cell_rows.items()
+                              if stratum_of(v) == st]) for st in STRATA},
+        "_why_reported":
+            "the shared task grid is the identifiability fix AND the source of the "
+            "concentration; they are one design tension. This is why every contrast "
+            "carries a task-clustered CI and a leave-one-task-out jackknife.",
+    }
+    ca = report["cell_concentration"]["ALL"]
+    print(f"\n  cell concentration (ALL): {ca['n_cells']} cells on {ca['n_tasks']} tasks; "
+          f"top10 = {ca['top10_share']:.1%}; half the cells on "
+          f"{ca['n_tasks_holding_half_the_cells']} tasks; max {ca['max_cells_on_one_task']}")
+
+    # ---- CLUSTERED GOVERNS: flag any contrast where the two disagree ----
+    # Policy (docs/CONTRAST_FRAMING.md): if the task-clustered CI and the
+    # cell-level p disagree, the CLUSTERED one governs. Detecting the
+    # disagreement automatically means it cannot be quietly not-noticed.
+    disagree = {}
+    for k2, v in (report.get("contrasts") or {}).items():
+        pcell = v.get("p_two_sided")
+        excl = v.get("task_clustered_ci_excludes_zero")
+        if pcell is None or excl is None:
+            continue
+        cell_says_sig = pcell < 0.05
+        if cell_says_sig != bool(excl):
+            disagree[k2] = {
+                "cell_level_p": pcell, "cell_level_calls_it_significant": cell_says_sig,
+                "task_clustered_ci": v.get("task_clustered_ci"),
+                "clustered_calls_it_significant": bool(excl),
+                "GOVERNING": "task_clustered",
+                "_rule": "docs/CONTRAST_FRAMING.md: when they disagree the clustered "
+                         "interval governs; report both, lead with the conservative one.",
+            }
+    report["clustered_vs_cell_level_disagreements"] = disagree
+    if disagree:
+        print("\n  ⚠️ CLUSTERED vs CELL-LEVEL DISAGREE (clustered governs):")
+        for k2, d in disagree.items():
+            print(f"     {k2}: cell p={d['cell_level_p']:.4f} sig={d['cell_level_calls_it_significant']} "
+                  f"BUT clustered CI {[round(x,4) for x in (d['task_clustered_ci'] or [])]} "
+                  f"sig={d['clustered_calls_it_significant']}")
+    else:
+        print("\n  clustered and cell-level agree on every contrast")
+
     # both-arms-fail side by side: THE headline diagnostic
     report["both_arms_fail_by_stratum"] = {
         st: report["per_stratum"][st].get("both_arms_fail") for st in STRATA}

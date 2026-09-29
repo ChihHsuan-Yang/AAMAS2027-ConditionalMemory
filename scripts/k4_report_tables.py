@@ -97,6 +97,34 @@ for k,v in (j.get("contrasts") or {}).items():
           f"**{f(jk.get('difference_without_that_task'))}** | "
           f"**{jk.get('sign_stable_across_all_drops')}** |")
 
+print("\n### 6b. Cell concentration — a design characteristic\n")
+cc=j.get("cell_concentration") or {}
+print("| scope | cells | tasks | max on one task | tasks >=20 cells | top-10 share | tasks holding half |")
+print("|---|---|---|---|---|---|---|")
+for k in ("ALL",)+STR:
+    e=cc.get(k) or {}
+    if not e.get("n_cells"): continue
+    t10=e.get("top10_share")
+    print(f"| {k} | {e.get('n_cells')} | {e.get('n_tasks')} | {e.get('max_cells_on_one_task')} | "
+          f"{e.get('n_tasks_with_ge20_cells')} | **{'' if t10 is None else format(t10,'.1%')}** | "
+          f"{e.get('n_tasks_holding_half_the_cells')} |")
+print("\nThe shared task grid is the identifiability fix AND the source of this")
+print("concentration - one design tension, not two problems.")
+
+dis=j.get("clustered_vs_cell_level_disagreements")
+print("\n### 6c. Clustered vs cell-level\n")
+if dis:
+    print("⚠️ **They DISAGREE on the following; the task-clustered result GOVERNS.**\n")
+    for k,d in dis.items():
+        print(f"- `{k}`: cell-level p={f(d.get('cell_level_p'))} "
+              f"(sig={d.get('cell_level_calls_it_significant')}) but clustered CI "
+              f"{[round(x,4) for x in (d.get('task_clustered_ci') or [])]} "
+              f"(sig={d.get('clustered_calls_it_significant')}) -> **clustered governs**")
+elif dis == {}:
+    print("Clustered and cell-level agree on every contrast.")
+else:
+    print("not present in artifact")
+
 print("\n### 7. Variance decomposition identifiability\n")
 pd_=j.get("pooled_decomposition") or {}
 print(f"- POOLED identified: **{pd_.get('identified')}**")
