@@ -12,7 +12,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-analysis = ["pandas>=2.0", "statsmodels>=0.14"]
+# statsmodels is deliberately NOT required: it is absent from the dev environment, and
+# MixedLM cannot fit the crossed random effects of ANALYSIS_PREREGISTRATION section 6
+# without contortion. src/p1mem/analysis/decomposition.py implements REML directly on
+# numpy + scipy, with the pre-registered method-of-moments fallback. matplotlib is
+# needed only by the figure RENDERERS; the figure DATA functions (which answer "can the
+# schema produce this figure?") import nothing beyond numpy/scipy.
+analysis = ["pandas>=2.0", "matplotlib>=3.7"]
 dev = ["pytest>=7.0"]
 
 [build-system]
