@@ -27,10 +27,10 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 |---|---|---|---|---|---|---|---|---|---|
 | P1-001 | P0 | Freeze storyline in repo + Overleaf | Master | DONE | — | `docs/PROJECT_GOAL.md` | — | yes | frozen doc + abstract agree |
 | P1-002 | P0 | Memory acquisition protocol (writer never sees future task) | Master+B | **DONE** | 001 | `docs/MEMORY_PROTOCOL.md` | B implements | yes | invariant + enforcement stated |
-| P1-003 | P0 | Define Raw representation | B | TODO | 002 | — | deterministic span rule | yes | spec + code |
-| P1-004 | P0 | Define Summary representation | B | TODO | 002 | — | fixed writer + prompt vN | yes | spec + code |
-| P1-005 | P0 | Define Structured representation | B | TODO | 002 | — | schema incl. procedural variant | yes | spec + code |
-| P1-006 | P1 | Memory semantic-type labels (episodic/semantic/procedural/failure) | B | TODO | 002 | — | keep distinct from representation | yes | labelling rule + agreement check |
+| P1-003 | P0 | Define Raw representation | B | **DONE** — deterministic, 0 calls | 002 | — | deterministic span rule | yes | spec + code |
+| P1-004 | P0 | Define Summary representation | B | **DONE** — median 362 tok, cr 0.063 | 002 | — | fixed writer + prompt vN | yes | spec + code |
+| P1-005 | P0 | Define Structured representation | B | **DONE** — median 246 tok, cr 0.037, 0/8 malformed | 002 | — | schema incl. procedural variant | yes | spec + code |
+| P1-006 | P1 | Memory semantic-type labels | B | ⚠️ **NOT SAFE AS AN AXIS** — κ=0.000, native pass called all 8 `episodic` | 002 | — | keep distinct from representation | yes | labelling rule + agreement check |
 | P1-007 | P0 | WITH/WITHOUT intervention definition | Master | **DONE** | 002 | `docs/MEMORY_PROTOCOL.md` §4 | — | yes | controlled filler required in both arms |
 | P1-008 | P0 | Robust useful/harmful definition vs noise floor | Master | **DONE** | — | `docs/ANALYSIS_PREREGISTRATION.md` §4-5, committed **before any data** | — | yes | thresholds fixed pre-hoc |
 | P1-009 | P0 | Efficiency metric definitions | D | TODO | 001 | — | 7 families, §17 | yes | each metric has a field |
@@ -41,14 +41,14 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 
 | ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
 |---|---|---|---|---|---|---|---|---|---|
-| P1-020 | P0 | LongMemEval-V2 adapter + official scorers | A | RUNNING | — | `/tmp/lmev2` checksum-verified | extract scorers from `harness.py` | yes | unit tests pass |
-| P1-021 | P0 | V2 memory unit + memory×task pairing | A | RUNNING | 020 | 164k tok/trajectory → must subdivide | measured token distribution | yes | unit fixed + seeded pairing |
-| P1-022 | P0 | Leakage audit + detector | A | RUNNING | 020 | — | must prove detector can fail | yes | rate reported, cells flagged not dropped |
-| P1-023 | P1 | BEAM adapter | A | RUNNING | — | — | obtainability first | yes | adapter or documented exception |
+| P1-020 | P0 | LongMemEval-V2 adapter + official scorers | A | **DONE** | — | `/tmp/lmev2` checksum-verified | extract scorers from `harness.py` | yes | unit tests pass |
+| P1-021 | P0 | V2 memory unit + memory×task pairing | A | **DONE** — page visit, median 7,261 tok; **1,889 mem × 8 tasks** | 020 | 164k tok/trajectory → must subdivide | measured token distribution | yes | unit fixed + seeded pairing |
+| P1-022 | P0 | Leakage audit + detector | A | **DONE** — 17/17 controls; rates are LOWER BOUNDS | 020 | — | must prove detector can fail | yes | rate reported, cells flagged not dropped |
+| P1-023 | P1 | BEAM adapter | A | **DEFERRED** — 92.6% of cited turns cited by exactly 1 question; cannot supply the multi-task axis | — | — | obtainability first | yes | adapter or documented exception |
 | P1-024 | P1 | BEAM task/domain mapping | A | BLOCKED | 023 | — | — | yes | — |
-| P1-025 | P1 | SciCode adapter | A | RUNNING | — | — | obtainability first | yes | adapter or documented exception |
+| P1-025 | P1 | SciCode adapter | A | **SCOPED DOWN** — ~8–12 cross-problem pairs; case study, not a main table | — | — | obtainability first | yes | adapter or documented exception |
 | P1-026 | P1 | SciCode source→future transfer mapping | A | BLOCKED | 025 | — | — | yes | — |
-| P1-027 | P0 | License/provenance audit (ShareGPT/UltraChat carry own terms) | A | RUNNING | — | — | `docs/BENCHMARK_LICENSES.md` | yes | redistribution rules explicit |
+| P1-027 | P0 | License/provenance audit | A | **DONE** — BEAM CC BY-SA 4.0 ShareAlike forces a separate release | — | — | `docs/BENCHMARK_LICENSES.md` | yes | redistribution rules explicit |
 
 ## Infrastructure — Sub-agent C
 
@@ -58,11 +58,11 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 | P1-031 | P0 | Minerva primary-model feasibility | C | **DONE** | 030 | `gpt-oss-120b` **503 persistent** on Minerva; inkling/nemotron serve | — | yes | evidence recorded |
 | P1-032 | P0 | **Freeze primary generation model+cluster** | Master | **DONE** | 031 | `docs/CLUSTER_DECISION.md` — gpt-oss-120b on **Metis** | — | yes | pinned |
 | P1-033 | P0 | Freeze embedding model | Master | DONE | — | `SFR-Embedding-Mistral` dim 4096, deterministic cos=1.0, batches | — | yes | pinned |
-| P1-034 | P0 | Concurrency benchmark (ladder 1→16) | C | RUNNING | 032 | — | `docs/ENDPOINT_THROUGHPUT.md` | yes | chosen value justified by table |
-| P1-035 | P1 | Aurora orchestration runner | C | RUNNING | 034 | — | check allocation first | no* | resumable job or documented fallback |
-| P1-036 | P0 | Response cache (cluster in the key) | C | RUNNING | — | — | test: cross-cluster keys differ | yes | tests pass |
-| P1-037 | P0 | Retry/resume/checkpoint | C | RUNNING | 036 | — | — | yes | restart re-pays nothing |
-| P1-038 | P0 | Cost/token/latency logger | C | RUNNING | 036 | — | — | yes | every call logged |
+| P1-034 | P0 | Concurrency benchmark | C | **DONE** — **16 workers**, 0 failures /316 reqs; 429s at 24 | 032 | — | `docs/ENDPOINT_THROUGHPUT.md` | yes | chosen value justified by table |
+| P1-035 | P1 | Aurora orchestration runner | C | **DONE (not used)** — allocated, but gateway-bound; laptop path | 034 | — | check allocation first | no* | resumable job or documented fallback |
+| P1-036 | P0 | Response cache | C | **DONE** — isolation verified behaviourally by Master | — | — | test: cross-cluster keys differ | yes | tests pass |
+| P1-037 | P0 | Retry/resume/checkpoint | C | **DONE** — 12 cells re-ran with 0 calls | 036 | — | — | yes | restart re-pays nothing |
+| P1-038 | P0 | Cost/token/latency logger | C | **DONE** | 036 | — | — | yes | every call logged |
 
 \* Aurora is an execution convenience; a gateway-driven run is an acceptable fallback at our scale.
 
@@ -82,9 +82,9 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 
 | ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
 |---|---|---|---|---|---|---|---|---|---|
-| P1-050 | P0 | Extraction pilot (3 representations) | B | BLOCKED | 003-005, 032 | — | — | yes | 3 reps for N episodes |
-| P1-051 | P0 | **Noise/reliability pilot** | D | BLOCKED | 032, 036 | free no-memory arm | — | yes | floor measured |
-| P1-052 | P0 | LongMemEval-V2 pilot | D | BLOCKED | 020, 050, 051 | — | — | yes | pipeline end-to-end |
+| P1-050 | P0 | Extraction pilot | B | **DONE** — 8 segments, 24 calls | 003-005, 032 | — | — | yes | 3 reps for N episodes |
+| P1-051 | P0 | **Noise/reliability pilot** | G | **RUNNING** | 032, 036 | free no-memory arm | — | yes | floor measured |
+| P1-052 | P0 | LongMemEval-V2 pilot | G | **RUNNING** | 020, 050, 051 | — | — | yes | pipeline end-to-end |
 | P1-053 | P0 | LongMemEval-V2 main run | D | BLOCKED | 052 | — | — | yes | main table cells filled |
 | P1-054 | P1 | BEAM pilot | D | BLOCKED | 023 | — | — | yes | — |
 | P1-055 | P1 | BEAM main run | D | BLOCKED | 054 | — | — | no | — |
@@ -153,6 +153,18 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 | P1-122 | `memory_id` collision: A emits a positional locator, E a content hash | Every row would be rejected at validation. Ruling: A renames to `memory_unit_locator`; a positional id is unstable under re-segmentation | P0 | yes |
 | P1-123 | `semantic_distance_band` looks per-row but is defined as a per-benchmark tercile | A row-by-row writer produces bands that depend on **write order**. Needs a post-pass after all similarities exist | P0 | yes |
 | P1-124 | `utility_label`/`robustness_confidence` depend on the unmeasured floor `F` | They must emit `undetermined` until the noise floor exists, and be **recomputed** afterwards. Filling them now would fabricate | P0 | yes |
+
+## Added (trigger recorded) — second batch
+
+| ID | Trigger | Why it matters | Pri | Sub? |
+|---|---|---|---|---|
+| P1-125 | REML recovery error **0.0627 at 30 memories** (worst seed 0.1175) | 30 memories gives an 11-point error bar on the headline share. **60 minimum, 120×8 target**; 120×16 beats 240×8, so widen the TASK axis | P0 | yes |
+| P1-126 | BEAM: **92.6% of cited turns cited by exactly one question** | Cannot supply multi-task-per-memory. Demoted to secondary; documented scientific exception to the 3-benchmark target | P0 | yes |
+| P1-127 | Exactly **one** deterministically-scorable `errors-gotchas` question exists, = **12.5% of web cells** | One question could drive an apparent effect. **Cluster SEs by `task_id`** | P0 | yes |
+| P1-128 | Official scorer bug: `normalize_phrase` strips punctuation without a space (`value='GPS`→`valuegps`) | **All leakage rates are LOWER BOUNDS.** Pinned as an expected-failure control | P0 | yes |
+| P1-129 | `memory_semantic_type` agreement **3/8, κ=0.000** — native pass labelled everything `episodic` | Not safe as an analysis axis. Either widen the labelling run or drop the axis and say why | P1 | yes |
+| P1-130 | Structured contradiction rate 0.667 is a **scope-collision artifact** (schema's per-segment `action` vs source's per-state `- Action:`); 0.000 excluding it | Must never be quoted as a hallucination rate | P1 | yes |
+| P1-131 | V2 pairs are stratified by **question type**, not embedding distance | NEAR/MID/FAR needs a separate cosine-tercile post-pass. Two different strata; do not conflate | P0 | yes |
 
 ## Deferred
 
