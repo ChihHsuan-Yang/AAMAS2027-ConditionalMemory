@@ -78,11 +78,44 @@ PROXY_LIMITATIONS: tuple[str, ...] = (
     "unsupported inference with no new tokens scores 1.0",
     "negation/modality in free prose is invisible to the contradiction check",
     "faithful paraphrase that renames an entity is scored as UNSUPPORTED (false alarm)",
+    "ENTITY FALSE-ALARM FLOOR (MEASURED, B6 pilot): the unsupported 'entities' were "
+    "almost entirely sentence-initial capitalised VERBS ('Clicked', 'Executed', "
+    "'Performed', 'Starting') plus the structured renderer's OWN key names "
+    "('memory_type'), none of which are model-invented content. So entity_support is "
+    "a LOWER bound -- 0.809 for structured and 0.928 for summary in the pilot -- and a "
+    "gap from 1.0 is not evidence of hallucination without reading the list.",
+    "SCOPE COLLISION (false alarm, MEASURED): when a structured field name equals a "
+    "source field name at a different granularity -- the schema's per-SEGMENT "
+    "'action' vs the source's per-STATE '- Action:' -- a correct summary of several "
+    "actions is scored as contradicting the one action the source binds. Both "
+    "contradictions in the B6 pilot were this, not hallucination. So the structured "
+    "contradiction rate is an UPPER BOUND and must never be quoted as a hallucination "
+    "rate.",
 )
+
+#: Binding keys whose meaning differs between a source segment and a structured
+#: memory, so a mismatch there is a scope collision rather than a contradiction.
+#: They are still CHECKED and still REPORTED -- suppressing them would hide a
+#: real contradiction that happens to land on one of these keys -- but they are
+#: counted separately so the headline rate is not inflated by a known artifact.
+SCOPE_COLLIDING_KEYS: frozenset[str] = frozenset({"action", "url", "goal", "status"})
 
 #: Numbers: integers, decimals, and thousands-separated forms. A leading sign
 #: is excluded so that "12" inside "state-12" and a standalone "12" match.
-_NUM = re.compile(r"\d[\d,]*\.?\d*")
+#:
+#: ⚠️ A comma is a thousands separator ONLY before exactly three digits AND
+#: only when the leading group has no leading zero. The original
+#: ``\d[\d,]*`` accepted any comma, so ``scroll(0, 800)`` -- two arguments --
+#: parsed as the single number ``0,800`` -> ``0800``, which of course appears
+#: nowhere in the source. Caught by :func:`raw_control` self-scoring a real
+#: LongMemEval-V2 segment at 0.9857 instead of 1.0.
+#:
+#: ``scroll(1,800)`` stays genuinely ambiguous with the number 1,800 and is
+#: read as one number. That is the LENIENT reading, and lenient is the right
+#: default here: a false alarm on a verbatim copy is far worse than a missed
+#: flag, because it makes the proxy's own noise indistinguishable from a
+#: hallucination.
+_NUM = re.compile(r"[1-9]\d{0,2}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?")
 
 #: Entity-shaped tokens: URLs, paths, quoted strings, CamelCase, ALLCAPS,
 #: snake_case and dotted identifiers, and Capitalised words.
@@ -176,6 +209,19 @@ def _supported(item: str, source_norm: str) -> bool:
     return _normalise(item) in source_norm
 
 
+def _number_supported(item: str, source_norm: str, source_nocomma: str) -> bool:
+    """Numbers are looked up in BOTH a plain and a comma-stripped source.
+
+    ⚠️ The extractor strips thousands separators ("$2,004.99" -> "2004.99")
+    but the SOURCE still contains the comma, so a number could fail to match
+    ITSELF. That asymmetry made a verbatim copy of a segment score 0.985 on
+    its own text. Caught by :func:`raw_control`, which is the entire reason
+    that control exists: a faithfulness proxy that flags the source as
+    unfaithful to itself is measuring its own normalisation, not the memory.
+    """
+    return item in source_norm or item in source_nocomma
+
+
 @dataclass(slots=True)
 class FaithfulnessScore:
     rule_version: str
@@ -187,6 +233,7 @@ class FaithfulnessScore:
     n_bindings_checked: int
     n_bindings_contradicted: int
     length_ratio: float | None
+    n_bindings_scope_collision: int = 0
     unsupported_numbers: list[str] = field(default_factory=list)
     unsupported_entities: list[str] = field(default_factory=list)
     contradictions: list[dict[str, Any]] = field(default_factory=list)
@@ -209,6 +256,19 @@ class FaithfulnessScore:
         if self.n_bindings_checked == 0:
             return None
         return self.n_bindings_contradicted / self.n_bindings_checked
+
+    @property
+    def contradiction_rate_excl_scope_collision(self) -> float | None:
+        """The rate with the known artifact removed. Report BOTH, never only one.
+
+        Quoting only this number would hide a real contradiction that happens
+        to land on a colliding key; quoting only the raw rate reports a known
+        artifact as hallucination. The pair is the honest statement.
+        """
+        if self.n_bindings_checked == 0:
+            return None
+        n = self.n_bindings_contradicted - self.n_bindings_scope_collision
+        return n / self.n_bindings_checked
 
     @property
     def flagged(self) -> bool:
@@ -235,6 +295,9 @@ class FaithfulnessScore:
             "n_entities_supported": self.n_entities_supported,
             "n_bindings_checked": self.n_bindings_checked,
             "n_bindings_contradicted": self.n_bindings_contradicted,
+            "n_bindings_scope_collision": self.n_bindings_scope_collision,
+            "contradiction_rate_excl_scope_collision":
+                self.contradiction_rate_excl_scope_collision,
             "length_ratio": self.length_ratio,
             "flagged": self.flagged,
             "unsupported_numbers": self.unsupported_numbers[:20],
@@ -247,9 +310,10 @@ def score_text(memory_text: str, source_text: str, *,
                representation: str = "") -> FaithfulnessScore:
     """Deterministic faithfulness proxies for one memory against its source."""
     src_norm = _normalise(source_text)
+    src_nocomma = src_norm.replace(",", "")
 
     nums = _numbers(memory_text)
-    bad_nums = [n for n in nums if not _supported(n, src_norm)]
+    bad_nums = [n for n in nums if not _number_supported(n, src_norm, src_nocomma)]
     ents = _entities(memory_text)
     bad_ents = [e for e in ents if not _supported(e, src_norm)]
 
@@ -262,7 +326,8 @@ def score_text(memory_text: str, source_text: str, *,
         checked += 1
         if not any(mv in svals or any(mv in sv or sv in mv for sv in svals) for mv in mvals):
             contradicted.append({"key": key, "memory": sorted(mvals),
-                                 "source": sorted(svals)[:5]})
+                                 "source": sorted(svals)[:5],
+                                 "scope_collision": key in SCOPE_COLLIDING_KEYS})
 
     ratio = (len(memory_text) / len(source_text)) if source_text else None
     return FaithfulnessScore(
@@ -271,6 +336,7 @@ def score_text(memory_text: str, source_text: str, *,
         n_numbers=len(nums), n_numbers_supported=len(nums) - len(bad_nums),
         n_entities=len(ents), n_entities_supported=len(ents) - len(bad_ents),
         n_bindings_checked=checked, n_bindings_contradicted=len(contradicted),
+        n_bindings_scope_collision=sum(1 for c in contradicted if c["scope_collision"]),
         length_ratio=ratio,
         unsupported_numbers=bad_nums, unsupported_entities=bad_ents,
         contradictions=contradicted,
@@ -309,11 +375,20 @@ def aggregate(scores: Iterable[FaithfulnessScore]) -> dict[str, Any]:
     ns = [s.number_support for s in items if s.number_support is not None]
     es = [s.entity_support for s in items if s.entity_support is not None]
     cr = [s.contradiction_rate for s in items if s.contradiction_rate is not None]
+    cx = [s.contradiction_rate_excl_scope_collision for s in items
+          if s.contradiction_rate_excl_scope_collision is not None]
     return {
         "n_scored": len(items),
         "n_with_numbers": len(ns), "mean_number_support": _mean(ns),
         "n_with_entities": len(es), "mean_entity_support": _mean(es),
         "n_with_bindings": len(cr), "mean_contradiction_rate": _mean(cr),
+        "mean_contradiction_rate_excl_scope_collision": _mean(cx),
+        "n_scope_collisions": sum(s.n_bindings_scope_collision for s in items),
+        "_contradiction_caveat": (
+            "mean_contradiction_rate is an UPPER BOUND, not a hallucination rate: a "
+            "structured field name can collide with a source field name at a different "
+            "granularity (per-segment 'action' vs per-state '- Action:'). Both "
+            "contradictions in the B6 pilot were this artifact."),
         "n_flagged": sum(1 for s in items if s.flagged),
         "limitations": list(PROXY_LIMITATIONS),
     }

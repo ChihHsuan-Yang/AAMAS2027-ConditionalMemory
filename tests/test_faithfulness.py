@@ -191,3 +191,129 @@ def test_score_record_skips_raw_and_failed_writes():
 def test_llm_judge_is_not_silently_available():
     with pytest.raises(NotImplementedError):
         F.llm_judge_faithfulness("a", "b")
+
+
+# ============================================================================
+# REGRESSIONS FOUND BY raw_control ON REAL LongMemEval-V2 SEGMENTS (B6 pilot).
+#
+# Both were silent: the proxy produced plausible sub-1.0 scores and nothing
+# looked wrong. Only self-scoring the SOURCE -- which must be exactly 1.0 --
+# exposed them. This is the value of a positive control that MUST pass: a
+# faithfulness proxy that flags the source as unfaithful to ITSELF is
+# measuring its own normalisation, not the memory.
+# ============================================================================
+
+def test_regression_a_comma_separated_arg_list_is_not_one_number():
+    """``scroll(0, 800)`` is TWO numbers, not the number 0,800.
+
+    The extractor was ``\\d[\\d,]*``, which accepted any comma. A web-agent
+    trajectory is full of ``scroll(0, 800)`` calls, so a verbatim copy of the
+    source contained the invented number "0800" and scored 0.9857 against
+    itself. A thousands separator only precedes exactly three digits.
+    """
+    from p1mem.memory.faithfulness import _numbers
+    assert _numbers("scroll(0, 800)") == ["0", "800"]
+    assert _numbers("scroll(0,800)") == ["0", "800"]
+    assert _numbers("total 2,004.99") == ["2004.99"]
+    assert _numbers("1,234,567 rows") == ["1234567"]
+    assert _numbers("state-12 step 3") == ["12", "3"]
+    # LENIENT where genuinely ambiguous: "scroll(1,800)" is read as 1800,
+    # same as the money amount it is indistinguishable from. A false alarm on
+    # a verbatim copy is worse than a missed flag, because it makes the
+    # proxy's own noise look like a hallucination.
+    assert _numbers("scroll(1,800)") == ["1800"]
+
+
+def test_regression_a_number_matches_itself_across_comma_normalisation():
+    """"$2,004.99" in the source must support "2004.99" in the memory.
+
+    The extractor stripped thousands separators but the lookup searched a
+    source that still had them, so a number could fail to match itself. That
+    is a false alarm on the most consequential check we have.
+    """
+    src = "[1573] gridcell '$2,004.99'\n"
+    s = F.score_text("The order total was $2,004.99.", src)
+    assert s.number_support == 1.0, f"unsupported: {s.unsupported_numbers}"
+    assert F.raw_control(src).number_support == 1.0
+
+
+def test_regression_raw_control_passes_on_real_corpus_segments():
+    """The control, run WIDE: every sampled real segment must self-score 1.0.
+
+    A check run only on its home case is not known to discriminate. The two
+    defects above were both invisible on the hand-written fixture at the top
+    of this file and both appeared the moment the control met real data.
+    """
+    import json
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[1]
+    manifest = repo / "data" / "manifests" / "lmev2_memory_units_small.jsonl"
+    traj = Path("/tmp/lmev2/trajectories.jsonl")
+    if not manifest.is_file() or not traj.is_file():
+        pytest.skip("LongMemEval-V2 corpus not present on this machine")
+
+    from p1mem.adapters import lmev2
+
+    units = [json.loads(l) for l in manifest.read_text().splitlines() if l.strip()]
+    want_trajs = sorted({u["trajectory_id"] for u in units})[:4]
+    checked = 0
+    for t in lmev2.read_jsonl(traj):
+        if t["id"] not in want_trajs:
+            continue
+        for pv in lmev2.segment_page_visits(t)[:5]:
+            sc = F.raw_control(pv.text)
+            assert sc.number_support == 1.0, (
+                f"{pv.memory_id}: source is not faithful to ITSELF; "
+                f"unsupported numbers {sc.unsupported_numbers[:5]}")
+            assert sc.entity_support == 1.0, (
+                f"{pv.memory_id}: unsupported entities {sc.unsupported_entities[:5]}")
+            assert sc.n_bindings_contradicted == 0
+            checked += 1
+        want_trajs.remove(t["id"])
+        if not want_trajs:
+            break
+    assert checked >= 5, f"only {checked} real segments checked; may be vacuous"
+
+
+def test_scope_collision_is_counted_separately_but_still_reported():
+    """MEASURED in the B6 pilot: both 'contradictions' were this artifact.
+
+    The structured schema has one per-SEGMENT ``action`` field; the source
+    binds ``- Action:`` once per STATE. A correct summary of several actions
+    therefore "contradicts" the one action the source binds. That is a scope
+    collision, not a hallucination.
+
+    It must be COUNTED (suppressing the key would hide a real contradiction
+    that happens to land there) and reported SEPARATELY (so the headline rate
+    is not a known artifact quoted as a hallucination rate).
+    """
+    src = "- Action: click('227')\n"
+    mem = "action: clicked 227, then 1530, then sent a message to the user\n"
+    s = F.score_text(mem, src, representation="structured")
+    assert s.n_bindings_checked == 1
+    assert s.n_bindings_contradicted == 1
+    assert s.n_bindings_scope_collision == 1
+    assert s.contradiction_rate == 1.0
+    assert s.contradiction_rate_excl_scope_collision == 0.0
+    assert s.contradictions[0]["scope_collision"] is True
+
+
+def test_a_non_colliding_key_is_a_real_contradiction():
+    """NEGATIVE CONTROL for the exemption: it must not swallow everything."""
+    s = F.score_text("stock count: 99\n", "Stock count: 12\n", representation="structured")
+    assert s.n_bindings_contradicted == 1
+    assert s.n_bindings_scope_collision == 0
+    assert s.contradiction_rate_excl_scope_collision == 1.0
+
+
+def test_aggregate_ships_the_contradiction_caveat():
+    # NOTE the fixture: the memory value must not CONTAIN the source value,
+    # or the lenient substring check correctly finds it supported. An earlier
+    # draft used "action: a, b" against "- Action: a" and measured nothing --
+    # the assertion would have passed for the wrong reason had it been weaker.
+    agg = F.aggregate([F.score_text("action: clicked 1530 then 1641\n",
+                                    "- Action: click('227')\n")])
+    assert agg["mean_contradiction_rate"] == 1.0
+    assert agg["mean_contradiction_rate_excl_scope_collision"] == 0.0
+    assert agg["n_scope_collisions"] == 1
+    assert "UPPER BOUND" in agg["_contradiction_caveat"]

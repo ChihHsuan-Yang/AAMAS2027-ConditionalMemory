@@ -1,0 +1,436 @@
+{
+  "run_at_utc": "2026-09-29T18:37:53.101995+00:00",
+  "wall_clock_s": 0.24,
+  "n_segments": 8,
+  "segment_ids": [
+    "1dd9a032:7-8",
+    "317e3887:22-23",
+    "352226dd:0-3",
+    "3ac1289c:1-1",
+    "576d210a:6-6",
+    "80f5526c:3-3",
+    "fc0e8ec3:19-19",
+    "ff54501d:4-5"
+  ],
+  "budget": {
+    "limit": 40,
+    "used_real_calls": 0,
+    "cache_hits": 24,
+    "counter": 0
+  },
+  "endpoint": {
+    "cluster": "metis",
+    "model": "gpt-oss-120b",
+    "url": "https://inference-api.alcf.anl.gov/resource_server/metis/api/v1/chat/completions"
+  },
+  "decoding": {
+    "temperature": 0.0,
+    "max_tokens": 512,
+    "reasoning_effort": "low"
+  },
+  "prompts": {
+    "semantic_type_v1": {
+      "version": "semantic_type_v1@1.0.0+c488b32ec77a",
+      "sha256": "c488b32ec77a06c0f7cffb476b9e416271fac7e1a06b2a571adee80c9484f146",
+      "semver": "1.0.0"
+    },
+    "structured_procedural_v1": {
+      "version": "structured_procedural_v1@1.0.0+623976e89cb2",
+      "sha256": "623976e89cb255108bdffe6f62bc10d331649264e9b05679d14d76431a4fe5e9",
+      "semver": "1.0.0"
+    },
+    "structured_v1": {
+      "version": "structured_v1@1.0.0+163d4cd3eb70",
+      "sha256": "163d4cd3eb7088ee61027f3f2d84e946152b3b8fc110b3c3e708253272847a2d",
+      "semver": "1.0.0"
+    },
+    "summary_v1": {
+      "version": "summary_v1@1.0.0+6ee16b28b818",
+      "sha256": "6ee16b28b818ed476246b4b9c6a607fb24cee7cce6f2ba3c0d3015a7b7dac58b",
+      "semver": "1.0.0"
+    }
+  },
+  "tokenizer": {
+    "tokenizer": "Qwen/Qwen3.5-9B",
+    "tokenizer_file": "/Users/bellayang/.cache/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer.json",
+    "vocab_size": "248070"
+  },
+  "per_representation": {
+    "raw": {
+      "representation": "raw",
+      "n_segments": 8,
+      "n_ok": 8,
+      "n_failed": 0,
+      "failure_rate": 0.0,
+      "failure_codes": {},
+      "memory_tokens": {
+        "n": 8,
+        "min": 3522.0,
+        "p10": 3907.7,
+        "p25": 4535.0,
+        "median": 6372.0,
+        "p75": 7545.0,
+        "p90": 8858.7,
+        "max": 8942.0,
+        "mean": 6239.0,
+        "total": 49912.0
+      },
+      "source_tokens": {
+        "n": 8,
+        "min": 3522.0,
+        "p10": 3907.7,
+        "p25": 4535.0,
+        "median": 6372.0,
+        "p75": 7545.0,
+        "p90": 8858.7,
+        "max": 8942.0,
+        "mean": 6239.0,
+        "total": 49912.0
+      },
+      "compression_ratio": {
+        "n": 8,
+        "min": 1.0,
+        "p10": 1.0,
+        "p25": 1.0,
+        "median": 1.0,
+        "p75": 1.0,
+        "p90": 1.0,
+        "max": 1.0,
+        "mean": 1.0,
+        "total": 8.0
+      },
+      "extraction_calls_total": 0,
+      "extraction_calls_mean": 0.0,
+      "extraction_input_tokens_total": null,
+      "extraction_output_tokens_total": null,
+      "extraction_reasoning_tokens_total": null,
+      "n_with_reasoning_tokens": 0,
+      "latency_mean_s": null,
+      "latency_n": 0,
+      "_latency_n_note": "mean is over latency_n calls, NOT over n_segments. Raw makes no call, so its latency is null and excluded -- averaging it in as 0.0 would report a number describing nothing.",
+      "latency_total_s": null,
+      "retry_total": 0,
+      "cache_hits": 0,
+      "semantic_types": {
+        "episodic": 3,
+        "procedural": 2,
+        "semantic_fact": 3
+      }
+    },
+    "summary": {
+      "representation": "summary",
+      "n_segments": 8,
+      "n_ok": 8,
+      "n_failed": 0,
+      "failure_rate": 0.0,
+      "failure_codes": {},
+      "memory_tokens": {
+        "n": 8,
+        "min": 210.0,
+        "p10": 256.9,
+        "p25": 298.75,
+        "median": 362.5,
+        "p75": 386.5,
+        "p90": 460.59999999999997,
+        "max": 581.0,
+        "mean": 360.875,
+        "total": 2887.0
+      },
+      "source_tokens": {
+        "n": 8,
+        "min": 3522.0,
+        "p10": 3907.7,
+        "p25": 4535.0,
+        "median": 6372.0,
+        "p75": 7545.0,
+        "p90": 8858.7,
+        "max": 8942.0,
+        "mean": 6239.0,
+        "total": 49912.0
+      },
+      "compression_ratio": {
+        "n": 8,
+        "min": 0.029498525073746312,
+        "p10": 0.030826209454573174,
+        "p25": 0.03930149940808869,
+        "median": 0.06301762781644318,
+        "p75": 0.09179989281527265,
+        "p90": 0.09968796326775138,
+        "max": 0.10041738276454702,
+        "mean": 0.06474167513431918,
+        "total": 0.5179334010745534
+      },
+      "extraction_calls_total": 8,
+      "extraction_calls_mean": 1.0,
+      "extraction_input_tokens_total": 44900,
+      "extraction_output_tokens_total": 2789,
+      "extraction_reasoning_tokens_total": 216,
+      "n_with_reasoning_tokens": 8,
+      "latency_mean_s": 0.9153542711210321,
+      "latency_n": 8,
+      "_latency_n_note": "mean is over latency_n calls, NOT over n_segments. Raw makes no call, so its latency is null and excluded -- averaging it in as 0.0 would report a number describing nothing.",
+      "latency_total_s": 7.322834168968257,
+      "retry_total": 0,
+      "cache_hits": 8,
+      "semantic_types": {
+        "episodic": 3,
+        "procedural": 2,
+        "semantic_fact": 3
+      }
+    },
+    "structured": {
+      "representation": "structured",
+      "n_segments": 8,
+      "n_ok": 8,
+      "n_failed": 0,
+      "failure_rate": 0.0,
+      "failure_codes": {},
+      "memory_tokens": {
+        "n": 8,
+        "min": 160.0,
+        "p10": 160.7,
+        "p25": 175.25,
+        "median": 245.5,
+        "p75": 274.0,
+        "p90": 331.0,
+        "max": 436.0,
+        "mean": 248.0,
+        "total": 1984.0
+      },
+      "source_tokens": {
+        "n": 8,
+        "min": 3522.0,
+        "p10": 3907.7,
+        "p25": 4535.0,
+        "median": 6372.0,
+        "p75": 7545.0,
+        "p90": 8858.7,
+        "max": 8942.0,
+        "mean": 6239.0,
+        "total": 49912.0
+      },
+      "compression_ratio": {
+        "n": 8,
+        "min": 0.02581783194355356,
+        "p10": 0.02670715395799523,
+        "p25": 0.030759995156109873,
+        "median": 0.037340656905283875,
+        "p75": 0.052725887511566996,
+        "p90": 0.0604054422314423,
+        "max": 0.06699446834665028,
+        "mean": 0.0419068376955874,
+        "total": 0.3352547015646992
+      },
+      "extraction_calls_total": 8,
+      "extraction_calls_mean": 1.0,
+      "extraction_input_tokens_total": 46452,
+      "extraction_output_tokens_total": 2704,
+      "extraction_reasoning_tokens_total": 829,
+      "n_with_reasoning_tokens": 8,
+      "latency_mean_s": 0.8057160519965691,
+      "latency_n": 8,
+      "_latency_n_note": "mean is over latency_n calls, NOT over n_segments. Raw makes no call, so its latency is null and excluded -- averaging it in as 0.0 would report a number describing nothing.",
+      "latency_total_s": 6.445728415972553,
+      "retry_total": 0,
+      "cache_hits": 8,
+      "semantic_types": {
+        "episodic": 8
+      }
+    }
+  },
+  "faithfulness": {
+    "summary": {
+      "n_scored": 8,
+      "n_with_numbers": 8,
+      "mean_number_support": 1.0,
+      "n_with_entities": 8,
+      "mean_entity_support": 0.9274657806760535,
+      "n_with_bindings": 0,
+      "mean_contradiction_rate": null,
+      "mean_contradiction_rate_excl_scope_collision": null,
+      "n_scope_collisions": 0,
+      "_contradiction_caveat": "mean_contradiction_rate is an UPPER BOUND, not a hallucination rate: a structured field name can collide with a source field name at a different granularity (per-segment 'action' vs per-state '- Action:'). Both contradictions in the B6 pilot were this artifact.",
+      "n_flagged": 0,
+      "limitations": [
+        "recombination: correct entities wired into a false relation scores 1.0",
+        "omission: a summary that drops the decisive fact scores 1.0",
+        "unsupported inference with no new tokens scores 1.0",
+        "negation/modality in free prose is invisible to the contradiction check",
+        "faithful paraphrase that renames an entity is scored as UNSUPPORTED (false alarm)",
+        "SCOPE COLLISION (false alarm, MEASURED): when a structured field name equals a source field name at a different granularity -- the schema's per-SEGMENT 'action' vs the source's per-STATE '- Action:' -- a correct summary of several actions is scored as contradicting the one action the source binds. Both contradictions in the B6 pilot were this, not hallucination. So the structured contradiction rate is an UPPER BOUND and must never be quoted as a hallucination rate."
+      ]
+    },
+    "structured": {
+      "n_scored": 8,
+      "n_with_numbers": 8,
+      "mean_number_support": 1.0,
+      "n_with_entities": 8,
+      "mean_entity_support": 0.8086049410078342,
+      "n_with_bindings": 3,
+      "mean_contradiction_rate": 0.6666666666666666,
+      "mean_contradiction_rate_excl_scope_collision": 0.0,
+      "n_scope_collisions": 2,
+      "_contradiction_caveat": "mean_contradiction_rate is an UPPER BOUND, not a hallucination rate: a structured field name can collide with a source field name at a different granularity (per-segment 'action' vs per-state '- Action:'). Both contradictions in the B6 pilot were this artifact.",
+      "n_flagged": 4,
+      "limitations": [
+        "recombination: correct entities wired into a false relation scores 1.0",
+        "omission: a summary that drops the decisive fact scores 1.0",
+        "unsupported inference with no new tokens scores 1.0",
+        "negation/modality in free prose is invisible to the contradiction check",
+        "faithful paraphrase that renames an entity is scored as UNSUPPORTED (false alarm)",
+        "SCOPE COLLISION (false alarm, MEASURED): when a structured field name equals a source field name at a different granularity -- the schema's per-SEGMENT 'action' vs the source's per-STATE '- Action:' -- a correct summary of several actions is scored as contradicting the one action the source binds. Both contradictions in the B6 pilot were this, not hallucination. So the structured contradiction rate is an UPPER BOUND and must never be quoted as a hallucination rate."
+      ]
+    },
+    "raw_control": {
+      "_what": "the source scored against itself -- MUST be 1.0 or the proxy is broken",
+      "scores": [
+        {
+          "rule_version": "deterministic_proxy@1.0.0",
+          "representation": "raw",
+          "number_support": 1.0,
+          "entity_support": 1.0,
+          "contradiction_rate": 0.0,
+          "n_numbers": 596,
+          "n_numbers_supported": 596,
+          "n_entities": 263,
+          "n_entities_supported": 263,
+          "n_bindings_checked": 3,
+          "n_bindings_contradicted": 0,
+          "n_bindings_scope_collision": 0,
+          "contradiction_rate_excl_scope_collision": 0.0,
+          "length_ratio": 1.0,
+          "flagged": false,
+          "unsupported_numbers": [],
+          "unsupported_entities": [],
+          "contradictions": []
+        },
+        {
+          "rule_version": "deterministic_proxy@1.0.0",
+          "representation": "raw",
+          "number_support": 1.0,
+          "entity_support": 1.0,
+          "contradiction_rate": 0.0,
+          "n_numbers": 355,
+          "n_numbers_supported": 355,
+          "n_entities": 184,
+          "n_entities_supported": 184,
+          "n_bindings_checked": 4,
+          "n_bindings_contradicted": 0,
+          "n_bindings_scope_collision": 0,
+          "contradiction_rate_excl_scope_collision": 0.0,
+          "length_ratio": 1.0,
+          "flagged": false,
+          "unsupported_numbers": [],
+          "unsupported_entities": [],
+          "contradictions": []
+        },
+        {
+          "rule_version": "deterministic_proxy@1.0.0",
+          "representation": "raw",
+          "number_support": 1.0,
+          "entity_support": 1.0,
+          "contradiction_rate": 0.0,
+          "n_numbers": 420,
+          "n_numbers_supported": 420,
+          "n_entities": 159,
+          "n_entities_supported": 159,
+          "n_bindings_checked": 4,
+          "n_bindings_contradicted": 0,
+          "n_bindings_scope_collision": 0,
+          "contradiction_rate_excl_scope_collision": 0.0,
+          "length_ratio": 1.0,
+          "flagged": false,
+          "unsupported_numbers": [],
+          "unsupported_entities": [],
+          "contradictions": []
+        }
+      ]
+    }
+  },
+  "semantic_type_agreement": {
+    "pass_a": "structured_native",
+    "pass_b": "llm_classifier",
+    "n": 8,
+    "n_agree": 3,
+    "raw_agreement": 0.375,
+    "cohens_kappa": 0.0,
+    "marginal_a": {
+      "episodic": 8
+    },
+    "marginal_b": {
+      "episodic": 3,
+      "procedural": 2,
+      "semantic_fact": 3
+    },
+    "confusion_a_by_b": {
+      "episodic": {
+        "episodic": 3,
+        "procedural": 2,
+        "semantic_fact": 3
+      }
+    },
+    "interpretation": "Raw agreement without kappa flatters a skewed corpus. kappa=None means chance agreement is 1.0 (both passes used a single category), so the raw number carries no information. Neither figure is accuracy: there is no gold label, and two passes of the same model family share their errors."
+  },
+  "semantic_type_agreement_vs_heuristic": {
+    "pass_a": "structured_native",
+    "pass_b": "heuristic_keyword",
+    "n": 8,
+    "n_agree": 0,
+    "raw_agreement": 0.0,
+    "cohens_kappa": 0.0,
+    "marginal_a": {
+      "episodic": 8
+    },
+    "marginal_b": {
+      "procedural": 8
+    },
+    "confusion_a_by_b": {
+      "episodic": {
+        "procedural": 8
+      }
+    },
+    "interpretation": "Raw agreement without kappa flatters a skewed corpus. kappa=None means chance agreement is 1.0 (both passes used a single category), so the raw number carries no information. Neither figure is accuracy: there is no gold label, and two passes of the same model family share their errors."
+  },
+  "labels_by_segment": {
+    "1dd9a032:7-8": {
+      "llm_classifier": "episodic",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    },
+    "317e3887:22-23": {
+      "llm_classifier": "procedural",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    },
+    "352226dd:0-3": {
+      "llm_classifier": "semantic_fact",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    },
+    "3ac1289c:1-1": {
+      "llm_classifier": "episodic",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    },
+    "576d210a:6-6": {
+      "llm_classifier": "semantic_fact",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    },
+    "80f5526c:3-3": {
+      "llm_classifier": "semantic_fact",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    },
+    "fc0e8ec3:19-19": {
+      "llm_classifier": "procedural",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    },
+    "ff54501d:4-5": {
+      "llm_classifier": "episodic",
+      "heuristic": "procedural",
+      "structured_native": "episodic"
+    }
+  }
+}
