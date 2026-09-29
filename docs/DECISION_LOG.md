@@ -198,3 +198,69 @@ re-run on every new batch rather than assumed to still hold.
 
 **Not waived, narrowed.** `verifier_version` homogeneity is still enforced and still
 holds; only the per-question `verifier_id` axis is pooled.
+
+---
+
+## 2026-09-29 — D7: Two floor-limited arms; the bottleneck is the reader, not the design
+
+**Decision.** Do not run a third prompt variant. Diagnose reader vs task before spending
+more calls.
+
+**Evidence.** Two complete ΔU arms, ~3,840 real endpoint calls, every figure re-derived by
+the Master Agent from row-level artifacts:
+
+| arm | acc WITH | acc WITHOUT | both-arms-fail |
+|---|---|---|---|
+| hand-written prompt | 0.1712 | 0.1733 | 376/479 = 78.50% |
+| official `DOMAIN_SYSTEM_PROMPTS` | 0.1146 | 0.1208 | **402/480 = 83.75%** |
+
+**The fix made it worse.** Switching to the benchmark's own prompt *lowered* accuracy by
+5.7 points. Mechanism, measured over 1,916 paired responses: **128 responses that were
+correct under the hand-written prompt became abstentions** (378 WITH / 390 WITHOUT vs
+0/958), and `harness.py:1055` scores an abstention **0** — identical to a wrong answer.
+Paired McNemar **p = 1.12 × 10⁻⁹**. Suppressing guesses can only lower accuracy under a
+scorer that does not reward abstention.
+
+**Why this is not a null result about memory.** At ~80% both-arms-fail, the instrument
+cannot exhibit the effect it is built to measure. The decisive evidence that the reader is
+the binding constraint: on cells whose memory text **literally contains the gold answer** —
+a content-defined subgroup, not an outcome-selected one — the WITH arm still scores only
+**0.2288** (hand-written) / **0.1429** (official), with 72–79% still failing both arms.
+
+**Overturned by.** J's diagnostic: if a stronger reader materially lifts accuracy on the
+oracle-bearing subgroup, the ceiling is the reader and P1 is measurable on a better model.
+If it does not, the ceiling is the benchmark and P1 must move or reframe.
+
+---
+
+## 2026-09-29 — D8: I published a number that was never measured
+
+**What happened.** My hourly report stated "variance shares **0.0000**" as a measured
+result supporting "no evidence of memory × task interaction."
+
+**It was never measured.** A `ZeroDivisionError` — `interaction / F_exec²` with
+`F_exec = 0.0`, which is the *expected* value for a deterministic reader — crashed the
+decomposition stage **while the script exited 0**. The reporting path then read an empty
+dict through `.get(c, 0.0)` and produced a plausible zero.
+
+**Three separate failures stacked:**
+1. an absent value defaulting to a plausible number;
+2. a crash inside a pipeline whose exit code stayed 0 — the "exit status is not success"
+   pattern already recorded in this project;
+3. the crash was triggered *by* a correct measurement (F_exec = 0 is the right answer for a
+   deterministic reader), so the better the instrument got, the more certainly this broke.
+
+**Compounding it:** the REML fit is **not identified** on this design. Task and interaction
+shares come out exactly equal to 16 significant figures in both arms, both pinned at the
+optimizer's `exp(12)` clip ceiling, while still reporting `converged=True` with a tight CI.
+The module guarded only the *lower* boundary. Root cause, re-derived: **8 tasks per memory,
+and only 127 of 220 tasks shared across memories** — the interaction has almost no shared
+coverage to be identified from.
+
+**Consequence.** No variance share is reported for either arm. This is an *identifiability*
+problem, not a sample-size problem — 60 memories satisfies `POWER_ANALYSIS.md`. The fix is
+to widen the **task** axis (120×16 beats 240×8), not to add memories.
+
+**Standing rule added.** A zero that arrives through a `.get(default)` is not a measurement.
+Any reported zero must be traceable to a value that was actually computed, and any stage
+that can crash must fail the run rather than let the caller read a default.
