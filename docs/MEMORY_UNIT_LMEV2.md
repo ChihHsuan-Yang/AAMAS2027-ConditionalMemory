@@ -107,3 +107,24 @@ naive equality and silently re-encoded `domain`.
 3. V2 ships **no answer-bearing evidence labels** at all — unlike V1's `answer_session_ids`. There is no
    ground truth for "which memory should have helped", so cross-checks must come from
    `in_official_haystack` and from leakage flags.
+
+## 6. Answerability under segmentation: 94.2%
+
+A unit definition is only useful if answers survive it. For each of the 295 deterministic questions,
+whether **at least one** page-visit unit in its domain carries the gold answer (normalized containment;
+865 web + 1,024 enterprise units):
+
+| question_type | with >=1 carrying unit / total |
+|---|---|
+| static-environment | 130 / 134 |
+| dynamic-environment | 80 / 86 |
+| procedure | 67 / 74 |
+| errors-gotchas | 1 / 1 |
+| **TOTAL** | **278 / 295 = 94.2%** |
+
+The 17 questions with no carrying unit can only ever produce `DeltaU <= 0`. Exclude them from the primary
+analysis **explicitly**, as a stated exclusion, not by silent omission.
+
+⚠️ This uses the same containment test as the leakage detector and so inherits its punctuation-glued false
+negative (see `leakage.prove_detector_can_fail`, control `known-fn/punctuation-glued`). **94.2% is a lower
+bound.**
