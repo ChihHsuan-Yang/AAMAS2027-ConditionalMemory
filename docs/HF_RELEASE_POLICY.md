@@ -33,8 +33,7 @@ signal is not a capability.**
 1. ✅ `hf` CLI installed (`/Users/bellayang/Library/Python/3.9/bin/hf`, `huggingface_hub`
    0.36.2). No `brew install` needed.
 2. ✅ Token present; identity `ChihHsuan-Yang`, admin on `AgentsSci` with `repo.write`.
-3. 🔴 **`docs/BENCHMARK_LICENSES.md` must exist** (Sub-agent A, P1-027). The exporter
-   hard-refuses without it. **This is the one thing blocking a staging directory.**
+3. ✅ **`docs/BENCHMARK_LICENSES.md` exists** (Sub-agent A, 10.8 KB). Unblocked.
 4. Export gates pass, including the secret scan.
 5. Master Agent has reviewed the staging manifest file-by-file.
 
@@ -57,7 +56,29 @@ Known constraints to encode in the exporter:
 - **LongMemEval-V2** — Apache-2.0 (verified from the repo's `LICENSE`).
 - **LongMemEval V1** — MIT, **but its filler derives from ShareGPT and UltraChat, which
   carry their own upstream terms independent of that MIT grant.**
-- BEAM, SciCode — pending A's audit.
+- **BEAM** — code MIT, **data CC BY-SA 4.0**. See the ShareAlike ruling below.
+- **SciCode** — see `docs/BENCHMARK_LICENSES.md`.
+
+## 🔴 RULING: BEAM ships as a SEPARATE dataset under CC BY-SA 4.0
+
+Sub-agent A's audit found the one licence in this project that constrains **our** release
+terms. **CC BY-SA 4.0 ShareAlike is infectious**: any dataset adapted from BEAM must itself
+be released under CC BY-SA 4.0. It cannot be folded into an Apache-2.0/MIT release.
+
+**Decision (Master Agent, 2026-09-29):**
+
+| Release | Contents | Licence |
+|---|---|---|
+| `AgentsSci/AAMAS2027-ConditionalMemory` | LongMemEval V1/V2 + SciCode derived annotations | permissive, per upstream |
+| **separate BEAM release** | BEAM-derived annotations only | **CC BY-SA 4.0**, attributing the BEAM authors |
+
+Merging them would either violate ShareAlike or silently relicense everything else. **The
+exporter must refuse to place BEAM-derived rows in the main dataset**, and that refusal
+needs a test with a negative control — a gate never shown to fire is not known to work.
+
+Aggregate statistics computed over BEAM (counts, rates, means reported in the paper) are
+**not adaptations** and are safe to report under any terms. ShareAlike bites on
+redistributed derived *records*, not on numbers in a paper.
 
 ## Secret scanning must read values, not paths
 
