@@ -1,0 +1,1227 @@
+{
+  "_definition_is_content_only": "membership depends on memory_text and the gold answer only. No reward enters. It is NOT a subgroup selected on the outcome.",
+  "_what": "discriminative oracle-bearing subgroup + mismatch control",
+  "arms": {
+    "handwritten": {
+      "ALL_CELLS": {
+        "acc_with": 0.17118997912317327,
+        "acc_with_wilson": [
+          0.14010635679087477,
+          0.20750558860966092
+        ],
+        "acc_without": 0.1732776617954071,
+        "acc_without_wilson": [
+          0.14201754882724585,
+          0.20973654295169916
+        ],
+        "both_arms_fail": 376,
+        "both_arms_fail_rate": 0.7849686847599165,
+        "both_arms_fail_wilson": [
+          0.7459857396526682,
+          0.8194172410002011
+        ],
+        "cell_keys": null,
+        "delta": -0.0020876826722338203,
+        "n_cells": 479,
+        "n_correct_with": 82,
+        "n_correct_without": 83
+      },
+      "DISCRIMINATIVE_ORACLE": {
+        "acc_with": 0.3333333333333333,
+        "acc_with_wilson": [
+          0.13812009109121315,
+          0.6093779111272004
+        ],
+        "acc_without": 0.08333333333333333,
+        "acc_without_wilson": [
+          0.014865094404917095,
+          0.35387991114111694
+        ],
+        "both_arms_fail": 8,
+        "both_arms_fail_rate": 0.6666666666666666,
+        "both_arms_fail_wilson": [
+          0.39062208887279953,
+          0.8618799089087867
+        ],
+        "cell_keys": [
+          [
+            "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+            "238c3621"
+          ],
+          [
+            "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+            "3f366e15"
+          ],
+          [
+            "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+            "626e401e"
+          ],
+          [
+            "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+            "f13eb38d"
+          ],
+          [
+            "mem-435237ce-fb34b7597d221c9d60b39dfc",
+            "668f7b74"
+          ],
+          [
+            "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+            "626e401e"
+          ],
+          [
+            "mem-5502a021-51f9d80e74b79bf20fe18668",
+            "4f92aa38"
+          ],
+          [
+            "mem-56b3344d-6769d8b0584545189e2d58bc",
+            "626e401e"
+          ],
+          [
+            "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+            "744dbdad"
+          ],
+          [
+            "mem-6ea56646-2da8ba254ad9269a12ad883e",
+            "4f92aa38"
+          ],
+          [
+            "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+            "658fa827"
+          ],
+          [
+            "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+            "626e401e"
+          ]
+        ],
+        "delta": 0.25,
+        "n_cells": 12,
+        "n_correct_with": 4,
+        "n_correct_without": 1
+      },
+      "NON_FLAGGED": {
+        "acc_with": 0.1441717791411043,
+        "acc_with_wilson": [
+          0.11018221598092334,
+          0.18644956333060933
+        ],
+        "acc_without": 0.15950920245398773,
+        "acc_without_wilson": [
+          0.12376185850513269,
+          0.20318751652573044
+        ],
+        "both_arms_fail": 266,
+        "both_arms_fail_rate": 0.8159509202453987,
+        "both_arms_fail_wilson": [
+          0.770288676291968,
+          0.85425379552624
+        ],
+        "cell_keys": null,
+        "delta": -0.015337423312883436,
+        "n_cells": 326,
+        "n_correct_with": 47,
+        "n_correct_without": 52
+      },
+      "ORACLE_AS_SHIPPED": {
+        "acc_with": 0.22875816993464052,
+        "acc_with_wilson": [
+          0.16933105220503897,
+          0.30147213577800513
+        ],
+        "acc_without": 0.20261437908496732,
+        "acc_without_wilson": [
+          0.146572583431641,
+          0.27322368291121457
+        ],
+        "both_arms_fail": 110,
+        "both_arms_fail_rate": 0.7189542483660131,
+        "both_arms_fail_wilson": [
+          0.6430385596574171,
+          0.7841444090791618
+        ],
+        "cell_keys": null,
+        "delta": 0.026143790849673203,
+        "n_cells": 153,
+        "n_correct_with": 35,
+        "n_correct_without": 31
+      },
+      "mismatch_control": {
+        "_reading": "a ratio near 1.0 means the flag says nothing about THIS pairing",
+        "enrichment_ratio": 0.9902989648703056,
+        "paired_fires": 153,
+        "paired_n": 479,
+        "paired_rate": 0.31941544885177453,
+        "unpaired_n": 6241,
+        "unpaired_rate": 0.3225444640282006,
+        "unpaired_same_domain_fires": 2013
+      },
+      "n_live_cells": 479,
+      "pool_hit_histogram": {
+        "1": 2,
+        "10": 1,
+        "13": 1,
+        "16": 1,
+        "17": 6,
+        "2": 3,
+        "21": 13,
+        "22": 3,
+        "23": 13,
+        "24": 51,
+        "29": 4,
+        "3": 2,
+        "34": 13,
+        "35": 8,
+        "36": 17,
+        "4": 5,
+        "6": 3,
+        "7": 1,
+        "8": 6
+      },
+      "pool_sizes": {
+        "24": 85,
+        "36": 68
+      },
+      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_pilot/cells.jsonl",
+      "sweep": {
+        "max_pool_hits<=1": {
+          "acc_with": 1.0,
+          "acc_with_wilson": [
+            0.34238022750665303,
+            1.0
+          ],
+          "acc_without": 0.0,
+          "acc_without_wilson": [
+            0.0,
+            0.6576197724933469
+          ],
+          "both_arms_fail": 0,
+          "both_arms_fail_rate": 0.0,
+          "both_arms_fail_wilson": [
+            0.0,
+            0.6576197724933469
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ]
+          ],
+          "delta": 1.0,
+          "n_cells": 2,
+          "n_correct_with": 2,
+          "n_correct_without": 0
+        },
+        "max_pool_hits<=12": {
+          "acc_with": 0.391304347826087,
+          "acc_with_wilson": [
+            0.22157622792477952,
+            0.592144776086183
+          ],
+          "acc_without": 0.30434782608695654,
+          "acc_without_wilson": [
+            0.15604024453214022,
+            0.508657562687592
+          ],
+          "both_arms_fail": 12,
+          "both_arms_fail_rate": 0.5217391304347826,
+          "both_arms_fail_wilson": [
+            0.32962737336427406,
+            0.7076284258335335
+          ],
+          "cell_keys": [
+            [
+              "mem-013696c4-3265819477d1370582cf2b9c",
+              "8f752563"
+            ],
+            [
+              "mem-06a17a60-6a54545c852b1bd60f50796e",
+              "b2595523"
+            ],
+            [
+              "mem-0b072635-8822218a9c3e431fc3a217d7",
+              "71e61e15"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "626e401e"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "f13eb38d"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "19367bc7"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "8f752563"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+              "626e401e"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-56b3344d-6769d8b0584545189e2d58bc",
+              "626e401e"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6a84271c-ef8a93d8c5fefac366f2718b",
+              "057a2d4d"
+            ],
+            [
+              "mem-6c4a4684-d4bd6a0f5b6fb781d9ac518e",
+              "5aaf0f61"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-70cc15dc-9246e9b21ac9099d79292414",
+              "e3a1d7f3"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ],
+            [
+              "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+              "626e401e"
+            ],
+            [
+              "mem-9c420e86-63c963956571e1d59c84ec5a",
+              "3b375e30"
+            ],
+            [
+              "mem-d4949793-694536807fb1a89bbcd143b0",
+              "8f70bc0e"
+            ],
+            [
+              "mem-dc083cd0-33b110f4b340f0fd7dbff9ad",
+              "f0882f6e"
+            ]
+          ],
+          "delta": 0.08695652173913043,
+          "n_cells": 23,
+          "n_correct_with": 9,
+          "n_correct_without": 7
+        },
+        "max_pool_hits<=2": {
+          "acc_with": 0.6,
+          "acc_with_wilson": [
+            0.2307242812760128,
+            0.882379225767352
+          ],
+          "acc_without": 0.2,
+          "acc_without_wilson": [
+            0.036224108632430085,
+            0.6244653702374747
+          ],
+          "both_arms_fail": 2,
+          "both_arms_fail_rate": 0.4,
+          "both_arms_fail_wilson": [
+            0.11762077423264783,
+            0.769275718723987
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ]
+          ],
+          "delta": 0.4,
+          "n_cells": 5,
+          "n_correct_with": 3,
+          "n_correct_without": 1
+        },
+        "max_pool_hits<=3": {
+          "acc_with": 0.42857142857142855,
+          "acc_with_wilson": [
+            0.15821985525146975,
+            0.7495416354723428
+          ],
+          "acc_without": 0.14285714285714285,
+          "acc_without_wilson": [
+            0.02567962434474355,
+            0.5131278292743189
+          ],
+          "both_arms_fail": 4,
+          "both_arms_fail_rate": 0.5714285714285714,
+          "both_arms_fail_wilson": [
+            0.2504583645276572,
+            0.8417801447485302
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ]
+          ],
+          "delta": 0.2857142857142857,
+          "n_cells": 7,
+          "n_correct_with": 3,
+          "n_correct_without": 1
+        },
+        "max_pool_hits<=5": {
+          "acc_with": 0.3333333333333333,
+          "acc_with_wilson": [
+            0.13812009109121315,
+            0.6093779111272004
+          ],
+          "acc_without": 0.08333333333333333,
+          "acc_without_wilson": [
+            0.014865094404917095,
+            0.35387991114111694
+          ],
+          "both_arms_fail": 8,
+          "both_arms_fail_rate": 0.6666666666666666,
+          "both_arms_fail_wilson": [
+            0.39062208887279953,
+            0.8618799089087867
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "626e401e"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "f13eb38d"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+              "626e401e"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-56b3344d-6769d8b0584545189e2d58bc",
+              "626e401e"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ],
+            [
+              "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+              "626e401e"
+            ]
+          ],
+          "delta": 0.25,
+          "n_cells": 12,
+          "n_correct_with": 4,
+          "n_correct_without": 1
+        },
+        "max_pool_hits<=8": {
+          "acc_with": 0.4090909090909091,
+          "acc_with_wilson": [
+            0.2325581619647187,
+            0.6126518152368488
+          ],
+          "acc_without": 0.3181818181818182,
+          "acc_without_wilson": [
+            0.1636059318135624,
+            0.5268140225895723
+          ],
+          "both_arms_fail": 11,
+          "both_arms_fail_rate": 0.5,
+          "both_arms_fail_wilson": [
+            0.3072210627372502,
+            0.6927789372627497
+          ],
+          "cell_keys": [
+            [
+              "mem-013696c4-3265819477d1370582cf2b9c",
+              "8f752563"
+            ],
+            [
+              "mem-06a17a60-6a54545c852b1bd60f50796e",
+              "b2595523"
+            ],
+            [
+              "mem-0b072635-8822218a9c3e431fc3a217d7",
+              "71e61e15"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "626e401e"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "f13eb38d"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "19367bc7"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "8f752563"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+              "626e401e"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-56b3344d-6769d8b0584545189e2d58bc",
+              "626e401e"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6c4a4684-d4bd6a0f5b6fb781d9ac518e",
+              "5aaf0f61"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-70cc15dc-9246e9b21ac9099d79292414",
+              "e3a1d7f3"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ],
+            [
+              "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+              "626e401e"
+            ],
+            [
+              "mem-9c420e86-63c963956571e1d59c84ec5a",
+              "3b375e30"
+            ],
+            [
+              "mem-d4949793-694536807fb1a89bbcd143b0",
+              "8f70bc0e"
+            ],
+            [
+              "mem-dc083cd0-33b110f4b340f0fd7dbff9ad",
+              "f0882f6e"
+            ]
+          ],
+          "delta": 0.09090909090909091,
+          "n_cells": 22,
+          "n_correct_with": 9,
+          "n_correct_without": 7
+        }
+      }
+    },
+    "official": {
+      "ALL_CELLS": {
+        "acc_with": 0.11458333333333333,
+        "acc_with_wilson": [
+          0.08909763826791334,
+          0.14618905894519674
+        ],
+        "acc_without": 0.12083333333333333,
+        "acc_without_wilson": [
+          0.09464618560887236,
+          0.15304126786564676
+        ],
+        "both_arms_fail": 402,
+        "both_arms_fail_rate": 0.8375,
+        "both_arms_fail_wilson": [
+          0.8018401771254301,
+          0.8678006609906573
+        ],
+        "cell_keys": null,
+        "delta": -0.00625,
+        "n_cells": 480,
+        "n_correct_with": 55,
+        "n_correct_without": 58
+      },
+      "DISCRIMINATIVE_ORACLE": {
+        "acc_with": 0.5,
+        "acc_with_wilson": [
+          0.2537815976337061,
+          0.7462184023662939
+        ],
+        "acc_without": 0.08333333333333333,
+        "acc_without_wilson": [
+          0.014865094404917095,
+          0.35387991114111694
+        ],
+        "both_arms_fail": 6,
+        "both_arms_fail_rate": 0.5,
+        "both_arms_fail_wilson": [
+          0.2537815976337061,
+          0.7462184023662939
+        ],
+        "cell_keys": [
+          [
+            "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+            "238c3621"
+          ],
+          [
+            "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+            "3f366e15"
+          ],
+          [
+            "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+            "626e401e"
+          ],
+          [
+            "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+            "f13eb38d"
+          ],
+          [
+            "mem-435237ce-fb34b7597d221c9d60b39dfc",
+            "668f7b74"
+          ],
+          [
+            "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+            "626e401e"
+          ],
+          [
+            "mem-5502a021-51f9d80e74b79bf20fe18668",
+            "4f92aa38"
+          ],
+          [
+            "mem-56b3344d-6769d8b0584545189e2d58bc",
+            "626e401e"
+          ],
+          [
+            "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+            "744dbdad"
+          ],
+          [
+            "mem-6ea56646-2da8ba254ad9269a12ad883e",
+            "4f92aa38"
+          ],
+          [
+            "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+            "658fa827"
+          ],
+          [
+            "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+            "626e401e"
+          ]
+        ],
+        "delta": 0.4166666666666667,
+        "n_cells": 12,
+        "n_correct_with": 6,
+        "n_correct_without": 1
+      },
+      "NON_FLAGGED": {
+        "acc_with": 0.10122699386503067,
+        "acc_with_wilson": [
+          0.07299029121304915,
+          0.1387522200843581
+        ],
+        "acc_without": 0.11042944785276074,
+        "acc_without_wilson": [
+          0.08083934954136798,
+          0.14909371918763759
+        ],
+        "both_arms_fail": 281,
+        "both_arms_fail_rate": 0.8619631901840491,
+        "both_arms_fail_wilson": [
+          0.8202844737011477,
+          0.8952107852750519
+        ],
+        "cell_keys": null,
+        "delta": -0.009202453987730062,
+        "n_cells": 326,
+        "n_correct_with": 33,
+        "n_correct_without": 36
+      },
+      "ORACLE_AS_SHIPPED": {
+        "acc_with": 0.14285714285714285,
+        "acc_with_wilson": [
+          0.0962711916321223,
+          0.2068269878838274
+        ],
+        "acc_without": 0.14285714285714285,
+        "acc_without_wilson": [
+          0.0962711916321223,
+          0.2068269878838274
+        ],
+        "both_arms_fail": 121,
+        "both_arms_fail_rate": 0.7857142857142857,
+        "both_arms_fail_wilson": [
+          0.7143714117460493,
+          0.843150044641191
+        ],
+        "cell_keys": null,
+        "delta": 0.0,
+        "n_cells": 154,
+        "n_correct_with": 22,
+        "n_correct_without": 22
+      },
+      "mismatch_control": {
+        "_reading": "a ratio near 1.0 means the flag says nothing about THIS pairing",
+        "enrichment_ratio": 0.9950298210735586,
+        "paired_fires": 154,
+        "paired_n": 480,
+        "paired_rate": 0.32083333333333336,
+        "unpaired_n": 6240,
+        "unpaired_rate": 0.32243589743589746,
+        "unpaired_same_domain_fires": 2012
+      },
+      "n_live_cells": 480,
+      "pool_hit_histogram": {
+        "1": 2,
+        "10": 1,
+        "13": 1,
+        "16": 1,
+        "17": 6,
+        "2": 3,
+        "21": 13,
+        "22": 3,
+        "23": 13,
+        "24": 52,
+        "29": 4,
+        "3": 2,
+        "34": 13,
+        "35": 8,
+        "36": 17,
+        "4": 5,
+        "6": 3,
+        "7": 1,
+        "8": 6
+      },
+      "pool_sizes": {
+        "24": 86,
+        "36": 68
+      },
+      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_official/cells.jsonl",
+      "sweep": {
+        "max_pool_hits<=1": {
+          "acc_with": 1.0,
+          "acc_with_wilson": [
+            0.34238022750665303,
+            1.0
+          ],
+          "acc_without": 0.0,
+          "acc_without_wilson": [
+            0.0,
+            0.6576197724933469
+          ],
+          "both_arms_fail": 0,
+          "both_arms_fail_rate": 0.0,
+          "both_arms_fail_wilson": [
+            0.0,
+            0.6576197724933469
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ]
+          ],
+          "delta": 1.0,
+          "n_cells": 2,
+          "n_correct_with": 2,
+          "n_correct_without": 0
+        },
+        "max_pool_hits<=12": {
+          "acc_with": 0.43478260869565216,
+          "acc_with_wilson": [
+            0.25634635325674215,
+            0.6318862491498354
+          ],
+          "acc_without": 0.2608695652173913,
+          "acc_without_wilson": [
+            0.12548616044986347,
+            0.4647000483742537
+          ],
+          "both_arms_fail": 11,
+          "both_arms_fail_rate": 0.4782608695652174,
+          "both_arms_fail_wilson": [
+            0.29237157416646653,
+            0.6703726266357259
+          ],
+          "cell_keys": [
+            [
+              "mem-013696c4-3265819477d1370582cf2b9c",
+              "8f752563"
+            ],
+            [
+              "mem-06a17a60-6a54545c852b1bd60f50796e",
+              "b2595523"
+            ],
+            [
+              "mem-0b072635-8822218a9c3e431fc3a217d7",
+              "71e61e15"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "626e401e"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "f13eb38d"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "19367bc7"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "8f752563"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+              "626e401e"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-56b3344d-6769d8b0584545189e2d58bc",
+              "626e401e"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6a84271c-ef8a93d8c5fefac366f2718b",
+              "057a2d4d"
+            ],
+            [
+              "mem-6c4a4684-d4bd6a0f5b6fb781d9ac518e",
+              "5aaf0f61"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-70cc15dc-9246e9b21ac9099d79292414",
+              "e3a1d7f3"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ],
+            [
+              "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+              "626e401e"
+            ],
+            [
+              "mem-9c420e86-63c963956571e1d59c84ec5a",
+              "3b375e30"
+            ],
+            [
+              "mem-d4949793-694536807fb1a89bbcd143b0",
+              "8f70bc0e"
+            ],
+            [
+              "mem-dc083cd0-33b110f4b340f0fd7dbff9ad",
+              "f0882f6e"
+            ]
+          ],
+          "delta": 0.17391304347826086,
+          "n_cells": 23,
+          "n_correct_with": 10,
+          "n_correct_without": 6
+        },
+        "max_pool_hits<=2": {
+          "acc_with": 0.6,
+          "acc_with_wilson": [
+            0.2307242812760128,
+            0.882379225767352
+          ],
+          "acc_without": 0.0,
+          "acc_without_wilson": [
+            0.0,
+            0.43448246478317476
+          ],
+          "both_arms_fail": 2,
+          "both_arms_fail_rate": 0.4,
+          "both_arms_fail_wilson": [
+            0.11762077423264783,
+            0.769275718723987
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ]
+          ],
+          "delta": 0.6,
+          "n_cells": 5,
+          "n_correct_with": 3,
+          "n_correct_without": 0
+        },
+        "max_pool_hits<=3": {
+          "acc_with": 0.42857142857142855,
+          "acc_with_wilson": [
+            0.15821985525146975,
+            0.7495416354723428
+          ],
+          "acc_without": 0.0,
+          "acc_without_wilson": [
+            2.7755575615628914e-17,
+            0.3543304350666875
+          ],
+          "both_arms_fail": 4,
+          "both_arms_fail_rate": 0.5714285714285714,
+          "both_arms_fail_wilson": [
+            0.2504583645276572,
+            0.8417801447485302
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ]
+          ],
+          "delta": 0.42857142857142855,
+          "n_cells": 7,
+          "n_correct_with": 3,
+          "n_correct_without": 0
+        },
+        "max_pool_hits<=5": {
+          "acc_with": 0.5,
+          "acc_with_wilson": [
+            0.2537815976337061,
+            0.7462184023662939
+          ],
+          "acc_without": 0.08333333333333333,
+          "acc_without_wilson": [
+            0.014865094404917095,
+            0.35387991114111694
+          ],
+          "both_arms_fail": 6,
+          "both_arms_fail_rate": 0.5,
+          "both_arms_fail_wilson": [
+            0.2537815976337061,
+            0.7462184023662939
+          ],
+          "cell_keys": [
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "626e401e"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "f13eb38d"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+              "626e401e"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-56b3344d-6769d8b0584545189e2d58bc",
+              "626e401e"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ],
+            [
+              "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+              "626e401e"
+            ]
+          ],
+          "delta": 0.4166666666666667,
+          "n_cells": 12,
+          "n_correct_with": 6,
+          "n_correct_without": 1
+        },
+        "max_pool_hits<=8": {
+          "acc_with": 0.45454545454545453,
+          "acc_with_wilson": [
+            0.2692029418081331,
+            0.6534020467926505
+          ],
+          "acc_without": 0.2727272727272727,
+          "acc_without_wilson": [
+            0.13150760287989469,
+            0.4815173401240238
+          ],
+          "both_arms_fail": 10,
+          "both_arms_fail_rate": 0.45454545454545453,
+          "both_arms_fail_wilson": [
+            0.2692029418081331,
+            0.6534020467926505
+          ],
+          "cell_keys": [
+            [
+              "mem-013696c4-3265819477d1370582cf2b9c",
+              "8f752563"
+            ],
+            [
+              "mem-06a17a60-6a54545c852b1bd60f50796e",
+              "b2595523"
+            ],
+            [
+              "mem-0b072635-8822218a9c3e431fc3a217d7",
+              "71e61e15"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "238c3621"
+            ],
+            [
+              "mem-2af3e2bb-75b11486c85b4f33a4ec3b25",
+              "3f366e15"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "626e401e"
+            ],
+            [
+              "mem-2e66df34-9a8f08c40ffaba78b12b55ac",
+              "f13eb38d"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "19367bc7"
+            ],
+            [
+              "mem-2ebe08f4-f2771f1802f91f5a18d457fb",
+              "8f752563"
+            ],
+            [
+              "mem-435237ce-fb34b7597d221c9d60b39dfc",
+              "668f7b74"
+            ],
+            [
+              "mem-4ae82e48-6f78ae0f48a7648bca74c710",
+              "626e401e"
+            ],
+            [
+              "mem-5502a021-51f9d80e74b79bf20fe18668",
+              "4f92aa38"
+            ],
+            [
+              "mem-56b3344d-6769d8b0584545189e2d58bc",
+              "626e401e"
+            ],
+            [
+              "mem-576d210a-00bb81868ce4364b8d7bbbe2",
+              "744dbdad"
+            ],
+            [
+              "mem-6c4a4684-d4bd6a0f5b6fb781d9ac518e",
+              "5aaf0f61"
+            ],
+            [
+              "mem-6ea56646-2da8ba254ad9269a12ad883e",
+              "4f92aa38"
+            ],
+            [
+              "mem-70cc15dc-9246e9b21ac9099d79292414",
+              "e3a1d7f3"
+            ],
+            [
+              "mem-787ceaeb-6b50a78cf40a9d402c131cbd",
+              "658fa827"
+            ],
+            [
+              "mem-8012d4f3-7c667e4e99a7fcd9cc8c9995",
+              "626e401e"
+            ],
+            [
+              "mem-9c420e86-63c963956571e1d59c84ec5a",
+              "3b375e30"
+            ],
+            [
+              "mem-d4949793-694536807fb1a89bbcd143b0",
+              "8f70bc0e"
+            ],
+            [
+              "mem-dc083cd0-33b110f4b340f0fd7dbff9ad",
+              "f0882f6e"
+            ]
+          ],
+          "delta": 0.18181818181818182,
+          "n_cells": 22,
+          "n_correct_with": 10,
+          "n_correct_without": 6
+        }
+      }
+    }
+  },
+  "max_pool_hits": 5
+}

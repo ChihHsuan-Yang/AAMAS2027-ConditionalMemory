@@ -1,0 +1,2 @@
+{"completion_tokens": 61, "content_chars": 18, "fingerprint": "fastcoe", "finish_reason": "stop", "http": 200, "latency_s": 6.507, "prompt_tokens": 4277, "reasoning_tokens": 48, "resolved_model": "gpt-oss-120b", "tag": "metis/gpt-oss-120b/~4000", "target_input_tokens": 4000}
+{"error": "{\"error\": {\"code\": \"endpoint_not_found\", \"message\": \"The requested endpoint 'metis-api-mistral-large-3-675b' does not exist.\", \"info\": {}}}", "http": 404, "latency_s": 0.086, "retry_after": null, "tag": "metis/Mistral-Large-3-675B/~4000", "target_input_tokens": 4000}
