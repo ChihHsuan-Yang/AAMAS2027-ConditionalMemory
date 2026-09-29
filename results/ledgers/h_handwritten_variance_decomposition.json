@@ -1,0 +1,65 @@
+{
+  "component_ci": {},
+  "components": {},
+  "converged": false,
+  "exec_floor_variance_comparator": null,
+  "extra": {
+    "admission": {
+      "error_codes": {
+        "endpoint_error": 2
+      },
+      "n_admitted": 958,
+      "n_errored": 2,
+      "n_input": 960,
+      "n_leakage_flagged_admitted": 306,
+      "n_missing_reward": 0
+    },
+    "info": {
+      "moments": {
+        "reason": "balanced sub-design is 0x220; needs >= 2x2"
+      },
+      "reml_attempt": {
+        "components_at_upper_bound": [
+          "task",
+          "interaction"
+        ],
+        "intercept_mu": 0.0085913281227093,
+        "log_ratios_raw": [
+          9.022179497915356,
+          13.199936045936528,
+          58.53997885488709
+        ],
+        "n_cells_reduced": 479,
+        "n_starts": 8,
+        "n_starts_at_optimum": 1,
+        "n_successful_starts": 8,
+        "neg2_reml": -9106.883016282589,
+        "nit": 226,
+        "optimizer": "Nelder-Mead on log variance ratios; profiled REML on cell-mean sufficient statistics with Woodbury inverse",
+        "ratios": [
+          8284.81415341759,
+          162754.79141900392,
+          162754.79141900392
+        ],
+        "scipy_message": "Optimization terminated successfully.",
+        "scipy_success": true,
+        "sigma2": 1.4122868985857317e-07
+      }
+    }
+  },
+  "flags": [
+    "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']",
+    "NON_CONVERGENCE:the mixed model did not converge; falling back to the PRE-REGISTERED method-of-moments estimator (section 6). reason=Optimization terminated successfully.",
+    "FIT_FAILED"
+  ],
+  "interaction_share_vs_exec_floor": null,
+  "method": "method of moments (two-way, balanced sub-design) [FALLBACK]",
+  "n_cells": 479,
+  "n_memories": 60,
+  "n_obs": 958,
+  "n_tasks": 220,
+  "share_ci": {},
+  "shares": {},
+  "total_variance": 0.0,
+  "used_fallback": true
+}

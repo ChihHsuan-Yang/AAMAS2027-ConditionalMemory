@@ -225,6 +225,26 @@ vacuous; 2 always-agreeing replicates give a degenerate CI). The gap is not meas
 **No excess over the additive null in either arm.** And in both arms the null is
 **uninformative**, because most cells cannot move.
 
+## 5b. The decomposition, finally run to completion on both arms
+
+Both arms now pass through the fixed pipeline. Artifacts:
+`results/ledgers/h_official_variance_decomposition.json`, `h_handwritten_variance_decomposition.json`.
+
+| arm | converged | shares | `components_at_upper_bound` |
+|---|---|---|---|
+| official | True | produced | **['task', 'interaction']** |
+| hand-written | False → fallback | `{}` → prints UNMEASURED | **['task', 'interaction']** |
+
+Official arm: `task = interaction = 0.45906915842794044` with **identical CIs**
+[0.40555, 0.49555], both at the `exp(12)` clip, residual 2.82e-06 at the lower boundary,
+**29 of 200 bootstrap resamples failed to fit**, and `interaction_share_vs_exec_floor`
+correctly `null` instead of crashing.
+
+> **Verdict: no variance shares are reported for either arm.** POWER_ANALYSIS's ≥60-memory
+> rule is satisfied, but these are not measurements — reporting `interaction = 0.459`
+> would be reporting a clip constant. The honest statement is **UNMEASURED: task and
+> interaction are not separately identifiable under this pairing** (P1-139).
+
 ## 6. What this means for the project
 
 1. **The kill criterion is still NOT triggered** — and for the same reason as before. It

@@ -1,0 +1,106 @@
+{
+  "component_ci": {
+    "interaction": [
+      0.0132446722932639,
+      0.021256797884603038
+    ],
+    "memory": [
+      0.0003346256061247971,
+      0.008161763966514638
+    ],
+    "residual": [
+      8.137807912005593e-08,
+      1.3060628015477895e-07
+    ],
+    "task": [
+      0.0132446722932639,
+      0.021256797884603038
+    ]
+  },
+  "components": {
+    "interaction": 0.021496232670951656,
+    "memory": 0.0038330981786236454,
+    "residual": 1.3207741832687862e-07,
+    "task": 0.021496232670951656
+  },
+  "converged": true,
+  "exec_floor_variance_comparator": 0.0,
+  "extra": {
+    "admission": {
+      "error_codes": {},
+      "n_admitted": 960,
+      "n_errored": 0,
+      "n_input": 960,
+      "n_leakage_flagged_admitted": 308,
+      "n_missing_reward": 0
+    },
+    "info": {
+      "components_at_upper_bound": [
+        "task",
+        "interaction"
+      ],
+      "intercept_mu": -0.005771417628201406,
+      "log_ratios_raw": [
+        10.275795704939464,
+        13.808871186525504,
+        45.00145004233959
+      ],
+      "n_cells_reduced": 480,
+      "n_starts": 8,
+      "n_starts_at_optimum": 2,
+      "n_successful_starts": 8,
+      "neg2_reml": -9164.035926801223,
+      "nit": 126,
+      "optimizer": "Nelder-Mead on log variance ratios; profiled REML on cell-mean sufficient statistics with Woodbury inverse",
+      "ratios": [
+        29021.601324286217,
+        162754.79141900392,
+        162754.79141900392
+      ],
+      "scipy_message": "Optimization terminated successfully.",
+      "scipy_success": true,
+      "sigma2": 1.3207741832687862e-07
+    },
+    "note": "residual here is the REML/MoM residual, which estimates the same quantity as F_exec[delta]^2 by a different route; their agreement is a consistency check, not a coincidence"
+  },
+  "flags": [
+    "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']",
+    "AT_BOUNDARY:residual variance is ~0. The likelihood is saying this component is not identified from this design -- read it as 'not distinguishable from zero', not as a measured zero.",
+    "AT_UPPER_BOUNDARY:task variance ratio is pinned at the optimizer's clip ceiling (exp(12)). The likelihood is saying this component is unbounded relative to the residual, i.e. NOT IDENTIFIED from this design. Its share and CI are artifacts of the clip, not measurements.",
+    "AT_UPPER_BOUNDARY:interaction variance ratio is pinned at the optimizer's clip ceiling (exp(12)). The likelihood is saying this component is unbounded relative to the residual, i.e. NOT IDENTIFIED from this design. Its share and CI are artifacts of the clip, not measurements.",
+    "BOOTSTRAP_DROPPED:29/200 resamples failed to fit and were discarded",
+    "EXEC_FLOOR_COMPARATOR_UNDEFINED:F_exec^2 = 0, so the section-6 ratio interaction/F_exec^2 is undefined (division by zero). The interaction VARIANCE is still reported as 0.0214962; only the ratio is unavailable. A zero execution floor is the expected result for a deterministic reader."
+  ],
+  "interaction_share_vs_exec_floor": null,
+  "method": "REML crossed random effects (memory + task + memory:task)",
+  "n_cells": 480,
+  "n_memories": 60,
+  "n_obs": 960,
+  "n_tasks": 220,
+  "share_ci": {
+    "interaction": [
+      0.40555059503138613,
+      0.49554890517622574
+    ],
+    "memory": [
+      0.00889914488984372,
+      0.18889631814825178
+    ],
+    "residual": [
+      2.4917889758914487e-06,
+      3.0447577048620355e-06
+    ],
+    "task": [
+      0.40555059503138613,
+      0.49554890517622574
+    ]
+  },
+  "shares": {
+    "interaction": 0.45906915842794044,
+    "memory": 0.08185886252572491,
+    "residual": 2.8206183942449367e-06,
+    "task": 0.45906915842794044
+  },
+  "total_variance": 0.046825695597945284,
+  "used_fallback": false
+}
