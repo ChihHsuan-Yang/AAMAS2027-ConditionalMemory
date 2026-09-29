@@ -60,6 +60,35 @@ should behave differently.**
 - exercising the same probe on real data rather than synthetic (#5)
 - a positive control on a known-good case (#15)
 
+## The same defect, found independently by two agents within minutes
+
+**Joining on a field that shares a NAME rather than a REFERENT.**
+
+`results/deltau_screened/cells.jsonl` carries `memory_id` as a canonical content hash
+(`mem-013696c4-eae1...`). `data/manifests/k1_screened_cells.jsonl` carries a *different*
+upstream `memory_id` (`cc470fce0740eb16`) plus the locator. **Same field name, different
+referent.**
+
+| who | symptom | what it would have cost |
+|---|---|---|
+| Sub-agent K | verification reported **all 2,599 rows disagree** with the design on stratum | a false integrity alarm on a clean run |
+| Master Agent | paired test returned **0 memories** | reporting the headline contrast as empty |
+
+Both re-joined on the locator and got **2,599/2,599 agreement, zero mismatches**.
+
+Two things worth keeping:
+
+1. **The 100% disagreement rate was the tell.** As K put it, a *partial* mismatch would
+   have been far more dangerous — it would have looked like a data problem worth
+   investigating rather than an obviously broken join. A result that is uniformly extreme
+   is usually a property of the instrument.
+2. **This is the `memory_id` collision from this morning, resurfacing.** It was ruled on
+   (`memory_id` = content hash, `memory_unit_locator` = positional) and the ruling was
+   applied — but only in the manifests I rewrote, not in the upstream file K's design was
+   built from. **A naming ruling enforced in some artifacts and not others is worse than
+   no ruling**, because downstream code then joins on a name that is authoritative in one
+   file and misleading in another.
+
 ## A named pattern: the pooled number hides the structure that matters
 
 Three times in one day, a correctly-computed pooled figure led to a wrong reading, and each
