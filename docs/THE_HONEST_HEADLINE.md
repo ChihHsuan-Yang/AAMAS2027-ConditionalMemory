@@ -26,6 +26,37 @@ On cells where the memory **demonstrably bears on the task**:
 
 > 🔴 **Zero sign flips in 35 eligible memories. On bearing cells, harm is nearly absent.**
 
+## Stratified, this becomes the paper's sharpest result
+
+Verified independently by the Master Agent:
+
+| stratum | flip-eligible | flips | rate | Wilson 95% CI |
+|---|---:|---:|---:|---|
+| **BEARING** | 35 (21 episodes) | **0** | **0.0000** | **[0.0000, 0.0989]** |
+| MATCHED_CONTROL | 35 | 1 | 0.0286 | [0.0051, 0.1453] |
+| **RANDOM** | 60 | **17** | **0.2833** | [0.1851, 0.4077] |
+
+**The intervals are disjoint** — BEARING's upper bound 0.0989 sits below RANDOM's lower
+bound 0.1851, a gap of 0.0862. Fisher one-sided **p = 0.000151**.
+
+### Two things this establishes
+
+**1. The zero is bounded, not merely unobserved.** At ≤ **9.9%** with 95% confidence, this
+is a constraint rather than a sample-size complaint. *"We saw none"* invites "you didn't
+look hard enough"; *"the rate is below 10%"* does not.
+
+**2. Flips concentrate where the pairing is meaningless.** 17 of 60 in RANDOM — memory–task
+pairs with **no plausible relationship** — against 0 of 35 where the memory demonstrably
+bears on the task.
+
+> **A sign reversal between a memory and a task it has nothing to do with is not evidence
+> that memory utility is task-conditional. It is evidence that both outcomes were noise.**
+
+Prior work reporting flip rates on unscreened pairings would land near RANDOM's **0.2833**.
+Our own unscreened arms did. **The flip rate is largely an artifact of the pairing**, and
+that is a substantive claim about how this phenomenon has been measured — including by us,
+earlier today.
+
 ## This is a negative result on the founding hypothesis, and it leads
 
 The project was designed around conditional *harm*. What the data shows is different and
