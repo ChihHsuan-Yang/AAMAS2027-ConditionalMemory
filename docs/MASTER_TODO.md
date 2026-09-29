@@ -1,95 +1,153 @@
-# P1 Master TODO — AAMAS 2027 Main Track deadline mode
+# P1 Master TODO — authoritative
 
-**Abstract: 1 Oct 2026 AoE. Paper: 8 Oct 2026 AoE.** Structured around the critical path.
-Maintained by the Master Agent; sub-agent conclusions are not accepted until audited.
+**AAMAS 2027 main track. Abstract 1 Oct AoE · Paper 8 Oct AoE.**
+Statuses: `TODO` `RUNNING` `BLOCKED` `REVIEW` `DONE` `DEFERRED` `KILLED`.
+Tasks are never silently removed. Last updated 2026-09-29.
 
-Last updated: 2026-09-29.
-
-`TODO` · `WIP` · `REVIEW` (returned, awaiting audit) · `DONE` (audited, accepted) ·
-`BLOCKED` · `USER` (needs the user) · `REJECTED`
+Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action · Sub? · Done-when
+(**Sub?** = required for the AAMAS submission, or deferrable.)
 
 ---
 
-## 🔴 CRITICAL PATH — anything marked USER can stop the submission
+## USER-OWNED (Master Agent does not spend cycles here)
 
-| # | Task | Owner | Status | Due | Evidence |
+| ID | Task | Status |
+|---|---|---|
+| U-01 | Author list | USER |
+| U-02 | Reciprocal reviewer designation (1 Oct) + acceptance (8 Oct) | USER |
+| U-03 | OpenReview profiles/account logistics | USER |
+| U-04 | Submission administration | USER |
+| U-05 | *Optional, 2 min:* logged-in read of OpenReview `n3GMbobXnc` — does EvoMemEval's paper **body** report a cross-task variance statistic? | USER |
+
+---
+
+## Scientific / design
+
+| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
+|---|---|---|---|---|---|---|---|---|---|
+| P1-001 | P0 | Freeze storyline in repo + Overleaf | Master | DONE | — | `docs/PROJECT_GOAL.md` | — | yes | frozen doc + abstract agree |
+| P1-002 | P0 | Memory acquisition protocol (writer never sees future task) | Master+B | TODO | 001 | — | write `docs/MEMORY_PROTOCOL.md` | yes | protocol + leakage guarantee stated |
+| P1-003 | P0 | Define Raw representation | B | TODO | 002 | — | deterministic span rule | yes | spec + code |
+| P1-004 | P0 | Define Summary representation | B | TODO | 002 | — | fixed writer + prompt vN | yes | spec + code |
+| P1-005 | P0 | Define Structured representation | B | TODO | 002 | — | schema incl. procedural variant | yes | spec + code |
+| P1-006 | P1 | Memory semantic-type labels (episodic/semantic/procedural/failure) | B | TODO | 002 | — | keep distinct from representation | yes | labelling rule + agreement check |
+| P1-007 | P0 | WITH/WITHOUT intervention definition | Master | TODO | 002 | oracle ctx is 100% evidence → needs controlled filler | write into experiment plan | yes | ablation is a LOCAL change |
+| P1-008 | P0 | Robust useful/harmful definition vs noise floor | Master | TODO | 051 | — | **pre-register before data** | yes | thresholds fixed pre-hoc |
+| P1-009 | P0 | Efficiency metric definitions | D | TODO | 001 | — | 7 families, §17 | yes | each metric has a field |
+| P1-010 | P1 | Retrieval baselines: None / Keep-All / Top-k / Oracle | D | TODO | 001 | — | — | yes | 4 arms specified |
+| P1-011 | P1 | Figure/table targets + schema support check | D | TODO | 040 | — | verify schema can produce Fig 2 | yes | each fig maps to fields |
+
+## Benchmark / data — Sub-agent A
+
+| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
+|---|---|---|---|---|---|---|---|---|---|
+| P1-020 | P0 | LongMemEval-V2 adapter + official scorers | A | RUNNING | — | `/tmp/lmev2` checksum-verified | extract scorers from `harness.py` | yes | unit tests pass |
+| P1-021 | P0 | V2 memory unit + memory×task pairing | A | RUNNING | 020 | 164k tok/trajectory → must subdivide | measured token distribution | yes | unit fixed + seeded pairing |
+| P1-022 | P0 | Leakage audit + detector | A | RUNNING | 020 | — | must prove detector can fail | yes | rate reported, cells flagged not dropped |
+| P1-023 | P1 | BEAM adapter | A | RUNNING | — | — | obtainability first | yes | adapter or documented exception |
+| P1-024 | P1 | BEAM task/domain mapping | A | BLOCKED | 023 | — | — | yes | — |
+| P1-025 | P1 | SciCode adapter | A | RUNNING | — | — | obtainability first | yes | adapter or documented exception |
+| P1-026 | P1 | SciCode source→future transfer mapping | A | BLOCKED | 025 | — | — | yes | — |
+| P1-027 | P0 | License/provenance audit (ShareGPT/UltraChat carry own terms) | A | RUNNING | — | — | `docs/BENCHMARK_LICENSES.md` | yes | redistribution rules explicit |
+
+## Infrastructure — Sub-agent C
+
+| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
+|---|---|---|---|---|---|---|---|---|---|
+| P1-030 | P0 | Runtime ALCF discovery | C | DONE | — | 4 clusters incl. undocumented `tara`; `/v1/models` 404s on Sophia | — | yes | live list recorded |
+| P1-031 | P0 | Minerva primary-model feasibility | C | RUNNING | 030 | — | real POST per candidate | yes | serves-or-not with evidence |
+| P1-032 | P0 | **Freeze primary generation model+cluster** | Master | BLOCKED | 031 | — | decide on C's evidence | yes | pinned in config + manifest |
+| P1-033 | P0 | Freeze embedding model | Master | DONE | — | `SFR-Embedding-Mistral` dim 4096, deterministic cos=1.0, batches | — | yes | pinned |
+| P1-034 | P0 | Concurrency benchmark (ladder 1→16) | C | RUNNING | 032 | — | `docs/ENDPOINT_THROUGHPUT.md` | yes | chosen value justified by table |
+| P1-035 | P1 | Aurora orchestration runner | C | RUNNING | 034 | — | check allocation first | no* | resumable job or documented fallback |
+| P1-036 | P0 | Response cache (cluster in the key) | C | RUNNING | — | — | test: cross-cluster keys differ | yes | tests pass |
+| P1-037 | P0 | Retry/resume/checkpoint | C | RUNNING | 036 | — | — | yes | restart re-pays nothing |
+| P1-038 | P0 | Cost/token/latency logger | C | RUNNING | 036 | — | — | yes | every call logged |
+
+\* Aurora is an execution convenience; a gateway-driven run is an acceptable fallback at our scale.
+
+## Data / release — Sub-agent E
+
+| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
+|---|---|---|---|---|---|---|---|---|---|
+| P1-040 | P0 | Canonical dataset schema (+P3 reserved fields) | E | TODO | 001 | — | dispatch E | yes | schema + validator |
+| P1-041 | P0 | HF staging dir (clean, never the repo root) | E | TODO | 040 | — | — | yes | staging isolated |
+| P1-042 | P1 | HF data card (20 sections) | E | TODO | 040 | — | — | yes | card current |
+| P1-043 | P0 | Derived-data writer | E | TODO | 040 | — | — | yes | emits conforming rows |
+| P1-044 | P0 | Dataset validation script | E | TODO | 040 | — | — | yes | rejects malformed |
+| P1-045 | P1 | HF upload/version process | E | TODO | 041 | `AgentsSci/AAMAS2027-ConditionalMemory` | — | yes | snapshot uploaded |
+| P1-046 | P0 | P3 receiver-compatible reserved fields | E | TODO | 040 | — | null in P1 | yes | present + null |
+
+## Experiments
+
+| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
+|---|---|---|---|---|---|---|---|---|---|
+| P1-050 | P0 | Extraction pilot (3 representations) | B | BLOCKED | 003-005, 032 | — | — | yes | 3 reps for N episodes |
+| P1-051 | P0 | **Noise/reliability pilot** | D | BLOCKED | 032, 036 | free no-memory arm | — | yes | floor measured |
+| P1-052 | P0 | LongMemEval-V2 pilot | D | BLOCKED | 020, 050, 051 | — | — | yes | pipeline end-to-end |
+| P1-053 | P0 | LongMemEval-V2 main run | D | BLOCKED | 052 | — | — | yes | main table cells filled |
+| P1-054 | P1 | BEAM pilot | D | BLOCKED | 023 | — | — | yes | — |
+| P1-055 | P1 | BEAM main run | D | BLOCKED | 054 | — | — | no | — |
+| P1-056 | P1 | SciCode pilot | D | BLOCKED | 025 | — | — | yes | — |
+| P1-057 | P1 | SciCode main run | D | BLOCKED | 056 | — | — | no | — |
+| P1-058 | P0 | Targeted replication queue (adaptive) | D | BLOCKED | 051 | — | prioritize near-zero + sign flips | yes | flips replicated |
+| P1-059 | P1 | Missing-cell recovery (same cluster only) | D | BLOCKED | 053 | — | — | yes | no cross-cluster merge |
+
+## Analysis — Sub-agent D
+
+| ID | Pri | Task | Owner | Status | Sub? |
 |---|---|---|---|---|---|
-| **E1** | **Fix the author list** | **USER** | 🔴 USER | 1 Oct | no P1 author list exists in any local record; candidates in `submission/ELIGIBILITY.md` §6 |
-| **E2** | **Confirm every author has an active OpenReview profile** | **USER** | 🔴 USER | 1 Oct | **cannot be automated** — API login-gated, positive control failed; see `ELIGIBILITY.md` §5 |
-| **E3** | **Designate the reciprocal reviewer** | **USER** | 🔴 USER | 1 Oct | desk-rejectable; must be a qualified *author*; later changes need PC approval |
-| **E4** | Reciprocal reviewer **accepts** the OpenReview invitation | USER | BLOCKED on E3 | 8 Oct | *"Nomination alone is not sufficient"* |
-| **E5** | Submit the abstract | USER | READY | 1 Oct | package complete: title, 268-word abstract, keywords, area |
+| P1-060 | P0 | Continuous ΔU analysis | D | BLOCKED | yes |
+| P1-061 | P0 | Robust useful/harmful labels | D | BLOCKED | yes |
+| P1-062 | P1 | Breadth vs specialization | D | BLOCKED | yes |
+| P1-063 | P0 | Sign-flip analysis (must clear floor) | D | BLOCKED | yes |
+| P1-064 | P1 | NEAR/MID/FAR | D | BLOCKED | yes |
+| P1-065 | P1 | Similarity-vs-utility | D | BLOCKED | yes |
+| P1-066 | P0 | Representation comparison (Contribution B) | D | BLOCKED | yes |
+| P1-067..073 | P0 | Efficiency: storage/retrieval/exposure/latency/API/selectivity/extraction | D | BLOCKED | yes |
+| P1-074 | P0 | **Utility–Efficiency Frontier (Fig 2)** | D | BLOCKED | yes |
+| P1-075 | P1 | Variance decomposition (memory/task/interaction) — ~200 new lines, none exists | D | BLOCKED | yes |
 
-## Now → 1 Oct — registration and design
+## Manuscript — Sub-agent F
 
-| # | Task | Owner | Status | Evidence | Next action |
+| ID | Pri | Task | Owner | Status | Sub? |
 |---|---|---|---|---|---|
-| 0.1 | Clone GitHub | Master | DONE | `p1_memory_utility/repo`, pushed to `main` | — |
-| 0.2 | Clone + inspect Overleaf | Master | DONE | 1 commit, bare 224-byte template, nothing to preserve | install AAMAS template |
-| 0.5 | Verify search-channel health | Master | DONE | `WebSearch` HTTP 400 org-block; `WebFetch` 200 | positive-control all nulls |
-| 0.6 | Verify UMEM | Master | DONE | arXiv:2602.10652, Ye et al., 11 Feb 2026 | seam check → A2 |
-| 0.7 | Repo scaffold | Master | DONE | 3 commits pushed | — |
-| **A1** | **Verify AAMAS policy from primary sources** | Master | DONE | dates, areas, abstract length, reciprocal policy, page limit — all re-fetched 2026-09-29 | `submission/ELIGIBILITY.md` |
-| **A2** | **Draft the abstract package** | Master | DONE | 268 words, forbidden-claim scan clean, 5 title options, keywords, LEARN | `submission/ABSTRACT_PACKAGE.md` |
-| 1.1 | 🔴 EvoMemEval: same memory × multiple future tasks? | Sub-agent A | WIP | — | if YES → reframe the Introduction, not the experiment |
-| 1.2 | 🔴 UMEM: does it report per-task utility **dispersion** or only the mean? | Sub-agent A | WIP | — | decides how the seam is stated |
-| 1.3 | Fresh adversarial search (matrix / sign flips) | Sub-agent A | WIP | — | needed before any novelty sentence |
-| 1.4 | 🔴 Resolve DATASETS.md provenance defect | Sub-agent A | WIP | `find` → 0 hits for `lme_v2*` on this machine | does **not** block the abstract |
-| 1.5 | LongMemEval-V2 feasibility from ACTUAL files | Sub-agent A | WIP | — | gates the memory/task unit |
-| 1.6 | Lattice analyzer: how much analysis is free? | Sub-agent B | REVIEW | agent stalled at ~90%, resumed with narrowed scope | audit on return |
-| 1.7 | Live ALCF model list + resolved ids | Sub-agent B | REVIEW | token valid ~30 h at 11:05 | audit on return |
-| 2.1 | **Freeze the memory unit and future-task unit** | Master | BLOCKED on 1.5 | — | — |
-| 2.2 | Leakage/confound review (memory containing the gold) | Master | BLOCKED on 2.1 | — | — |
-| 2.3 | Noise-floor protocol + cost | Master | BLOCKED on 1.7, 2.1 | — | empty-memory arm is a free floor |
-| 2.4 | Pilot matrix + cost | Master | BLOCKED on 2.3 | — | — |
-| 2.5 | **Pre-register analysis + sign-flip definition** | Master | BLOCKED on 2.4 | — | fix definitions BEFORE seeing data |
-| 2.6 | Install AAMAS LaTeX template in Overleaf | Master | TODO | — | `\documentclass[sigconf,anonymous]{aamas}` |
+| P1-080 | P0 | Abstract → frozen story (v3) | Master | TODO | yes |
+| P1-081..087 | P1 | Intro · Related Work · Method · Representations · Benchmarks · Utility · Efficiency | F | TODO | yes |
+| P1-088..090 | P0 | Results · Analysis · Limitations | F | BLOCKED | yes |
+| P1-091..092 | P0 | Figures · Tables | F | BLOCKED | yes |
+| P1-093 | P1 | Reproducibility statement | F | TODO | yes |
+| P1-094 | P0 | Claim/evidence audit | Master | BLOCKED | yes |
+| P1-095 | P0 | Final compile + anonymity + citation check | Master | BLOCKED | yes |
+| P1-096 | P0 | **AI-assistance disclosure** (prompt + tool + version) — AAMAS requires it | Master | TODO | yes |
 
-## 1 Oct → 3 Oct — first evidence
+## Release
 
-| # | Task | Status | Note |
-|---|---|---|---|
-| 3.1 | Memory bank (deterministic JSONL, **not** a vector DB) | BLOCKED on 2.5 | |
-| 3.2 | LLM response cache | BLOCKED on 2.5 | the one genuine infra gap |
-| 3.3 | **Experiment 1 — noise floor** | BLOCKED on 3.1–3.2 | execution + empty-memory + judge floors |
-| 3.4 | **Experiment 2 — pilot matrix** | BLOCKED on 3.3 | multiple future tasks per memory is the hard requirement |
-| 3.5 | First interaction + sign-flip result | BLOCKED on 3.4 | |
+| ID | Pri | Task | Owner | Status | Sub? |
+|---|---|---|---|---|---|
+| P1-100..106 | P1 | GitHub cleanup · README repro · HF snapshot · data card · license verify · results ledger · final consistency audit | Master+E | TODO | yes |
 
-## 3 Oct → 5 Oct — scale or stop
+---
 
-| # | Task | Status | Note |
-|---|---|---|---|
-| 4.1 | **Apply the kill criterion** | BLOCKED on 3.5 | a null is a legitimate result; it changes the paper, it does not end the submission |
-| 4.2 | Scale the matrix **only if** the phenomenon survives | BLOCKED on 4.1 | |
-| 4.3 | NEAR/MID/FAR semantic-distance analysis | BLOCKED on 4.1 | the direct answer to UMEM |
-| 4.4 | **Freeze main tables and figures** | BLOCKED on 4.2 | |
+## Newly added from findings (§32 requires recording the trigger)
 
-## 5 Oct → 8 Oct — manuscript
+| ID | Trigger | Why it matters | Pri | Sub? |
+|---|---|---|---|---|
+| P1-110 | V2 ships **no evidence labels** (verified over all 451 records) | We cannot know which trajectory holds the answer, so "ablate the evidence" is undefined. The memory unit must be defined without evidence labels, and utility measured purely counterfactually | P0 | yes |
+| P1-111 | Oracle ctx is **100% evidence** | Ablating there removes the whole context — a no-context arm, not a memory ablation. Every cell needs controlled filler | P0 | yes |
+| P1-112 | EvoMemEval's artifact already contains 46 multi-task memories, 17 flipping | Related Work must concede this; our claim is signed+replicated+decomposed, not "we found it first" | P0 | yes |
+| P1-113 | EvoMemEval pre-balance metadata: **22.0% natural harm rate** (n=537) | Directly answers the TraceRetain "no pollution → all arms in one CI" hazard. Cite as external evidence | P1 | yes |
+| P1-114 | `analyze_conditional_value.py` has **zero** variance/interaction code and **rejects `replicate_id`** | The headline analysis must be written (~200 lines); start from `analyze_reliability.py`, which does key on replicate_id | P0 | yes |
+| P1-115 | `get_embedding` broken 3 ways; `vectorstore.py` has no retrieval or persistence | Both must be written, not reused | P0 | yes |
+| P1-116 | Inherited "679 free natural cells" **refuted** (0 overlap, positive-controlled) | The matrix is **constructed**, not harvested. The paper must say so | P0 | yes |
 
-| # | Task | Status | Note |
-|---|---|---|---|
-| 5.1 | Full manuscript, ≤8 pages **including any appendix** | BLOCKED on 4.4 | differs from AAMAS 2026 |
-| 5.2 | Every citation human-verified against a fetched source | TODO | hallucinated citations are a named desk-reject trigger |
-| 5.3 | AI-assistance disclosure (prompts + tool + version) | TODO | **required** where AI shaped hypotheses or experimental design |
-| 5.4 | Anonymization check incl. supplementary | BLOCKED on 5.1 | desk-rejectable |
-| 5.5 | Findings opt-in/opt-out; final validation; submit | BLOCKED on 5.1 | |
+## Deferred
 
-## Scope freeze — per the user, these are NOT submission blockers
-
-Jev · large LLM-manager comparisons · scientific OOD · elaborate memory storage ·
-extensive model scaling. Optional extensions only.
-
-**Paper priority order:** (1) execution noise floor → (2) natural memory × task matrix →
-(3) memory/task/interaction decomposition → (4) natural sign-flip rate →
-(5) NEAR/MID/FAR → (6) *time permitting* scalar vs task-conditioned predictor.
-
-**Do not begin with gate training.**
-
-## Standing constraints
-
-- No endpoint calls beyond health checks until 2.5 is accepted.
-- No "first" claims — `docs/LITERATURE_BOUNDARY.md`.
-- No secrets in repo, logs, Overleaf, or reports.
-- No unverified number in Overleaf or the manuscript; ledger first.
-- Positive-control every null. `WebSearch` is blocked; OpenReview profile search is
-  login-gated and returns **misleading empty results** anonymously.
+| ID | Task | Reason |
+|---|---|---|
+| D-01 | Jev baseline | §12: optional extension, never a blocker |
+| D-02 | Large LLM-manager comparison | optional extension |
+| D-03 | Learned retriever / gate | only if the main paper is complete |
+| D-04 | Scientific OOD beyond SciCode | optional |
+| D-05 | Model scaling ladder | optional |
+| D-06 | Production vector DB | explicitly out of scope |
