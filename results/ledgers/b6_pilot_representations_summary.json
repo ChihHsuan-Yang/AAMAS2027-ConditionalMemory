@@ -1,6 +1,6 @@
 {
-  "run_at_utc": "2026-09-29T18:37:53.101995+00:00",
-  "wall_clock_s": 0.24,
+  "run_at_utc": "2026-09-29T18:42:47.140125+00:00",
+  "wall_clock_s": 0.25,
   "n_segments": 8,
   "segment_ids": [
     "1dd9a032:7-8",
@@ -257,6 +257,7 @@
         "unsupported inference with no new tokens scores 1.0",
         "negation/modality in free prose is invisible to the contradiction check",
         "faithful paraphrase that renames an entity is scored as UNSUPPORTED (false alarm)",
+        "ENTITY FALSE-ALARM FLOOR (MEASURED, B6 pilot): the unsupported 'entities' were almost entirely sentence-initial capitalised VERBS ('Clicked', 'Executed', 'Performed', 'Starting') plus the structured renderer's OWN key names ('memory_type'), none of which are model-invented content. So entity_support is a LOWER bound -- 0.809 for structured and 0.928 for summary in the pilot -- and a gap from 1.0 is not evidence of hallucination without reading the list.",
         "SCOPE COLLISION (false alarm, MEASURED): when a structured field name equals a source field name at a different granularity -- the schema's per-SEGMENT 'action' vs the source's per-STATE '- Action:' -- a correct summary of several actions is scored as contradicting the one action the source binds. Both contradictions in the B6 pilot were this, not hallucination. So the structured contradiction rate is an UPPER BOUND and must never be quoted as a hallucination rate."
       ]
     },
@@ -278,6 +279,7 @@
         "unsupported inference with no new tokens scores 1.0",
         "negation/modality in free prose is invisible to the contradiction check",
         "faithful paraphrase that renames an entity is scored as UNSUPPORTED (false alarm)",
+        "ENTITY FALSE-ALARM FLOOR (MEASURED, B6 pilot): the unsupported 'entities' were almost entirely sentence-initial capitalised VERBS ('Clicked', 'Executed', 'Performed', 'Starting') plus the structured renderer's OWN key names ('memory_type'), none of which are model-invented content. So entity_support is a LOWER bound -- 0.809 for structured and 0.928 for summary in the pilot -- and a gap from 1.0 is not evidence of hallucination without reading the list.",
         "SCOPE COLLISION (false alarm, MEASURED): when a structured field name equals a source field name at a different granularity -- the schema's per-SEGMENT 'action' vs the source's per-STATE '- Action:' -- a correct summary of several actions is scored as contradicting the one action the source binds. Both contradictions in the B6 pilot were this, not hallucination. So the structured contradiction rate is an UPPER BOUND and must never be quoted as a hallucination rate."
       ]
     },
