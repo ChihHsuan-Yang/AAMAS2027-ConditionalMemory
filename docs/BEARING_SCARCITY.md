@@ -14,7 +14,7 @@ Across 295 deterministic LongMemEval-V2 tasks and 1,889 naturally occurring memo
 
 | quantity | value |
 |---|---|
-| tasks that are **discriminative** (1 ≤ pool_hits ≤ 8) | **76 of 295 = 25.7%** |
+| tasks that are **discriminative** (1 ≤ pool_hits ≤ 8) | **76**, of which **75 deterministic** (1 is LLM-judged and excluded) |
 | tasks firing on **>100** of the ~865–1,024 same-domain memory pool | **152** |
 | tasks firing on **0** memories | 15 |
 | memories with **≥1** bearing task | **165 of 1,889** |
@@ -51,6 +51,52 @@ Wilson 95% CI widths at n = 46:
 **No amount of compute changes this.** It is a property of the benchmark's memory–task
 structure, and it must be stated in the paper as a limit on precision rather than
 discovered by a reviewer.
+
+## 🔴 The 46 are not 46 independent draws — episode clustering
+
+Found by Sub-agent K, **independently verified by the Master Agent**: the 46 memories sit
+on only **23 distinct source trajectories**.
+
+| memories from one trajectory | trajectories |
+|---|---|
+| 1 | 9 |
+| 2 | 8 |
+| 3 | 5 |
+| **6** | **1** |
+
+Six page visits from one browsing episode are six *views of one episode*, not six
+independent memories. A Wilson interval at n = 46 treats them as independent and is
+therefore **too narrow**.
+
+> **Binding: report BOTH the unit-level (n = 46) and the episode-clustered (n = 23) rate,
+> with the clustered interval as the conservative one. Where the two readings differ, the
+> clustered one governs the claim.** They are not substitutes.
+
+`run_deltau_pilot.sample_memories` already enforces one unit per trajectory for exactly
+this reason; the screened design must not quietly discard that discipline.
+
+## The token-band cap — a content-blind exclusion, fixed before outcomes
+
+The bearing set is token-heavy: median **12,261**, max **694,188** (the pilot band was
+1,500–5,000). Keeping all 46 means ~40k-token contexts at the tail.
+
+**Cap: 20,000 tokens**, which retains **35 of 46 memories (21 of 23 episodes)** and 114 of
+147 bearing edges, giving ~25k median context at K = 4 filler — comparable to the pilot's
+27k.
+
+The reason is not convenience. **~25k is inside the regime J's 22/22 needle control
+actually certified; ~40k is not.** An effect measured where the reader is known to read
+beats a larger denominator where it is not.
+
+The rule is **content-blind, size-only, and fixed before any outcome is observed**, and the
+11 excluded memories are named in the run manifest. Report **35 units / 21 episodes**, with
+46/23 beside them so the cost of the cap is visible.
+
+## Filler cannot leak a bearing target
+
+Filler is drawn from **244 units on 50 trajectories disjoint from every bearing
+trajectory**, and the disjointness is asserted in code so a violation fails the run rather
+than silently contaminating it.
 
 ## What we do NOT do about it
 
