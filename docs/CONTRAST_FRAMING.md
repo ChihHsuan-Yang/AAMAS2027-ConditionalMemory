@@ -47,6 +47,27 @@ Verified by the Master Agent over all 1,157 design cells:
 | tasks with **≥20 cells** | **24** |
 | max cells on a single task | **40** |
 | **top 10 tasks** | **400 / 1,157 = 34.6% of all cells** |
+| half of all cells sit on | **17 of 218 tasks** |
+
+### The pooled figure hides the part that matters — concentration is NOT uniform
+
+Verified per stratum by the Master Agent:
+
+| stratum | cells | tasks | max cells on one task | top-10 share |
+|---|---:|---:|---:|---:|
+| BEARING | 139 | 56 | 6 | 38.8% |
+| **MATCHED_CONTROL** | 146 | **100** | **4** | **19.9%** |
+| **RANDOM** | 872 | 147 | **40** | **44.6%** |
+
+> **The stratum that carries the claim is the least concentrated**, and the stratum most
+> exposed to single-task leverage is the one used only for the dilution diagnostic.
+
+MATCHED_CONTROL has **no task with ≥20 cells and a maximum of 4** — it is **2.2× less
+concentrated** than RANDOM. So BEARING↔MC is robust to task clustering close to by
+construction, while BEARING↔RANDOM is precisely where the jackknife earns its place.
+
+⚠️ **Quoting the pooled 34.6% alone would have made MATCHED_CONTROL look as fragile as
+RANDOM.** Report per stratum. (My own earlier note did quote it pooled; corrected here.)
 
 `626e401e` is not special; it is the most quotable instance of a property the **shared task
 grid deliberately creates** — reusing tasks across memories is exactly what fixes
