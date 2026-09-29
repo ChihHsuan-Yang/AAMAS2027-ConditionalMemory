@@ -155,12 +155,16 @@ def du_distribution(rows: list[dict]) -> dict:
             "n_cells": len(means)},
         "per_replicate": {str(k): v for k, v in sorted(per_rep.items())},
         "mean_delta_over_cells": float(np.mean(list(means.values()))) if means else None,
-        "mean_reward_with": float(np.mean(
-            [float(r["reward_with_memory"]) for r in rows
-             if r.get("reward_with_memory") is not None])) if rows else None,
-        "mean_reward_without": float(np.mean(
-            [float(r["reward_without_memory"]) for r in rows
-             if r.get("reward_without_memory") is not None])) if rows else None,
+        # `if rows else None` is NOT enough: rows can be non-empty while every
+        # reward is None (an all-errored stratum), and np.mean([]) is nan, not
+        # an error. A nan serialises into the artifact and reads as a measured
+        # value. Guard on the FILTERED list, and emit None for "not measured".
+        "mean_reward_with": (float(np.mean(_rw)) if (_rw := [
+            float(r["reward_with_memory"]) for r in rows
+            if r.get("reward_with_memory") is not None]) else None),
+        "mean_reward_without": (float(np.mean(_ro)) if (_ro := [
+            float(r["reward_without_memory"]) for r in rows
+            if r.get("reward_without_memory") is not None]) else None),
         "cells_with_disagreeing_replicates": sum(
             1 for v in by.values() if len(set(v)) > 1),
     }
