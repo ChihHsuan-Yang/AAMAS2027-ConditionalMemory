@@ -44,6 +44,8 @@ rc=${PIPESTATUS[0]}
 # A PBS exit status of 0 is NOT success. Verify the artifact exists and has
 # grown, and surface the real return code.
 echo "[p1] runner rc=$rc"
+# A dry run legitimately produces no ledger; skip the artifact check for it.
+for a in "$@"; do [[ "$a" == "--dry-run" ]] && { echo "[p1] dry run, skipping artifact check"; exit "$rc"; }; done
 if [[ ! -s "$P1_LEDGER" ]]; then
   echo "[p1] FAIL: ledger $P1_LEDGER is missing or empty" >&2
   exit 3
