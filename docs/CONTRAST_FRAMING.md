@@ -108,6 +108,39 @@ worry that BEARING memories are simply *better* memories — longer, richer, fro
 informative episodes — cannot explain the contrast, because it is the same 60 memories on
 both sides.
 
+**RANDOM contains the identical 60 memories too** — verified: `BEARING == MATCHED_CONTROL
+== RANDOM` as memory sets. So the dilution contrast is within-memory as well.
+
+This supports a **paired per-memory test**, not merely a better-framed two-sample one:
+each memory contributes one number — its mean ΔU on bearing cells minus its mean ΔU on
+control cells — with a bootstrap over memories, an episode-clustered bootstrap (governing),
+and a sign-flip permutation.
+
+### The immunity is arithmetic, not argumentative — verified
+
+Holding the noise fixed and varying **only** the per-memory quality offset:
+
+| per-memory quality sd | paired difference |
+|---:|---:|
+| 0 | 0.1241324318 |
+| 1 | 0.1241324318 |
+| 5 | 0.1241324318 |
+| 50 | 0.1241324318 |
+| **500** | **0.1241324318** |
+
+**Bit-identical across offsets spanning three orders of magnitude**, while a planted +0.5
+is still recovered exactly (+0.624132 at both sd = 0 and sd = 50).
+
+> So *"bearing memories are simply better memories — longer, richer, from more informative
+> episodes"* is **not rebutted by reasoning. It is arithmetically incapable of producing a
+> within-memory difference.** State it that way.
+
+⚠️ **My own first attempt to check this was wrong** and nearly produced a false reassurance
+in the other direction: I drew fresh noise on every call, so the paired difference moved
+(+0.1139, +0.0805, −0.1009, +0.1061) and I was measuring sampling variation rather than
+offset leakage. Holding the noise fixed and varying only the offset is the test that
+answers the question. Same wrong-subject shape as the rest of today's register.
+
 This is a stronger design property than the composition-matching argument below, and it
 should be stated first in the paper. It was available in the design and I had not credited
 it.
