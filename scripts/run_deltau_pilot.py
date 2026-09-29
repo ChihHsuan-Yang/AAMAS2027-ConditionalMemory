@@ -60,10 +60,17 @@ from p1mem.writer import CellWriter  # noqa: E402
 
 PROMPT_VERSION = "p1_deltau_raw_v1"
 CONDITION_ID = "lmev2_raw_metis_gptoss120b_v1"
-#: Sophia's SFR embedding endpoint returns HTTP 500 above ~4.1k tokens
-#: (measured: 3,466 OK / 4,249 FAIL). Embedding inputs are truncated to this
-#: many tokens and the truncation is RECORDED on the row, never silently done.
-EMBED_TOKEN_BUDGET = 3400
+#: Sophia's SFR embedding endpoint returns HTTP 500 on long inputs. The budget
+#: below is counted with the OFFICIAL QWEN tokenizer, which is NOT the
+#: embedding model's tokenizer (SFR-Embedding-Mistral). The two disagree on
+#: AXTree text, so a Qwen count is only a PROXY for what the embedding server
+#: sees: measured on real memory text, a 3,400-Qwen-token budget still failed
+#: 3 of 10 inputs, while 2,400 passed 10 of 10. 2,000 is used for margin, and
+#: :func:`embed_with_backoff` re-truncates and retries rather than letting one
+#: long unit kill the run -- an absent embedding would become a null in a
+#: non-nullable field.
+EMBED_TOKEN_BUDGET = 2000
+EMBED_MIN_BUDGET = 500
 
 
 def log(msg: str) -> None:
@@ -177,6 +184,38 @@ def truncate_to_tokens(text: str, budget: int) -> tuple[str, bool]:
     return text[:lo], True
 
 
+def embed_with_backoff(emb: "EmbeddingClient", labelled: list[tuple[str, str]],
+                       budget: int) -> tuple[dict[str, list[float]], dict[str, int]]:
+    """Embed one input at a time, halving the budget on a server rejection.
+
+    The endpoint's real limit is in ITS tokenizer, not ours, so our budget is a
+    proxy and a single over-long unit would otherwise abort the whole run.
+    Every successful budget is recorded per input so the row can state what was
+    actually embedded, rather than implying the full text was.
+    """
+    from p1mem.client import EndpointError  # noqa: PLC0415
+
+    vecs: dict[str, list[float]] = {}
+    used: dict[str, int] = {}
+    for key, text in labelled:
+        b = budget
+        while True:
+            t, _tr = truncate_to_tokens(text, b)
+            try:
+                vecs[key] = emb.embed([t])[0]
+                used[key] = b
+                break
+            except EndpointError:
+                b //= 2
+                if b < EMBED_MIN_BUDGET:
+                    raise RuntimeError(
+                        f"embedding {key!r} failed even at {EMBED_MIN_BUDGET} tokens; "
+                        f"refusing to write a null into non-nullable "
+                        f"semantic_similarity")
+                log(f"  embed retry for {key[:24]}: budget -> {b} tokens")
+    return vecs, used
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=Path("/tmp/lmev2"))
@@ -273,20 +312,20 @@ def main() -> int:
     # ---- embeddings (semantic_similarity is non-nullable)
     log("embedding memories and tasks ...")
     emb = EmbeddingClient(cache_path=args.out / "embeddings.jsonl")
-    mem_texts, mem_trunc = {}, {}
-    for u in targets:
-        t, tr = truncate_to_tokens(texts[u["memory_unit_locator"]], EMBED_TOKEN_BUDGET)
-        mem_texts[u["memory_id"]], mem_trunc[u["memory_id"]] = t, tr
+    mem_texts = {u["memory_id"]: texts[u["memory_unit_locator"]] for u in targets}
     task_ids = sorted({p["task_id"] for _u, p in cell_specs})
     mem_ids = sorted(mem_texts)
-    vecs = emb.embed([mem_texts[m] for m in mem_ids]
-                     + [tasks[t].question for t in task_ids])
+    labelled = ([(m, mem_texts[m]) for m in mem_ids]
+                + [(t, tasks[t].question) for t in task_ids])
+    vmap, budget_used = embed_with_backoff(emb, labelled, EMBED_TOKEN_BUDGET)
+    vecs = [vmap[k] for k in mem_ids + task_ids]
     arr = np.asarray(vecs, dtype=np.float32)
     arr /= np.linalg.norm(arr, axis=1, keepdims=True)
     store = args.out / "embeddings.npy"
     np.save(store, arr)
     idx = {k: i for i, k in enumerate(mem_ids + task_ids)}
     sha = S.file_sha256(store)
+    mem_trunc = {m: count_tokens(mem_texts[m]) > budget_used[m] for m in mem_ids}
     log(f"embeddings: {arr.shape} -> {store.name}  "
         f"(truncated for embedding: {sum(mem_trunc.values())}/{len(mem_trunc)} memories)")
 
@@ -406,14 +445,14 @@ def main() -> int:
                                             "index": idx[mid], "dim": EMBED_DIM,
                                             "sha256": sha,
                                             "input_truncated": mem_trunc[mid],
-                                            "input_token_budget": EMBED_TOKEN_BUDGET},
+                                            "input_token_budget": budget_used[mid]},
                 future_task_id=task.id,
                 future_task_family=task.question_type,
                 future_task_text=task.question,
                 task_embedding_reference={"store": "embeddings.npy",
                                           "index": idx[task.id], "dim": EMBED_DIM,
                                           "sha256": sha, "input_truncated": False,
-                                          "input_token_budget": EMBED_TOKEN_BUDGET},
+                                          "input_token_budget": budget_used[task.id]},
                 semantic_similarity=s,
                 semantic_distance_band=band(s),
                 retrieval_method="oracle",
