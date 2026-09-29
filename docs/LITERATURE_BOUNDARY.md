@@ -38,6 +38,21 @@ the manuscript. Each is already false.
 **No "first" claim of any kind** until a fresh adversarial search completes with a working
 channel and is recorded in this file.
 
+### 🔴 Also forbidden: inferring conditionality from a sign flip
+
+Any sentence of the form *"memories flip sign across tasks, therefore memory utility is
+task-conditional"* is **false and forbidden**, whatever the measured rate.
+
+Verified 2026-09-29 (`ANALYSIS_PREREGISTRATION.md` Amendment A1.1): in a purely additive
+model with the memory×task interaction **identically zero**, sign flips still occur at
+**53.5%–92.0%**, because the task main effect crosses the memory's own offset. A flip is a
+property of ΔU's *sign*; interaction is a property of its *variance*.
+
+**Permitted framing:** the flip rate is reported as a **descriptive, operational** fact —
+a single scalar cannot tell you the sign for a given task. Evidence for conditionality
+requires the **interaction's variance share** above the noise floor **and** the **excess
+flip rate over the fitted additive null**, reported together.
+
 > ⚠️ **The fresh adversarial search has NOT completed.** It was dispatched and did not
 > return before its agent ended. Treat this section as **incomplete**, not as clear. No
 > novelty sentence may enter the manuscript on the strength of it.
