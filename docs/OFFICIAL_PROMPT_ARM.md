@@ -120,6 +120,54 @@ already recommends ("prefer widening the task axis"), now for a second, independ
 
 **Consequently no variance decomposition is reported for either arm.**
 
+## 4b. 🔴 Two further defects BEHIND the empty `shares` dict
+
+Section 4 said the shares were never estimated. Asking *why* turned up two bugs, not a
+hard design.
+
+### (a) A `ZeroDivisionError` killed the stage, and the script still exited 0
+
+```
+decomposition.py:595   f"{comps['interaction'] / fvar:.3g}x it. ..."
+ZeroDivisionError: float division by zero
+```
+
+`fvar = exec_floor_sd ** 2` and `exec_floor_sd` is **F_exec = 0.0** — the *expected,
+measured* value for a deterministic reader at temperature 0. PREREG §6 asks for the ratio
+`interaction / F_exec²`, undefined at zero. **The pipeline crashed on its own correct
+measurement**, wrote no artifact, and the wrapper reported success. (The truncated
+traceback named line 588, which does no division; re-raising located the real site at
+595.)
+
+Fixed: a zero floor emits `EXEC_FLOOR_COMPARATOR_UNDEFINED`, reports the interaction
+**variance**, and states that only the **ratio** is unavailable. Positive-controlled: a
+non-zero floor still prints the ratio.
+
+### (b) With the crash fixed, the model converges — and the fit is NOT IDENTIFIED
+
+| arm | memory | task | interaction | residual | converged |
+|---|---:|---:|---:|---:|:--:|
+| official | 0.0819 | **0.4590691584279404** | **0.4590691584279404** | 2.82e-06 | True |
+| hand-written | 0.0248 | **0.4875884835020202** | **0.4875884835020202** | 3.00e-06 | True |
+
+Task and interaction are **exactly equal to 16 significant figures in both arms**, and
+both ratios sit at `exp(12) = 162754.79141900392` — **the optimizer's clip ceiling**
+(`np.clip(log_ratios, _LOG_FLOOR, 12.0)`).
+
+The module documents that *"a boundary solution is not convergence"* and flags a component
+driven to **zero** as `AT_BOUNDARY` — but **guarded only the lower boundary**. A ratio
+pinned at the upper clip is equally unidentified, and it returned `converged=True` with a
+tight bootstrap CI `[0.444, 0.468]`.
+
+Fixed: `AT_UPPER_BOUNDARY` now fires, and `extra.info.components_at_upper_bound` records
+which components. Both arms raise it for `task` and `interaction`.
+
+> **The decomposition remains UNMEASURED — now for a correctly diagnosed reason.** Task
+> and interaction are **not separately identifiable** under this pairing. The likelihood
+> itself now says so, rather than only a fallback's error message.
+
+Both fixes are negative-controlled: reverting either guard makes the matching test fail.
+
 ## 5. Floors and flips — official arm
 
 | floor | value | n_obs | positive control |

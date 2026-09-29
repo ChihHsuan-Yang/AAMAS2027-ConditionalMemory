@@ -333,3 +333,74 @@ def test_recovery_error_does_not_score_a_missing_component_as_zero():
     for comp in ("memory", "task", "interaction", "residual"):
         assert rec[comp]["recovered_share"] is None
         assert rec[comp]["abs_error"] is None
+
+
+# ---------------------------------------------------------------------------
+# A ZERO EXEC FLOOR MUST NOT CRASH THE DECOMPOSITION (found by Sub-agent H)
+# ---------------------------------------------------------------------------
+# F_exec = 0.0 is the EXPECTED measurement for a deterministic reader at
+# temperature 0 with byte-identical replicates -- both P1 arms measured it.
+# Section 6's comparator is a RATIO to F_exec^2, and the code divided by it
+# unconditionally. On real data this raised ZeroDivisionError, killed the
+# whole stage, and left shares={} -- which then printed as "all 0.0000".
+# The script still exited 0, so the crash was invisible in the exit code.
+
+def test_zero_exec_floor_does_not_raise():
+    """The exact production input: a measured floor of exactly 0.0."""
+    from p1mem.analysis.decomposition import variance_decomposition
+
+    rows = make_dataset(seed=80, n_memories=30, n_tasks=8).rows
+    dec = variance_decomposition(rows, exec_floor_sd=0.0, n_boot=0, seed=1)
+    assert any("EXEC_FLOOR_COMPARATOR_UNDEFINED" in f for f in dec.flags), (
+        "a zero floor must be DISCLOSED as an undefined ratio, not silently dropped")
+    assert not any(f.startswith("EXEC_FLOOR_COMPARATOR:") for f in dec.flags)
+
+
+def test_positive_exec_floor_still_reports_the_ratio():
+    """Positive control: the guard must not suppress a ratio that IS defined."""
+    from p1mem.analysis.decomposition import variance_decomposition
+
+    rows = make_dataset(seed=80, n_memories=30, n_tasks=8).rows
+    dec = variance_decomposition(rows, exec_floor_sd=0.25, n_boot=0, seed=1)
+    assert any(f.startswith("EXEC_FLOOR_COMPARATOR:") for f in dec.flags)
+    assert not any("EXEC_FLOOR_COMPARATOR_UNDEFINED" in f for f in dec.flags)
+
+
+# ---------------------------------------------------------------------------
+# AN UPPER-BOUNDARY SOLUTION IS NOT A MEASUREMENT (found by Sub-agent H)
+# ---------------------------------------------------------------------------
+# The module guarded a ratio driven to ZERO and flagged it AT_BOUNDARY, but
+# not one pinned at the optimizer's UPPER clip. Measured on both P1 arms:
+# task and interaction ratios both sat at exactly exp(12) and their shares
+# came out EXACTLY equal to 16 significant figures. converged=True with a
+# tight bootstrap CI -- an unidentified component wearing a measurement's
+# clothes.
+
+def test_upper_boundary_is_flagged_on_the_real_pilot_rows():
+    """Observed on BOTH P1 arms, so assert it against the artifact itself.
+
+    task and interaction ratios both sat at exactly exp(12) (the clip
+    ceiling) and their shares came out EXACTLY equal to 16 significant
+    figures, with converged=True and a tight bootstrap CI. That is the
+    likelihood saying the two are not separable under a pairing where each
+    memory has its own 8 tasks -- not a measurement.
+    """
+    import json
+    from pathlib import Path
+
+    from p1mem.analysis.decomposition import variance_decomposition
+
+    art = (Path(__file__).resolve().parents[1]
+           / "results/deltau_pilot/cells.jsonl")
+    if not art.exists():
+        pytest.skip("pilot row artifact not present in this checkout")
+    rows = [json.loads(l) for l in art.read_text().splitlines() if l.strip()]
+    dec = variance_decomposition(rows, exec_floor_sd=0.0, n_boot=0, seed=1,
+                                 allow_pooling=True)
+    assert dec.converged, "the fit converged when this defect was found"
+    assert dec.shares["task"] == dec.shares["interaction"], (
+        "exact equality was the tell that the two are not identified")
+    ups = [f for f in dec.flags if f.startswith("AT_UPPER_BOUNDARY")]
+    assert len(ups) >= 2, f"expected task AND interaction flagged; got {dec.flags}"
+    assert set(dec.extra["info"]["components_at_upper_bound"]) >= {"task",
+                                                                   "interaction"}

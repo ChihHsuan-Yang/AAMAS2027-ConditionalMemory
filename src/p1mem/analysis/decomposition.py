@@ -339,7 +339,15 @@ def _fit_reml(
                                      "objective"}
 
     sigma2, mu = _reml_sigma2(best.x, *args)
-    ratios = np.exp(np.clip(best.x, _LOG_FLOOR, 12.0))
+    clipped = np.clip(best.x, _LOG_FLOOR, 12.0)
+    # A ratio pinned at the UPPER clip is as much a boundary solution as one
+    # driven to zero: the likelihood is saying the component is unbounded
+    # relative to the residual, i.e. not identified. The module already
+    # guarded the LOWER boundary and not this one, so an unidentified fit
+    # reported converged=True with a tight bootstrap CI. Recorded here and
+    # flagged below.
+    at_upper = [COMPONENTS[i] for i in range(3) if clipped[i] >= 12.0 - 1e-9]
+    ratios = np.exp(clipped)
     comps = {
         "memory": float(ratios[0] * sigma2),
         "task": float(ratios[1] * sigma2),
@@ -356,6 +364,8 @@ def _fit_reml(
         "n_starts": len(starts),
         "n_starts_at_optimum": agree,
         "ratios": ratios.tolist(),
+        "log_ratios_raw": [float(v) for v in best.x],
+        "components_at_upper_bound": at_upper,
         "sigma2": sigma2,
         "intercept_mu": mu,
         "n_cells_reduced": C,
@@ -543,6 +553,24 @@ def variance_decomposition(
                 "is not identified from this design -- read it as 'not distinguishable "
                 "from zero', not as a measured zero."
             )
+    # The UPPER boundary is just as much a non-identification, and was not
+    # guarded. Measured on both P1 arms: task and interaction both pinned at
+    # exp(12) (the clip ceiling) and their shares came out EXACTLY equal to 16
+    # significant figures -- the likelihood cannot tell them apart under a
+    # pairing where each memory has its own 8 tasks.
+    # `info` is the REML info dict on the direct path but the NESTED
+    # {"reml_attempt": ..., "moments": ...} dict on the fallback path, so look
+    # in both rather than silently finding nothing on one of them.
+    _upper = (info.get("components_at_upper_bound")
+              or info.get("reml_attempt", {}).get("components_at_upper_bound")
+              or [])
+    for k in _upper:
+        flags.append(
+            f"AT_UPPER_BOUNDARY:{k} variance ratio is pinned at the optimizer's clip "
+            f"ceiling (exp(12)). The likelihood is saying this component is unbounded "
+            f"relative to the residual, i.e. NOT IDENTIFIED from this design. Its share "
+            f"and CI are artifacts of the clip, not measurements."
+        )
 
     # ---- bootstrap over memories
     share_ci: dict[str, tuple[float | None, float | None]] = {}
@@ -589,10 +617,24 @@ def variance_decomposition(
                          "to fit and were discarded")
 
     fvar = None if exec_floor_sd is None else float(exec_floor_sd) ** 2
-    if fvar is not None:
+    if fvar is not None and fvar > 0:
         flags.append(
             f"EXEC_FLOOR_COMPARATOR:F_exec^2 = {fvar:.6g}; interaction variance is "
             f"{comps['interaction'] / fvar:.3g}x it. Section 6 requires this comparator."
+        )
+    elif fvar is not None:
+        # F_exec = 0 is the EXPECTED result on a deterministic reader at
+        # temperature 0 with byte-identical replicates -- it is measured, not
+        # missing. But section 6's comparator is a RATIO to F_exec^2, and that
+        # ratio is undefined at zero. Dividing here raised ZeroDivisionError and
+        # killed the whole decomposition stage, which is how the pilot's shares
+        # came back empty and then printed as "all 0.0000".
+        flags.append(
+            f"EXEC_FLOOR_COMPARATOR_UNDEFINED:F_exec^2 = {fvar:.6g}, so the section-6 "
+            f"ratio interaction/F_exec^2 is undefined (division by zero). The "
+            f"interaction VARIANCE is still reported as "
+            f"{comps['interaction']:.6g}; only the ratio is unavailable. A zero "
+            f"execution floor is the expected result for a deterministic reader."
         )
 
     return Decomposition(
