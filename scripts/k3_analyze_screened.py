@@ -902,6 +902,43 @@ def main() -> int:
             else "SCREEN DID NOT MATERIALLY REDUCE BOTH-ARMS-FAIL -- this is the "
                  "headline and nothing downstream gets dressed up")
     report["STOPPING_RULE"] = stop
+
+    # ---- THE FOUNDING HYPOTHESIS, adjudicated mechanically ----
+    # P1 was built around task-conditional HARM with the sign-flip rate as the
+    # headline. Emitted as a field with its Wilson bound so the artifact states
+    # the verdict rather than relying on a reader to derive it -- and so a ZERO
+    # is reported as a bounded zero, never as "not observed".
+    fh = {}
+    for st in STRATA:
+        fl = ((report["per_stratum"].get(st) or {}).get("labels_and_flips")
+              or {}).get("flips") or {}
+        per_mem = fl.get("per_memory") or {}
+        elig = {m: v for m, v in per_mem.items() if v.get("eligible")}
+        nflip = sum(1 for v in elig.values() if v.get("naive_flip"))
+        rate, lo, hi = wilson_ci(nflip, len(elig)) if elig else (None, None, None)
+        fh[st] = {"n_flip_eligible_memories": len(elig),
+                  "n_memories_with_a_sign_flip": nflip,
+                  "flip_rate": rate, "wilson_ci": [lo, hi]}
+    b = fh.get("BEARING") or {}
+    fh["VERDICT"] = (
+        "SIGN-REVERSAL COMPONENT NOT SUPPORTED: "
+        f"{b.get('n_memories_with_a_sign_flip')} of "
+        f"{b.get('n_flip_eligible_memories')} flip-eligible BEARING memories show both "
+        f"a positive and a negative dU task; the Wilson upper bound is "
+        f"{(b.get('wilson_ci') or [None, None])[1]}. This BOUNDS the rate; it is not "
+        "merely an absence of observations."
+        if b.get("n_memories_with_a_sign_flip") == 0 else
+        "sign flips observed in BEARING; see rate and CI")
+    fh["_scope"] = ("NOT evidence that harm does not occur in agent memory: one corpus, "
+                    "one reader, one representation, pairs selected to bear. The "
+                    "defensible statement is 'unsupported here', not 'absent'. No "
+                    "harmful-memory RATE is claimed from any stratum -- the pairing is "
+                    "ours in all three, so none yields a natural base rate.")
+    fh["_kill_criterion"] = ("NOT triggered: it required the phenomenon to be absent. "
+                             "What is absent is the sign-reversal COMPONENT; the "
+                             "memory-utility effect itself is large and significant.")
+    report["FOUNDING_HYPOTHESIS"] = fh
+    print(f"\n  FOUNDING HYPOTHESIS: {fh['VERDICT'][:110]}")
     print(f"\n  STOPPING RULE: BEARING={f4(bear)} vs RANDOM={f4(rand)} "
           f"-> {stop.get('VERDICT', 'UNEVALUABLE')}")
 
