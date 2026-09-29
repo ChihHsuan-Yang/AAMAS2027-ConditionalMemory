@@ -34,9 +34,39 @@ BEARING ∩ MATCHED_CONTROL = **30 tasks**.
 static-environment is 0.283 against BEARING's 0.525, and RANDOM carries an
 errors-gotchas slice the other two lack.
 
-⚠️ Recall that exactly **one** deterministically-scorable `errors-gotchas` question exists
-benchmark-wide, and it alone was 12.5% of web cells in an earlier run. RANDOM is the only
-stratum exposed to it. **Cluster SEs by `task_id`.**
+⚠️ Exactly **one** deterministically-scorable `errors-gotchas` question exists
+benchmark-wide (`626e401e`, of 29 such questions). Verified: it sits **only in RANDOM** and
+alone generates **40 cells = 4.6% of that stratum**.
+
+### 🔴 But task concentration is structural, not one question
+
+Verified by the Master Agent over all 1,157 design cells:
+
+| | |
+|---|---|
+| tasks with **≥20 cells** | **24** |
+| max cells on a single task | **40** |
+| **top 10 tasks** | **400 / 1,157 = 34.6% of all cells** |
+
+`626e401e` is not special; it is the most quotable instance of a property the **shared task
+grid deliberately creates** — reusing tasks across memories is exactly what fixes
+identifiability, and it is exactly what concentrates cells on few tasks.
+
+> **Therefore `task_id` clustering is required for EVERY contrast, not only the dilution
+> one.** With a third of all cells on ten tasks, a cell-level *p* can be persuasively small
+> while one question carries the whole difference.
+
+Sub-agent K implemented this as a task-clustered bootstrap (resampling whole tasks) plus a
+leave-one-task-out jackknife on every contrast, and proved both against constructed cases:
+
+| constructed case | cell-level p | task-clustered CI | drop-one effect | sign stable |
+|---|---|---|---|---|
+| effect driven **entirely by one task** | **0.0015** | **includes zero** | **+0.0000** | **False** |
+| effect spread across many tasks | — | excludes zero | [+0.4545, +0.5455] | True |
+
+**The first row is the argument.** A cell-level p of 0.0015 would have read as convincing.
+Both the clustered CI and the jackknife appear in every results table, so the cell-level p
+is never the only number a reader sees.
 
 ## Ruling
 
