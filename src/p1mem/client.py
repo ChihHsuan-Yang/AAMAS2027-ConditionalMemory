@@ -38,6 +38,7 @@ from pathlib import Path
 from typing import Any
 
 from .cache import CachedResponse, ResponseCache, make_key
+from .vendor.rcc_schema import sha256_text
 
 GATEWAY = "https://inference-api.alcf.anl.gov/resource_server"
 AUTH_DIR = Path("/Users/bellayang/Documents/2026/iclr_receiver_conditional_communication")
@@ -238,10 +239,17 @@ class P1Client:
 
         key = None
         if self.cache is not None and cache_key_fields is not None:
+            # context_sha256 is DERIVED here, from the messages actually being
+            # sent, for the same reason model_id/cluster/decoding_params are:
+            # a caller cannot then describe a request it is not making. Without
+            # it, two runs that render different filler (K=6 from a 12-traj
+            # reservation vs K=4 from a 50-traj pool) collide on a
+            # byte-identical key -- demonstrated, not hypothetical.
             key = make_key(**{**cache_key_fields,
                               "model_id": self.model,
                               "cluster": self.cluster,
-                              "decoding_params": decoding})
+                              "decoding_params": decoding,
+                              "context_sha256": sha256_text(messages)})
             hit = self.cache.lookup(key)
             if hit is not None:
                 rec = CallRecord(

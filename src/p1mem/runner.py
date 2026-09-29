@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Sequence
 
 from .cache import ResponseCache, make_key
+from .vendor.rcc_schema import sha256_text
 from .client import ClientError, P1Client
 from .vendor.rcc_schema import utc_now
 
@@ -100,10 +101,16 @@ class Runner:
             if cell.cell_id in self.ledger.done:
                 continue
             if self.client.cache is not None:
+                # context_sha256 must be derived here EXACTLY as P1Client.chat
+                # derives it, from the same messages. If the two disagree, the
+                # resume path looks up a key the run never writes, every cell
+                # reads as pending, and a resumed run silently re-pays for
+                # work already done.
                 key = make_key(**{**cell.key_fields,
                                   "model_id": self.client.model,
                                   "cluster": self.client.cluster,
-                                  "decoding_params": self._decoding()})
+                                  "decoding_params": self._decoding(),
+                                  "context_sha256": sha256_text(cell.messages)})
                 if self.client.cache.contains(key):
                     # Cached but unledgered (e.g. killed between write and
                     # ledger append). Record it now; do not re-call.

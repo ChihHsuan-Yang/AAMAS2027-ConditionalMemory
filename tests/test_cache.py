@@ -34,6 +34,9 @@ BASE = dict(
     prompt_version="p1_reader_v3",
     decoding_params={"temperature": 0.0, "max_tokens": 512, "reasoning_effort": "low"},
     replicate_id=0,
+    # Derived by P1Client from the messages actually sent. Present here so the
+    # suite exercises the same key shape production uses.
+    context_sha256="c" * 64,
 )
 
 
@@ -298,3 +301,23 @@ def test_response_roundtrip_preserves_accounting(tmp_path):
     assert (got.prompt_tokens, got.completion_tokens, got.reasoning_tokens) == (16832, 251, 40)
     assert got.retry_count == 2 and got.latency_s == 2.588
     assert got.raw_usage["total_tokens"] == 17083
+
+
+def test_context_hash_separates_runs_that_render_different_filler(tmp_path):
+    """The collision this field exists to close, demonstrated then closed.
+
+    The pilot rendered K=6 filler from a 12-trajectory reservation; the
+    screened run renders K=4 from a bearing-disjoint 50-trajectory pool. Every
+    other key field is identical, so before context_sha256 the screened run
+    would have been served the pilot's answer. Only the separate cache FILE
+    prevented it -- an argument default, not an invariant.
+
+    Found by Sub-agent K. My own earlier behavioural check could not have
+    caught it: it varied only fields that were already in the key.
+    """
+    c = ResponseCache(tmp_path / "c.jsonl")
+    pilot = dict(BASE, context_sha256="a" * 64)
+    screened = dict(BASE, context_sha256="b" * 64)
+    c.store(pilot, resp("ANSWER UNDER K=6 PILOT CONTEXT"))
+    assert c.lookup(screened) is None, "different rendered context must MISS"
+    assert c.lookup(dict(pilot)) is not None, "same rendered context must HIT"

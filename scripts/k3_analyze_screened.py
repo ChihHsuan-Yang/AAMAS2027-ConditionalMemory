@@ -247,7 +247,8 @@ def perm_contrast(rows_a: list[dict], rows_b: list[dict], *, n_perm: int = 20000
 
 
 def analyse_stratum(rows: list[dict], name: str, root: Path, n_boot: int,
-                    seed: int, out: Path, F_reference: float | None) -> dict:
+                    seed: int, out: Path, F_reference: float | None,
+                    n_boot_decomp: int = 40, n_null: int = 200) -> dict:
     print(f"\n{'='*70}\nSTRATUM {name}: {len(rows)} rows")
     live = [r for r in rows if not r.get("error_code_if_any")]
     print(f"  {len(live)} usable, {len(rows)-len(live)} errored")
@@ -311,7 +312,7 @@ def analyse_stratum(rows: list[dict], name: str, root: Path, n_boot: int,
     res["labels_and_flips"] = lab
     if F is not None:
         res["additive_null"] = lb.additive_null_flip_rate(
-            rows, F, n_null=200, n_boot=max(200, n_boot // 10), seed=seed,
+            rows, F, n_null=n_null, n_boot=max(200, n_boot // 10), seed=seed,
             allow_pooling=True)
 
     # episode-clustered flip CI
@@ -328,7 +329,7 @@ def analyse_stratum(rows: list[dict], name: str, root: Path, n_boot: int,
           f"ci={ec.get('ci')}")
 
     dec = dc.variance_decomposition(rows, exec_floor_sd=F,
-                                    n_boot=min(200, n_boot), seed=seed,
+                                    n_boot=n_boot_decomp, seed=seed,
                                     allow_pooling=True)
     dd = dec.to_dict()
     res["variance_decomposition"] = dd
@@ -349,6 +350,17 @@ def main() -> int:
     ap.add_argument("--out", type=Path,
                     default=REPO / "results/deltau_screened/analysis")
     ap.add_argument("--n-boot", type=int, default=2000)
+    # The decomposition's bootstrap REFITS the REML model per resample. Measured:
+    # when the fit FAILS it returns in ~6s, but when it CONVERGES each refit costs
+    # real time, so 200 resamples can run for many minutes per stratum. My first
+    # smoke test burned 7 CPU-minutes with no output for exactly this reason -- and
+    # note the 6s figure was a measurement of the FAILURE path, not of the path real
+    # data takes. Kept separate from --n-boot so the cheap estimators stay well
+    # resampled while this one is bounded.
+    ap.add_argument("--n-boot-decomp", type=int, default=40,
+                    help="bootstrap resamples for the variance decomposition ONLY")
+    ap.add_argument("--n-null", type=int, default=200,
+                    help="simulations for the additive null (prereg A1.1)")
     ap.add_argument("--seed", type=int, default=20260929)
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
@@ -388,12 +400,14 @@ def main() -> int:
     }
     for st in STRATA:
         report["per_stratum"][st] = analyse_stratum(
-            by_s.get(st, []), st, args.root, args.n_boot, args.seed, args.out, F_ref)
+            by_s.get(st, []), st, args.root, args.n_boot, args.seed, args.out,
+            F_ref, args.n_boot_decomp, args.n_null)
 
     # ---- ALL strata pooled: the decomposition's best shot at identifiability ----
     print(f"\n{'='*70}\nPOOLED (all strata) -- decomposition identifiability")
     F_all = F_ref   # same pooled estimate used for labels; not recomputed
-    dec = dc.variance_decomposition(rows, exec_floor_sd=F_all, n_boot=200,
+    dec = dc.variance_decomposition(rows, exec_floor_sd=F_all,
+                                    n_boot=args.n_boot_decomp,
                                     seed=args.seed, allow_pooling=True)
     dd = dec.to_dict()
     ub = [f for f in dd.get("flags", []) if "AT_UPPER_BOUNDARY" in f]
@@ -466,7 +480,8 @@ def main() -> int:
         if len(core) >= 2 and len(seen) >= 2 and crossed:
             Fd = nz.exec_floor(crossed, scale="delta", n_boot=args.n_boot,
                                seed=args.seed, allow_pooling=True).point
-            dsub = dc.variance_decomposition(crossed, exec_floor_sd=Fd, n_boot=200,
+            dsub = dc.variance_decomposition(crossed, exec_floor_sd=Fd,
+                                             n_boot=args.n_boot_decomp,
                                              seed=args.seed, allow_pooling=True)
             ds = dsub.to_dict()
             ubs = [f for f in ds.get("flags", []) if "AT_UPPER_BOUNDARY" in f]

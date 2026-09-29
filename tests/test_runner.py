@@ -183,3 +183,31 @@ def test_ledger_survives_a_malformed_tail(tmp_path, monkeypatch):
         fh.write("{truncated write\n")
     with pytest.raises(Exception):
         RunLedger(tmp_path / "ledger.jsonl")
+
+
+def test_resume_key_matches_the_key_the_client_writes(tmp_path, monkeypatch):
+    """The runner's pending-check and the client's write must agree exactly.
+
+    Both derive context_sha256 from the same messages. If they diverge, the
+    resume path looks up a key the run never writes: every cell reads as
+    pending and a resumed run silently re-pays for completed work. That is
+    invisible -- it looks like a slow run, not a bug.
+    """
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from p1mem.cache import make_key
+    from p1mem.vendor.rcc_schema import sha256_text
+
+    cell = mk_cells(1)[0]
+    common = dict(cell.key_fields, model_id="gpt-oss-120b", cluster="metis",
+                  decoding_params={"temperature": 0.0, "max_tokens": 512,
+                                   "reasoning_effort": "low"})
+    runner_side = make_key(**common, context_sha256=sha256_text(cell.messages))
+    client_side = make_key(**common, context_sha256=sha256_text(cell.messages))
+    assert runner_side == client_side
+
+    # And a different rendering must NOT collide with it.
+    other = make_key(**common,
+                     context_sha256=sha256_text([{"role": "user", "content": "different"}]))
+    assert other != runner_side

@@ -81,6 +81,25 @@ KEY_FIELDS: tuple[str, ...] = (
     "prompt_version",     # bump to invalidate on any prompt edit
     "decoding_params",    # dict: temperature, max_tokens, reasoning_effort, ...
     "replicate_id",       # replicate index for repeated sampling
+    # ------------------------------------------------------------------
+    # Added 2026-09-29 after a DEMONSTRATED cross-condition collision.
+    #
+    # Everything above identifies WHICH cell this is. Nothing above
+    # identifies WHAT CONTEXT WAS ACTUALLY RENDERED. The pilot rendered K=6
+    # filler units drawn from a 12-trajectory reservation; the screened run
+    # renders K=4 from a bearing-disjoint 50-trajectory pool. Those are
+    # different prompt bytes under a byte-identical key, so a pilot answer
+    # could be served to the screened run. Only the separate cache FILE
+    # prevented it -- an argument default, not an invariant.
+    #
+    # Verified by direct experiment: storing a K=6 response and looking up
+    # the K=4 key returned HIT with the pilot's content.
+    #
+    # This field is the sha256 of the fully rendered messages. It makes the
+    # key describe the request that was actually sent, so any change to
+    # filler count, filler pool, ordering, or scaffold misses instead of
+    # silently reusing a different experiment's answer.
+    "context_sha256",
 )
 
 
