@@ -69,6 +69,18 @@ that produced it and the date it was measured.
 | 44 | Probe accuracy | **2 / 92** | same | 2026-09-29 | VERIFIED — ⚠️ artifact of MY design (one arbitrary target memory per task, 2 distinct memories total), not a model result. Floor measured in an uninformative regime; superseded by the paired run |
 | 45 | `select_filler` defect (Master-authored, found by Sub-agent G) | **25/25** exclusions of a NON-drawn memory changed the filler → **0/25** after fix | `tests/test_cells.py` | 2026-09-29 | VERIFIED + regression-tested |
 | 46 | V2 leakage, FULL matrix | 423,664 cells, 114,207 flagged: ≤2ch **97.71%** · 3–5 44.74% · 6–12 23.48% · 13–30 6.84% · **>30 4.68%** · pooled 26.96% | Sub-agent A | 2026-09-29 | VERIFIED — **never quote the pooled 26.96%**; the 97.7% row is multiple-choice golds and measures the alphabet. **Credible rate: 4.68%** |
+| 47 | **FIRST ΔU PILOT** | 1,918 real calls, **479 cells**, 60 memories, 220 tasks, 2 replicates, 441.8 s @16 | `results/deltau_pilot/cells.jsonl` | 2026-09-29 | VERIFIED — Master recomputed every figure from rows |
+| 48 | **F_exec (ΔU scale)** | **0.000** — 0/479 cells disagree across byte-identical replicates | same | 2026-09-29 | VERIFIED; positive control **fires** (0.5098 on a planted defect) |
+| 49 | **F_empty** | **0.000** — 774 distinct cache keys AND 774 distinct latencies ⇒ 774 independent real calls | same | 2026-09-29 | VERIFIED — independence proven by call count, not assumed |
+| 50 | **F_judge** | **0.000** — 0 disagreements / 1,916 re-scorings | same | 2026-09-29 | VERIFIED; positive control **fires** (0.3175) |
+| 50a | `F_judge = 0.1486` (first reported) | **RETRACTED** — estimator grouped byte-identical text WITHOUT the task, so `\boxed{F}` right for one question and wrong for another counted as scorer disagreement; all 18 groups spanned tasks | `analysis/noise.py` | 2026-09-29 | 🔴 RETRACTED — fixed + regression-tested |
+| 51 | ΔU distribution (before labelling) | **20 positive · 438 zero · 21 negative** | Master recount | 2026-09-29 | VERIFIED — matches G exactly |
+| 52 | Accuracy, hand-written prompt arm | WITH **0.1712** (164/958) · WITHOUT **0.1733** (166/958) | same | 2026-09-29 | VERIFIED |
+| 53 | Robust / naive flip rate | both **0.1333** [0.069, 0.242], denominator 60, gap **0.000** | same | 2026-09-29 | VERIFIED — ⚠️ coincide MECHANICALLY (F=0 makes the floor clause vacuous; 2 agreeing replicates give a degenerate CI). **The gap is not measurable at 2 replicates** |
+| 54 | Excess over the additive null | observed **0.1333** vs null **0.9667**, p=1.000; variance shares all **0.0000** | same | 2026-09-29 | VERIFIED — **no evidence of memory × task interaction in this arm** |
+| 55 | 🔴 **Why the null is uninformative** | **376 / 479 cells (78.5%) have BOTH arms failing** — structurally incapable of showing a memory benefit | Master diagnostic | 2026-09-29 | VERIFIED — **kill criterion NOT triggered** |
+| 56 | Flip rate on cells that CAN move | **8/33 = 0.2424** (vs 0.1333 over all 60) | Master diagnostic | 2026-09-29 | VERIFIED — ⚠️ **post-hoc, conditions on an outcome.** A diagnostic of why the null is uninformative, **never** the result |
+| 57 | Root cause of the floor effect | our `SYSTEM` prompt is hand-written; the official `DOMAIN_SYSTEM_PROMPTS` forbids guessing and mandates `\boxed{UNKNOWN}`. Ours abstains **0/958**, official **5/12** | `/tmp/lmev2/harness.py:71` | 2026-09-29 | VERIFIED — re-run queued as a NEW arm |
 
 ## Inherited numbers pending re-derivation
 
