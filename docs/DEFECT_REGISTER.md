@@ -107,6 +107,33 @@ from the truth.
 > **Rule: before quoting a rate, ask what it is an average over, and split it by that.**
 > If the split changes the reading, the pooled number does not go in the paper alone.
 
+### Fourth instance, and the subtlest: a matching COUNT read as convergence
+
+Sub-agent K observed that the paired test's **35 non-zero contributors** equalled the
+**35-unit flip denominator** pre-computed from the design manifest hours earlier, and was
+about to report it as two routes converging.
+
+Checked by the Master Agent: **they are different sets.**
+
+| | |
+|---|---|
+| non-zero paired contributors | 35 |
+| memories with ≥2 BEARING cells | 35 |
+| **overlap** | **25** |
+| in one set only | 10 each way |
+
+The cardinality matches; the membership does not. *"Two routes agree"* implies mutual
+corroboration, and here **neither corroborates the other.**
+
+It also fails an obvious mechanism check: a memory with ≥2 bearing cells can contribute
+exactly zero (if all its cells fail both arms), and a memory with one bearing cell can
+contribute non-zero. There is no reason for the sets to coincide — and they don't.
+
+> **The subtlest form of the pattern: the number was right, the count was right, and only
+> the identity of what was counted was wrong.** Before reporting two measurements as
+> agreeing, check that they are measurements *of the same objects*, not merely of the same
+> size.
+
 ## Make the ruling mechanical where you can
 
 A ruling a human must remember at reporting time is a ruling that will eventually be
