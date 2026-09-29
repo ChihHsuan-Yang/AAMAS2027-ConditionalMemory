@@ -241,13 +241,68 @@ def perm_contrast(rows_a: list[dict], rows_b: list[dict], *, n_perm: int = 20000
             d = float(np.mean(sa) - np.mean(sb))
             if abs(d) >= abs(obs) - 1e-12:
                 ge += 1
+    # ---- TASK-CLUSTERED interval and a leave-one-task-out jackknife ----
+    # The shared grid gives some tasks up to 40 cells each (24 tasks have >=20),
+    # so cells are NOT independent observations: one task can carry 40 of them.
+    # In particular exactly ONE deterministically-scored errors-gotchas question
+    # exists benchmark-wide (626e401e), it sits only in RANDOM, and it alone
+    # generates 40 cells = 4.6% of that stratum. An unclustered interval would
+    # treat those 40 as 40 independent draws and could let a single question
+    # drive the dilution figure.
+    #
+    # So: bootstrap resampling whole TASKS, and a jackknife dropping each task in
+    # turn. If the difference survives dropping any single task, no one question
+    # is carrying it -- which is the "correlation driven by one outlier" check.
+    rng2 = np.random.default_rng(seed)
+    a_by_task: dict[Any, list[float]] = collections.defaultdict(list)
+    b_by_task: dict[Any, list[float]] = collections.defaultdict(list)
+    for k, v in A.items():
+        a_by_task[k[1]].append(v)
+    for k, v in B.items():
+        b_by_task[k[1]].append(v)
+    all_tasks = sorted(set(a_by_task) | set(b_by_task), key=str)
+    boots = []
+    for _ in range(2000):
+        pick = [all_tasks[i] for i in rng2.integers(0, len(all_tasks), len(all_tasks))]
+        sa = [v for t in pick for v in a_by_task.get(t, ())]
+        sb = [v for t in pick for v in b_by_task.get(t, ())]
+        if sa and sb:
+            boots.append(float(np.mean(sa) - np.mean(sb)))
+    task_ci = ([float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))]
+               if boots else [None, None])
+    jack = {}
+    for t in all_tasks:
+        sa = [v for k, v in A.items() if k[1] != t]
+        sb = [v for k, v in B.items() if k[1] != t]
+        if sa and sb:
+            jack[str(t)] = float(np.mean(sa) - np.mean(sb))
+    jmin = min(jack.values()) if jack else None
+    jmax = max(jack.values()) if jack else None
+    worst = (min(jack, key=lambda k: abs(jack[k])) if jack else None)
     return {"n_cells_a": len(A), "n_cells_b": len(B),
+            "n_tasks": len(all_tasks),
             "mean_a": float(np.mean(list(A.values()))),
             "mean_b": float(np.mean(list(B.values()))),
             "observed_difference": obs, "n_perm": n_perm,
             "p_two_sided": (ge + 1) / (n_perm + 1),
             "_null": "stratum label shuffled WITHIN memory, so memory identity is "
-                     "held fixed and only the bearing label moves"}
+                     "held fixed and only the bearing label moves",
+            "task_clustered_ci": task_ci,
+            "task_clustered_ci_excludes_zero": (
+                None if task_ci[0] is None else (task_ci[0] > 0 or task_ci[1] < 0)),
+            "leave_one_task_out": {
+                "min": jmin, "max": jmax,
+                "task_whose_removal_shrinks_it_most": worst,
+                "difference_without_that_task": jack.get(worst) if worst else None,
+                "sign_stable_across_all_drops": (
+                    None if not jack else
+                    all(v > 0 for v in jack.values()) or all(v < 0 for v in jack.values())),
+            },
+            "_clustering_note":
+                "cells are NOT independent: the shared grid gives some tasks up to 40 "
+                "cells. The permutation p is cell-level; the task_clustered_ci and the "
+                "leave-one-task-out range are what govern whether ONE question drives "
+                "the difference."}
 
 
 def analyse_stratum(rows: list[dict], name: str, root: Path, n_boot: int,
