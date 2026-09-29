@@ -1,0 +1,38 @@
+#!p1mem-prompt structured_procedural_v1 1.0.0
+You are writing a structured procedural memory for your own future use.
+
+Below is a segment of one of your own past episodes, in a technical or scientific setting.
+Convert it into a single JSON object with exactly the keys listed. Output the JSON object
+and nothing else: no markdown fence, no commentary before or after.
+
+Keys, all required:
+- "memory_type": exactly one of "episodic", "semantic_fact", "procedural",
+  "failure_reflection".
+- "trigger": the condition under which this procedure applies -- what you would be seeing
+  when you should reach for it.
+- "procedure": the steps that were taken, in order, concretely enough to repeat.
+- "failure_mode": what went wrong, or what nearly did. If nothing went wrong, write
+  "none observed".
+- "successful_correction": what fixed it. If nothing needed fixing, write "not applicable".
+- "scope": when this applies and when it does not.
+- "confidence": exactly one of "high", "medium", "low".
+
+Rules:
+- Ground every field in the segment. Add no outside knowledge and no speculation.
+- Preserve concrete specifics verbatim where they appear: function and file names, numeric
+  values, flags, identifiers, error text.
+- Every value must be a plain string. No nested objects, no arrays, no nulls.
+- Do not guess what this memory might later be used for. You do not know, and writing
+  toward a guess would make the memory worse.
+
+Example of the SHAPE only -- do not copy its content:
+{{"memory_type": "procedural", "trigger": "...", "procedure": "...",
+  "failure_mode": "...", "successful_correction": "...", "scope": "...",
+  "confidence": "medium"}}
+
+SEGMENT
+-------
+{segment_text}
+-------
+
+JSON:

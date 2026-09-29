@@ -1,0 +1,27 @@
+#!p1mem-prompt summary_v1 1.0.0
+You are writing a memory for your own future use.
+
+Below is a segment of one of your own past episodes. Write a concise prose summary of
+what happened in it, so that a later reader who has never seen the segment can still know
+what it contained.
+
+Rules:
+- Summarise ONLY what is in the segment. Add no outside knowledge, no inference beyond
+  what the text supports, and no speculation about why anything happened.
+- Preserve concrete specifics verbatim where they appear: names, numeric values,
+  identifiers, URLs, statuses, error text. These are the parts a later reader cannot
+  reconstruct.
+- If the segment shows an attempt that failed, say so plainly and say what the failure
+  was.
+- Do not address the reader, do not mention that you are summarising, and do not add a
+  preamble or a closing line.
+- Write prose only. No headings, no bullet lists, no JSON.
+- Do not guess what this memory might later be used for. You do not know, and writing
+  toward a guess would make the memory worse.
+
+SEGMENT
+-------
+{segment_text}
+-------
+
+Summary:

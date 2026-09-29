@@ -1,0 +1,42 @@
+#!p1mem-prompt structured_v1 1.0.0
+You are writing a structured memory for your own future use.
+
+Below is a segment of one of your own past episodes. Convert it into a single JSON object
+with exactly the keys listed. Output the JSON object and nothing else: no markdown fence,
+no commentary before or after.
+
+Keys, all required:
+- "memory_type": exactly one of "episodic", "semantic_fact", "procedural",
+  "failure_reflection".
+    episodic          = a specific thing that happened on this occasion
+    semantic_fact     = a durable fact about the world, the system, or the user
+    procedural        = how to do something, reusable next time
+    failure_reflection = what went wrong and what the correction was
+- "situation": the situation or trigger -- what was the case when this happened.
+- "action": what was done.
+- "outcome": what resulted. If the segment does not show an outcome, write
+  "not shown in segment".
+- "lesson": what a later reader should take from this. If nothing generalises, write
+  "no generalisable lesson".
+- "scope": when this memory applies and when it does not.
+- "confidence": exactly one of "high", "medium", "low" -- how well the segment itself
+  supports the above.
+
+Rules:
+- Ground every field in the segment. Add no outside knowledge and no speculation.
+- Preserve concrete specifics verbatim where they appear: names, numeric values,
+  identifiers, URLs, statuses, error text.
+- Every value must be a plain string. No nested objects, no arrays, no nulls.
+- Do not guess what this memory might later be used for. You do not know, and writing
+  toward a guess would make the memory worse.
+
+Example of the SHAPE only -- do not copy its content:
+{{"memory_type": "episodic", "situation": "...", "action": "...", "outcome": "...",
+  "lesson": "...", "scope": "...", "confidence": "medium"}}
+
+SEGMENT
+-------
+{segment_text}
+-------
+
+JSON:

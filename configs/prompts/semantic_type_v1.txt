@@ -1,0 +1,24 @@
+#!p1mem-prompt semantic_type_v1 1.0.0
+Classify the segment below into exactly one memory category.
+
+Categories:
+- episodic: a record of a specific event that happened on one occasion. The content is
+  tied to that occasion and would not be restated as a general fact.
+- semantic_fact: a durable fact about the world, a system, or a user. True beyond the
+  occasion on which it was observed.
+- procedural: how to do something. A method, sequence, or technique that could be applied
+  again.
+- failure_reflection: something went wrong, and the content is about the failure, its
+  cause, or its correction.
+
+Choose the single category that best describes what the segment is ABOUT. If more than one
+fits, choose the one a later reader would most likely be looking for.
+
+Answer with the category name alone, in lowercase, and nothing else.
+
+SEGMENT
+-------
+{segment_text}
+-------
+
+Category:
