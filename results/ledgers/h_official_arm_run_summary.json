@@ -1,0 +1,48 @@
+{
+  "run_at_utc": "2026-09-29T20:30:29.517603+00:00",
+  "run_id": "g2_deltau_pilot_20260929T201536.217964+0000",
+  "wall_clock_s": 474.77,
+  "n_memories": 60,
+  "n_cells": 480,
+  "n_distinct_tasks": 220,
+  "replicates": 2,
+  "k_filler": 6,
+  "token_band": [
+    1500,
+    5000
+  ],
+  "planned_calls": 1920,
+  "real_endpoint_calls": 1920,
+  "cache_hits": 0,
+  "errors": 0,
+  "context_tokens_with_arm": {
+    "min": 20684,
+    "p25": 25360,
+    "median": 26891,
+    "p75": 28408,
+    "max": 32925
+  },
+  "similarity_terciles": {
+    "far_below": 0.6493384838104248,
+    "near_at_or_above": 0.696374773979187
+  },
+  "embedding_truncated_memories": 57,
+  "rows_written": 960,
+  "mean_reward_with": 0.11458333333333333,
+  "mean_reward_without": 0.12083333333333333,
+  "prompt_arm": "official",
+  "reader_prompt_version": "p1_deltau_raw_official_v1",
+  "condition_id": "lmev2_raw_metis_gptoss120b_officialprompt_v1",
+  "harness_sha256": "93fe5855a74ad46d7e8b489cebac24de38a9b30ba7ec1de2dd8708bd4aeebdb6",
+  "official_prompt_sha256": {
+    "web": "c70772c5f4ab1dbdcee28218d5e2b98595a84d64196012cbd00bb9de9e63fd1f",
+    "enterprise": "b2d24d41b022824ddea06b61255ead1a9aceae79e4f1658775fddd6d6e66320e"
+  },
+  "system_prompt_sha256_counts": {
+    "b3fe053b6455cc191a6a1acd4ebafeb4852e9b471205eec03e2cdb580bf7ee9e": 768,
+    "ac198d4b1f4100003d1175cf22aa42d82752caf6806f6e5c2efd1496852b2431": 1152
+  },
+  "abstentions_with": 378,
+  "abstentions_without": 390,
+  "abstention_denominator": 960
+}

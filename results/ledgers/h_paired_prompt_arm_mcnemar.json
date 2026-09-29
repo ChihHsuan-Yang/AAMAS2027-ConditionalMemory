@@ -1,0 +1,29 @@
+{
+  "_what": "PAIRED comparison of the two reader-prompt arms over the SAME responses. Two raw rates over two different sets would be unpaired; this is matched on (memory_id, future_task_id, replicate_id, arm).",
+  "n_paired_responses": 1916,
+  "handwritten_correct": 330,
+  "handwritten_rate": 0.1722338204592902,
+  "handwritten_wilson": [
+    0.1559869738656709,
+    0.1897923381554757
+  ],
+  "official_correct": 226,
+  "official_rate": 0.11795407098121086,
+  "official_wilson": [
+    0.10426990269810107,
+    0.13316712978514625
+  ],
+  "discordant_handwritten_only_correct": 198,
+  "discordant_official_only_correct": 94,
+  "mcnemar_exact_two_sided_p": 1.1198698208771911e-09,
+  "direction": "the OFFICIAL prompt is WORSE",
+  "transition_table": {
+    "handwritten=0.0|official=0.0|official_abstained=False": 856,
+    "handwritten=0.0|official=0.0|official_abstained=True": 636,
+    "handwritten=0.0|official=1.0|official_abstained=False": 94,
+    "handwritten=1.0|official=0.0|official_abstained=False": 70,
+    "handwritten=1.0|official=0.0|official_abstained=True": 128,
+    "handwritten=1.0|official=1.0|official_abstained=False": 132
+  },
+  "_mechanism": "128 responses correct under the hand-written prompt became ABSTENTIONS under the official prompt. harness.py:1055 forces score_bool=False when is_unknown, so an abstention scores 0 exactly like a wrong answer: replacing a guess with an abstention cannot raise accuracy and can only lower it."
+}

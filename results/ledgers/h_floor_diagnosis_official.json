@@ -1,0 +1,270 @@
+{
+  "_circularity_warning": "cause (1)'s ORACLE-BEARING subgroup is defined by memory CONTENT, not by any outcome, so it is not a selected subgroup. 'cells where at least one arm succeeded' IS selected on the outcome and any rate on it is circular; it is reported here only as a diagnostic, never as a result.",
+  "abstention_x_reward": {
+    "without|is_unknown=False|reward=0.0": 454,
+    "without|is_unknown=False|reward=1.0": 116,
+    "without|is_unknown=True|reward=0.0": 390,
+    "with|is_unknown=False|reward=0.0": 472,
+    "with|is_unknown=False|reward=1.0": 110,
+    "with|is_unknown=True|reward=0.0": 378
+  },
+  "both_arms_fail": 402,
+  "both_arms_fail_rate": 0.8375,
+  "cause_1_memory_bears_on_task": {
+    "_test": "leakage_flag=True means the memory's own text literally contains the gold answer, so the WITH context provably CONTAINS the needed information. If the WITH arm still fails there, an irrelevant pairing cannot be the whole explanation.",
+    "grouping": "leakage_flag",
+    "levels": {
+      "False": {
+        "both_arms_fail": 281,
+        "both_arms_fail_fraction": 0.8619631901840491,
+        "delta": -0.009202453987730064,
+        "mean_reward_with": 0.10122699386503067,
+        "mean_reward_without": 0.11042944785276074,
+        "n_cells": 326
+      },
+      "True": {
+        "both_arms_fail": 121,
+        "both_arms_fail_fraction": 0.7857142857142857,
+        "delta": 0.0,
+        "mean_reward_with": 0.14285714285714285,
+        "mean_reward_without": 0.14285714285714285,
+        "n_cells": 154
+      }
+    }
+  },
+  "cause_2_task_difficulty": {
+    "by_domain": {
+      "grouping": "domain",
+      "levels": {
+        "enterprise": {
+          "both_arms_fail": 168,
+          "both_arms_fail_fraction": 0.875,
+          "delta": -0.026041666666666657,
+          "mean_reward_with": 0.07291666666666667,
+          "mean_reward_without": 0.09895833333333333,
+          "n_cells": 192
+        },
+        "web": {
+          "both_arms_fail": 234,
+          "both_arms_fail_fraction": 0.8125,
+          "delta": 0.0069444444444444475,
+          "mean_reward_with": 0.1423611111111111,
+          "mean_reward_without": 0.13541666666666666,
+          "n_cells": 288
+        }
+      }
+    },
+    "by_eval_function": {
+      "grouping": "eval_function",
+      "levels": {
+        "mc_choice_match": {
+          "both_arms_fail": 101,
+          "both_arms_fail_fraction": 0.8347107438016529,
+          "delta": -0.04132231404958678,
+          "mean_reward_with": 0.09917355371900827,
+          "mean_reward_without": 0.14049586776859505,
+          "n_cells": 121
+        },
+        "mc_choice_set_match": {
+          "both_arms_fail": 0,
+          "both_arms_fail_fraction": 0.0,
+          "delta": 0.0,
+          "mean_reward_with": 1.0,
+          "mean_reward_without": 1.0,
+          "n_cells": 1
+        },
+        "norm_phrase_set_match": {
+          "both_arms_fail": 270,
+          "both_arms_fail_fraction": 0.8626198083067093,
+          "delta": -0.003194888178913738,
+          "mean_reward_with": 0.09904153354632587,
+          "mean_reward_without": 0.10223642172523961,
+          "n_cells": 313
+        },
+        "norm_phrase_set_match_ordered": {
+          "both_arms_fail": 31,
+          "both_arms_fail_fraction": 0.6888888888888889,
+          "delta": 0.06666666666666665,
+          "mean_reward_with": 0.24444444444444444,
+          "mean_reward_without": 0.17777777777777778,
+          "n_cells": 45
+        }
+      }
+    },
+    "by_question_type": {
+      "grouping": "question_type",
+      "levels": {
+        "dynamic-environment": {
+          "both_arms_fail": 125,
+          "both_arms_fail_fraction": 0.8620689655172413,
+          "delta": -0.006896551724137931,
+          "mean_reward_with": 0.0896551724137931,
+          "mean_reward_without": 0.09655172413793103,
+          "n_cells": 145
+        },
+        "errors-gotchas": {
+          "both_arms_fail": 34,
+          "both_arms_fail_fraction": 0.9444444444444444,
+          "delta": 0.05555555555555555,
+          "mean_reward_with": 0.05555555555555555,
+          "mean_reward_without": 0.0,
+          "n_cells": 36
+        },
+        "procedure": {
+          "both_arms_fail": 118,
+          "both_arms_fail_fraction": 0.8082191780821918,
+          "delta": -0.04794520547945205,
+          "mean_reward_with": 0.1095890410958904,
+          "mean_reward_without": 0.15753424657534246,
+          "n_cells": 146
+        },
+        "static-environment": {
+          "both_arms_fail": 125,
+          "both_arms_fail_fraction": 0.8169934640522876,
+          "delta": 0.019607843137254888,
+          "mean_reward_with": 0.1568627450980392,
+          "mean_reward_without": 0.13725490196078433,
+          "n_cells": 153
+        }
+      }
+    }
+  },
+  "cause_3_context_design": {
+    "by_context_length_quartile": {
+      "cuts": [
+        40302,
+        42276,
+        44732
+      ],
+      "grouping": "input_tokens_quartile",
+      "levels": {
+        "Q1": {
+          "both_arms_fail": 105,
+          "both_arms_fail_fraction": 0.875,
+          "delta": -0.04166666666666667,
+          "mean_reward_with": 0.06666666666666667,
+          "mean_reward_without": 0.10833333333333334,
+          "n_cells": 120
+        },
+        "Q2": {
+          "both_arms_fail": 100,
+          "both_arms_fail_fraction": 0.8333333333333334,
+          "delta": 0.04166666666666667,
+          "mean_reward_with": 0.13333333333333333,
+          "mean_reward_without": 0.09166666666666666,
+          "n_cells": 120
+        },
+        "Q3": {
+          "both_arms_fail": 103,
+          "both_arms_fail_fraction": 0.8583333333333333,
+          "delta": 0.008333333333333345,
+          "mean_reward_with": 0.1,
+          "mean_reward_without": 0.09166666666666666,
+          "n_cells": 120
+        },
+        "Q4": {
+          "both_arms_fail": 94,
+          "both_arms_fail_fraction": 0.7833333333333333,
+          "delta": -0.033333333333333354,
+          "mean_reward_with": 0.15833333333333333,
+          "mean_reward_without": 0.19166666666666668,
+          "n_cells": 120
+        }
+      }
+    },
+    "by_similarity_band": {
+      "grouping": "semantic_distance_band",
+      "levels": {
+        "FAR": {
+          "both_arms_fail": 138,
+          "both_arms_fail_fraction": 0.8625,
+          "delta": 0.0,
+          "mean_reward_with": 0.1,
+          "mean_reward_without": 0.1,
+          "n_cells": 160
+        },
+        "MID": {
+          "both_arms_fail": 136,
+          "both_arms_fail_fraction": 0.85,
+          "delta": -0.018750000000000003,
+          "mean_reward_with": 0.10625,
+          "mean_reward_without": 0.125,
+          "n_cells": 160
+        },
+        "NEAR": {
+          "both_arms_fail": 128,
+          "both_arms_fail_fraction": 0.8,
+          "delta": 0.0,
+          "mean_reward_with": 0.1375,
+          "mean_reward_without": 0.1375,
+          "n_cells": 160
+        }
+      }
+    },
+    "by_target_position": {
+      "grouping": "target_position",
+      "levels": {
+        "0": {
+          "both_arms_fail": 67,
+          "both_arms_fail_fraction": 0.8375,
+          "delta": -0.04999999999999999,
+          "mean_reward_with": 0.1,
+          "mean_reward_without": 0.15,
+          "n_cells": 80
+        },
+        "1": {
+          "both_arms_fail": 62,
+          "both_arms_fail_fraction": 0.8732394366197183,
+          "delta": -0.028169014084507032,
+          "mean_reward_with": 0.07042253521126761,
+          "mean_reward_without": 0.09859154929577464,
+          "n_cells": 71
+        },
+        "2": {
+          "both_arms_fail": 56,
+          "both_arms_fail_fraction": 0.9032258064516129,
+          "delta": -0.016129032258064516,
+          "mean_reward_with": 0.06451612903225806,
+          "mean_reward_without": 0.08064516129032258,
+          "n_cells": 62
+        },
+        "3": {
+          "both_arms_fail": 44,
+          "both_arms_fail_fraction": 0.8301886792452831,
+          "delta": 0.037735849056603765,
+          "mean_reward_with": 0.1320754716981132,
+          "mean_reward_without": 0.09433962264150944,
+          "n_cells": 53
+        },
+        "4": {
+          "both_arms_fail": 48,
+          "both_arms_fail_fraction": 0.8275862068965517,
+          "delta": 0.051724137931034475,
+          "mean_reward_with": 0.13793103448275862,
+          "mean_reward_without": 0.08620689655172414,
+          "n_cells": 58
+        },
+        "5": {
+          "both_arms_fail": 66,
+          "both_arms_fail_fraction": 0.825,
+          "delta": 0.02500000000000001,
+          "mean_reward_with": 0.1375,
+          "mean_reward_without": 0.1125,
+          "n_cells": 80
+        },
+        "6": {
+          "both_arms_fail": 59,
+          "both_arms_fail_fraction": 0.7763157894736842,
+          "delta": -0.03947368421052633,
+          "mean_reward_with": 0.15789473684210525,
+          "mean_reward_without": 0.19736842105263158,
+          "n_cells": 76
+        }
+      }
+    }
+  },
+  "n_cells": 480,
+  "rows_artifact": "results/deltau_official/cells.jsonl",
+  "wilson_hi": 0.8678006609906573,
+  "wilson_lo": 0.8018401771254301
+}

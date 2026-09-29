@@ -1,0 +1,123 @@
+{
+  "handwritten": {
+    "abstentions": {
+      "_note": "an abstention scores 0 exactly like a wrong answer (harness.py:1055 forces score_bool=False when is_unknown), so this is reported SEPARATELY from reward; None means the field was not recorded by the run, which is not zero",
+      "denominator_rows": 958,
+      "with_memory": null,
+      "without_memory": null
+    },
+    "accuracy_with_memory": {
+      "correct": 164,
+      "denominator": 958,
+      "rate": 0.17118997912317327,
+      "wilson_hi": 0.19634411152798978,
+      "wilson_lo": 0.1486622882040016
+    },
+    "accuracy_without_memory": {
+      "correct": 166,
+      "denominator": 958,
+      "rate": 0.1732776617954071,
+      "wilson_hi": 0.1985373564383744,
+      "wilson_lo": 0.15062773281912817
+    },
+    "arm": "handwritten",
+    "both_arms_fail_cells": 376,
+    "both_arms_fail_fraction": 0.7849686847599165,
+    "cells_capable_of_showing_an_effect": 103,
+    "condition_id": [
+      "lmev2_raw_metis_gptoss120b_v1"
+    ],
+    "delta_utility_before_labelling": {
+      "per_cell_mean": {
+        "negative": 21,
+        "positive": 20,
+        "zero": 438
+      },
+      "per_replicate": {
+        "-1.0": 42,
+        "0.0": 876,
+        "1.0": 40
+      }
+    },
+    "error_codes": {
+      "endpoint_error": 2
+    },
+    "n_cells_live": 479,
+    "n_memories": 60,
+    "n_rows": 960,
+    "n_rows_errored": 2,
+    "n_rows_live": 958,
+    "n_tasks": 220,
+    "reader_prompt_version": [
+      "p1_deltau_raw_v1"
+    ]
+  },
+  "official": {
+    "abstentions": {
+      "_note": "an abstention scores 0 exactly like a wrong answer (harness.py:1055 forces score_bool=False when is_unknown), so this is reported SEPARATELY from reward; None means the field was not recorded by the run, which is not zero",
+      "denominator_rows": 960,
+      "with_memory": 378,
+      "without_memory": 390
+    },
+    "accuracy_with_memory": {
+      "correct": 110,
+      "denominator": 960,
+      "rate": 0.11458333333333333,
+      "wilson_hi": 0.136286534393532,
+      "wilson_lo": 0.0959523434552947
+    },
+    "accuracy_without_memory": {
+      "correct": 116,
+      "denominator": 960,
+      "rate": 0.12083333333333333,
+      "wilson_hi": 0.1429765785766694,
+      "wilson_lo": 0.1017124796313655
+    },
+    "arm": "official",
+    "both_arms_fail_cells": 402,
+    "both_arms_fail_fraction": 0.8375,
+    "cells_capable_of_showing_an_effect": 78,
+    "condition_id": [
+      "lmev2_raw_metis_gptoss120b_officialprompt_v1"
+    ],
+    "delta_utility_before_labelling": {
+      "per_cell_mean": {
+        "negative": 23,
+        "positive": 20,
+        "zero": 437
+      },
+      "per_replicate": {
+        "-1.0": 46,
+        "0.0": 874,
+        "1.0": 40
+      }
+    },
+    "error_codes": {},
+    "n_cells_live": 480,
+    "n_memories": 60,
+    "n_rows": 960,
+    "n_rows_errored": 0,
+    "n_rows_live": 960,
+    "n_tasks": 220,
+    "reader_prompt_version": [
+      "p1_deltau_raw_official_v1"
+    ]
+  },
+  "paired_comparison": {
+    "_note": "paired over the intersection of the two arms' cells; capability = at least one arm of the cell ever scored 1",
+    "arm_a": "handwritten",
+    "arm_b": "official",
+    "capability_transitions": {
+      "capable_a_only": 53,
+      "capable_b_only": 28,
+      "capable_both": 50,
+      "incapable_both": 348
+    },
+    "capable_cells_a": 103,
+    "capable_cells_b": 78,
+    "cells_only_in_a": 0,
+    "cells_only_in_b": 1,
+    "discordant_pairs": 81,
+    "n_shared_cells": 479
+  }
+}

@@ -1,0 +1,278 @@
+{
+  "F_empty": {
+    "ci_lower": null,
+    "ci_upper": null,
+    "extra": {
+      "across": "memory",
+      "admission": {
+        "error_codes": {},
+        "n_admitted": 960,
+        "n_errored": 0,
+        "n_input": 960,
+        "n_leakage_flagged_admitted": 308,
+        "n_missing_reward": 0
+      },
+      "definition": "pooled SD of reward_without_memory across memories within a (benchmark, task, replicate) group",
+      "df": 0,
+      "group_key": [
+        "benchmark",
+        "future_task_id",
+        "replicate_id"
+      ],
+      "n_groups": 440,
+      "n_groups_contributing": 0,
+      "n_groups_excluded_as_reused": 254
+    },
+    "flags": [
+      "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']",
+      "WITHOUT_ARM_REUSED:254 group(s) had byte-identical WITHOUT outputs across memories -- the arm was cached, not re-executed, so its spread is 0 by construction and measures nothing. F_empty is UNMEASURED."
+    ],
+    "method": "F_empty",
+    "n_obs": 960,
+    "n_units": 60,
+    "point": null,
+    "scale": "without"
+  },
+  "F_exec_delta": {
+    "ci_lower": 0.0,
+    "ci_upper": 0.0,
+    "extra": {
+      "admission": {
+        "error_codes": {},
+        "n_admitted": 960,
+        "n_errored": 0,
+        "n_input": 960,
+        "n_leakage_flagged_admitted": 308,
+        "n_missing_reward": 0
+      },
+      "bootstrap_unit": "memory_id",
+      "definition": "pooled within-cell SD of a single observation across replicates",
+      "df": 480,
+      "n_cells": 480,
+      "n_cells_contributing": 480,
+      "n_cells_with_replicates": 480
+    },
+    "flags": [
+      "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+    ],
+    "method": "F_exec",
+    "n_obs": 960,
+    "n_units": 60,
+    "point": 0.0,
+    "scale": "delta"
+  },
+  "F_exec_with": {
+    "ci_lower": 0.0,
+    "ci_upper": 0.0,
+    "extra": {
+      "admission": {
+        "error_codes": {},
+        "n_admitted": 960,
+        "n_errored": 0,
+        "n_input": 960,
+        "n_leakage_flagged_admitted": 308,
+        "n_missing_reward": 0
+      },
+      "bootstrap_unit": "memory_id",
+      "definition": "pooled within-cell SD of a single observation across replicates",
+      "df": 480,
+      "n_cells": 480,
+      "n_cells_contributing": 480,
+      "n_cells_with_replicates": 480
+    },
+    "flags": [
+      "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+    ],
+    "method": "F_exec",
+    "n_obs": 960,
+    "n_units": 60,
+    "point": 0.0,
+    "scale": "with"
+  },
+  "F_exec_without": {
+    "ci_lower": 0.0,
+    "ci_upper": 0.0,
+    "extra": {
+      "admission": {
+        "error_codes": {},
+        "n_admitted": 960,
+        "n_errored": 0,
+        "n_input": 960,
+        "n_leakage_flagged_admitted": 308,
+        "n_missing_reward": 0
+      },
+      "bootstrap_unit": "memory_id",
+      "definition": "pooled within-cell SD of a single observation across replicates",
+      "df": 480,
+      "n_cells": 480,
+      "n_cells_contributing": 480,
+      "n_cells_with_replicates": 480
+    },
+    "flags": [
+      "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+    ],
+    "method": "F_exec",
+    "n_obs": 960,
+    "n_units": 60,
+    "point": 0.0,
+    "scale": "without"
+  },
+  "F_judge": {
+    "ci_lower": 0.0,
+    "ci_upper": 0.0,
+    "extra": {
+      "admission": {
+        "error_codes": {},
+        "n_admitted": 960,
+        "n_errored": 0,
+        "n_input": 960,
+        "n_leakage_flagged_admitted": 308,
+        "n_missing_reward": 0
+      },
+      "max_abs_reward_difference": 0.0,
+      "mean_abs_reward_difference": 0.0,
+      "n_comparisons": 3486,
+      "n_disagreements": 0,
+      "n_duplicate_groups": 354,
+      "sd_of_differences": 0.0,
+      "source": "explicit_rescore"
+    },
+    "flags": [],
+    "method": "F_judge",
+    "n_obs": 3486,
+    "n_units": 60,
+    "point": 0.0,
+    "scale": "rate"
+  },
+  "F_judge_within_dataset": {
+    "ci_lower": 0.0,
+    "ci_upper": 0.0,
+    "extra": {
+      "admission": {
+        "error_codes": {},
+        "n_admitted": 960,
+        "n_errored": 0,
+        "n_input": 960,
+        "n_leakage_flagged_admitted": 308,
+        "n_missing_reward": 0
+      },
+      "max_abs_reward_difference": 0.0,
+      "mean_abs_reward_difference": 0.0,
+      "n_comparisons": 1566,
+      "n_disagreements": 0,
+      "n_duplicate_groups": 354,
+      "sd_of_differences": 0.0,
+      "source": "within_dataset_duplicates"
+    },
+    "flags": [],
+    "method": "F_judge",
+    "n_obs": 1566,
+    "n_units": 60,
+    "point": 0.0,
+    "scale": "rate"
+  },
+  "positive_controls": {
+    "F_exec": {
+      "_what": "F_exec recomputed after flipping one replicate in 249 cells; MUST be > 0 or the estimator cannot fire",
+      "fires": true,
+      "n_cells_perturbed": 249,
+      "point": 0.5092887196865841
+    },
+    "F_judge": {
+      "_what": "F_judge recomputed against a re-scoring that DISAGREES on 20 rows; MUST be > 0 or the estimator cannot fire",
+      "fires": true,
+      "n_rows_planted": 20,
+      "point": 0.29411764705882354
+    }
+  },
+  "reference": {
+    "longmemeval_v2": {
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "extra": {
+        "admission": {
+          "error_codes": {},
+          "n_admitted": 960,
+          "n_errored": 0,
+          "n_input": 960,
+          "n_leakage_flagged_admitted": 308,
+          "n_missing_reward": 0
+        },
+        "benchmark": "longmemeval_v2",
+        "bootstrap_unit": "memory_id",
+        "definition": "pooled within-cell SD of a single observation across replicates",
+        "df": 480,
+        "n_cells": 480,
+        "n_cells_contributing": 480,
+        "n_cells_with_replicates": 480,
+        "per_arm": {
+          "with": {
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "extra": {
+              "admission": {
+                "error_codes": {},
+                "n_admitted": 960,
+                "n_errored": 0,
+                "n_input": 960,
+                "n_leakage_flagged_admitted": 308,
+                "n_missing_reward": 0
+              },
+              "bootstrap_unit": "memory_id",
+              "definition": "pooled within-cell SD of a single observation across replicates",
+              "df": 480,
+              "n_cells": 480,
+              "n_cells_contributing": 480,
+              "n_cells_with_replicates": 480
+            },
+            "flags": [
+              "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+            ],
+            "method": "F_exec",
+            "n_obs": 960,
+            "n_units": 60,
+            "point": 0.0,
+            "scale": "with"
+          },
+          "without": {
+            "ci_lower": 0.0,
+            "ci_upper": 0.0,
+            "extra": {
+              "admission": {
+                "error_codes": {},
+                "n_admitted": 960,
+                "n_errored": 0,
+                "n_input": 960,
+                "n_leakage_flagged_admitted": 308,
+                "n_missing_reward": 0
+              },
+              "bootstrap_unit": "memory_id",
+              "definition": "pooled within-cell SD of a single observation across replicates",
+              "df": 480,
+              "n_cells": 480,
+              "n_cells_contributing": 480,
+              "n_cells_with_replicates": 480
+            },
+            "flags": [
+              "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+            ],
+            "method": "F_exec",
+            "n_obs": 960,
+            "n_units": 60,
+            "point": 0.0,
+            "scale": "without"
+          }
+        }
+      },
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']",
+        "SCALE_NOTE:prereg section 2 names F_exec 'per arm'; section 4 compares it to mean dU. Returned on the 'delta' scale; per-arm values in extra.per_arm."
+      ],
+      "method": "F (reference) = F_exec[delta]",
+      "n_obs": 960,
+      "n_units": 60,
+      "point": 0.0,
+      "scale": "delta"
+    }
+  }
+}
