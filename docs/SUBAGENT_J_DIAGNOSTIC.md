@@ -634,3 +634,34 @@ as-shipped-flag result as a **retracted** diagnostic with the mismatch control b
 | J-5 | First fix for J-4 compared Qwen counts to server `prompt_tokens` and **rejected a faithful rebuild** (real ratio 1.15–1.21) | reproduced the run's own recorded quantiles instead |
 | J-6 | Capital-of-France positive control measured **prompt compliance**, not harness capability — the official prompt mandates abstention for out-of-environment facts | two configs "failed" it by behaving correctly |
 
+---
+
+## 13. Re-derivation check (for the Master Agent), and one reading trap
+
+Every headline number was re-derived from the artifacts in a final pass. All reproduce:
+
+| claim | re-derived | artifact |
+|---|---|---|
+| needle found | **66.0/66** | `results/j2_escalation/needle_responses.jsonl` |
+| needle negative control | **0.0/17** | `results/ledgers/j2b_needle_negative_control.json` |
+| base replication vs recorded arm | **104/104**, 0 disagree | `results/ledgers/j2_analysis.json` |
+| high_effort oracle new-only / lift | **0** / **−0.0952** | same |
+| nemotron oracle new-only / lift | **0** / **−0.2273** | same |
+| inkling oracle new-only / lift | **0** / **−0.0909** | same |
+| pooled oracle ΔU | **+0.2273**, n=66, p=**0.0014896** | `results/j2_escalation/responses.jsonl` |
+| pooled control ΔU | **−0.0114**, n=88, p=1 | same |
+| mismatch enrichment | **0.9950** (paired 0.3208 / unpaired 0.3224) | `results/ledgers/j1b_discriminative_oracle.json` |
+| as-shipped oracle acc WITH | **0.1429** | same |
+
+### ⚠️ Reading trap in `j1b_discriminative_oracle.json`
+
+That file was written with the script's **default `--max-pool-hits 5`**, so its
+top-level `DISCRIMINATIVE_ORACLE` key holds the **≤5** result (**n=12, accW=0.5000**).
+**J2 used `--max-pool-hits 8`**, so the n=22 / accW=0.4545 quoted throughout this report
+is `arms.official.sweep["max_pool_hits<=8"]`, not the `DISCRIMINATIVE_ORACLE` key.
+Both are in the artifact and both are correct; they answer different thresholds. My own
+first re-derivation pass read the wrong one and flagged a false mismatch — recorded here
+so it does not happen again downstream.
+
+To regenerate the ≤8 artifact under the top-level key:
+`python3 scripts/j1b_discriminative_oracle.py --max-pool-hits 8`
