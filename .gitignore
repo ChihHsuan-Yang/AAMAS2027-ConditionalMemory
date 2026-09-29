@@ -33,3 +33,8 @@ venv/
 # benchmark raw records are large; summaries are tracked explicitly
 results/bench/*_raw.jsonl
 !results/bench/*.jsonl
+
+# HF staging is built OUTSIDE this repo and is never committed or uploaded from here.
+hf_staging/
+hf_out/
+*.rejected.jsonl
