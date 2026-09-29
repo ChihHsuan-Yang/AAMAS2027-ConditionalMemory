@@ -177,3 +177,111 @@ def select_filler(
     rng = _seeded_rng("filler", task_id)
     rng.shuffle(ordered)
     return [u for u in ordered if u.memory_id not in exclude_ids][:k]
+
+
+# ---------------------------------------------------------------------------
+# The BENCHMARK'S OWN reader system prompts -- vendored VERBATIM.
+# ---------------------------------------------------------------------------
+# Source: LongMemEval-V2 ``evaluation/harness.py::DOMAIN_SYSTEM_PROMPTS``
+# (upstream commit 2cc8c540..., harness sha256
+# 93fe5855a74ad46d7e8b489cebac24de38a9b30ba7ec1de2dd8708bd4aeebdb6).
+#
+# These were produced by ``ast.literal_eval``-ing the upstream assignment and
+# ``repr``-ing the result, NOT by copy-paste, so every byte is the byte the
+# benchmark's own interpreter loads.
+#
+# WHY THEY MATTER: ``SYSTEM`` above is hand-written and invites an answer in
+# every case. The official prompt forbids guessing and mandates
+# ``\boxed{UNKNOWN}``. Measured on the pilot (results/deltau_pilot/cells.jsonl)
+# the hand-written prompt abstained 0 of 958 times. A reader that always
+# guesses on a hard retrieval task sits at its guessing floor, which is what
+# the pilot's 17% accuracy is.
+#
+# ⚠️ UPSTREAM ESCAPING BUG, DELIBERATELY PRESERVED. The upstream literal is not
+# a raw string, so the trailing "\boxed{}" is parsed as \x08 (BACKSPACE)
+# followed by "oxed{}". The earlier "\\boxed{UNKNOWN}" is unaffected. This is
+# the byte sequence the published benchmark actually sends, so repairing it
+# would silently make our arm a DIFFERENT condition from the published one.
+# ``assert_official_prompts_verbatim`` re-derives these from the harness on
+# disk and raises on any drift, including a well-meaning repair.
+OFFICIAL_PROMPT_VERSION = "official_v1"
+
+OFFICIAL_DOMAIN_SYSTEM_PROMPTS: dict[str, str] = {
+    'enterprise': (
+        "You are an experienced colleague working in a customized ServiceNow environment. Answer based on your memory of the environment. If you do not know the answer, output exactly \\boxed{UNKNOWN}. Do not guess. Never attempt to guess an answer if you are not sure. If you believe the question's construction/premise is wrong, provide an explanation in \x08oxed{} explaining why the question is flawed."
+    ),
+    'web': (
+        "You are an experienced colleague in a web browsing environment that has a customized magento-based shopping website, a customized magento-based shopping admin cms website, as well as a customized forum website based on reddit/postmill. Answer based on your memory of the environment. If you do not know the answer, output exactly \\boxed{UNKNOWN}. Do not guess. Never attempt to guess an answer if you are not sure. If you believe the question's construction/premise is wrong, provide an explanation in \x08oxed{} explaining why the question is flawed."
+    ),
+}
+
+#: sha256 of each prompt STRING (not the file). Checked by the test suite and
+#: by :func:`assert_official_prompts_verbatim`, and stamped into every run.
+OFFICIAL_PROMPT_SHA256: dict[str, str] = {
+    'enterprise': 'b2d24d41b022824ddea06b61255ead1a9aceae79e4f1658775fddd6d6e66320e',
+    'web': 'c70772c5f4ab1dbdcee28218d5e2b98595a84d64196012cbd00bb9de9e63fd1f',
+}
+
+
+def official_system_prompt(domain: str) -> str:
+    """The official reader system prompt for ``domain``.
+
+    Mirrors ``harness.py::get_system_prompt``: an unknown domain RAISES rather
+    than falling back to a default. A default here would silently answer web
+    questions with the enterprise prompt -- the two differ in their opening
+    sentence, which is the part that describes the environment.
+    """
+    if domain not in OFFICIAL_DOMAIN_SYSTEM_PROMPTS:
+        raise KeyError(
+            f"no official system prompt for domain {domain!r}; known: "
+            f"{sorted(OFFICIAL_DOMAIN_SYSTEM_PROMPTS)}. harness.py::get_system_prompt "
+            f"raises here too -- do not substitute a default."
+        )
+    return OFFICIAL_DOMAIN_SYSTEM_PROMPTS[domain]
+
+
+def assert_official_prompts_verbatim(harness_path) -> dict[str, str]:
+    """Re-derive the official prompts from ``harness.py`` and require equality.
+
+    Parses the upstream assignment with ``ast`` rather than importing the
+    harness (importing it pulls in ``openai``, ``tqdm`` and the benchmark's
+    ``memory_modules`` package). Returns the per-domain sha256 map.
+
+    Raises rather than warning: a prompt that has drifted from the published
+    one is a different experimental condition wearing the same name.
+    """
+    import ast as _ast  # noqa: PLC0415
+    import hashlib as _hashlib  # noqa: PLC0415
+    from pathlib import Path as _Path  # noqa: PLC0415
+
+    path = _Path(harness_path)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"{path} not found; cannot verify the official prompts are verbatim. "
+            f"Refusing to assume they are."
+        )
+    found = None
+    for node in _ast.parse(path.read_text()).body:
+        if isinstance(node, _ast.Assign) and any(
+            getattr(t, "id", None) == "DOMAIN_SYSTEM_PROMPTS" for t in node.targets
+        ):
+            found = _ast.literal_eval(node.value)
+    if found is None:
+        raise RuntimeError(f"no DOMAIN_SYSTEM_PROMPTS assignment in {path}")
+    if found != OFFICIAL_DOMAIN_SYSTEM_PROMPTS:
+        diff = {
+            k: (OFFICIAL_DOMAIN_SYSTEM_PROMPTS.get(k), found.get(k))
+            for k in set(found) | set(OFFICIAL_DOMAIN_SYSTEM_PROMPTS)
+            if found.get(k) != OFFICIAL_DOMAIN_SYSTEM_PROMPTS.get(k)
+        }
+        raise RuntimeError(
+            f"vendored official prompts differ from {path} on {sorted(diff)}. "
+            f"They must stay byte-identical."
+        )
+    got = {k: _hashlib.sha256(v.encode()).hexdigest() for k, v in found.items()}
+    if got != OFFICIAL_PROMPT_SHA256:
+        raise RuntimeError(
+            f"official prompt sha256 mismatch: expected {OFFICIAL_PROMPT_SHA256}, "
+            f"got {got}"
+        )
+    return got

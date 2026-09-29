@@ -201,3 +201,116 @@ def test_position_still_varies_across_cells():
     assert len(positions) > 1, (
         f"target position is constant at {positions} across 24 distinct cells; "
         f"position would be perfectly confounded with the intervention")
+
+
+# ---------------------------------------------------------------------------
+# The OFFICIAL benchmark reader prompts (H1)
+# ---------------------------------------------------------------------------
+import hashlib as _hashlib  # noqa: E402
+import textwrap as _textwrap  # noqa: E402
+
+import pytest as _pytest  # noqa: E402
+
+from p1mem.cells import (  # noqa: E402
+    OFFICIAL_DOMAIN_SYSTEM_PROMPTS,
+    OFFICIAL_PROMPT_SHA256,
+    assert_official_prompts_verbatim,
+    official_system_prompt,
+)
+
+_HARNESS = Path("/tmp/lmev2/harness.py")
+
+
+def test_official_prompts_have_both_domains_and_they_differ():
+    assert set(OFFICIAL_DOMAIN_SYSTEM_PROMPTS) == {"web", "enterprise"}
+    # If these ever coincided, selecting by domain would be untestable and a
+    # wrong-domain bug would be invisible.
+    assert OFFICIAL_DOMAIN_SYSTEM_PROMPTS["web"] != OFFICIAL_DOMAIN_SYSTEM_PROMPTS[
+        "enterprise"]
+
+
+def test_official_prompt_shas_match_the_strings():
+    for dom, text in OFFICIAL_DOMAIN_SYSTEM_PROMPTS.items():
+        assert _hashlib.sha256(text.encode()).hexdigest() == OFFICIAL_PROMPT_SHA256[dom]
+
+
+def test_official_prompt_forbids_guessing_and_mandates_unknown():
+    """The abstention clause is the whole reason this arm exists."""
+    for text in OFFICIAL_DOMAIN_SYSTEM_PROMPTS.values():
+        assert "\\boxed{UNKNOWN}" in text
+        assert "Do not guess." in text
+        assert "Never attempt to guess an answer if you are not sure." in text
+
+
+def test_official_prompt_preserves_the_upstream_escaping_bug():
+    """Upstream's literal is not raw, so the trailing \\boxed{} is \\x08 + 'oxed{}'.
+
+    Preserved deliberately: it is the byte sequence the published benchmark
+    sends. A "repair" would silently make our arm a different condition, so
+    this test fails if anyone fixes it.
+    """
+    for text in OFFICIAL_DOMAIN_SYSTEM_PROMPTS.values():
+        assert "\x08oxed{}" in text, "the upstream \\x08 was 'fixed'; see cells.py"
+
+
+def test_official_system_prompt_raises_on_unknown_domain():
+    # A default here would answer web questions with the enterprise prompt.
+    with _pytest.raises(KeyError):
+        official_system_prompt("webarena")
+
+
+@_pytest.mark.skipif(not _HARNESS.exists(), reason="benchmark harness not on disk")
+def test_vendored_prompts_are_verbatim_against_the_real_harness():
+    assert assert_official_prompts_verbatim(_HARNESS) == OFFICIAL_PROMPT_SHA256
+
+
+def test_verbatim_checker_fires_on_a_planted_drift(tmp_path):
+    """Prove the checker can FAIL -- corrupt a copy in the shape we fear.
+
+    A verifier only ever run on good data has not been shown to detect
+    anything. Three plants: a reworded prompt, the "repaired" \\x08, and a
+    missing domain.
+    """
+    real = _HARNESS.read_text() if _HARNESS.exists() else None
+    if real is None:
+        base = (
+            "DOMAIN_SYSTEM_PROMPTS = {\n"
+            f"    'web': {OFFICIAL_DOMAIN_SYSTEM_PROMPTS['web']!r},\n"
+            f"    'enterprise': {OFFICIAL_DOMAIN_SYSTEM_PROMPTS['enterprise']!r},\n"
+            "}\n"
+        )
+    else:
+        base = real
+
+    good = tmp_path / "harness_good.py"
+    good.write_text(base)
+    assert assert_official_prompts_verbatim(good) == OFFICIAL_PROMPT_SHA256
+
+    plants = {
+        # a paraphrase -- the exact failure the task forbids
+        "reworded": lambda s: s.replace("Do not guess.", "Try not to guess."),
+        # A well-meaning repair of the upstream escaping bug. NOTE the plant
+        # must target the SOURCE spelling (a single backslash before "boxed"),
+        # not the parsed \x08: the first version of this plant matched nothing
+        # and the test SKIPPED rather than failing -- a plant that changes
+        # nothing proves nothing.
+        "repaired_backspace": lambda s: s.replace(
+            "\\boxed{} explaining", "\\\\boxed{} explaining"),
+        # one domain silently dropped
+        "domain_dropped": lambda s: s.replace(
+            "    \"enterprise\": (", "    \"enterprise_DISABLED\": ("),
+    }
+    for name, mutate in plants.items():
+        bad = tmp_path / f"harness_{name}.py"
+        mutated = mutate(base)
+        if mutated == base:
+            _pytest.skip(f"plant {name} did not change the file; cannot test it")
+        bad.write_text(mutated)
+        with _pytest.raises((RuntimeError, SyntaxError, ValueError)):
+            assert_official_prompts_verbatim(bad)
+
+
+def test_verbatim_checker_raises_on_a_missing_file(tmp_path):
+    # Absence must not read as success.
+    with _pytest.raises(FileNotFoundError):
+        assert_official_prompts_verbatim(tmp_path / "nope.py")

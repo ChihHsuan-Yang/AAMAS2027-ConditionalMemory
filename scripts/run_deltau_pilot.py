@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
-"""G2: the first real dU cells on LongMemEval-V2, raw representation.
+"""G2/H1: real dU cells on LongMemEval-V2, raw representation.
+
+THE READER SYSTEM PROMPT IS AN EXPERIMENTAL ARM (``--prompt-arm``)
+-----------------------------------------------------------------
+``handwritten`` reproduces the original pilot: ``cells.SYSTEM``, a prompt we
+wrote, which invites an answer in every case and abstained 0 of 958 times.
+``official`` uses ``cells.OFFICIAL_DOMAIN_SYSTEM_PROMPTS`` -- the benchmark's
+own ``harness.py::DOMAIN_SYSTEM_PROMPTS``, selected by the QUESTION's domain,
+re-verified byte-identical against the harness on disk at startup. It forbids
+guessing and mandates ``\\boxed{UNKNOWN}``.
+
+This is a NEW ARM, never a backfill: ``reader_prompt_version`` is pinned
+experimental identity and is part of ``cell_id``, so the two arms cannot
+collide in the cache, in the rows, or in the analysis. Every other design
+choice below is held FIXED between the two arms so the comparison is clean.
 
 Design, and why each choice is what it is
 -----------------------------------------
@@ -51,15 +65,30 @@ from p1mem import schema as S  # noqa: E402
 from p1mem.adapters import leakage as LK  # noqa: E402
 from p1mem.adapters import lmev2  # noqa: E402
 from p1mem.cache import ResponseCache  # noqa: E402
-from p1mem.cells import SYSTEM, MemoryUnit, build_context  # noqa: E402
+from p1mem.cells import (  # noqa: E402
+    OFFICIAL_PROMPT_SHA256,
+    SYSTEM,
+    MemoryUnit,
+    assert_official_prompts_verbatim,
+    build_context,
+    official_system_prompt,
+)
 from p1mem.client import ClientError, P1Client  # noqa: E402
 from p1mem.embed import EMBED_DIM, EMBED_MODEL, EmbeddingClient  # noqa: E402
 from p1mem.memory.tokens import count_tokens  # noqa: E402
 from p1mem.vendor.rcc_schema import utc_now  # noqa: E402
 from p1mem.writer import CellWriter  # noqa: E402
 
-PROMPT_VERSION = "p1_deltau_raw_v1"
-CONDITION_ID = "lmev2_raw_metis_gptoss120b_v1"
+#: reader_prompt_version per arm. These strings are pinned experimental
+#: identity: they land in cell_id, in the cache key, and on every row.
+PROMPT_VERSION_BY_ARM = {
+    "handwritten": "p1_deltau_raw_v1",
+    "official": "p1_deltau_raw_official_v1",
+}
+CONDITION_ID_BY_ARM = {
+    "handwritten": "lmev2_raw_metis_gptoss120b_v1",
+    "official": "lmev2_raw_metis_gptoss120b_officialprompt_v1",
+}
 #: Sophia's SFR embedding endpoint returns HTTP 500 on long inputs. The budget
 #: below is counted with the OFFICIAL QWEN tokenizer, which is NOT the
 #: embedding model's tokenizer (SFR-Embedding-Mistral). The two disagree on
@@ -230,13 +259,34 @@ def main() -> int:
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--max-calls", type=int, default=3000)
     ap.add_argument("--out", type=Path, default=REPO / "results" / "deltau_pilot")
+    ap.add_argument("--prompt-arm", choices=sorted(PROMPT_VERSION_BY_ARM),
+                    default="handwritten",
+                    help="reader system prompt arm. 'handwritten' = cells.SYSTEM "
+                         "(the original pilot); 'official' = the benchmark's own "
+                         "DOMAIN_SYSTEM_PROMPTS, selected by question domain.")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
+    prompt_version = PROMPT_VERSION_BY_ARM[args.prompt_arm]
+    condition_id = CONDITION_ID_BY_ARM[args.prompt_arm]
 
     log(f"verifying vendored scorer: {lmev2.verify_vendored_scorer()[:16]}...")
     lmev2.assert_writer_blind()
     log("writer blindness: PASSED")
+
+    # The prompt is the intervention in this run, so it is verified before any
+    # money is spent -- not asserted from the constant we ourselves vendored.
+    harness_path = args.root / "harness.py"
+    got_sha = lmev2.sha256_file(harness_path)
+    if got_sha != lmev2.HARNESS_SHA256:
+        raise SystemExit(
+            f"{harness_path} sha256 {got_sha} != pinned {lmev2.HARNESS_SHA256}; "
+            f"the official prompts would be read from a DIFFERENT harness.")
+    prompt_shas = assert_official_prompts_verbatim(harness_path)
+    log(f"official prompts re-derived from {harness_path} and byte-identical: "
+        f"{ {k: v[:12] for k, v in prompt_shas.items()} }")
+    log(f"PROMPT ARM = {args.prompt_arm}  reader_prompt_version={prompt_version}  "
+        f"condition_id={condition_id}")
 
     units = [json.loads(l) for l in
              (REPO / "data/manifests/lmev2_memory_units_small.jsonl").read_text().splitlines() if l.strip()]
@@ -283,6 +333,15 @@ def main() -> int:
         with_ctx, pos = render_text(fil, texts, u, task_id=task.id)
         without_ctx, npos = render_text(fil, texts, None, task_id=task.id)
         assert npos is None
+        # The official prompt is selected by the QUESTION's domain, mirroring
+        # harness.py::get_system_prompt(args.domain). The web and enterprise
+        # prompts differ in the sentence that describes the environment, so
+        # using one for the other would be a different condition. (On this
+        # pilot's cells memory-domain and task-domain always agree -- verified
+        # 0/960 mismatches -- but the QUESTION is the correct authority and is
+        # what the harness uses, so it is what is read here.)
+        sys_prompt = (SYSTEM if args.prompt_arm == "handwritten"
+                      else official_system_prompt(task.domain))
         for rep in range(args.replicates):
             for arm, ctx, position in (("with_memory", with_ctx, pos),
                                        ("without_memory", without_ctx, None)):
@@ -291,8 +350,10 @@ def main() -> int:
                     "replicate_id": rep, "position": position,
                     "n_filler": len(fil),
                     "filler_tokens": sum(f["n_tokens"] for f in fil),
+                    "system_prompt_domain": (None if args.prompt_arm == "handwritten"
+                                             else task.domain),
                     "messages": [
-                        {"role": "system", "content": SYSTEM},
+                        {"role": "system", "content": sys_prompt},
                         {"role": "user",
                          "content": f"{ctx}\n\n--- Question ---\n{task.question}"},
                     ],
@@ -302,6 +363,11 @@ def main() -> int:
     q = sorted(ctx_tokens)
     log(f"WITH-arm context tokens: min={q[0]} p25={q[len(q)//4]} median={q[len(q)//2]} "
         f"p75={q[3*len(q)//4]} max={q[-1]}  (K={args.k_filler} filler units)")
+    for j in jobs:
+        j["system_prompt_sha256"] = S.sha256_text(j["messages"][0]["content"])
+    _sys_seen = collections.Counter(j["messages"][0]["content"] for j in jobs)
+    log(f"system prompts in use: {len(_sys_seen)} distinct -> "
+        + json.dumps({S.sha256_text(k)[:12]: v for k, v in _sys_seen.items()}))
     log(f"PLANNED CALLS: {len(jobs)}  (budget {args.max_calls})")
     if len(jobs) > args.max_calls:
         raise SystemExit(f"planned {len(jobs)} calls exceeds --max-calls {args.max_calls}")
@@ -354,7 +420,7 @@ def main() -> int:
             "future_task_id": j["task"].id,
             "arm": j["arm"],
             "retrieval_method": "oracle",
-            "prompt_version": PROMPT_VERSION,
+            "prompt_version": prompt_version,
             "replicate_id": j["replicate_id"],
         }
         try:
@@ -386,7 +452,7 @@ def main() -> int:
     log(f"execution done in {wall:.1f}s: real={n_real} cached={n_cached} errors={n_err}")
 
     # ---- score + write rows
-    from p1mem.adapters.vendor.lmev2_qa_eval_metrics import extract_boxed_answer, is_unknown
+    from p1mem.adapters.vendor.lmev2_qa_eval_metrics import extract_boxed_answer, is_unknown  # noqa: PLC0415
 
     rows_path = args.out / "cells.jsonl"
     if rows_path.exists():
@@ -417,9 +483,24 @@ def main() -> int:
                 joined = " | ".join(errs)
                 code = (S.ERROR_EMPTY_OUTPUT_FINISH_LENGTH
                         if "TruncatedResponseError" in joined else "http_error")
+                # null, not False: there is no output, so "did it abstain?" is
+                # unanswerable. A False here would put an errored cell into the
+                # "answered, did not abstain" bucket it never belonged to.
+                unk_w = unk_o = None
             else:
-                reward_w = float(task.score(extract_boxed_answer(ow)))
-                reward_o = float(task.score(extract_boxed_answer(oo)))
+                pw, po = extract_boxed_answer(ow), extract_boxed_answer(oo)
+                # The OFFICIAL scoring rule, mirroring harness.py:1055 --
+                # `if row["is_unknown"]: score_bool = False`. An abstention is
+                # NOT credit, even in the (here impossible) case where the raw
+                # scorer would match. Applied to BOTH arms identically, so it
+                # cannot bias the contrast. Verified separately that for all
+                # 220 tasks in this design no UNKNOWN string scores True under
+                # the raw scorer, so this override changes no reward here --
+                # it is written in so the arm is scored by the benchmark's own
+                # rule rather than by a rule that merely coincides with it.
+                unk_w, unk_o = is_unknown(pw), is_unknown(po)
+                reward_w = 0.0 if unk_w else float(task.score(pw))
+                reward_o = 0.0 if unk_o else float(task.score(po))
                 delta = reward_w - reward_o
                 code = None
             recs = [r["rec"] for r in (rw, ro) if r.get("rec") is not None]
@@ -474,11 +555,11 @@ def main() -> int:
                 reader_model="gpt-oss-120b",
                 reader_cluster="metis",
                 reader_endpoint="metis:/resource_server/metis/api/v1",
-                reader_prompt_version=PROMPT_VERSION,
+                reader_prompt_version=prompt_version,
                 reader_endpoint_sha256=S.sanitized_base_url_hash(
                     "https://inference-api.alcf.anl.gov/resource_server/metis/api/v1"),
                 reader_reasoning_effort="low",
-                condition_id=CONDITION_ID,
+                condition_id=condition_id,
                 output_without_memory=oo, output_with_memory=ow,
                 reward_without_memory=reward_o, reward_with_memory=reward_w,
                 delta_utility=delta,
@@ -498,7 +579,20 @@ def main() -> int:
                             "writer": "scripts/run_deltau_pilot.py",
                             "target_position": job.get("position"),
                             "n_filler": job.get("n_filler"),
-                            "filler_tokens": job.get("filler_tokens")},
+                            "filler_tokens": job.get("filler_tokens"),
+                            # The system prompt is the intervention in this
+                            # run, so the row records the bytes that were
+                            # SENT (by hash) rather than the arm label alone.
+                            "prompt_arm": args.prompt_arm,
+                            "system_prompt_domain": job.get("system_prompt_domain"),
+                            "system_prompt_sha256": job.get("system_prompt_sha256"),
+                            # An abstention scores 0 exactly like a wrong
+                            # answer (harness.py forces score_bool=False when
+                            # is_unknown), so reward alone cannot distinguish
+                            # "wrong" from "declined". Recorded per arm so the
+                            # two can be reported separately.
+                            "is_unknown_with": unk_w,
+                            "is_unknown_without": unk_o},
                 license_source_reference="longmemeval_v2:Apache-2.0",
                 verifier_id=task.eval_name,
                 verifier_version=f"vendored@{lmev2.VENDORED_SCORER_SHA256[:12]}",
@@ -509,8 +603,8 @@ def main() -> int:
             n_written += 1
             scored.append({"memory_id": mid, "task_id": task.id, "replicate": rep,
                            "reward_with": reward_w, "reward_without": reward_o,
-                           "delta": delta, "unknown_with": is_unknown(
-                               extract_boxed_answer(ow)) if ow else None})
+                           "delta": delta, "unknown_with": unk_w,
+                           "unknown_without": unk_o})
     log(f"wrote {n_written} rows -> {rows_path} ({w.close()})")
 
     summary = {
@@ -531,6 +625,22 @@ def main() -> int:
                                            if s["reward_with"] is not None])),
         "mean_reward_without": float(np.mean([s["reward_without"] for s in scored
                                               if s["reward_without"] is not None])),
+        # ---- the prompt arm's identity, on the artifact itself
+        "prompt_arm": args.prompt_arm,
+        "reader_prompt_version": prompt_version,
+        "condition_id": condition_id,
+        "harness_sha256": got_sha,
+        "official_prompt_sha256": prompt_shas,
+        "system_prompt_sha256_counts": {
+            S.sha256_text(k): v for k, v in _sys_seen.items()},
+        # Abstention is reported SEPARATELY from reward, because the official
+        # scoring rule makes an abstention score 0 exactly like a wrong
+        # answer: a cell can move wrong -> abstain with no change in reward.
+        "abstentions_with": int(sum(1 for s in scored if s["unknown_with"])),
+        "abstentions_without": int(sum(1 for s in scored
+                                       if s["unknown_without"])),
+        "abstention_denominator": int(sum(1 for s in scored
+                                          if s["unknown_with"] is not None)),
     }
     (args.out / "summary.json").write_text(json.dumps(summary, indent=2))
     log(json.dumps(summary, indent=2))
