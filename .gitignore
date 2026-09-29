@@ -1,0 +1,31 @@
+# secrets — never commit
+*.env
+.env
+*token*.json
+.globus/
+
+# data: large / licensed benchmark material is NOT redistributed here
+data/**
+!data/README.md
+!data/manifests/
+!data/manifests/**
+
+# results: raw endpoint outputs are large; only ledgers + manifests are tracked
+results/**
+!results/README.md
+!results/ledgers/
+!results/ledgers/**
+
+# caches
+cache/
+*.npy
+.cache/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+
+# os
+.DS_Store
