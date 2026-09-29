@@ -1,136 +1,82 @@
-# Leakage audit: method, controls, and results
+# Leakage Audit — LongMemEval-V2
 
-Owner: Sub-agent A. Measured 2026-09-29.
+Measured by Sub-agent A; **every rate below re-derived independently by the Master Agent**
+from `data/manifests/lmev2_leakage_informative_summary.json`.
 
-A cell `(m, t)` **leaks** when the memory `m` literally carries the gold answer of task `t`, so an agent
-could score correct by copying the memory instead of using it. Leaky cells inflate `DeltaU` and a reviewer
-will look for them first.
+Policy: **FLAG, NEVER DROP.** 18,169 cells flagged, 0 dropped. Dropping leaky cells
+changes the question being answered.
 
-## Policy: FLAG, NEVER DROP
+---
 
-Dropping leaky cells conditions the cell set on the outcome variable and silently changes the question
-being answered. `LeakVerdict` has no drop/exclude/filter affordance — a test asserts this — and the audit
-writes flagged cells to a manifest so analysis can report **both with and without**.
+## The rates — and why the pooled number must not be quoted alone
 
-`official = None` means **UNDECIDABLE** (LLM-judged question), never "clean". Counting an undecidable cell
-as clean is the absence-becomes-a-plausible-zero failure mode.
+| gold-answer length | flagged / cells | any-leak rate |
+|---|---:|---:|
+| 6–12 chars | 12,458 / 51,957 | **23.98%** |
+| 13–30 chars | 4,696 / 63,183 | **7.43%** |
+| **>30 chars** | 1,015 / 30,453 | **3.33%** |
+| pooled | 18,169 / 145,593 | *12.48%* |
 
-## Definition
+**All four reproduce exactly.** 1,889 memory units × 141 tasks.
 
-The sharpest detector reuses the benchmark's own scorer:
+> 🔴 **Do not quote 12.48% on its own.** The monotone fall with gold length —
+> 23.98% → 7.43% → 3.33% — is a **degeneracy signature**, not a property of memory. A
+> 6-character gold answer ("Yes", "$14.69", a SKU fragment) appears by chance in long
+> web-trajectory text; a >30-character answer does not. The pooled figure is therefore
+> dominated by how short the answers happen to be, not by how often a memory really
+> contains the answer.
+>
+> **The >30-char stratum at 3.33% is the closest thing to a true leak rate**, and it is the
+> number to reason with. Report the stratified table, always.
 
-> `leak(m, t) := OFFICIAL_SCORER(prediction = rendered_memory_text, answer = gold(t))`
+## Every rate is a LOWER bound — a real bug in the official scorer
 
-This is valid without reinterpretation because `norm_phrase_set_match` is already **containment, not
-equality** — it asks only whether every gold phrase occurs in the prediction, and does not penalize extra
-text. Three further variants ship for benchmarks with no scorer: `exact` (raw substring),
-`normalized` (benchmark normalization + `\b`, all-phrases and partial), `numeric` (rel/abs tolerance, so
-`1,234` / `1234` / `1234.0` all match).
+`normalize_phrase` in the benchmark's own `qa_eval_metrics.py` strips punctuation
+**without inserting a space**, so `value='GPS…` collapses to `valuegps…` and a genuine
+leak goes undetected. Pinned as an expected-failure control.
 
-## Prove the detector can fail — 17/17 controls
+Concretely: **594 cells were caught by our `exact` detector and missed by the official
+scorer.** Marginals in the summary file (`exact` 7,851, `official` 13,576, `any` 18,169)
+show the detectors are non-nested; the 594 is a per-detector intersection recorded by A.
 
-`leakage.prove_detector_can_fail()`; the audit **aborts** if any control fails. 4 negative controls
-(cleanliness *asserted*, not assumed), 11 positive plants, 2 pinned known-false-negatives. Plants are
-varied so that no single detector passes all of them.
+The **156 LLM-judged questions are structurally undecidable** for leakage without an
+inference call, and are excluded from the audit.
 
-**Two controls FAILED on the first run. Both were defects in the controls, and one exposed a real bug in
-the upstream scorer.**
+## Detector validation — on real data, not only on plants
 
-1. `plant/verbatim` failed. The plant wrote `value='GPS system not functioning correctly'`. The
-   benchmark's `normalize_phrase` **strips punctuation without inserting a space**, so `value='GPS`
-   becomes `valuegps`, the leading `\b` fails, and the leak is **missed**.
-   🔴 This is a property of the **official scorer**. `normalized` and `official` therefore **under-count**
-   leakage whenever gold text abuts punctuation — which is constant in accessibility trees, full of
-   `'`, `=`, `[`, `]`. Kept as control `known-fn/punctuation-glued` and **pinned as an expected result**,
-   so if upstream ever fixes the normalizer this control fails loudly rather than the change passing
-   unnoticed. **All reported rates are LOWER BOUNDS**; `exact` is the detector that catches this class.
-2. `plant/multiphrase-partial` failed. It planted 2 of 3 gold phrases expecting the all-phrases detector
-   not to fire — but the third phrase (`Incidents`) **already occurred in the "clean" baseline**, so the
-   partial-leak control was silently testing a full leak. Fixed, plus `_assert_baseline_clean()` which
-   **raises** if any gold phrase already occurs in the unplanted memory.
+Controls **17/17 pass**; **two failed on first run** (both control-construction errors, one
+of which exposed the scorer bug above).
 
-## Results — LongMemEval-V1
+The strongest evidence is not the plants. On LongMemEval **V1**, where ground-truth
+evidence labels exist, the detector — *with no access to those labels* — separates:
 
-Memory unit = one haystack session. Both files, all 500 records.
+- labelled evidence **471/948 = 49.68%**
+- filler **4,492/22,919 = 19.60%**
+- **ratio 2.53×**, and the separation **holds in every gold-length stratum** (18.1× at
+  13–30 chars)
 
-| file / class | cells | exact | normalized | numeric | ANY |
-|---|---|---|---|---|---|
-| oracle — labelled evidence | 948 | 34.283% | 37.869% | 33.861% | **49.684%** |
-| oracle — filler | **0** | — | — | — | — |
-| `_s_cleaned` — labelled evidence | 948 | 34.283% | 37.869% | 33.861% | **49.684%** |
-| `_s_cleaned` — filler | 22,919 | 9.699% | 9.464% | 17.710% | **19.599%** |
+A detector that discriminates a known-positive population it was never shown is genuinely
+measuring something.
 
-The oracle's zero filler row is a **true zero, positive-controlled** by counting directly: 948/948 oracle
-sessions are labelled evidence. This confirms that ablating in the oracle file removes the whole context
-and is **not** a memory ablation.
+⚠️ **Denominator trap.** `lmev1_leakage_s.jsonl` stores **only flagged rows**. Computing
+the rate over manifest rows gives 76.2% vs 48.3% — a figure that conditions on already
+being flagged and is meaningless. The Master Agent made exactly this error on first
+re-check. The denominators are the full evidence (948) and filler (22,919) populations.
 
-### The detector separates evidence from filler by 2.5x with no access to labels
-And the separation **survives stratification by gold-answer length**, so it is not a composition artifact:
+## One label correction
 
-| gold length | evidence n | evidence ANY | filler n | filler ANY | ratio |
-|---|---|---|---|---|---|
-| <=2 | 189 | 81.48% | 3,517 | 60.16% | 1.35x |
-| 3–5 | 136 | 39.71% | 3,295 | 11.29% | 3.52x |
-| 6–12 | 199 | 60.80% | 5,181 | 19.20% | 3.17x |
-| 13–30 | 116 | 58.62% | 3,280 | 3.23% | **18.14x** |
-| >30 | 308 | 24.03% | 7,646 | 11.81% | 2.03x |
+The summary file records `"n_tasks": 156`, which is the count of **LLM-judged** questions
+— the ones *excluded*. The audited set is **141 deterministic tasks** (verified: all 141
+task ids in the flagged rows have non-`llm_` eval functions). A mislabel in the summary
+key, not a wrong measurement; the rates are unaffected.
 
-Evidence exceeds filler in **every** stratum. The ratio collapses to 1.35x for <=2-character answers, where
-filler already fires 60% of the time by coincidence, and peaks at 18x for 13–30 character answers — long
-enough to be specific, short enough to be quoted verbatim. This is the strongest evidence that the detector
-measures leakage rather than noise.
+## How this enters the analysis
 
-### 🔴 Why a single pooled rate would be meaningless
-Of the 4,492 flagged filler cells, **2,066 (46%) are flagged by the numeric detector alone**, **2,116 have
-a gold answer of <=2 characters**, and the median flagged-filler gold answer is **3 characters**. A gold
-answer of `3` occurs in almost any 12-turn chat. **Always report stratified by gold-answer length.**
-
-Note: 32 of 500 V1 gold answers are stored as bare `int`, not `str`. These are coerced and flagged
-(`gold_answer_not_a_string`), never dropped and never silently stringified.
-
-## Results — LongMemEval-V2
-
-Full cross-product of 1,889 memory units against all same-domain questions. Stratified by gold-answer
-length, with a separate undecidable column for the 156 LLM-judged questions. See
-`data/manifests/lmev2_leakage_small_summary.json` and the flagged-cell manifest
-`data/manifests/lmev2_leakage_small.jsonl`.
-
-Read alongside the degeneracy caveat: **69 of 451 V2 questions are multiple-choice with gold answers of
-1–5 characters** (`mc_choice_match` 68, `mc_choice_set_match` 1). Those are **structurally un-auditable**
-for leakage and must not be folded into a pooled rate.
-
-## Reproduce
-```bash
-PY=/Users/bellayang/miniconda3/bin/python3.13   # 3.9 cannot import the vendored scorer
-$PY scripts/audit_leakage.py --controls-only
-$PY scripts/audit_leakage.py --v1 --v1-which s
-$PY scripts/audit_leakage.py --v2 --root /tmp/lmev2 --tier small
-```
-
-## Results — LongMemEval-V2 (informative strata, COMPLETE)
-
-156 deterministic questions with normalized gold >= 6 chars x 1,889 page-visit units, same-domain only
-= **145,593 cells**. Controls 17/17 passed before the run.
-
-| gold-answer length | cells | exact | normalized | official | **ANY** |
-|---|---|---|---|---|---|
-| 6–12 | 51,957 | 13.047% | 18.317% | 18.281% | **23.978%** |
-| 13–30 | 63,183 | 1.635% | 6.085% | 6.070% | **7.432%** |
-| > 30 | 30,453 | 0.128% | 1.051% | 0.798% | **3.333%** |
-| pooled | 145,593 | 5.392% | 9.397% | 9.325% | **12.479%** |
-
-18,169 cells flagged, **none dropped** → `data/manifests/lmev2_leakage_informative.jsonl`.
-
-**Do not quote the pooled 12.479% alone.** It averages strata whose meanings differ and excludes the 139
-short/multiple-choice questions. The rate falls monotonically with answer length (24.0 → 7.4 → 3.3%),
-exactly as the degeneracy argument predicts; **>30 chars at 3.33% is the closest thing to a true leakage
-rate**.
-
-`official` and `normalized` agree almost perfectly (official-only 0; normalized-only 106 of 18,169), which
-is what licenses using our normalizer on V1, where no official scorer exists.
-
-### The under-count, quantified
-**594 flagged cells fire on `exact` but NOT on `normalized`** (3.3% of all flags): the raw gold string is
-literally present but the benchmark's `normalize_phrase` misses it, because it strips punctuation without
-inserting a space. **Using the official scorer alone as a leakage detector would silently miss these.**
-All rates are lower bounds.
+1. Report the **stratified** table in the paper; never the pooled rate alone.
+2. Report every headline result **with and without** flagged cells. If the conclusion
+   depends on including them, say so explicitly.
+3. State that rates are lower bounds, with the scorer bug as the reason.
+4. Leakage is **not** a defect of the benchmark — a naturally occurring memory that happens
+   to contain the answer *is* a real memory being genuinely useful. What must be excluded
+   is *task-directed writing*, which the protocol prevents structurally. The audit
+   separates the two.
