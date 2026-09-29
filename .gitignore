@@ -29,3 +29,7 @@ venv/
 
 # os
 .DS_Store
+
+# benchmark raw records are large; summaries are tracked explicitly
+results/bench/*_raw.jsonl
+!results/bench/*.jsonl
