@@ -143,6 +143,19 @@ Fixed: a zero floor emits `EXEC_FLOOR_COMPARATOR_UNDEFINED`, reports the interac
 **variance**, and states that only the **ratio** is unavailable. Positive-controlled: a
 non-zero floor still prints the ratio.
 
+### (a2) The same division had a SECOND site
+
+The guard at the flag site closed the reported instance and left the defect. The next run
+crashed identically at `decomposition.py:95`, inside `Decomposition.to_dict()`, which
+guards `exec_floor_variance is None` and `total_variance <= 0` but **not
+`exec_floor_variance == 0`**. One mechanism, two sites — a repair tested against the case
+that reported it.
+
+Fixed, with three tests: the serializer directly, a positive control that a *positive*
+floor still yields the ratio, and a **grep-level test that every `/ exec_floor_variance`
+and `/ fvar` in the module sits inside a positivity guard**, so a third site fails in CI
+rather than 40 minutes into a production run.
+
 ### (b) With the crash fixed, the model converges — and the fit is NOT IDENTIFIED
 
 | arm | memory | task | interaction | residual | converged |
