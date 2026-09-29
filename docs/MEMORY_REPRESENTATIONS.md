@@ -194,13 +194,21 @@ genuinely is all-episodic is not settled by n=8 and needs a wider run before
 2. **A number could fail to match itself.** The extractor stripped thousands separators
    (`$2,004.99` → `2004.99`) but searched a source that still had them. Found by
    `raw_control` self-scoring a real segment at 0.985 instead of 1.0.
-3. **`scroll(0, 800)` parsed as the number `0,800`.** `\d[\d,]*` accepts any comma; a
+3. **A manifest rename made two joins match zero rows, silently.** Commit `f81bf39`
+   moved A's positional locator to `memory_unit_locator` and reused `memory_id` for a
+   content hash. The pilot then joined a hash against a locator, built **zero** segments,
+   and printed a well-formed table of nothing — 0 calls, an empty agreement matrix, and
+   no error. The token test matched nothing too, and only failed because it carries a
+   `checked >= 3` vacuity guard. `load_segments` now **aborts** on a partial join.
+   *Half a join still looks like success.*
+4. **`scroll(0, 800)` parsed as the number `0,800`.** `\d[\d,]*` accepts any comma; a
    thousands separator only precedes exactly three digits. Also found by `raw_control`,
    on a *different* real segment.
 
-Defects 2 and 3 were both invisible on the hand-written fixture and both appeared the
+Defects 2 and 4 were both invisible on the hand-written fixture and both appeared the
 moment the positive control met real data. **A check run only on its home case is not
-known to discriminate.** All three have regression tests pinned to the exact defect shape.
+known to discriminate.** All four have regression tests or abort guards pinned to the
+exact defect shape.
 
 ## 7. Known limitations
 
