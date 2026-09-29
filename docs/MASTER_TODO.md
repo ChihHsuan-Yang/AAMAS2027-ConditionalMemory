@@ -57,7 +57,7 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 | P1-030 | P0 | Runtime ALCF discovery | C | DONE | — | 4 clusters incl. undocumented `tara`; `/v1/models` 404s on Sophia | — | yes | live list recorded |
 | P1-031 | P0 | Minerva primary-model feasibility | C | **DONE** | 030 | `gpt-oss-120b` **503 persistent** on Minerva; inkling/nemotron serve | — | yes | evidence recorded |
 | P1-032 | P0 | **Freeze primary generation model+cluster** | Master | **DONE** | 031 | `docs/CLUSTER_DECISION.md` — gpt-oss-120b on **Metis** | — | yes | pinned |
-| P1-033 | P0 | Freeze embedding model | Master | DONE | — | `SFR-Embedding-Mistral` dim 4096, deterministic cos=1.0, batches | — | yes | pinned |
+| P1-033 | P0 | Freeze embedding model | Master | **DONE** | — | `SFR-Embedding-Mistral` dim 4096 — ⚠️ **2,000-Qwen-token budget**, 98.5% of units truncated | — | yes | pinned |
 | P1-034 | P0 | Concurrency benchmark | C | **DONE** — **16 workers**, 0 failures /316 reqs; 429s at 24 | 032 | — | `docs/ENDPOINT_THROUGHPUT.md` | yes | chosen value justified by table |
 | P1-035 | P1 | Aurora orchestration runner | C | **DONE (not used)** — allocated, but gateway-bound; laptop path | 034 | — | check allocation first | no* | resumable job or documented fallback |
 | P1-036 | P0 | Response cache | C | **DONE** — isolation verified behaviourally by Master | — | — | test: cross-cluster keys differ | yes | tests pass |
@@ -113,10 +113,10 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 | ID | Pri | Task | Owner | Status | Sub? |
 |---|---|---|---|---|---|
 | P1-080 | P0 | Abstract → frozen story (v3) | Master | **DONE** — 271 words, scan clean, in Overleaf | yes |
-| P1-081..087 | P1 | Intro · Related Work · Method · Representations · Benchmarks · Utility · Efficiency | F | TODO | yes |
+| P1-081..087 | P1 | Intro · Related Work · Method · Representations · Benchmarks · Utility · Efficiency | F | **DONE** — 6 pp, 0 undefined citations, CCS added, bibliography rebuilt + spot-checked vs primary sources | yes |
 | P1-088..090 | P0 | Results · Analysis · Limitations | F | BLOCKED | yes |
 | P1-091..092 | P0 | Figures · Tables | F | BLOCKED | yes |
-| P1-093 | P1 | Reproducibility statement | F | TODO | yes |
+| P1-093 | P1 | Reproducibility statement | F | **DONE** | yes |
 | P1-094 | P0 | Claim/evidence audit | Master | BLOCKED | yes |
 | P1-095 | P0 | Final compile + anonymity + citation check | Master | BLOCKED | yes |
 | P1-096 | P0 | **AI-assistance disclosure** (prompt + tool + version) — AAMAS requires it | Master | TODO | yes |
@@ -153,6 +153,17 @@ Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action 
 | P1-122 | `memory_id` collision: A emits a positional locator, E a content hash | Every row would be rejected at validation. Ruling: A renames to `memory_unit_locator`; a positional id is unstable under re-segmentation | P0 | yes |
 | P1-123 | `semantic_distance_band` looks per-row but is defined as a per-benchmark tercile | A row-by-row writer produces bands that depend on **write order**. Needs a post-pass after all similarities exist | P0 | yes |
 | P1-124 | `utility_label`/`robustness_confidence` depend on the unmeasured floor `F` | They must emit `undetermined` until the noise floor exists, and be **recomputed** afterwards. Filling them now would fabricate | P0 | yes |
+
+## Added (trigger recorded) — third batch
+
+| ID | Trigger | Why it matters | Pri | Sub? |
+|---|---|---|---|---|
+| P1-132 | **Position effect**: 8/12 cells changed their answer when ONLY the memory's position moved | Any with/without study that does not control position measures position + presence. Position now fixed across replicates, varied across cells, recorded per row. **Promote to its own measurement at scale** | P0 | yes |
+| P1-133 | My "endpoint is nondeterministic" claim **RETRACTED** — replicates were not byte-identical (position seeded by `replicate_id`) | Endpoint IS deterministic (6/6 identical, 24 calls, target regime). F_exec ≈ 0 is the expected correct result, not a failure | P0 | yes |
+| P1-134 | Reward disagreement (1/23) vs text disagreement (8/23) differ **8×** | F_exec needs reward, F_judge needs text. Label which is meant everywhere | P0 | yes |
+| P1-135 | Embedding cap of 3,400 tok **fails 10/10 on real text**; my probe prose was 2× sparser than the data | No single numeric cap exists — we count Qwen, the server counts Mistral. Adopted 2,000 + halving retry, recorded per row | P0 | yes |
+| P1-136 | At 2,000 tok only **29 of 1,889 units (1.5%)** fit whole | 98.5% of similarity values come from a truncated prefix. Attenuates similarity-utility toward zero — **cuts against our own claim**, must be stated | P0 | yes |
+| P1-137 | Manuscript at 6 pages with Results empty | ~2 pages of headroom. F's proposed cuts to writer-blindness barriers and infra justifications are **NOT needed** — they are reviewer defences | P1 | yes |
 
 ## Added (trigger recorded) — second batch
 

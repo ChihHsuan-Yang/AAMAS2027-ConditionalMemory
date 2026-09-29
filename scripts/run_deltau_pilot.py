@@ -408,7 +408,15 @@ def main() -> int:
             ow, oo = rw.get("content"), ro.get("content")
             if errs or ow is None or oo is None:
                 reward_w = reward_o = delta = None
-                code = "endpoint_error"
+                # Classify the failure, do not flatten it. A truncated reasoning
+                # response (finish_reason='length', empty content) is the schema's
+                # ERROR_EMPTY_OUTPUT_FINISH_LENGTH and is REPRODUCIBLE, not transient:
+                # re-issuing the same cell fails the same way. Writing it as a generic
+                # "endpoint_error" would hide a systematic budget problem inside what
+                # reads like flaky infrastructure.
+                joined = " | ".join(errs)
+                code = (S.ERROR_EMPTY_OUTPUT_FINISH_LENGTH
+                        if "TruncatedResponseError" in joined else "http_error")
             else:
                 reward_w = float(task.score(extract_boxed_answer(ow)))
                 reward_o = float(task.score(extract_boxed_answer(oo)))
