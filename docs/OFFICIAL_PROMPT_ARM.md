@@ -162,6 +162,20 @@ tight bootstrap CI `[0.444, 0.468]`.
 Fixed: `AT_UPPER_BOUNDARY` now fires, and `extra.info.components_at_upper_bound` records
 which components. Both arms raise it for `task` and `interaction`.
 
+### Convergence is seed-dependent; the boundary flag is not
+
+Same rows, same estimator, seven seeds:
+
+| seeds | converged | task share |
+|---|---|---|
+| 1, 2, 7, 42, 100 | **True** (5/7) | 0.4875884835020202, identical every time |
+| 3, **20260929** (the project's configured seed) | **False** → fallback (2/7) | — |
+| **all 7** | — | **`AT_UPPER_BOUNDARY: ['task','interaction']` every time** |
+
+Whether this fit "converges" is a coin flip, and the configured seed lands on the failing
+side — which is why the pilot saw an empty `shares` dict rather than a suspiciously tidy
+0.4876/0.4876. **Read `AT_UPPER_BOUNDARY`, not `converged`.**
+
 > **The decomposition remains UNMEASURED — now for a correctly diagnosed reason.** Task
 > and interaction are **not separately identifiable** under this pairing. The likelihood
 > itself now says so, rather than only a fallback's error message.
