@@ -467,6 +467,8 @@ def main() -> int:
                 reader_cluster="metis",
                 reader_endpoint="metis:/resource_server/metis/api/v1",
                 reader_prompt_version=PROMPT_VERSION,
+                reader_endpoint_sha256=S.sanitized_base_url_hash(
+                    "https://inference-api.alcf.anl.gov/resource_server/metis/api/v1"),
                 reader_reasoning_effort="low",
                 condition_id=CONDITION_ID,
                 output_without_memory=oo, output_with_memory=ow,
