@@ -96,6 +96,36 @@ retiring the sign-flip metric.
 - ❌ that the original hypothesis is refuted in general. It is **unsupported here**, which
   is a narrower and more defensible statement.
 
+## Sparsity is visible from three directions — checked, not assumed
+
+The claim "three independent measurements support sparsity" is exactly the kind of claim
+that failed an hour earlier, when two counts of 35 were reported as converging and turned
+out to name different memories. So it was checked before being made.
+
+| view | definition | memories |
+|---|---|---:|
+| 1 | every BEARING cell fails in both arms | **20** |
+| 2 | exactly one bearing task | **25** |
+| 3 | contributes exactly zero to the paired test | **25** |
+
+| | |
+|---|---:|
+| in **all three** | **8** |
+| **union** | **38 of 60** |
+| views 1 ∩ 3 | 16 (4 in 1 only, 9 in 3 only) |
+
+**Views 2 and 3 both equal 25 while naming different memories** — the same trap in
+miniature, and the reason the check was worth running rather than asserting. Views 1 and 3
+overlap on 16 of a possible 20, so even the closest pair is not the same set.
+
+> The three views are **distinct measurements of one mechanism**, not one number counted
+> three times. Union 38 of 60 memories; only 8 appear in all three.
+
+⚠️ Minor unresolved discrepancy: K reports views 1 ∩ 3 = 15, I compute 16. Almost certainly
+a boundary definition (memories lacking a matched-control cell are excluded from view 3 but
+not view 1). **It does not affect the conclusion and is recorded rather than silently
+reconciled.**
+
 ## Why this is a better paper than the one we planned
 
 A sign-flip rate would have been a number about a phenomenon. What we have instead is a
