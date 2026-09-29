@@ -94,8 +94,18 @@ Controls **17/17 pass**, and **two failed on first run** (both control-construct
 one exposed the scorer bug above).
 
 The strongest validation is not the plants: on V1 the detector separates labelled evidence
-from filler **49.68% vs 19.60%** with no access to labels, and the separation **holds in
-every gold-answer-length stratum** (18.1× at 13–30 chars). A detector that discriminates a
-known-positive population it was never shown is genuinely working.
+from filler **49.68% vs 19.60% (2.53×)** with no access to labels, and the separation
+**holds in every gold-answer-length stratum** (18.1× at 13–30 chars). A detector that
+discriminates a known-positive population it was never shown is genuinely working.
+
+> **Re-derived by the Master Agent, 2026-09-29:** evidence **471/948 = 49.684%**, filler
+> **4,492/22,919 = 19.599%**, ratio **2.53×**. Confirmed.
+>
+> ⚠️ **Read the denominator before recomputing this.** `data/manifests/lmev1_leakage_s.jsonl`
+> stores **only flagged rows** (4,963 of 23,867). Computing the rate over manifest rows
+> gives 76.2% vs 48.3% — a number that **conditions on already being flagged** and is
+> meaningless. My own first re-check made exactly that error and briefly contradicted a
+> correct figure. The denominators are the **full** evidence (948) and filler (22,919)
+> populations, which live in the source data, not in the manifest.
 
 **Policy: FLAG, NEVER DROP.** Dropping leaky cells changes the question being answered.
