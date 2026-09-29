@@ -402,6 +402,72 @@ def main() -> int:
         print(f"    {c:<12} share "
               f"{dd.get('shares', {}).get(c, 'UNMEASURED')}")
 
+    # ---- PER-DOMAIN shared grid: the only FULLY CROSSED sub-design ----
+    # Tasks are domain-specific, so NO memory sees all 218 tasks and the
+    # pre-registered MoM fallback can never engage on the pooled rows (its
+    # balanced sub-design is 0 x 218). Within a domain the shared grid IS fully
+    # crossed by construction -- every memory sees every shared task -- which is
+    # exactly the balanced design section 6's fallback asks for. Verified from
+    # the design manifest before the run: enterprise 20x12, web 40x12.
+    #
+    # This is reported SEPARATELY and never pooled with the above: a fit on the
+    # shared grid answers "how do these variance components split among cells
+    # that are crossed", which is a different (and answerable) question from the
+    # pooled fit.
+    print(f"\n{'='*70}\nPER-DOMAIN SHARED GRID (fully crossed sub-design)")
+    dom_of = {r["memory_id"]: (r.get("source_episode_metadata") or {}).get("domain")
+              for r in rows}
+    report["shared_grid_decomposition"] = {}
+    for dom in sorted({d for d in dom_of.values() if d}):
+        sub = [r for r in rows if dom_of.get(r["memory_id"]) == dom]
+        # restrict to the fully-crossed core: tasks every memory in this domain saw
+        seen = collections.defaultdict(set)
+        for r in sub:
+            seen[r["memory_id"]].add(r["future_task_id"])
+        if not seen:
+            continue
+        core = set.intersection(*seen.values()) if seen else set()
+        crossed = [r for r in sub if r["future_task_id"] in core]
+        entry: dict[str, Any] = {
+            "n_memories": len(seen), "n_core_tasks": len(core),
+            "n_rows_in_core": len(crossed),
+            "_core_definition": "tasks seen by EVERY memory in this domain",
+        }
+        if len(core) >= 2 and len(seen) >= 2 and crossed:
+            Fd = nz.exec_floor(crossed, scale="delta", n_boot=args.n_boot,
+                               seed=args.seed, allow_pooling=True).point
+            dsub = dc.variance_decomposition(crossed, exec_floor_sd=Fd, n_boot=200,
+                                             seed=args.seed, allow_pooling=True)
+            ds = dsub.to_dict()
+            ubs = [f for f in ds.get("flags", []) if "AT_UPPER_BOUNDARY" in f]
+            entry["F_exec_delta"] = Fd
+            entry["decomposition"] = ds
+            entry["at_upper_boundary_flags"] = ubs
+            entry["identified"] = bool(ds.get("converged")
+                                       and not ds.get("used_fallback") and not ubs)
+            # The MoM fallback is ALSO run explicitly: on a balanced design it is
+            # the pre-registered estimator and needs no optimizer, so it cannot
+            # hit a clip ceiling. Reporting both says whether the REML boundary
+            # is a property of the DATA or of the optimizer.
+            try:
+                mom = dc.variance_decomposition(
+                    crossed, exec_floor_sd=Fd, n_boot=0, seed=args.seed,
+                    allow_pooling=True, force_fallback=True).to_dict()
+            except TypeError:
+                mom = {"_note": "variance_decomposition has no force_fallback kwarg"}
+            entry["method_of_moments"] = mom
+            print(f"  {dom:11s}: {len(seen)} memories x {len(core)} crossed tasks -> "
+                  f"identified={entry['identified']} "
+                  f"shares={ {k: round(v, 4) for k, v in ds.get('shares', {}).items()} }")
+            if isinstance(mom.get("shares"), dict) and mom["shares"]:
+                print(f"               MoM shares="
+                      f"{ {k: round(v, 4) for k, v in mom['shares'].items()} }")
+        else:
+            entry["identified"] = False
+            entry["_why"] = (f"crossed core is {len(seen)}x{len(core)}; needs >= 2x2")
+            print(f"  {dom:11s}: crossed core {len(seen)}x{len(core)} -- too small")
+        report["shared_grid_decomposition"][dom] = entry
+
     # ---- the contrasts ----
     print(f"\n{'='*70}\nCONTRASTS")
     report["contrasts"] = {
