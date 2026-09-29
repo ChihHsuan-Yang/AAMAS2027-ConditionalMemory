@@ -1,0 +1,30 @@
+{
+  "den": {
+    "5 >30": 30453,
+    "ALL": 145593,
+    "4 13-30": 63183,
+    "3 6-12": 51957
+  },
+  "num": {
+    "exact|3 6-12": 6779,
+    "exact|ALL": 7851,
+    "normalized|3 6-12": 9517,
+    "normalized|ALL": 13682,
+    "official|3 6-12": 9498,
+    "official|ALL": 13576,
+    "any|3 6-12": 12458,
+    "any|ALL": 18169,
+    "normalized|4 13-30": 3845,
+    "official|4 13-30": 3835,
+    "any|4 13-30": 4696,
+    "exact|4 13-30": 1033,
+    "normalized|5 >30": 320,
+    "official|5 >30": 243,
+    "any|5 >30": 1015,
+    "exact|5 >30": 39
+  },
+  "n_tasks": 156,
+  "n_units": 1889,
+  "policy": "FLAG_NEVER_DROP",
+  "caveat": "lower bound: benchmark normalizer misses punctuation-glued gold"
+}

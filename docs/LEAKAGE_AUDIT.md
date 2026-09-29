@@ -106,3 +106,31 @@ $PY scripts/audit_leakage.py --controls-only
 $PY scripts/audit_leakage.py --v1 --v1-which s
 $PY scripts/audit_leakage.py --v2 --root /tmp/lmev2 --tier small
 ```
+
+## Results — LongMemEval-V2 (informative strata, COMPLETE)
+
+156 deterministic questions with normalized gold >= 6 chars x 1,889 page-visit units, same-domain only
+= **145,593 cells**. Controls 17/17 passed before the run.
+
+| gold-answer length | cells | exact | normalized | official | **ANY** |
+|---|---|---|---|---|---|
+| 6–12 | 51,957 | 13.047% | 18.317% | 18.281% | **23.978%** |
+| 13–30 | 63,183 | 1.635% | 6.085% | 6.070% | **7.432%** |
+| > 30 | 30,453 | 0.128% | 1.051% | 0.798% | **3.333%** |
+| pooled | 145,593 | 5.392% | 9.397% | 9.325% | **12.479%** |
+
+18,169 cells flagged, **none dropped** → `data/manifests/lmev2_leakage_informative.jsonl`.
+
+**Do not quote the pooled 12.479% alone.** It averages strata whose meanings differ and excludes the 139
+short/multiple-choice questions. The rate falls monotonically with answer length (24.0 → 7.4 → 3.3%),
+exactly as the degeneracy argument predicts; **>30 chars at 3.33% is the closest thing to a true leakage
+rate**.
+
+`official` and `normalized` agree almost perfectly (official-only 0; normalized-only 106 of 18,169), which
+is what licenses using our normalizer on V1, where no official scorer exists.
+
+### The under-count, quantified
+**594 flagged cells fire on `exact` but NOT on `normalized`** (3.3% of all flags): the raw gold string is
+literally present but the benchmark's `normalize_phrase` misses it, because it strips punctuation without
+inserting a space. **Using the official scorer alone as a leakage detector would silently miss these.**
+All rates are lower bounds.
