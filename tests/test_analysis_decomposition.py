@@ -201,3 +201,56 @@ def test_shares_sum_to_one():
     ds = make_dataset(seed=118)
     d = dc.variance_decomposition(ds.rows, n_boot=0)
     assert sum(d.shares.values()) == pytest.approx(1.0)
+
+
+# ------------------------------------------- the likelihood reduction is exact, not approximate
+def test_reduced_likelihood_equals_the_dense_one():
+    """The cell-mean reduction + Woodbury path must equal the textbook dense REML.
+
+    ``decomposition.py`` never builds the n x n variance matrix: mu, a_m, b_t and
+    (ab)_mt are constant within a cell, so the restricted likelihood factorizes into a
+    within-cell piece and a model on the C cell means. That reduction is what makes the
+    bootstrap affordable, and it is exact -- but "exact" is a claim, so it is checked
+    here against a dense reference written independently from the textbook formula.
+
+    The two differ by an additive constant (the within-cell piece the reduction folds
+    into sigma^2), so the test is that the DIFFERENCE is constant across the parameter
+    space, and that the two agree on the argmin.
+    """
+    import math
+    from scipy.optimize import minimize
+
+    def dense_neg2(log_ratios, d):
+        r = np.exp(np.clip(np.asarray(log_ratios, dtype=float), -18, 12))
+        n = d.y.size
+        Zm = np.zeros((n, d.n_mem)); Zm[np.arange(n), d.mem_idx] = 1
+        Zt = np.zeros((n, d.n_task)); Zt[np.arange(n), d.task_idx] = 1
+        Zc = np.zeros((n, d.n_cell)); Zc[np.arange(n), d.cell_idx] = 1
+        V = np.eye(n) + r[0] * Zm @ Zm.T + r[1] * Zt @ Zt.T + r[2] * Zc @ Zc.T
+        x = np.ones(n)
+        _s, logdetV = np.linalg.slogdet(V)
+        XtViX = float(x @ np.linalg.solve(V, x))
+        beta = float(x @ np.linalg.solve(V, d.y)) / XtViX
+        res = d.y - beta
+        quad = float(res @ np.linalg.solve(V, res))
+        return logdetV + math.log(XtViX) + (n - 1) * math.log(quad / (n - 1))
+
+    ds = make_dataset(seed=300, n_memories=6, n_tasks=4, n_replicates=3)
+    d = dc._build_design(ds.rows, "delta_utility")
+    means, counts, ssw, n_obs, _C = dc._cell_reduce(d)
+    U, _ = dc._cell_level_matrices(d)
+    args = (means, counts, ssw, n_obs, U, d.n_mem, d.n_task)
+
+    pts = [[0, 0, 0], [-2, -1, 0.5], [1, 1, 1], [-5, 0, 2], [2, -3, -1],
+           [-12, -12, -12], [0.3, -0.7, 1.4]]
+    diffs = [dc._profiled_neg2_reml(np.array(x, dtype=float), *args) - dense_neg2(x, d)
+             for x in pts]
+    assert max(diffs) - min(diffs) < 1e-7, (
+        f"the reduction is NOT exact: difference varies by {max(diffs) - min(diffs):.3e}"
+    )
+
+    opt = {"xatol": 1e-10, "fatol": 1e-12, "maxiter": 8000}
+    a = minimize(dc._profiled_neg2_reml, [0, 0, 0], args=args,
+                 method="Nelder-Mead", options=opt)
+    b = minimize(dense_neg2, [0, 0, 0], args=(d,), method="Nelder-Mead", options=opt)
+    assert np.max(np.abs(np.exp(a.x) - np.exp(b.x))) < 1e-4
