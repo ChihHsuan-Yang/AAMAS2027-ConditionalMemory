@@ -120,6 +120,53 @@ def embed_with_backoff(emb, labelled, budget):
     return vecs, used
 
 
+def assert_cache_condition(cache_path: Path, fingerprint: dict) -> dict:
+    """Refuse to reuse a cache written under a DIFFERENT context configuration.
+
+    THE HAZARD, measured not imagined: ``cache.KEY_FIELDS`` is
+    (benchmark, source_item_id, memory_repr, memory_id, future_task_id, arm,
+    retrieval_method, model_id, cluster, prompt_version, decoding_params,
+    replicate_id). It does **not** contain the number of filler units, the
+    filler pool, or any hash of the rendered context. The pilot rendered K=6
+    filler drawn from a 12-trajectory-per-domain reservation; this run renders
+    K=4 drawn from a bearing-disjoint 50-trajectory pool. Those produce
+    **different context bytes under an identical cache key**.
+
+    So the only thing separating the two conditions is that they write to
+    different cache FILES -- a property of an argument default, not a checked
+    invariant. ``condition_id`` cannot be added to the key (make_key rejects
+    unknown fields, correctly), and adding a required field to the shared
+    KEY_FIELDS would break every other caller.
+
+    This writes a fingerprint of the context-determining configuration beside
+    the cache and requires it to match on reuse. An existing cache with a
+    different fingerprint RAISES rather than serving hits from another
+    condition.
+    """
+    side = cache_path.with_suffix(".condition.json")
+    if side.exists():
+        prev = json.loads(side.read_text())
+        if prev != fingerprint:
+            diff = {k: (prev.get(k), fingerprint.get(k))
+                    for k in set(prev) | set(fingerprint)
+                    if prev.get(k) != fingerprint.get(k)}
+            raise SystemExit(
+                f"cache at {cache_path} was written under a DIFFERENT context "
+                f"configuration; reusing it would serve responses generated from "
+                f"different context bytes under an identical cache key.\n"
+                f"  differing fields (stored, current): {json.dumps(diff, indent=2)}\n"
+                f"  fix: point --out at a fresh directory.")
+        log(f"cache condition fingerprint MATCHES prior run at {side.name}")
+    else:
+        side.parent.mkdir(parents=True, exist_ok=True)
+        side.write_text(json.dumps(fingerprint, indent=2, sort_keys=True))
+        log(f"cache condition fingerprint written -> {side.name}")
+    n_prior = sum(1 for _ in cache_path.open()) if cache_path.exists() else 0
+    log(f"cache at {cache_path.name}: {n_prior} prior entries")
+    return {"fingerprint": fingerprint, "sidecar": str(side),
+            "n_prior_cache_entries": n_prior}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=Path("/tmp/lmev2"))
@@ -321,7 +368,24 @@ def main() -> int:
         return "FAR" if s < t1 else ("MID" if s < t2 else "NEAR")
 
     # ---- execute ----
-    cache = ResponseCache(args.out / "cache.jsonl")
+    cache_path = args.out / "cache.jsonl"
+    cache_guard = assert_cache_condition(cache_path, {
+        "condition_id": CONDITION_ID,
+        "reader_prompt_version": PROMPT_VERSION,
+        "system_prompt_sha256": S.sha256_text(SYSTEM),
+        "k_filler": args.k_filler,
+        "filler_band": list(fb),
+        "filler_pool_sha256": S.sha256_text(json.dumps(
+            {d: [u["memory_unit_locator"] for u in v]
+             for d, v in sorted(filler_pool.items())}, sort_keys=True)),
+        "design_cells_sha256": S.file_sha256(args.design),
+        "max_tokens": args.max_tokens,
+        "reasoning_effort": "low",
+        "temperature": 0.0,
+        "_why": "cache.KEY_FIELDS does not capture context configuration; see "
+                "assert_cache_condition.",
+    })
+    cache = ResponseCache(cache_path)
     client = P1Client(cluster="metis", model="gpt-oss-120b", cache=cache,
                       max_concurrency=args.workers)
     results: dict[tuple, dict] = {}
@@ -329,12 +393,16 @@ def main() -> int:
     t0 = time.monotonic()
 
     def run_one(j: dict):
+        # NB condition_id is deliberately NOT in the cache key: make_key rejects
+        # unknown fields (correctly -- a silently-ignored field would let two
+        # conditions share a row). Condition isolation is instead enforced by
+        # the CACHE FILE, guarded by assert_cache_condition() above.
         kf = {"benchmark": "longmemeval_v2",
               "source_item_id": j["unit"]["trajectory_id"],
               "memory_repr": "raw", "memory_id": j["unit"]["memory_id"],
               "future_task_id": j["task"].id, "arm": j["arm"],
               "retrieval_method": "oracle", "prompt_version": PROMPT_VERSION,
-              "condition_id": CONDITION_ID, "replicate_id": j["replicate_id"]}
+              "replicate_id": j["replicate_id"]}
         try:
             c, rec = client.chat(j["messages"], max_tokens=args.max_tokens,
                                  temperature=0.0, reasoning_effort="low",
@@ -505,6 +573,7 @@ def main() -> int:
         "n_tasks": len(task_ids), "rows_written": n_written,
         "planned_calls": len(jobs), "real_endpoint_calls": n_real,
         "cache_hits": n_cached, "errors": n_err,
+        "cache_condition_guard": cache_guard,
         "context_tokens_with_arm": {"min": q[0], "p25": q[len(q)//4],
                                     "median": q[len(q)//2],
                                     "p75": q[3*len(q)//4], "max": q[-1]},
