@@ -299,7 +299,17 @@ def paired_by_memory(rows_a: list[dict], rows_b: list[dict], *,
     se = (sd_obs / np.sqrt(len(diffs))) if len(diffs) else float("inf")
     power_z = (float(eff / se) if se > 0 else float("inf"))
     # z of 1.96 for alpha=.05 two-sided; ~2.8 gives about 80% power
-    adequate = (n_nz >= 8) and (power_z >= 2.8)
+    # SCOPE: the underpower flag qualifies a NULL, never a positive finding.
+    # docs/ZERO_CONTRIBUTORS.md says "declare underpower RATHER THAN REPORT A
+    # NULL" -- it was always scoped to nulls, and my first implementation applied
+    # it unconditionally. That produced BEARING vs MATCHED_CONTROL = +0.3349 with
+    # a CI excluding zero and p=0.00005, labelled UNDERPOWERED, which is the
+    # post-hoc-power fallacy: asking "could we have detected it?" of an effect we
+    # DID detect. The observed effect (z=5.16) is about twice the hypothetical
+    # one the power calculation was run against (z=2.69), so the study was
+    # underpowered only for a SMALLER effect than the one found.
+    detected = bool(lo > 0 or hi < 0)          # CI over memories excludes zero
+    adequate = detected or ((n_nz >= 8) and (power_z >= 2.8))
     power = {
         "_rule": "docs/ZERO_CONTRIBUTORS.md: below ~8 non-zero contributors, "
                  "declare UNDERPOWERED rather than report a null -- a null at "
@@ -311,7 +321,14 @@ def paired_by_memory(rows_a: list[dict], rows_b: list[dict], *,
         "observed_sd_of_paired_differences": sd_obs,
         "implied_z_for_a_true_0.30_among_contributors": power_z,
         "STATUS": ("ADEQUATE" if adequate else "UNDERPOWERED"),
-        "_reading": ("the all-memories test can detect a diluted +0.30 at this "
+        "effect_was_detected": detected,
+        "_scope": "this flag qualifies a NULL only. A CI that excludes zero means "
+                  "the effect WAS detected, and post-hoc power for a detected "
+                  "effect is a fallacy -- 'could we have found it?' is answered "
+                  "by 'we did'.",
+        "_reading": ("the effect was DETECTED (CI excludes zero), so no power "
+                     "caveat applies" if detected else
+                     "the all-memories test can detect a diluted +0.30 at this "
                      "contributor count and spread"
                      if adequate else
                      "a NULL HERE IS NOT EVIDENCE OF NO EFFECT -- the design "
