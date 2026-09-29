@@ -54,6 +54,26 @@ Whenever the paired test is reported:
 4. If non-zero contributors fall below ~8, **say the test is underpowered** rather than
    reporting a null — at 5 contributors the simulation above fails to detect a true +0.30.
 
+## The rule demonstrated on a real contrast
+
+From a pre-flight (old data, so not predictive of the result — but a real demonstration of
+the reporting failure the rule prevents). One contrast returned:
+
+| reported as | reads as |
+|---|---|
+| **without the rule** | "−0.0917, *p* = 0.089, nearly significant" |
+| **with the rule** | "12 contributors, **UNDERPOWERED**, conditional magnitude **−0.4583**" |
+
+The conditional effect is **five times larger** than the diluted one, and it is measured on
+too few memories to support any verdict at all.
+
+> The diluted number alone **understates the magnitude**. The conditional number alone
+> **overstates the confidence**. Only both, labelled, is honest — and "nearly significant"
+> is the worst of the three readings, because it implies a verdict the data cannot carry.
+
+The same pre-flight returned ADEQUATE at 26 contributors on the other contrast, so the
+field separates rather than printing one value everywhere.
+
 ## Why this is not a workaround
 
 The zeros are the same phenomenon the paper documents from two other directions:
