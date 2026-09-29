@@ -37,6 +37,12 @@ from p1mem.memory.segment import SourceSegment              # noqa: E402
 from p1mem.vendor.rcc_schema import utc_now                 # noqa: E402
 
 
+#: Manifest field holding the positional locator ("013696c4:0-1"), which is
+#: what ``lmev2.segment_page_visits`` returns. NOT ``memory_id``: since commit
+#: f81bf39 that field is a content hash, and joining on it matches nothing.
+LOCATOR = "memory_unit_locator"
+
+
 class CallBudget:
     """A cap that BINDS. Checked before each call, raises when exhausted."""
 
@@ -99,9 +105,14 @@ def load_segments(root: Path, n: int, seed: int) -> list[SourceSegment]:
     rng.shuffle(trajs)
     chosen = []
     for tid in trajs[:n]:
-        chosen.append(rng.choice(sorted(by_traj[tid], key=lambda u: u["memory_id"])))
-    want = {u["memory_id"] for u in chosen}
-    meta = {u["memory_id"]: u for u in chosen}
+        chosen.append(rng.choice(sorted(by_traj[tid], key=lambda u: u[LOCATOR])))
+    # Join on the POSITIONAL LOCATOR, because that is what segment_page_visits
+    # returns. Commit f81bf39 renamed this manifest field and reused
+    # `memory_id` for a content hash; joining on memory_id here matched ZERO
+    # rows and the pilot happily reported a table over 0 segments. Half a join
+    # still looks like success, so the count is asserted below.
+    want = {u[LOCATOR] for u in chosen}
+    meta = {u[LOCATOR]: u for u in chosen}
 
     # Re-render the text from the trajectory with the adapter's own renderers.
     from p1mem.adapters import lmev2
@@ -111,11 +122,11 @@ def load_segments(root: Path, n: int, seed: int) -> list[SourceSegment]:
         if traj["id"] not in need_trajs:
             continue
         for pv in lmev2.segment_page_visits(traj):
-            if pv.memory_id not in want:
+            if pv.memory_unit_locator not in want:
                 continue
-            m = meta[pv.memory_id]
+            m = meta[pv.memory_unit_locator]
             out.append(SourceSegment(
-                segment_id=pv.memory_id,
+                segment_id=pv.memory_unit_locator,
                 benchmark="longmemeval_v2",
                 benchmark_version=lmev2.UPSTREAM_COMMIT,
                 source_episode_id=pv.trajectory_id,
@@ -132,6 +143,11 @@ def load_segments(root: Path, n: int, seed: int) -> list[SourceSegment]:
             ))
         if len(out) >= len(want):
             break
+    if len(out) != len(want):
+        raise RuntimeError(
+            f"segment join matched {len(out)} of {len(want)} requested units. "
+            f"A partial or empty join must ABORT: a pilot over zero segments "
+            f"prints a well-formed table of nothing and reads as a clean run.")
     return sorted(out, key=lambda s: s.segment_id)
 
 

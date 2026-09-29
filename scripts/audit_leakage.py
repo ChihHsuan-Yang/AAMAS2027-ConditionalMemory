@@ -84,7 +84,7 @@ def audit_v2(root: Path, manifest_dir: Path, tier: str, limit_units: int | None)
         for t in by_dom[u.domain]:
             v = leakage.detect(
                 u.text, t.answer,
-                memory_id=u.memory_id, task_id=t.id,
+                memory_id=u.memory_unit_locator, task_id=t.id,
                 eval_function_spec=t.eval_function,
             )
             b = bucket(len(leakage.normalize_text(t.answer)))
@@ -101,7 +101,7 @@ def audit_v2(root: Path, manifest_dir: Path, tier: str, limit_units: int | None)
                 counts[("any", "ALL")] += 1
                 rows.append(
                     {
-                        "memory_id": v.memory_id, "task_id": v.task_id,
+                        "memory_id": v.memory_unit_locator, "task_id": v.task_id,
                         "exact": v.exact, "normalized": v.normalized,
                         "numeric": v.numeric, "official": v.official,
                         "gold_answer_chars": v.gold_answer_chars,
@@ -208,7 +208,7 @@ def audit_v1(
                 counts[(key, "any")] += 1
                 rows.append(
                     {
-                        "memory_id": v.memory_id, "task_id": v.task_id,
+                        "memory_id": v.memory_unit_locator, "task_id": v.task_id,
                         "is_labelled_evidence": is_ev,
                         "exact": v.exact, "normalized": v.normalized,
                         "numeric": v.numeric,

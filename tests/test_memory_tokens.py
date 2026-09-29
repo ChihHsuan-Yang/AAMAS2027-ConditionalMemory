@@ -62,21 +62,31 @@ def test_reproduces_a_recorded_count_from_the_units_manifest():
             continue
         r = json.loads(line)
         if r.get("n_tokens"):
-            recorded[r["memory_id"]] = r["n_tokens"]
+            # Key on the POSITIONAL LOCATOR, which is what segment_page_visits
+            # returns. Commit f81bf39 renamed the manifest's positional field
+            # to memory_unit_locator and reused `memory_id` for a content hash;
+            # keying on memory_id here would silently match ZERO rows and the
+            # loop below would quietly check nothing. The `checked >= 3` guard
+            # at the end is what caught that -- a join that matches nothing
+            # looks exactly like a clean pass.
+            recorded[r["memory_unit_locator"]] = r["n_tokens"]
     if not recorded:
         pytest.skip("manifest was built with --no-tokenize; no recorded counts")
 
     target = next(iter(recorded)).split(":")[0]
+    assert ":" in next(iter(recorded)), (
+        "recorded keys must be positional locators like '013696c4:0-1'; a content "
+        "hash here means the join key changed again and this test is matching nothing")
     checked = 0
     for traj in lmev2.read_jsonl(traj_path):
         if traj["id"] != target:
             continue
         for pv in lmev2.segment_page_visits(traj):
-            want = recorded.get(pv.memory_id)
+            want = recorded.get(pv.memory_unit_locator)
             if want is None:
                 continue
             assert T.count_tokens(pv.text) == want, (
-                f"{pv.memory_id}: tokenizers path gave "
+                f"{pv.memory_unit_locator}: tokenizers path gave "
                 f"{T.count_tokens(pv.text)}, build script recorded {want}")
             checked += 1
         break

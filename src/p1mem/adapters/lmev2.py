@@ -277,7 +277,7 @@ class PageVisit:
     imposed and certainly not one fitted to any question.
     """
 
-    memory_id: str
+    memory_unit_locator: str
     trajectory_id: str
     domain: str
     environment: str
@@ -375,7 +375,7 @@ def segment_page_visits(
         )
         out.append(
             PageVisit(
-                memory_id=f"{trajectory['id']}:{i}-{j}",
+                memory_unit_locator=f"{trajectory['id']}:{i}-{j}",
                 trajectory_id=trajectory["id"],
                 domain=trajectory["domain"],
                 environment=trajectory["environment"],
@@ -452,7 +452,7 @@ def coarse_environment(value: str) -> str:
 class Pair:
     """One (memory, future-task) cell of the DeltaU matrix."""
 
-    memory_id: str
+    memory_unit_locator: str
     task_id: str
     domain: str
     stratum: str
@@ -488,7 +488,7 @@ def select_pairs(
     """Deterministically select (memory, task) cells.
 
     Reproducible from ``seed`` alone: an independent ``random.Random(seed)`` is
-    drawn per memory and keyed by ``memory_id``, so adding or removing one
+    drawn per memory and keyed by ``memory_unit_locator``, so adding or removing one
     memory does not perturb any other memory's task draw.
 
     Rationale for the rule. On the ``small`` tier every trajectory sits in
@@ -517,14 +517,14 @@ def select_pairs(
         v.sort(key=lambda t: t.id)
 
     pairs: list[Pair] = []
-    for mem in sorted(memories, key=lambda m: m.memory_id):
+    for mem in sorted(memories, key=lambda m: m.memory_unit_locator):
         pool = by_domain.get(mem.domain, [])
         if not pool:
             continue
         strata: dict[str, list[FutureTask]] = {}
         for t in pool:
             strata.setdefault(t.question_type, []).append(t)
-        rng = random.Random(f"{seed}:{mem.memory_id}")
+        rng = random.Random(f"{seed}:{mem.memory_unit_locator}")
         order = sorted(strata)
         rng.shuffle(order)
         chosen: list[FutureTask] = []
@@ -560,7 +560,7 @@ def select_pairs(
             )
             pairs.append(
                 Pair(
-                    memory_id=mem.memory_id,
+                    memory_unit_locator=mem.memory_unit_locator,
                     task_id=t.id,
                     domain=mem.domain,
                     stratum=t.question_type,

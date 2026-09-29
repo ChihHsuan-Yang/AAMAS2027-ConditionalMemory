@@ -263,10 +263,10 @@ def test_regression_raw_control_passes_on_real_corpus_segments():
         for pv in lmev2.segment_page_visits(t)[:5]:
             sc = F.raw_control(pv.text)
             assert sc.number_support == 1.0, (
-                f"{pv.memory_id}: source is not faithful to ITSELF; "
+                f"{pv.memory_unit_locator}: source is not faithful to ITSELF; "
                 f"unsupported numbers {sc.unsupported_numbers[:5]}")
             assert sc.entity_support == 1.0, (
-                f"{pv.memory_id}: unsupported entities {sc.unsupported_entities[:5]}")
+                f"{pv.memory_unit_locator}: unsupported entities {sc.unsupported_entities[:5]}")
             assert sc.n_bindings_contradicted == 0
             checked += 1
         want_trajs.remove(t["id"])
