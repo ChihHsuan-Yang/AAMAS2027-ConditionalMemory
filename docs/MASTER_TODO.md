@@ -1,76 +1,95 @@
-# P1 Master TODO — authoritative
+# P1 Master TODO — AAMAS 2027 Main Track deadline mode
 
-Maintained by the Master Agent. **This is the single source of truth for task state.**
-Sub-agent conclusions are not accepted until the Master Agent audits them.
+**Abstract: 1 Oct 2026 AoE. Paper: 8 Oct 2026 AoE.** Structured around the critical path.
+Maintained by the Master Agent; sub-agent conclusions are not accepted until audited.
 
-Last updated: 2026-09-29 (session start)
+Last updated: 2026-09-29.
 
-## Legend
-
-`TODO` not started · `WIP` in progress · `REVIEW` sub-agent returned, awaiting audit ·
-`DONE` audited and accepted · `BLOCKED` · `REJECTED` sub-agent result failed audit
+`TODO` · `WIP` · `REVIEW` (returned, awaiting audit) · `DONE` (audited, accepted) ·
+`BLOCKED` · `USER` (needs the user) · `REJECTED`
 
 ---
 
-## Phase 0 — setup and audit
+## 🔴 CRITICAL PATH — anything marked USER can stop the submission
 
-| # | Task | Owner | Status | Dependency | Evidence | Next action |
-|---|---|---|---|---|---|---|
-| 0.1 | Clone GitHub repo | Master | DONE | — | `p1_memory_utility/repo`, empty upstream, branch `main` | — |
-| 0.2 | Clone Overleaf `6abbde4a9eb777031afef068` | Master | DONE | — | `p1_memory_utility/overleaf`, 1 commit `60b3cf9`, bare `article` template, 224 bytes | nothing to preserve beyond title |
-| 0.3 | Read auth/paths notes | Master | DONE | — | `note/paths-and-authentication/` | Overleaf token env verified; no secrets in repo |
-| 0.4 | Read full P1 handoff package | Master | DONE | — | handoff, README §4b, LITERATURE §3a–c, DATASETS, JEV_AUDIT, Shared Infra §14/§14a | — |
-| 0.5 | Verify search-channel health | Master | DONE | — | `WebSearch` = HTTP 400 org-policy block (re-confirmed); `WebFetch` = 200 on arXiv | all nulls need positive controls |
-| 0.6 | Verify UMEM exists + get abstract | Master | DONE | 0.5 | arXiv:2602.10652, Ye et al., 11 Feb 2026, CC BY 4.0 | full-PDF seam check → A2 |
-| 0.7 | Repo scaffold | Master | WIP | 0.1 | `docs/`, `.gitignore` | finish + first commit |
-| 0.8 | Sub-agent A: literature + dataset audit | Sub-agent A | WIP | 0.4, 0.5 | — | await; then audit |
-| 0.9 | Sub-agent B: infrastructure + ALCF audit | Sub-agent B | WIP | 0.4 | — | await; then audit |
+| # | Task | Owner | Status | Due | Evidence |
+|---|---|---|---|---|---|
+| **E1** | **Fix the author list** | **USER** | 🔴 USER | 1 Oct | no P1 author list exists in any local record; candidates in `submission/ELIGIBILITY.md` §6 |
+| **E2** | **Confirm every author has an active OpenReview profile** | **USER** | 🔴 USER | 1 Oct | **cannot be automated** — API login-gated, positive control failed; see `ELIGIBILITY.md` §5 |
+| **E3** | **Designate the reciprocal reviewer** | **USER** | 🔴 USER | 1 Oct | desk-rejectable; must be a qualified *author*; later changes need PC approval |
+| **E4** | Reciprocal reviewer **accepts** the OpenReview invitation | USER | BLOCKED on E3 | 8 Oct | *"Nomination alone is not sufficient"* |
+| **E5** | Submit the abstract | USER | READY | 1 Oct | package complete: title, 268-word abstract, keywords, area |
 
-## Phase 1 — the decisive checks (gate everything downstream)
+## Now → 1 Oct — registration and design
 
-| # | Task | Owner | Status | Dependency | Evidence | Next action |
-|---|---|---|---|---|---|---|
-| 1.1 | 🔴 EvoMemEval `n3GMbobXnc`: is the SAME memory scored against MULTIPLE future tasks? | A | WIP | 0.8 | — | if YES, P1's last component is at risk → reframe |
-| 1.2 | 🔴 UMEM seam: does it report per-task utility VARIANCE, or only the mean? | A | WIP | 0.8 | — | if it reports dispersion, seam narrows → restate |
-| 1.3 | Fresh adversarial search for memory x task utility matrix / sign flips | A | WIP | 0.8 | — | working channel required; positive-control nulls |
-| 1.4 | 🔴 Resolve DATASETS.md provenance defect | A | WIP | 0.8 | `find` returned ZERO hits for `lme_v2*` / `longmemeval*` on this machine | every V2 "measured" number is currently unsourced |
-| 1.5 | LongMemEval-V2 Experiment-0 feasibility from ACTUAL files | A | WIP | 1.4 | — | memory unit, tasks/memory, leakage, token cost |
-| 1.6 | Lattice state-file schema: how much analysis is free? | B | WIP | 0.9 | — | determines build cost of the core analysis |
-| 1.7 | Live ALCF model list + resolved model ids | B | WIP | 0.9 | token valid ~109ks at 2026-09-29 11:0x | pin resolved ids, not aliases |
+| # | Task | Owner | Status | Evidence | Next action |
+|---|---|---|---|---|---|
+| 0.1 | Clone GitHub | Master | DONE | `p1_memory_utility/repo`, pushed to `main` | — |
+| 0.2 | Clone + inspect Overleaf | Master | DONE | 1 commit, bare 224-byte template, nothing to preserve | install AAMAS template |
+| 0.5 | Verify search-channel health | Master | DONE | `WebSearch` HTTP 400 org-block; `WebFetch` 200 | positive-control all nulls |
+| 0.6 | Verify UMEM | Master | DONE | arXiv:2602.10652, Ye et al., 11 Feb 2026 | seam check → A2 |
+| 0.7 | Repo scaffold | Master | DONE | 3 commits pushed | — |
+| **A1** | **Verify AAMAS policy from primary sources** | Master | DONE | dates, areas, abstract length, reciprocal policy, page limit — all re-fetched 2026-09-29 | `submission/ELIGIBILITY.md` |
+| **A2** | **Draft the abstract package** | Master | DONE | 268 words, forbidden-claim scan clean, 5 title options, keywords, LEARN | `submission/ABSTRACT_PACKAGE.md` |
+| 1.1 | 🔴 EvoMemEval: same memory × multiple future tasks? | Sub-agent A | WIP | — | if YES → reframe the Introduction, not the experiment |
+| 1.2 | 🔴 UMEM: does it report per-task utility **dispersion** or only the mean? | Sub-agent A | WIP | — | decides how the seam is stated |
+| 1.3 | Fresh adversarial search (matrix / sign flips) | Sub-agent A | WIP | — | needed before any novelty sentence |
+| 1.4 | 🔴 Resolve DATASETS.md provenance defect | Sub-agent A | WIP | `find` → 0 hits for `lme_v2*` on this machine | does **not** block the abstract |
+| 1.5 | LongMemEval-V2 feasibility from ACTUAL files | Sub-agent A | WIP | — | gates the memory/task unit |
+| 1.6 | Lattice analyzer: how much analysis is free? | Sub-agent B | REVIEW | agent stalled at ~90%, resumed with narrowed scope | audit on return |
+| 1.7 | Live ALCF model list + resolved ids | Sub-agent B | REVIEW | token valid ~30 h at 11:05 | audit on return |
+| 2.1 | **Freeze the memory unit and future-task unit** | Master | BLOCKED on 1.5 | — | — |
+| 2.2 | Leakage/confound review (memory containing the gold) | Master | BLOCKED on 2.1 | — | — |
+| 2.3 | Noise-floor protocol + cost | Master | BLOCKED on 1.7, 2.1 | — | empty-memory arm is a free floor |
+| 2.4 | Pilot matrix + cost | Master | BLOCKED on 2.3 | — | — |
+| 2.5 | **Pre-register analysis + sign-flip definition** | Master | BLOCKED on 2.4 | — | fix definitions BEFORE seeing data |
+| 2.6 | Install AAMAS LaTeX template in Overleaf | Master | TODO | — | `\documentclass[sigconf,anonymous]{aamas}` |
 
-## Phase 2 — design (blocked on Phase 1)
+## 1 Oct → 3 Oct — first evidence
 
-| # | Task | Owner | Status | Dependency | Evidence | Next action |
-|---|---|---|---|---|---|---|
-| 2.1 | Define the memory unit and the future-task unit, exactly | Master | BLOCKED | 1.5 | — | — |
-| 2.2 | Leakage / confound review of the cell design | Master | BLOCKED | 2.1 | — | detect memories containing the gold answer |
-| 2.3 | Noise-floor protocol (Experiment 1) + cost | Master | BLOCKED | 1.7, 2.1 | — | empty-memory arm is identical across conditions → free floor |
-| 2.4 | Memory x task pilot matrix (Experiment 2) + cost | Master | BLOCKED | 2.3 | — | multiple future tasks per memory is the hard requirement |
-| 2.5 | Pre-register the analysis (variance decomposition + sign-flip definition) | Master | BLOCKED | 2.4 | — | fix definitions BEFORE seeing results |
-| 2.6 | `docs/EXPERIMENT_PLAN.md` final | Master | BLOCKED | 2.5 | — | — |
-
-## Phase 3 — execution (blocked on 2.6 review)
-
-| # | Task | Owner | Status | Dependency | Evidence | Next action |
-|---|---|---|---|---|---|---|
-| 3.1 | Build memory bank (deterministic JSONL, no vector DB) | TBD | BLOCKED | 2.6 | — | — |
-| 3.2 | Build LLM response cache (the one real infra gap) | TBD | BLOCKED | 2.6 | — | — |
-| 3.3 | Run Experiment 1 (noise floor) | TBD | BLOCKED | 3.1, 3.2 | — | — |
-| 3.4 | Run Experiment 2 (pilot matrix) | TBD | BLOCKED | 3.3 | — | — |
-| 3.5 | Variance decomposition vs noise floor | TBD | BLOCKED | 3.4 | — | — |
-| 3.6 | **Apply the kill criterion** | Master | BLOCKED | 3.5 | — | a null here is a legitimate result, report it plainly |
-
-## Phase 4 — only if P1 survives
-
-| # | Task | Owner | Status |
+| # | Task | Status | Note |
 |---|---|---|---|
-| 4.1 | `G(memory)` vs `G(memory, future_task)` at matched budget | TBD | BLOCKED on 3.6 |
-| 4.2 | Baseline spectrum incl. Jev (Jev must never block the core) | TBD | BLOCKED on 3.6 |
+| 3.1 | Memory bank (deterministic JSONL, **not** a vector DB) | BLOCKED on 2.5 | |
+| 3.2 | LLM response cache | BLOCKED on 2.5 | the one genuine infra gap |
+| 3.3 | **Experiment 1 — noise floor** | BLOCKED on 3.1–3.2 | execution + empty-memory + judge floors |
+| 3.4 | **Experiment 2 — pilot matrix** | BLOCKED on 3.3 | multiple future tasks per memory is the hard requirement |
+| 3.5 | First interaction + sign-flip result | BLOCKED on 3.4 | |
+
+## 3 Oct → 5 Oct — scale or stop
+
+| # | Task | Status | Note |
+|---|---|---|---|
+| 4.1 | **Apply the kill criterion** | BLOCKED on 3.5 | a null is a legitimate result; it changes the paper, it does not end the submission |
+| 4.2 | Scale the matrix **only if** the phenomenon survives | BLOCKED on 4.1 | |
+| 4.3 | NEAR/MID/FAR semantic-distance analysis | BLOCKED on 4.1 | the direct answer to UMEM |
+| 4.4 | **Freeze main tables and figures** | BLOCKED on 4.2 | |
+
+## 5 Oct → 8 Oct — manuscript
+
+| # | Task | Status | Note |
+|---|---|---|---|
+| 5.1 | Full manuscript, ≤8 pages **including any appendix** | BLOCKED on 4.4 | differs from AAMAS 2026 |
+| 5.2 | Every citation human-verified against a fetched source | TODO | hallucinated citations are a named desk-reject trigger |
+| 5.3 | AI-assistance disclosure (prompts + tool + version) | TODO | **required** where AI shaped hypotheses or experimental design |
+| 5.4 | Anonymization check incl. supplementary | BLOCKED on 5.1 | desk-rejectable |
+| 5.5 | Findings opt-in/opt-out; final validation; submit | BLOCKED on 5.1 | |
+
+## Scope freeze — per the user, these are NOT submission blockers
+
+Jev · large LLM-manager comparisons · scientific OOD · elaborate memory storage ·
+extensive model scaling. Optional extensions only.
+
+**Paper priority order:** (1) execution noise floor → (2) natural memory × task matrix →
+(3) memory/task/interaction decomposition → (4) natural sign-flip rate →
+(5) NEAR/MID/FAR → (6) *time permitting* scalar vs task-conditioned predictor.
+
+**Do not begin with gate training.**
 
 ## Standing constraints
 
-- **No inference endpoint calls** beyond health checks until 2.6 is reviewed and accepted.
-- **No "first" claims** — see `docs/LITERATURE_BOUNDARY.md`.
-- **No secrets** in repo, logs, Overleaf, or progress reports.
-- **No unverified results** in Overleaf.
-- Positive-control every null; `WebSearch` is blocked in this environment.
+- No endpoint calls beyond health checks until 2.5 is accepted.
+- No "first" claims — `docs/LITERATURE_BOUNDARY.md`.
+- No secrets in repo, logs, Overleaf, or reports.
+- No unverified number in Overleaf or the manuscript; ledger first.
+- Positive-control every null. `WebSearch` is blocked; OpenReview profile search is
+  login-gated and returns **misleading empty results** anonymously.
