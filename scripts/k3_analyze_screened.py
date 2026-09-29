@@ -269,8 +269,59 @@ def paired_by_memory(rows_a: list[dict], rows_b: list[dict], *,
             eb.append(float(np.mean(vals)))
     elo, ehi = ((float(np.percentile(eb, 2.5)), float(np.percentile(eb, 97.5)))
                 if eb else (None, None))
+    # ---- ZERO CONTRIBUTORS (docs/ZERO_CONTRIBUTORS.md) ----
+    # A memory contributing exactly 0 is one whose tasks the reader could not
+    # solve either way. Zeros shrink the mean AND the CI proportionally, so the
+    # TEST stays valid -- a significant result with many zeros is real and must
+    # not be discounted. But the MAGNITUDE is diluted roughly linearly in the
+    # contributor fraction: reproduced here, a true +0.30 among 12 of 60 reports
+    # as +0.060. Quoting that as "the effect of a bearing memory" understates it
+    # fivefold. So: report both magnitudes, take the VERDICT from the
+    # all-memories test (pre-registered, does not condition on an outcome), and
+    # label the contributors-only figure as conditional.
+    nz = [float(d) for d in diffs if d != 0.0]
+    n_nz = len(nz)
+    cond_mean = float(np.mean(nz)) if nz else None
+    # POWER STATUS. A FIXED cutoff is wrong: power depends on the SPREAD, not
+    # only the count. Measured -- to detect a true +0.30 among contributors,
+    # power at 20 contributors is 1.00 at sd=0 but 0.32 at sd=0.5. So estimate
+    # power from the OBSERVED spread of the paired differences, and keep the
+    # fixed floor only as a backstop for very small counts.
+    sd_obs = float(np.std(diffs, ddof=1)) if len(diffs) > 1 else 0.0
+    eff = 0.30 * (n_nz / len(diffs)) if len(diffs) else 0.0   # diluted effect
+    se = (sd_obs / np.sqrt(len(diffs))) if len(diffs) else float("inf")
+    power_z = (float(eff / se) if se > 0 else float("inf"))
+    # z of 1.96 for alpha=.05 two-sided; ~2.8 gives about 80% power
+    adequate = (n_nz >= 8) and (power_z >= 2.8)
+    power = {
+        "_rule": "docs/ZERO_CONTRIBUTORS.md: below ~8 non-zero contributors, "
+                 "declare UNDERPOWERED rather than report a null -- a null at "
+                 "n_effective=5 is a different claim from a null at n=40. The "
+                 "count alone is not sufficient: power depends on the observed "
+                 "spread too, so both are checked.",
+        "n_nonzero_contributors": n_nz,
+        "n_zero_contributors": len(diffs) - n_nz,
+        "observed_sd_of_paired_differences": sd_obs,
+        "implied_z_for_a_true_0.30_among_contributors": power_z,
+        "STATUS": ("ADEQUATE" if adequate else "UNDERPOWERED"),
+        "_reading": ("the all-memories test can detect a diluted +0.30 at this "
+                     "contributor count and spread"
+                     if adequate else
+                     "a NULL HERE IS NOT EVIDENCE OF NO EFFECT -- the design "
+                     "cannot detect a true +0.30 among contributors at this "
+                     "contributor count / spread"),
+    }
     return {
         "n_paired_memories": len(shared),
+        "n_paired_memories_nonzero": n_nz,
+        "_denominator_note": f"{len(shared)} memories ({n_nz} non-zero). Never "
+                             f"quote the nominal count alone.",
+        "PAIRED_POWER_STATUS": power,
+        "conditional_mean_over_contributors_only": cond_mean,
+        "_conditional_caveat": "conditions on a non-zero outcome, so it is "
+                               "DESCRIPTIVE and can never be the population claim. "
+                               "The significance verdict comes from the "
+                               "all-memories test below.",
         "n_source_episodes": len(eps),
         "mean_paired_difference": obs,
         "memory_bootstrap_ci": [lo, hi],
@@ -685,6 +736,14 @@ def main() -> int:
                   f"p={v['sign_flip_p_two_sided']:.4f} "
                   f"(+{v['n_memories_positive']}/0:{v['n_memories_zero']}/"
                   f"-{v['n_memories_negative']})")
+            pw_ = v.get("PAIRED_POWER_STATUS") or {}
+            print(f"     denominator: {v['n_paired_memories']} memories "
+                  f"({pw_.get('n_nonzero_contributors')} NON-ZERO); "
+                  f"POWER={pw_.get('STATUS')}; "
+                  f"conditional mean over contributors only="
+                  f"{f4(v.get('conditional_mean_over_contributors_only'))}")
+            if pw_.get("STATUS") == "UNDERPOWERED":
+                print(f"     ⚠️ {pw_.get('_reading')}")
 
     report["contrasts"] = {
         "BEARING_vs_RANDOM": perm_contrast(by_s.get("BEARING", []),
