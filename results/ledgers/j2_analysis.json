@@ -1,0 +1,253 @@
+{
+  "_what": "J2: does a stronger reader lift oracle-bearing cells?",
+  "configs": [
+    "base_replication",
+    "high_effort",
+    "nemotron",
+    "inkling"
+  ],
+  "n_control": 30,
+  "n_oracle": 22,
+  "paired_vs_base": {
+    "high_effort": {
+      "control": {
+        "base_only_correct": 1,
+        "both_correct": 0,
+        "lift_in_accuracy": 0.10526315789473684,
+        "mcnemar_exact_p": 0.625,
+        "n_paired_cells": 19,
+        "neither_correct": 15,
+        "new_only_correct": 3
+      },
+      "difference_in_differences": {
+        "_reading": "a positive DiD means the stronger reader helps MORE where the answer is demonstrably present -- the reader-limited signature. A DiD near zero with both lifts positive means the reader improved everywhere.",
+        "control_lift": 0.10526315789473684,
+        "did": -0.20050125313283207,
+        "oracle_lift": -0.09523809523809523
+      },
+      "oracle": {
+        "base_only_correct": 2,
+        "both_correct": 8,
+        "lift_in_accuracy": -0.09523809523809523,
+        "mcnemar_exact_p": 0.5,
+        "n_paired_cells": 21,
+        "neither_correct": 11,
+        "new_only_correct": 0
+      }
+    },
+    "inkling": {
+      "control": {
+        "base_only_correct": 1,
+        "both_correct": 0,
+        "lift_in_accuracy": 0.0,
+        "mcnemar_exact_p": 1.0,
+        "n_paired_cells": 30,
+        "neither_correct": 28,
+        "new_only_correct": 1
+      },
+      "difference_in_differences": {
+        "_reading": "a positive DiD means the stronger reader helps MORE where the answer is demonstrably present -- the reader-limited signature. A DiD near zero with both lifts positive means the reader improved everywhere.",
+        "control_lift": 0.0,
+        "did": -0.09090909090909091,
+        "oracle_lift": -0.09090909090909091
+      },
+      "oracle": {
+        "base_only_correct": 2,
+        "both_correct": 8,
+        "lift_in_accuracy": -0.09090909090909091,
+        "mcnemar_exact_p": 0.5,
+        "n_paired_cells": 22,
+        "neither_correct": 12,
+        "new_only_correct": 0
+      }
+    },
+    "nemotron": {
+      "control": {
+        "base_only_correct": 1,
+        "both_correct": 0,
+        "lift_in_accuracy": -0.03333333333333333,
+        "mcnemar_exact_p": 1.0,
+        "n_paired_cells": 30,
+        "neither_correct": 29,
+        "new_only_correct": 0
+      },
+      "difference_in_differences": {
+        "_reading": "a positive DiD means the stronger reader helps MORE where the answer is demonstrably present -- the reader-limited signature. A DiD near zero with both lifts positive means the reader improved everywhere.",
+        "control_lift": -0.03333333333333333,
+        "did": -0.19393939393939394,
+        "oracle_lift": -0.22727272727272727
+      },
+      "oracle": {
+        "base_only_correct": 5,
+        "both_correct": 5,
+        "lift_in_accuracy": -0.22727272727272727,
+        "mcnemar_exact_p": 0.0625,
+        "n_paired_cells": 22,
+        "neither_correct": 12,
+        "new_only_correct": 0
+      }
+    }
+  },
+  "per_config": {
+    "base_replication": {
+      "control": {
+        "abstentions_with": 18,
+        "acc_with": 0.03333333333333333,
+        "acc_with_wilson": [
+          0.005908590381612455,
+          0.16670390991409173
+        ],
+        "acc_without": 0.06666666666666667,
+        "both_arms_fail": 28,
+        "both_arms_fail_rate": 0.9333333333333333,
+        "delta_with_minus_without": -0.03333333333333333,
+        "n_cells": 30,
+        "n_correct_with": 1,
+        "n_correct_without": 2
+      },
+      "oracle": {
+        "abstentions_with": 5,
+        "acc_with": 0.45454545454545453,
+        "acc_with_wilson": [
+          0.2692029418081331,
+          0.6534020467926505
+        ],
+        "acc_without": 0.2727272727272727,
+        "both_arms_fail": 10,
+        "both_arms_fail_rate": 0.45454545454545453,
+        "delta_with_minus_without": 0.18181818181818182,
+        "n_cells": 22,
+        "n_correct_with": 10,
+        "n_correct_without": 6
+      }
+    },
+    "high_effort": {
+      "control": {
+        "abstentions_with": 9,
+        "acc_with": 0.17647058823529413,
+        "acc_with_wilson": [
+          0.06191126637621,
+          0.4102945856883412
+        ],
+        "acc_without": 0.058823529411764705,
+        "both_arms_fail": 14,
+        "both_arms_fail_rate": 0.8235294117647058,
+        "delta_with_minus_without": 0.11764705882352941,
+        "n_cells": 17,
+        "n_correct_with": 3,
+        "n_correct_without": 1
+      },
+      "oracle": {
+        "abstentions_with": 6,
+        "acc_with": 0.4117647058823529,
+        "acc_with_wilson": [
+          0.21611056790214814,
+          0.6399455735700021
+        ],
+        "acc_without": 0.17647058823529413,
+        "both_arms_fail": 10,
+        "both_arms_fail_rate": 0.5882352941176471,
+        "delta_with_minus_without": 0.23529411764705882,
+        "n_cells": 17,
+        "n_correct_with": 7,
+        "n_correct_without": 3
+      }
+    },
+    "inkling": {
+      "control": {
+        "abstentions_with": 24,
+        "acc_with": 0.03571428571428571,
+        "acc_with_wilson": [
+          0.0063325198490377516,
+          0.1771219774335332
+        ],
+        "acc_without": 0.03571428571428571,
+        "both_arms_fail": 27,
+        "both_arms_fail_rate": 0.9642857142857143,
+        "delta_with_minus_without": 0.0,
+        "n_cells": 28,
+        "n_correct_with": 1,
+        "n_correct_without": 1
+      },
+      "oracle": {
+        "abstentions_with": 9,
+        "acc_with": 0.36363636363636365,
+        "acc_with_wilson": [
+          0.19733204670366125,
+          0.5704829190986899
+        ],
+        "acc_without": 0.09090909090909091,
+        "both_arms_fail": 13,
+        "both_arms_fail_rate": 0.5909090909090909,
+        "delta_with_minus_without": 0.2727272727272727,
+        "n_cells": 22,
+        "n_correct_with": 8,
+        "n_correct_without": 2
+      }
+    },
+    "nemotron": {
+      "control": {
+        "abstentions_with": 30,
+        "acc_with": 0.0,
+        "acc_with_wilson": [
+          0.0,
+          0.11351339317396876
+        ],
+        "acc_without": 0.0,
+        "both_arms_fail": 30,
+        "both_arms_fail_rate": 1.0,
+        "delta_with_minus_without": 0.0,
+        "n_cells": 30,
+        "n_correct_with": 0,
+        "n_correct_without": 0
+      },
+      "oracle": {
+        "abstentions_with": 16,
+        "acc_with": 0.22727272727272727,
+        "acc_with_wilson": [
+          0.10123039985248514,
+          0.4343995317522171
+        ],
+        "acc_without": 0.0,
+        "both_arms_fail": 17,
+        "both_arms_fail_rate": 0.7727272727272727,
+        "delta_with_minus_without": 0.22727272727272727,
+        "n_cells": 22,
+        "n_correct_with": 5,
+        "n_correct_without": 0
+      }
+    }
+  },
+  "positive_control": {
+    "base_replication": {
+      "content": "\\boxed{Paris}",
+      "error": null,
+      "reward": 1.0
+    },
+    "high_effort": {
+      "content": "\\boxed{UNKNOWN}",
+      "error": null,
+      "reward": 0.0
+    },
+    "inkling": {
+      "content": "The capital city of France is Paris.\n\n\\boxed{Paris}",
+      "error": null,
+      "reward": 1.0
+    },
+    "nemotron": {
+      "content": "\\boxed{UNKNOWN}",
+      "error": null,
+      "reward": 0.0
+    }
+  },
+  "replication_check": {
+    "_reading": "the base config is byte-identical to the completed arm. Material disagreement means the endpoint has drifted and every comparison below is against a moving anchor.",
+    "_what": "config 'base_replication' re-issued now vs the recorded official arm",
+    "agree": 104,
+    "agreement_rate": 1.0,
+    "disagree": 0,
+    "disagreements": [],
+    "missing": 0
+  },
+  "responses_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/j2_escalation/responses.jsonl"
+}
