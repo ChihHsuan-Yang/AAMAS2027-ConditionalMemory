@@ -134,6 +134,26 @@ contribute non-zero. There is no reason for the sets to coincide — and they do
 > agreeing, check that they are measurements *of the same objects*, not merely of the same
 > size.
 
+**The mechanism is visible in the rows**, and it is the scarcity finding again:
+
+| case | count | in the executed run |
+|---|---|---|
+| memories with **≥3** bearing cells contributing **exactly zero** | **4** | all their cells fail both arms |
+| memories with **exactly 1** bearing cell contributing **non-zero** | **10** | one bearing cell is enough |
+
+So both directions of non-membership are populated by real, inspectable cases. A memory
+with four bearing cells contributing exactly zero *is* the scarcity result — the mechanism
+was already written down elsewhere in the report and still was not applied to the sentence
+in question.
+
+⚠️ Note when quoting individual examples: the short `mem-…` prefixes are **not unique** —
+two distinct memories share each 8-hex prefix in this run. Quote the full id.
+
+K's own framing of why this instance is worse than the pooled-number cases is worth
+keeping: those *answered a well-posed question badly*, whereas this one **asserted
+corroboration that did not exist** — the kind of sentence that makes a reviewer trust a
+table they should check.
+
 ## Make the ruling mechanical where you can
 
 A ruling a human must remember at reporting time is a ruling that will eventually be
