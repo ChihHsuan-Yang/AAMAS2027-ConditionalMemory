@@ -247,7 +247,7 @@ def perm_contrast(rows_a: list[dict], rows_b: list[dict], *, n_perm: int = 20000
 
 
 def analyse_stratum(rows: list[dict], name: str, root: Path, n_boot: int,
-                    seed: int, out: Path) -> dict:
+                    seed: int, out: Path, F_reference: float | None) -> dict:
     print(f"\n{'='*70}\nSTRATUM {name}: {len(rows)} rows")
     live = [r for r in rows if not r.get("error_code_if_any")]
     print(f"  {len(live)} usable, {len(rows)-len(live)} errored")
@@ -279,9 +279,27 @@ def analyse_stratum(rows: list[dict], name: str, root: Path, n_boot: int,
     floors["positive_controls"] = {"F_exec": pc_exec(rows, n_boot),
                                    "F_judge": pc_judge(rows, n_boot)}
     res["floors"] = floors
-    F = floors["F_exec_delta"]["point"]
-    print(f"  F_exec[delta]={F}  F_empty={floors['F_empty']['point']}  "
-          f"F_judge={floors['F_judge']['point']}")
+    # PRE-REGISTRATION COMPLIANCE. Section 2: "Reference floor F = F_exec
+    # estimated per benchmark, POOLED ACROSS TASKS". So the floor used for
+    # LABELS is the pooled one, not this stratum's own.
+    #
+    # This is not pedantry. A per-stratum floor would be computed on the very
+    # cells whose effect is under test: BEARING is where dU actually varies, so
+    # its own floor is the largest, and using it would make BEARING cells the
+    # HARDEST to label robust -- biasing the floor clause against the effect the
+    # stratum exists to detect. That is the "selected subgroup" shape. The
+    # stratum's own floors are still reported, as diagnostics.
+    res["floors_note"] = (
+        "labels use the POOLED F_exec[delta] over all strata (prereg section 2: "
+        "the reference floor is per BENCHMARK, pooled). This stratum's own floors "
+        "are reported as diagnostics only -- a per-stratum floor is computed on "
+        "the cells whose effect is under test and would bias against it.")
+    F_own = floors["F_exec_delta"]["point"]
+    F = F_reference
+    res["F_used_for_labels"] = F
+    res["F_this_stratum_diagnostic_only"] = F_own
+    print(f"  F_exec[delta] own={F_own} (diagnostic)  POOLED used for labels={F}")
+    print(f"  F_empty={floors['F_empty']['point']}  F_judge={floors['F_judge']['point']}")
     for k, pc in floors["positive_controls"].items():
         print(f"    positive control {k}: fires={pc['fires']} point={pc['point']}")
         if not pc["fires"]:
@@ -348,21 +366,33 @@ def main() -> int:
     if unknown:
         raise SystemExit(f"unknown strata {unknown}")
 
+    # The POOLED reference floor, computed ONCE over all strata, is what labels
+    # use (prereg section 2). Computed before any stratum so no stratum's own
+    # spread can influence the threshold applied to it.
+    F_ref_est = nz.exec_floor(rows, scale="delta", n_boot=args.n_boot,
+                              seed=args.seed, allow_pooling=True)
+    F_ref = F_ref_est.point
+    print(f"[reference floor] pooled F_exec[delta] = {F_ref} "
+          f"(prereg section 2: per benchmark, pooled)")
     report: dict[str, Any] = {
         "_what": "K3 per-stratum analysis of the screened main run",
         "rows_artifact": str(args.rows),
         "n_rows": len(rows),
         "strata_row_counts": {k: len(v) for k, v in sorted(by_s.items())},
+        "reference_floor_pooled": F_ref_est.to_dict(),
+        "_reference_floor_policy":
+            "prereg section 2 fixes the reference floor as F_exec per BENCHMARK, "
+            "pooled across tasks. It is computed once here and applied to every "
+            "stratum's labels. Per-stratum floors are diagnostics only.",
         "per_stratum": {},
     }
     for st in STRATA:
         report["per_stratum"][st] = analyse_stratum(
-            by_s.get(st, []), st, args.root, args.n_boot, args.seed, args.out)
+            by_s.get(st, []), st, args.root, args.n_boot, args.seed, args.out, F_ref)
 
     # ---- ALL strata pooled: the decomposition's best shot at identifiability ----
     print(f"\n{'='*70}\nPOOLED (all strata) -- decomposition identifiability")
-    F_all = nz.exec_floor(rows, scale="delta", n_boot=args.n_boot, seed=args.seed,
-                          allow_pooling=True).point
+    F_all = F_ref   # same pooled estimate used for labels; not recomputed
     dec = dc.variance_decomposition(rows, exec_floor_sd=F_all, n_boot=200,
                                     seed=args.seed, allow_pooling=True)
     dd = dec.to_dict()
