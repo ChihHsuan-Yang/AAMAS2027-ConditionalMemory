@@ -41,6 +41,23 @@ that produced it and the date it was measured.
 | 21 | V2 deterministic question count | **295** (199+1+68+1+19+7) | Sub-agent A, independently | 2026-09-29 | VERIFIED — agrees with Master Agent's 295 |
 | 22 | V2 official scorer provenance | `harness.py` in `/tmp/lmev2` is **byte-identical** to the official repo's (`sha256 93fe5855…bdb9`), HEAD `2cc8c540`, **Apache-2.0** | Sub-agent A | 2026-09-29 | VERIFIED — vendor the scorer, do not reimplement |
 | 23 | `norm_phrase_set_match` semantics | **NOT set equality** — gold-phrase containment (recall-only); extra prediction content is unpenalized | Sub-agent A, read from source | 2026-09-29 | VERIFIED — inferring from the name would have been wrong |
+| 24 | V2 memory unit = page visit | median **7,261** tok (p25 5,055, p75 13,501, p90 35,994), n=**1,889** units from 200 trajectories / 5,095 states | official `Qwen/Qwen3.5-9B` tokenizer | 2026-09-29 | VERIFIED |
+| 25 | V2 whole-trajectory tokens | median **103,886**, p90 646,256, max 2,573,538 | same | 2026-09-29 | VERIFIED — the inherited "~164k" is unrepresentative; distribution is right-skewed |
+| 26 | Ablation locality | one unit = median **3.3%** of its episode, **0.058%** of the haystack | Sub-agent A | 2026-09-29 | VERIFIED — the intervention is local, as the protocol requires |
+| 27 | Segmentation preserves answerability | **94.2%** of deterministic questions | Sub-agent A | 2026-09-29 | VERIFIED |
+| 28 | V2 memory × task pairs | **15,112** rows = **1,889 memories × exactly 8 tasks each** | Master Agent recount of the pair manifest | 2026-09-29 | VERIFIED |
+| 29 | BEAM diagonality | **92.6%** of cited turns cited by exactly one question | Sub-agent A | 2026-09-29 | VERIFIED — cannot supply the multi-task axis; BEAM demoted |
+| 30 | SciCode usable N | **~8–12** cross-problem donor→recipient pairs | Sub-agent A | 2026-09-29 | VERIFIED — case study, not a main table |
+| 31 | V1 leakage detector separation | evidence **471/948 = 49.684%** vs filler **4,492/22,919 = 19.599%**, ratio **2.53×** | Master Agent re-derivation | 2026-09-29 | VERIFIED — ⚠️ manifest holds only FLAGGED rows; using it as the denominator gives a meaningless 76.2/48.3 |
+| 32 | Leakage detector controls | **17/17** pass; 2 failed on first run (one exposed a real bug in the OFFICIAL scorer) | Sub-agent A | 2026-09-29 | VERIFIED — all leak rates are LOWER BOUNDS |
+| 33 | Representation tokens (8 real segments) | raw median **6,372** (cr 1.000, **0 calls**) · summary **362** (cr 0.0630) · structured **246** (cr 0.0373) | Sub-agent B pilot, 24 calls on Metis | 2026-09-29 | VERIFIED |
+| 34 | Structured reasoning cost | **3.8×** the reasoning tokens of summary, for a **shorter** output (829 vs 216) | same | 2026-09-29 | VERIFIED — a real efficiency finding |
+| 35 | Structured malformed-JSON rate | **0/8** (95% Jeffreys upper bound ≈ 0.28) | same | 2026-09-29 | VERIFIED — denominator stated; shows only that the rate is not large |
+| 36 | `memory_semantic_type` inter-pass agreement | **3/8 = 0.375, Cohen's κ = 0.000** (native pass labelled all 8 `episodic`) | Sub-agent B | 2026-09-29 | VERIFIED — ⚠️ **not safe as an analysis axis** |
+| 37 | Structured contradiction rate | 0.667 is a **scope-collision artifact**; **0.000** excluding it | Sub-agent B | 2026-09-29 | VERIFIED — must never be quoted as a hallucination rate |
+| 38 | Metis sustained throughput | **5.690 req/s, 341.4 completed/min**, p50 2.588 s, p95 4.392 s, 61,323 tok/s @16 workers | Sub-agent C, 6-wave | 2026-09-29 | VERIFIED |
+| 39 | Concurrency ceiling | 0 failures /316 reqs at ≤16; **429s at 24 (12.50%)** and 32 (8.33%); 32 buys +2.6% throughput | Sub-agent C | 2026-09-29 | VERIFIED — ceiling observed, not assumed |
+| 40 | REML recovery error vs study size | 30×8: **0.0627** (worst 0.1175) · 60×8: 0.0238 · 120×8: 0.0231 · 240×8: 0.0155 · **120×16: 0.0103** | Master Agent, synthetic with known planted components | 2026-09-29 | VERIFIED — 60 memories minimum; widen the TASK axis |
 
 ## Inherited numbers pending re-derivation
 
