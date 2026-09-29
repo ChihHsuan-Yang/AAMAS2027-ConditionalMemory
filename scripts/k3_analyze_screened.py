@@ -279,7 +279,14 @@ def paired_by_memory(rows_a: list[dict], rows_b: list[dict], *,
     # fivefold. So: report both magnitudes, take the VERDICT from the
     # all-memories test (pre-registered, does not condition on an outcome), and
     # label the contributors-only figure as conditional.
-    nz = [float(d) for d in diffs if d != 0.0]
+    # "Non-zero" must mean "actually contributed", not "is not bit-identically
+    # 0.0". Caught by a control: with continuous noise NOTHING is exactly zero,
+    # so an equality test reported 60/60 contributors on data that was mostly
+    # noise -- the count silently stopped measuring what it names. On this
+    # benchmark rewards are 0/1 so dU is in {-1,0,1} and exact zeros are the
+    # common case, but the estimator must not depend on that.
+    _EPS = 1e-12
+    nz = [float(d) for d in diffs if abs(float(d)) > _EPS]
     n_nz = len(nz)
     cond_mean = float(np.mean(nz)) if nz else None
     # POWER STATUS. A FIXED cutoff is wrong: power depends on the SPREAD, not

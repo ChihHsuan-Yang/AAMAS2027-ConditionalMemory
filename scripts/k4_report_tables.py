@@ -92,6 +92,25 @@ for k,v in pw.items():
           f"**{f(v.get('mean_paired_difference'))}** | [{f(mci[0])},{f(mci[1])}] | "
           f"**[{f(eci[0])},{f(eci[1])}]** | {f(v.get('sign_flip_p_two_sided'))} | "
           f"{v.get('n_memories_positive')}/{v.get('n_memories_zero')}/{v.get('n_memories_negative')} |")
+print("\n**Zero contributors** (docs/ZERO_CONTRIBUTORS.md) - never quote the nominal count alone\n")
+print("| contrast | denominator | non-zero | power status | diluted mean (verdict) | conditional mean (descriptive) |")
+print("|---|---|---|---|---|---|")
+for k,v in pw.items():
+    if v.get("mean_paired_difference") is None: continue
+    p_=v.get("PAIRED_POWER_STATUS") or {}
+    st=p_.get("STATUS")
+    print(f"| {k} | {v.get('n_paired_memories')} memories | **{p_.get('n_nonzero_contributors')}** | "
+          f"**{st}** | {f(v.get('mean_paired_difference'))} | "
+          f"{f(v.get('conditional_mean_over_contributors_only'))} |")
+for k,v in pw.items():
+    p_=v.get("PAIRED_POWER_STATUS") or {}
+    if p_.get("STATUS")=="UNDERPOWERED":
+        print(f"\n⚠️ `{k}`: **UNDERPOWERED** - {p_.get('_reading')}")
+print("\nThe **diluted** mean carries the significance verdict (pre-registered, does not")
+print("condition on an outcome). The **conditional** mean is descriptive only. A memory")
+print("contributing zero is one whose tasks the reader could not solve either way - a")
+print("third view of the same scarcity finding, not a nuisance to average over quietly.")
+
 print("\nAll 60 memories appear in BOTH strata, so memory identity cancels: "
       "\"bearing memories are just better memories\" cannot explain a within-memory")
 print("difference. Task identity does NOT cancel, which is why dU is the quantity")
