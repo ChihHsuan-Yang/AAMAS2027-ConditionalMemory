@@ -427,6 +427,27 @@ def assert_writer_blind(
 # --------------------------------------------------------------------------
 
 
+#: Question ``environment`` values are FINER-GRAINED than trajectory ones.
+#: MEASURED over the shipped data: questions use
+#: {workarena, webarena-reddit, webarena-cms, webarena-onestopshop} while
+#: trajectories use only {workarena, webarena}. So a naive equality test
+#: ``memory.environment == task.environment`` is TRUE for every enterprise
+#: pair and FALSE for every web pair -- it silently re-encodes `domain` and
+#: measures nothing. We therefore compare on the coarse prefix and, crucially,
+#: record that the web site-level match is UNKNOWN rather than False.
+COARSE_ENVIRONMENT = {
+    "workarena": "workarena",
+    "webarena": "webarena",
+    "webarena-reddit": "webarena",
+    "webarena-cms": "webarena",
+    "webarena-onestopshop": "webarena",
+}
+
+
+def coarse_environment(value: str) -> str:
+    return COARSE_ENVIRONMENT.get(value, value.split("-", 1)[0])
+
+
 @dataclass(frozen=True)
 class Pair:
     """One (memory, future-task) cell of the DeltaU matrix."""
@@ -435,7 +456,16 @@ class Pair:
     task_id: str
     domain: str
     stratum: str
-    same_environment: bool
+    #: True when memory and task share the COARSE environment family.
+    same_environment_coarse: bool
+    #: The task's fine-grained environment (e.g. "webarena-reddit").
+    #: Trajectories carry no site-level label, so whether the memory came
+    #: from the SAME SITE is NOT DERIVABLE from the shipped data. Recorded as
+    #: None for web pairs rather than guessed -- an unknown must not be
+    #: written as a False.
+    task_environment: str
+    memory_environment: str
+    same_site: bool | None
     in_official_haystack: bool
 
 
@@ -519,13 +549,25 @@ def select_pairs(
                 if haystack is not None
                 else False
             )
+            mem_env = coarse_environment(mem.environment)
+            task_env = coarse_environment(t.environment)
+            # site-level match is only knowable when the task's environment is
+            # already coarse (workarena); otherwise the trajectory has no site.
+            same_site: bool | None = (
+                (mem.environment == t.environment)
+                if t.environment == coarse_environment(t.environment)
+                else None
+            )
             pairs.append(
                 Pair(
                     memory_id=mem.memory_id,
                     task_id=t.id,
                     domain=mem.domain,
                     stratum=t.question_type,
-                    same_environment=(mem.environment == t.environment),
+                    same_environment_coarse=(mem_env == task_env),
+                    task_environment=t.environment,
+                    memory_environment=mem.environment,
+                    same_site=same_site,
                     in_official_haystack=in_hs,
                 )
             )
