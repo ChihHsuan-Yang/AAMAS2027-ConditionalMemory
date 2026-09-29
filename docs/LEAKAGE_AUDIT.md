@@ -80,3 +80,33 @@ key, not a wrong measurement; the rates are unaffected.
    to contain the answer *is* a real memory being genuinely useful. What must be excluded
    is *task-directed writing*, which the protocol prevents structurally. The audit
    separates the two.
+
+## Results — LongMemEval-V2, FULL matrix (COMPLETE)
+
+All 1,889 units x all same-domain questions (451, incl. LLM-judged) = **423,664 cells**
+(1,024 ent x 211 + 865 web x 240 = 423,664). Controls 17/17. **114,207 flagged, none dropped.**
+Bucketed on **raw** `len(answer)`.
+
+| stratum (raw chars) | cells | exact | normalized | numeric | official | **ANY** | undecidable |
+|---|---|---|---|---|---|---|---|
+| <=2 | 56,441 | 97.688% | 20.161% | 1.784% | 1.743% | **97.714%** | 0.000% |
+| 3–5 | 75,560 | 38.003% | 20.386% | 3.330% | 19.722% | **44.737%** | 0.000% |
+| 6–12 | 53,846 | 12.627% | 18.014% | 5.692% | 17.639% | **23.476%** | 3.508% |
+| 13–30 | 68,691 | 1.504% | 5.598% | 1.240% | 5.583% | **6.836%** | 8.019% |
+| >30 | 169,126 | 0.023% | 0.189% | 4.492% | 0.144% | **4.681%** | **81.994%** |
+| POOLED | 423,664 | 21.650% | 9.594% | 3.549% | 6.954% | **26.957%** | — |
+
+🔴 **The <=2-char row leaks 97.7%** — multiple-choice golds (`G`, `B`, `D`), where one letter appears in
+essentially every accessibility tree. That is the alphabet, not the data, and those 56,441 cells alone drag
+the pooled figure to 26.957%. **Never quote the pooled number.** The credible figure is the long-answer
+row: **4.681% at >30 chars**.
+
+⚠️ The >30 stratum is **81.994% undecidable** (LLM-judged prose answers). Reported as undecidable, never
+as clean.
+
+### Cross-validation: two independent runs agree to 3 decimals
+The informative-strata run buckets on **normalized** length over the **156** deterministic tasks; the full
+run buckets on **raw** length over all **451**. Restricting the full run's committed rows to deterministic
+tasks with normalized length >= 6 reproduces it exactly: 6–12 **23.978%**, 13–30 **7.432%**, >30
+**3.333%**, ALL **12.479%** over 145,593 cells — identical to the informative run in every cell.
+This check was only possible because the audit writes **row-level flags**, not summary rates.
