@@ -321,3 +321,43 @@ def test_context_hash_separates_runs_that_render_different_filler(tmp_path):
     c.store(pilot, resp("ANSWER UNDER K=6 PILOT CONTEXT"))
     assert c.lookup(screened) is None, "different rendered context must MISS"
     assert c.lookup(dict(pilot)) is not None, "same rendered context must HIT"
+
+
+def test_total_miss_from_a_key_shape_change_explains_itself(tmp_path):
+    """A key-shape change must not present as "the cache is broken".
+
+    Reproduces the real situation: results/deltau_screened/cache.jsonl was
+    written under the 12-field v1 shape before context_sha256 was added.
+    Read by current code it gives a TOTAL miss, and without a diagnostic
+    someone hunts a nonexistent bug or loosens the key to silence it --
+    which is exactly what the key exists to prevent.
+    """
+    import json
+    path = tmp_path / "old.jsonl"
+    old_key = {k: "x" for k in BASE if k != "context_sha256"}
+    old_key["schema_version"] = "p1mem_response_cache_v1"
+    path.write_text(json.dumps({
+        "key": old_key, "key_hash": key_hash(old_key),
+        "response": {"content": "old", "resolved_model": "gpt-oss-120b",
+                     "cluster": "metis", "prompt_tokens": 1, "completion_tokens": 1,
+                     "finish_reason": "stop", "latency_s": 0.1},
+        "written_at_utc": "2026-09-29T00:00:00+00:00"}) + "\n")
+
+    c = ResponseCache(path)
+    assert c.stats()["rows"] == 1
+    assert c.lookup(dict(BASE)) is None          # total miss
+    msg = c.diagnose_total_miss()
+    assert msg is not None, "a total miss on a non-empty cache must be explained"
+    assert "context_sha256" in msg and "KEY SHAPE" in msg
+    assert "Do NOT" in msg                        # says what not to do about it
+
+
+def test_diagnostic_is_silent_when_the_cache_is_merely_cold(tmp_path):
+    """Negative control: an empty cache is not a key-shape problem.
+
+    Without this, a diagnostic that fires on everything would look like it
+    works -- the vacuous-guard failure found elsewhere in this project today.
+    """
+    c = ResponseCache(tmp_path / "empty.jsonl")
+    assert c.lookup(dict(BASE)) is None
+    assert c.diagnose_total_miss() is None

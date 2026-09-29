@@ -55,7 +55,19 @@ from .vendor.rcc_schema import (  # noqa: F401  (re-exported on purpose)
     write_jsonl_atomic,
 )
 
-CACHE_SCHEMA_VERSION = "p1mem_response_cache_v1"
+# v2 (2026-09-29): added context_sha256 to KEY_FIELDS. THE VERSION MUST BE
+# BUMPED WITH THE KEY SHAPE. Before this bump, v1 rows and v2 rows both
+# claimed "v1" while being keyed differently, so a v1 cache read by v2 code
+# gives a TOTAL miss that presents as "the cache is broken" rather than as
+# "this cache was written under a different key shape". The version is part
+# of the key, so the bump makes the two provably non-interchangeable and the
+# diagnostic message below explains the miss.
+#
+# Caches written before this bump (e.g. results/deltau_screened/cache.jsonl,
+# the screened main run) are readable ONLY by the 12-field v1 shape. That is
+# correct -- a different key shape IS a different condition -- but re-running
+# against them will re-pay every call. Do not "fix" that by loosening the key.
+CACHE_SCHEMA_VERSION = "p1mem_response_cache_v2_context_hash"
 
 # Every field that can change a response. All are REQUIRED on every lookup and
 # store: a missing one raises rather than defaulting, because a default is not
@@ -312,3 +324,53 @@ class ResponseCache:
         with self._lock:
             return {"rows": len(self._rows), "hits": self.hits,
                     "misses": self.misses, "writes": self.writes}
+
+    def diagnose_total_miss(self) -> str | None:
+        """Explain a cache that has rows but has never hit.
+
+        A key-shape change gives a TOTAL miss, not a partial one, and that
+        presents as "the cache is broken" rather than "this cache was written
+        under a different key shape". Silence here would send someone hunting
+        a nonexistent bug, or -- worse -- loosening the key to make the
+        symptom go away, which is exactly what the key exists to prevent.
+
+        Returns None when there is nothing anomalous to report.
+        """
+        with self._lock:
+            if not self._rows or self.hits or not self.misses:
+                return None
+            # Read the stored KEYS from the file. self._rows maps key_hash to
+            # a CachedResponse and carries NO key, so an earlier version of
+            # this method inspected the wrong object, found nothing, and
+            # returned None on the very case it exists to catch -- the
+            # absent-value-defaults-to-a-plausible-answer shape again.
+            expected = frozenset(KEY_FIELDS) | {"schema_version"}
+            try:
+                lines_ = self.path.read_text().splitlines()
+            except OSError:
+                return None
+            stored = set()
+            for line_ in lines_:
+                if not line_.strip():
+                    continue
+                try:
+                    k = json.loads(line_).get("key", {})
+                except json.JSONDecodeError:
+                    continue
+                if k:
+                    stored.add(frozenset(k))
+            for shape in stored:
+                if shape != expected:
+                    missing = sorted(expected - shape)
+                    extra = sorted(shape - expected)
+                    return (
+                        f"cache has {len(self._rows)} rows and {self.misses} misses "
+                        f"with ZERO hits: the stored rows use a DIFFERENT KEY SHAPE. "
+                        f"missing from stored keys: {missing}; unexpected: {extra}. "
+                        f"This cache was written under an older key shape and is not "
+                        f"readable by this code. That is correct -- a different key "
+                        f"shape is a different experimental condition. Re-run and "
+                        f"re-pay, or read it with the code that wrote it. Do NOT "
+                        f"loosen the key to make this go away."
+                    )
+            return None
