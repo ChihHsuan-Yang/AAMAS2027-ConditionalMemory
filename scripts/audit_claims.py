@@ -97,6 +97,41 @@ check("  that memory count", len(mem["BEARING"]), 60)
 pairs = collections.Counter((r["memory_id"], r["task_id"]) for r in d)
 check("stratum join is 1:1", max(pairs.values()), 1)
 
+print("== Screened run (the headline) ==")
+sc = load("results/deltau_screened/cells.jsonl")
+cell = collections.defaultdict(list)
+for r in sc:
+    if r.get("reward_with_memory") is None:
+        continue
+    cell[(r["provenance"]["stratum"], r["memory_id"], r["future_task_id"])].append(
+        (r["reward_with_memory"], r["reward_without_memory"]))
+for s_, want_bf, want_n, want_du in [("BEARING", 73, 139, 0.3453),
+                                     ("MATCHED_CONTROL", 115, 146, 0.0274),
+                                     ("RANDOM", 611, 872, 0.0642)]:
+    sub = {k: v for k, v in cell.items() if k[0] == s_}
+    bf = sum(1 for v in sub.values() if all(a == 0 and b == 0 for a, b in v))
+    du = [statistics.mean(a - b for a, b in v) for v in sub.values()]
+    check(f"{s_} both-arms-fail", f"{bf}/{len(sub)}", f"{want_bf}/{want_n}")
+    check(f"{s_} mean dU", round(statistics.mean(du), 4), want_du)
+
+cm = {k: statistics.mean(a - b for a, b in v) for k, v in cell.items()}
+bym = collections.defaultdict(lambda: {"BEARING": [], "MATCHED_CONTROL": []})
+for (s_, m_, t_), x in cm.items():
+    if s_ in ("BEARING", "MATCHED_CONTROL"):
+        bym[m_][s_].append(x)
+paired = {m_: statistics.mean(d["BEARING"]) - statistics.mean(d["MATCHED_CONTROL"])
+          for m_, d in bym.items() if d["BEARING"] and d["MATCHED_CONTROL"]}
+nz = [x for x in paired.values() if abs(x) > 1e-9]
+check("paired memories", len(paired), 60)
+check("non-zero contributors", len(nz), 35)
+check("paired all-memories mean", round(statistics.mean(paired.values()), 4), 0.3349)
+check("paired contributors-only mean", round(statistics.mean(nz), 4), 0.5740)
+# the false-convergence guard: these two 35s are DIFFERENT sets
+nbear = collections.Counter(m_ for (s_, m_, t_) in cm if s_ == "BEARING")
+ge2 = {m_ for m_, c in nbear.items() if c >= 2}
+check("the two 35s overlap on only 25 (NOT convergence)",
+      len({m_ for m_, x in paired.items() if abs(x) > 1e-9} & ge2), 25)
+
 print()
 if FAIL:
     print(f"AUDIT FAILED: {len(FAIL)} claim(s) did not reproduce: {FAIL}")
