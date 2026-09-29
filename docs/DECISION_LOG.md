@@ -163,3 +163,38 @@ with/without protocol, "predict memory utility before execution", and "retrieval
 is not a reliable proxy for utility."
 
 **Resolved by.** One logged-in fetch of `openreview.net/pdf?id=n3GMbobXnc`.
+
+## 2026-09-29 — G1: pool across `verifier_id` on LongMemEval-V2, with the reason
+
+**Decision.** Run the noise floors and the label/flip analysis with
+`allow_pooling=True` over `verifier_id`. The pooling is recorded on every estimate as a
+flag, and this entry is the reason the guard demands.
+
+**Why the guard fires.** `analysis/common.py::require_homogeneous` treats `verifier_id` as
+experimental identity, because a sibling project lost a table to arms scored under
+different verifiers. On LongMemEval-V2 the scorer is **a property of the question**, not
+of an arm: the 220 sampled tasks carry `norm_phrase_set_match` (145), `mc_choice_match`
+(54), `norm_phrase_set_match_ordered` (20) and `mc_choice_set_match` (1). Any sample of
+this benchmark spanning more than one question type trips the check.
+
+**Why it is safe here — the three hazards the guard exists to catch, each measured:**
+
+1. *WITH and WITHOUT scored differently within a row* — structurally impossible;
+   `verifier_id` is one field per row, shared by both arms by construction.
+2. *The same task scored under two verifiers* — **0 of 220 tasks**.
+3. *The same cell scored under two verifiers across replicates* — **0 of 480 cells**.
+
+Exactly **one** `verifier_version` (`vendored@f8ba659e237c`) appears across all 960 rows.
+
+**The substantive argument.** ΔU is always a *within-task* contrast: WITH and WITHOUT for
+one question, scored by that question's own scorer. **No ΔU ever compares two scorers.**
+Pooling ΔU values across tasks is therefore pooling contrasts, not pooling raw scores, and
+that is what the analysis is defined on.
+
+**What would change this.** If a task's scorer were ever changed mid-study, or if a future
+arm scored the same question two ways, hazards 2 and 3 become live and pooling must stop.
+The counts above are re-derivable from `results/deltau_pilot/cells.jsonl` and should be
+re-run on every new batch rather than assumed to still hold.
+
+**Not waived, narrowed.** `verifier_version` homogeneity is still enforced and still
+holds; only the per-question `verifier_id` axis is pooled.

@@ -70,7 +70,7 @@ def positive_control_exec(rows: list[dict], n_boot: int) -> dict:
             r["reward_with_memory"] = 1.0 - float(r["reward_with_memory"])
             r["delta_utility"] = r["reward_with_memory"] - r["reward_without_memory"]
             n += 1
-    est = nz.exec_floor(mutated, scale="delta", n_boot=n_boot)
+    est = nz.exec_floor(mutated, scale="delta", n_boot=n_boot, allow_pooling=True)
     return {"_what": "F_exec recomputed after flipping one replicate in "
                      f"{n} cells; MUST be > 0 or the estimator cannot fire",
             "n_cells_perturbed": n, "point": est.point,
@@ -104,6 +104,12 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=REPO / "results/deltau_pilot/analysis")
     ap.add_argument("--n-boot", type=int, default=2000)
     ap.add_argument("--seed", type=int, default=20260929)
+    # Pooling across verifier_id is REQUIRED on this benchmark and justified in
+    # docs/DECISION_LOG.md (2026-09-29, G1): the scorer is a property of the
+    # QUESTION, not of an arm, and every dU is a within-task contrast, so no dU
+    # ever compares two scorers. verifier_VERSION homogeneity still holds and is
+    # still enforced. The flag lands on every estimate.
+    ap.add_argument("--allow-pooling", action="store_true", default=True)
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
@@ -116,7 +122,8 @@ def main() -> int:
     # ---------------------------------------------------------------- floors
     print("\n[1] noise floors (prereg section 2)")
     rs = rescore(rows, args.root)
-    floors = nz.all_floors(rows, rescored=rs, n_boot=args.n_boot, seed=args.seed)
+    floors = nz.all_floors(rows, rescored=rs, n_boot=args.n_boot, seed=args.seed,
+                           allow_pooling=args.allow_pooling)
     floors["F_judge_within_dataset"] = nz.judge_floor(
         rows, None, n_boot=args.n_boot, seed=args.seed).to_dict()
     floors["positive_controls"] = {
@@ -141,11 +148,14 @@ def main() -> int:
 
     # ---------------------------------------------------------- labels/flips
     print("\n[2] robust labels and sign flips (sections 4, 5, 11, 12)")
-    lab = lb.label_analysis(rows, F, n_boot=args.n_boot, seed=args.seed, bh_q=0.10)
+    lab = lb.label_analysis(rows, F, n_boot=args.n_boot, seed=args.seed, bh_q=0.10,
+                            allow_pooling=args.allow_pooling)
     if F is not None:
         lab["supplementary_additive_null"] = lb.additive_null_flip_rate(
-            rows, F, n_null=200, n_boot=max(200, args.n_boot // 10), seed=args.seed)
-    cells = lb.cell_statistics(rows, F, n_boot=args.n_boot, seed=args.seed)
+            rows, F, n_null=200, n_boot=max(200, args.n_boot // 10), seed=args.seed,
+            allow_pooling=args.allow_pooling)
+    cells = lb.cell_statistics(rows, F, n_boot=args.n_boot, seed=args.seed,
+                               allow_pooling=args.allow_pooling)
     write_json_atomic(args.out / "02_labels_and_flips.json", jsonable(lab))
     write_json_atomic(args.out / "02b_cell_statistics.json",
                       jsonable([c.to_dict() for c in cells]))
@@ -153,7 +163,8 @@ def main() -> int:
     # ------------------------------------------------------- decomposition
     print("\n[3] variance decomposition (section 6)")
     dec = dc.variance_decomposition(rows, exec_floor_sd=F,
-                                    n_boot=min(200, args.n_boot), seed=args.seed)
+                                    n_boot=min(200, args.n_boot), seed=args.seed,
+                                    allow_pooling=args.allow_pooling)
     write_json_atomic(args.out / "03_variance_decomposition.json",
                       jsonable(dec.to_dict()))
     print(f"    {dec.method} converged={dec.converged} fallback={dec.used_fallback}")

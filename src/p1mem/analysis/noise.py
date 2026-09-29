@@ -302,9 +302,18 @@ def judge_floor(
       "reward_without_memory": y}``. This is the section 2 estimator: re-score stored
       outputs without regenerating. Disagreement is measured per (row, arm).
     * ``rescored=None`` -- the free variant: find outputs that are byte-identical *within
-      the dataset* under the same ``(verifier_id, verifier_version)`` and check whether
-      they received the same reward. Identical bytes through the same verifier version
-      must give the same score; any difference is verifier nondeterminism.
+      the dataset* for the same ``(future_task_id, verifier_id, verifier_version)`` and
+      check whether they received the same reward. Identical bytes, same gold answer and
+      same verifier version must give the same score; any difference is verifier
+      nondeterminism.
+
+    ⚠️ **The task is part of the comparison key, and must be.** A reward is a function of
+    (prediction, gold answer, scorer). ``\boxed{F}`` is correct for one multiple-choice
+    question and wrong for another, so grouping byte-identical text WITHOUT the task
+    compares two different questions and reports a property of the benchmark as verifier
+    nondeterminism. Measured on the first real pilot: text-only grouping gave
+    ``F_judge = 0.1486`` while the task-aware rate was ``0.0000`` over 1,916 re-scorings,
+    and all 18 "disagreeing" groups spanned more than one task.
 
     Reported point estimate is the **disagreement rate** -- the fraction of byte-identical
     comparisons whose rewards differ -- because that is the quantity the 9.35% prior figure
@@ -337,7 +346,15 @@ def judge_floor(
                 if old_v is None or new_v is None:
                     continue
                 text = r.get(f"output_{arm}_memory")
-                k = (text, r.get("verifier_id"), r.get("verifier_version"))
+                # The TASK is part of the key. A reward is a function of
+                # (prediction, GOLD ANSWER, scorer): the same text is correct for
+                # one question and wrong for another, so grouping on text alone
+                # counts a correct-vs-wrong pair as scorer disagreement. Measured
+                # on the first pilot, that inflated F_judge to 0.1486 when the
+                # task-aware rate was 0.000 -- every one of the 18 "disagreeing"
+                # groups spanned more than one task.
+                k = (text, r.get("future_task_id"),
+                     r.get("verifier_id"), r.get("verifier_version"))
                 obs[k].append((_memory_of(r), float(old_v)))
                 obs[k].append((_memory_of(r), float(new_v)))
         source = "explicit_rescore"
@@ -349,7 +366,11 @@ def judge_floor(
                 text = r.get(f"output_{arm}_memory")
                 if v is None or text is None:
                     continue
-                k = (text, r.get("verifier_id"), r.get("verifier_version"))
+                # Same reasoning as above: the gold answer differs per task, so
+                # the task must be in the key or the rate measures the benchmark,
+                # not the verifier.
+                k = (text, r.get("future_task_id"),
+                     r.get("verifier_id"), r.get("verifier_version"))
                 obs[k].append((_memory_of(r), float(v)))
         source = "within_dataset_duplicates"
 

@@ -446,6 +446,7 @@ def additive_null_flip_rate(
     seed: int = DEFAULT_SEED,
     alpha: float = DEFAULT_ALPHA,
     delta_field: str = "delta_utility",
+    allow_pooling: bool = False,
 ) -> dict[str, Any]:
     """Flip rate expected from main effects alone. SUPPLEMENTARY -- not pre-registered.
 
@@ -464,7 +465,8 @@ def additive_null_flip_rate(
     if not data:
         return {"observed": None, "flags": ["NO_ADMITTED_ROWS"]}
 
-    cells = cell_statistics(data, floor, n_boot=n_boot, seed=seed, alpha=alpha)
+    cells = cell_statistics(data, floor, n_boot=n_boot, seed=seed, alpha=alpha,
+                            allow_pooling=allow_pooling)
     observed = sign_flip_report(cells, alpha=alpha)
 
     by_cell = group_by(data, "cell_id")

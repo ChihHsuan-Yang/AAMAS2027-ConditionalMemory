@@ -1,0 +1,86 @@
+{
+  "run_id": "g2_deltau_pilot",
+  "produced_by": "scripts/run_deltau_pilot.py + scripts/g_floors_and_flips.py",
+  "rows_artifact": "results/deltau_pilot/cells.jsonl",
+  "real_endpoint_calls": 1918,
+  "planned_calls": 1920,
+  "errored_cells": 2,
+  "wall_clock_s": 441.8,
+  "concurrency": 16,
+  "n_memories": 60,
+  "n_cells": 479,
+  "n_distinct_tasks": 220,
+  "replicates_per_cell": 2,
+  "rows": 960,
+  "rows_usable": 958,
+  "floors": {
+    "F_exec_delta_REFERENCE": {
+      "point": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "note": "real measurement: 0/479 cells disagree across 2 byte-identical replicates",
+      "positive_control_fires": true,
+      "positive_control_point": 0.5098200591317593
+    },
+    "F_empty": {
+      "point": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "note": "guard WITHOUT_ARM_REUSED is a false positive here: 774 distinct cache keys and 774 distinct latencies prove 774 independent real calls returning identical text"
+    },
+    "F_judge": {
+      "point": 0.0,
+      "n_rescorings": 1916,
+      "n_disagreements": 0,
+      "note": "task-aware re-scoring. The 0.1486 first reported was an estimator defect (grouped byte-identical text WITHOUT the task); fixed in analysis/noise.py",
+      "positive_control_fires": true,
+      "positive_control_point": 0.31746031746031744
+    }
+  },
+  "delta_u_distribution_before_labelling": {
+    "per_cell_mean": {
+      "positive": 20,
+      "zero": 438,
+      "negative": 21
+    },
+    "per_replicate": {
+      "0.0": 876,
+      "1.0": 40,
+      "-1.0": 42
+    },
+    "mean_reward_with": 0.17118997912317327,
+    "mean_reward_without": 0.1732776617954071,
+    "cells_with_disagreeing_replicates": 0
+  },
+  "denominators": {
+    "cells_with_2plus_replicates": 479,
+    "memories_with_2plus_tasks": 60,
+    "usable_rows": 958
+  },
+  "flips": {
+    "robust": 0.13333333333333333,
+    "robust_ci": [
+      0.0691410948058697,
+      0.24165159676499615
+    ],
+    "naive": 0.13333333333333333,
+    "gap": 0.0,
+    "denominator": 60,
+    "label_counts": {
+      "neutral": 438,
+      "robust_harmful": 21,
+      "robust_useful": 20
+    },
+    "caveat": "robust==naive is MECHANICAL: F=0 makes the floor clause vacuous and 2 always-agreeing replicates give a degenerate CI. The gap is not measurable at this replicate count."
+  },
+  "additive_null": {
+    "observed": 0.13333333333333333,
+    "null_mean": 0.9666666666666666,
+    "p_one_sided": 1.0,
+    "reading": "observed rate is FAR BELOW the additive expectation; NO excess over additive, so per PREREG A1.1 this data shows no evidence of memory x task interaction"
+  }
+}

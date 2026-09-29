@@ -162,6 +162,77 @@ def test_judge_floor_is_zero_when_a_rescore_is_exactly_reproducible():
     assert est.n_obs == 120
 
 
+def test_judge_floor_does_not_compare_two_different_tasks():
+    """The same text can be correct for one question and wrong for another.
+
+    A reward is a function of (prediction, GOLD ANSWER, scorer). Grouping
+    byte-identical outputs WITHOUT the task compares two different questions and
+    reports a property of the benchmark as verifier nondeterminism.
+
+    This is not hypothetical. On the first real LongMemEval-V2 pilot the text-only
+    key gave F_judge = 0.1486 [0.116, 0.181] while re-scoring the same text for the
+    SAME task gave 0.0000 over 1,916 comparisons -- all 18 "disagreeing" groups
+    spanned more than one task. ``\boxed{F}`` was correct for one multiple-choice
+    question and wrong for five others.
+
+    The plant below reproduces exactly that shape: identical predictions, different
+    questions, legitimately different rewards, and NO verifier disagreement.
+    """
+    rows = []
+    for i in range(12):
+        r = {
+            "row_id": f"r{i}", "cell_id": f"c{i}", "memory_id": f"m{i}",
+            "benchmark": "b", "future_task_id": f"task{i}",   # every task DIFFERENT
+            "reader_cluster": "metis", "reader_model": "gpt-oss-120b",
+            "reader_prompt_version": "v1", "reader_reasoning_effort": "low",
+            "verifier_id": "mc_choice_match", "verifier_version": "vendored@abc",
+            "error_code_if_any": None,
+            # byte-identical prediction everywhere
+            "output_with_memory": "\\boxed{F}",
+            "output_without_memory": "\\boxed{F}",
+            # correct for the first three questions, wrong for the rest --
+            # a property of the gold answers, not of the scorer
+            "reward_with_memory": 1.0 if i < 3 else 0.0,
+            "reward_without_memory": 1.0 if i < 3 else 0.0,
+            "delta_utility": 0.0,
+        }
+        rows.append(r)
+
+    est = noise.judge_floor(rows, None, n_boot=50)
+    assert est.point in (None, 0.0), (
+        f"F_judge={est.point} from identical text scored against DIFFERENT gold "
+        f"answers; the task must be part of the comparison key")
+    assert not any(f.startswith("NONZERO_JUDGE_FLOOR") for f in est.flags)
+
+
+def test_judge_floor_still_fires_on_a_real_disagreement_within_one_task():
+    """The counterpart: adding the task to the key must not make the check blind.
+
+    Same task, same scorer, byte-identical text, two different rewards -- that IS
+    verifier nondeterminism and must still be caught.
+    """
+    rows = []
+    for i in range(10):
+        rows.append({
+            "row_id": f"r{i}", "cell_id": f"c{i}", "memory_id": f"m{i}",
+            "benchmark": "b", "future_task_id": "SAME_TASK",
+            "reader_cluster": "metis", "reader_model": "gpt-oss-120b",
+            "reader_prompt_version": "v1", "reader_reasoning_effort": "low",
+            "verifier_id": "mc_choice_match", "verifier_version": "vendored@abc",
+            "error_code_if_any": None,
+            "output_with_memory": "\\boxed{F}",
+            "output_without_memory": "\\boxed{F}",
+            "reward_with_memory": 1.0 if i % 2 else 0.0,   # genuine instability
+            "reward_without_memory": 0.0,
+            "delta_utility": 0.0,
+        })
+    est = noise.judge_floor(rows, None, n_boot=50)
+    assert est.point is not None and est.point > 0, (
+        "a real within-task disagreement was missed; the task-aware key made the "
+        "estimator unable to fire at all")
+    assert any(f.startswith("NONZERO_JUDGE_FLOOR") for f in est.flags)
+
+
 # ------------------------------------------------------------------ reference floor
 def test_reference_floor_is_per_benchmark_and_carries_both_scales():
     ds = make_dataset(seed=25)
