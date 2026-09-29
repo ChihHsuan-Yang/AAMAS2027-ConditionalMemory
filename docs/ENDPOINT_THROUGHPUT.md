@@ -1,5 +1,20 @@
 # Endpoint Throughput — Metis `gpt-oss-120b` concurrency ladder
 
+> ## 🔴 THROUGHPUT DEPENDS ON PROMPT LENGTH. Do not quote 341/min as a constant.
+>
+> Everything below was measured at **~4k / ~16k** input tokens (p50 **2.588 s**). The
+> screened main run has a median context of **24,144 tokens** and measures **p50 7.27 s,
+> p90 11.42 s** (n=193, from the run's own recorded latencies) — giving roughly
+> **90–130 completed/min**, not 341.
+>
+> Nothing is wrong with the endpoint. **I quoted the headline figure without re-reading
+> the conditions in this file's own configuration table**, and budgeted an 18-minute run
+> that is really 40–55 minutes. Same "measured on unrepresentative material" shape as the
+> embedding-cap error recorded in `docs/EMBEDDING_LIMITATION.md`.
+>
+> **Rule: scale the expected rate by your actual context length, or re-measure.** The
+> chosen concurrency (16) is unaffected — it was selected on failure rates, not speed.
+
 **Measured 2026-09-29 by Sub-agent C.** Every number is exact and machine-produced by
 `scripts/bench_concurrency.py`; raw per-request records are in `results/bench/*_raw.jsonl`
 and per-level summaries in `results/bench/*.jsonl`. Nothing here is an estimate.
