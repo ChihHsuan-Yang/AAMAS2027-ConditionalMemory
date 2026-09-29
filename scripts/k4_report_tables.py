@@ -79,12 +79,23 @@ for s in STR:
 rf=j.get("reference_floor_pooled") or {}
 print(f"\nPOOLED reference floor used for all labels: **{f(rf.get('point'))}**")
 
-print("\n### 6. Contrasts\n")
-print("| contrast | mean A | mean B | difference | p (two-sided) | n cells A / B |")
-print("|---|---|---|---|---|---|")
+print("\n### 6. Contrasts (task-clustered; cells are NOT independent)\n")
+print("| contrast | mean A | mean B | difference | cell-level p | task-clustered CI | excl 0 |")
+print("|---|---|---|---|---|---|---|")
 for k,v in (j.get("contrasts") or {}).items():
+    tc=v.get("task_clustered_ci") or [None,None]
     print(f"| {k} | {f(v.get('mean_a'))} | {f(v.get('mean_b'))} | **{f(v.get('observed_difference'))}** | "
-          f"**{f(v.get('p_two_sided'))}** | {v.get('n_cells_a')} / {v.get('n_cells_b')} |")
+          f"{f(v.get('p_two_sided'))} | [{f(tc[0])}, {f(tc[1])}] | "
+          f"**{v.get('task_clustered_ci_excludes_zero')}** |")
+print("\n**Leave-one-task-out** (does ONE question carry the difference?)\n")
+print("| contrast | n tasks | drop-one min | drop-one max | worst task | diff without it | sign stable |")
+print("|---|---|---|---|---|---|---|")
+for k,v in (j.get("contrasts") or {}).items():
+    jk=v.get("leave_one_task_out") or {}
+    print(f"| {k} | {v.get('n_tasks')} | {f(jk.get('min'))} | {f(jk.get('max'))} | "
+          f"{jk.get('task_whose_removal_shrinks_it_most')} | "
+          f"**{f(jk.get('difference_without_that_task'))}** | "
+          f"**{jk.get('sign_stable_across_all_drops')}** |")
 
 print("\n### 7. Variance decomposition identifiability\n")
 pd_=j.get("pooled_decomposition") or {}
