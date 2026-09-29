@@ -29,6 +29,18 @@ that produced it and the date it was measured.
 | 9 | `replicate_id` support in `analyze_reliability.py` | **present**, keys on `(problem_id, mask, replicate_id)` | Master Agent read, lines 43/56/68/73/82 | 2026-09-29 | VERIFIED — start here |
 | 10 | AAMAS 2027 abstract length rule | "around 100-300 words in plain text" | warwick.ac.uk instructions page | 2026-09-29 | VERIFIED |
 | 11 | Drafted abstract length | 268 words | `docs/submission/abstract_v1.txt` | 2026-09-29 | VERIFIED in range |
+| 12 | Minerva `gpt-oss-120b` serves | **NO — HTTP 503 persistent**, 4 retries over ~2 min, identical body `"not currently live on Minerva"` | Sub-agent C real POST | 2026-09-29 | VERIFIED NEGATIVE |
+| 13 | Minerva `inkling-bf16`, `nemotron-3-ultra` serve | yes, resolved ids identical to requested | real POST | 2026-09-29 | VERIFIED |
+| 14 | Cluster `tara` | listed but `"frameworks": {}` — unusable | list-endpoints | 2026-09-29 | VERIFIED |
+| 15 | Metis vs Sophia latency, `gpt-oss-120b` | 4k: **0.728 s** vs 3.387 s · 16k: **1.082 s** vs 2.500 s | probe, server-counted prompt tokens | 2026-09-29 | VERIFIED |
+| 16 | Long-context needle retrieval, 4 models × 16.8k/31.5k | **12/12 correct** (corrected harness) | Sub-agent C | 2026-09-29 | VERIFIED |
+| 17 | Sophia reports `reasoning_tokens` | **no** — `completion_tokens_details` absent; Metis does report it | probe | 2026-09-29 | VERIFIED — decided the cluster choice |
+| 18 | Reasoning tokens share the `max_tokens` budget | yes — at `max_tokens=64`, content null, `finish_reason=length`, needle found inside `reasoning` | Sub-agent C instrument defect | 2026-09-29 | VERIFIED — binding call constraint |
+| 19 | LongMemEval-V2 `trajectories.jsonl` | 1,195,604,539 bytes, sha256 `363cec9a…f3c6` **matches `checksums.sha256`** | Sub-agent A download + verify | 2026-09-29 | VERIFIED (earlier 125MB `traj_head.jsonl` was a truncated prefix, 154 lines, superseded) |
+| 20 | V2 `eval_function` DISTINCT SPECS | **8**, not 6 — `norm_phrase_set_match` splits into `separators=,;` (199) and `separators=;` (1); ordered splits 19/7 | Sub-agent A, full spec strings | 2026-09-29 | VERIFIED — adapter must dispatch on the FULL spec, never the function name |
+| 21 | V2 deterministic question count | **295** (199+1+68+1+19+7) | Sub-agent A, independently | 2026-09-29 | VERIFIED — agrees with Master Agent's 295 |
+| 22 | V2 official scorer provenance | `harness.py` in `/tmp/lmev2` is **byte-identical** to the official repo's (`sha256 93fe5855…bdb9`), HEAD `2cc8c540`, **Apache-2.0** | Sub-agent A | 2026-09-29 | VERIFIED — vendor the scorer, do not reimplement |
+| 23 | `norm_phrase_set_match` semantics | **NOT set equality** — gold-phrase containment (recall-only); extra prediction content is unpenalized | Sub-agent A, read from source | 2026-09-29 | VERIFIED — inferring from the name would have been wrong |
 
 ## Inherited numbers pending re-derivation
 
