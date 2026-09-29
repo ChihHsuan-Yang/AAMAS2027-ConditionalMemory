@@ -23,14 +23,24 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from p1mem.adapters import lmev2  # noqa: E402
-from p1mem.adapters.vendor.lmev2_qa_eval_metrics import extract_boxed_answer  # noqa: E402
+from p1mem.adapters.vendor.lmev2_qa_eval_metrics import (  # noqa: E402
+    extract_boxed_answer,
+    is_unknown,
+)
 from p1mem.analysis import decomposition as dc, labels as lb, noise as nz  # noqa: E402
 from p1mem.analysis.common import jsonable  # noqa: E402
 from p1mem.schema import load_jsonl, write_json_atomic  # noqa: E402
 
 
 def rescore(rows: list[dict], root: Path) -> dict:
-    """Re-score every stored output with the official scorer. F_judge, section 2."""
+    """Re-score every stored output with the official scorer. F_judge, section 2.
+
+    The re-scoring must apply the SAME rule the run applied, or F_judge measures
+    verifier drift between the two code paths rather than scorer nondeterminism.
+    The official rule (harness.py:1055) forces a score of False when the parsed
+    answer is UNKNOWN; the official-prompt arm abstains, so omitting the override
+    here would manufacture a judge-floor disagreement on every abstained row.
+    """
     tasks = {t.id: t for t in lmev2.load_tasks(root)}
     out = {}
     for r in rows:
@@ -43,7 +53,8 @@ def rescore(rows: list[dict], root: Path) -> dict:
             txt = r.get(of)
             if txt is None:
                 continue
-            new[rf] = float(t.score(extract_boxed_answer(txt)))
+            parsed = extract_boxed_answer(txt)
+            new[rf] = 0.0 if is_unknown(parsed) else float(t.score(parsed))
         out[r["row_id"]] = new
     return out
 

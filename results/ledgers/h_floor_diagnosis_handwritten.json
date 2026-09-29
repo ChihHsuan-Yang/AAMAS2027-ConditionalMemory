@@ -1,0 +1,268 @@
+{
+  "_circularity_warning": "cause (1)'s ORACLE-BEARING subgroup is defined by memory CONTENT, not by any outcome, so it is not a selected subgroup. 'cells where at least one arm succeeded' IS selected on the outcome and any rate on it is circular; it is reported here only as a diagnostic, never as a result.",
+  "abstention_x_reward": {
+    "without|is_unknown=None|reward=0.0": 792,
+    "without|is_unknown=None|reward=1.0": 166,
+    "with|is_unknown=None|reward=0.0": 794,
+    "with|is_unknown=None|reward=1.0": 164
+  },
+  "both_arms_fail": 376,
+  "both_arms_fail_rate": 0.7849686847599165,
+  "cause_1_memory_bears_on_task": {
+    "_test": "leakage_flag=True means the memory's own text literally contains the gold answer, so the WITH context provably CONTAINS the needed information. If the WITH arm still fails there, an irrelevant pairing cannot be the whole explanation.",
+    "grouping": "leakage_flag",
+    "levels": {
+      "False": {
+        "both_arms_fail": 266,
+        "both_arms_fail_fraction": 0.8159509202453987,
+        "delta": -0.01533742331288343,
+        "mean_reward_with": 0.1441717791411043,
+        "mean_reward_without": 0.15950920245398773,
+        "n_cells": 326
+      },
+      "True": {
+        "both_arms_fail": 110,
+        "both_arms_fail_fraction": 0.7189542483660131,
+        "delta": 0.026143790849673193,
+        "mean_reward_with": 0.22875816993464052,
+        "mean_reward_without": 0.20261437908496732,
+        "n_cells": 153
+      }
+    }
+  },
+  "cause_2_task_difficulty": {
+    "by_domain": {
+      "grouping": "domain",
+      "levels": {
+        "enterprise": {
+          "both_arms_fail": 147,
+          "both_arms_fail_fraction": 0.7696335078534031,
+          "delta": -0.01570680628272253,
+          "mean_reward_with": 0.17277486910994763,
+          "mean_reward_without": 0.18848167539267016,
+          "n_cells": 191
+        },
+        "web": {
+          "both_arms_fail": 229,
+          "both_arms_fail_fraction": 0.7951388888888888,
+          "delta": 0.0069444444444444475,
+          "mean_reward_with": 0.1701388888888889,
+          "mean_reward_without": 0.16319444444444445,
+          "n_cells": 288
+        }
+      }
+    },
+    "by_eval_function": {
+      "grouping": "eval_function",
+      "levels": {
+        "mc_choice_match": {
+          "both_arms_fail": 94,
+          "both_arms_fail_fraction": 0.7833333333333333,
+          "delta": -0.016666666666666663,
+          "mean_reward_with": 0.15833333333333333,
+          "mean_reward_without": 0.175,
+          "n_cells": 120
+        },
+        "mc_choice_set_match": {
+          "both_arms_fail": 0,
+          "both_arms_fail_fraction": 0.0,
+          "delta": 0.0,
+          "mean_reward_with": 1.0,
+          "mean_reward_without": 1.0,
+          "n_cells": 1
+        },
+        "norm_phrase_set_match": {
+          "both_arms_fail": 250,
+          "both_arms_fail_fraction": 0.7987220447284346,
+          "delta": 0.0,
+          "mean_reward_with": 0.1597444089456869,
+          "mean_reward_without": 0.1597444089456869,
+          "n_cells": 313
+        },
+        "norm_phrase_set_match_ordered": {
+          "both_arms_fail": 32,
+          "both_arms_fail_fraction": 0.7111111111111111,
+          "delta": 0.022222222222222227,
+          "mean_reward_with": 0.26666666666666666,
+          "mean_reward_without": 0.24444444444444444,
+          "n_cells": 45
+        }
+      }
+    },
+    "by_question_type": {
+      "grouping": "question_type",
+      "levels": {
+        "dynamic-environment": {
+          "both_arms_fail": 124,
+          "both_arms_fail_fraction": 0.8551724137931035,
+          "delta": -0.027586206896551724,
+          "mean_reward_with": 0.0896551724137931,
+          "mean_reward_without": 0.11724137931034483,
+          "n_cells": 145
+        },
+        "errors-gotchas": {
+          "both_arms_fail": 36,
+          "both_arms_fail_fraction": 1.0,
+          "delta": 0.0,
+          "mean_reward_with": 0.0,
+          "mean_reward_without": 0.0,
+          "n_cells": 36
+        },
+        "procedure": {
+          "both_arms_fail": 107,
+          "both_arms_fail_fraction": 0.7379310344827587,
+          "delta": 0.006896551724137917,
+          "mean_reward_with": 0.23448275862068965,
+          "mean_reward_without": 0.22758620689655173,
+          "n_cells": 145
+        },
+        "static-environment": {
+          "both_arms_fail": 109,
+          "both_arms_fail_fraction": 0.7124183006535948,
+          "delta": 0.013071895424836583,
+          "mean_reward_with": 0.22875816993464052,
+          "mean_reward_without": 0.21568627450980393,
+          "n_cells": 153
+        }
+      }
+    }
+  },
+  "cause_3_context_design": {
+    "by_context_length_quartile": {
+      "cuts": [
+        40174,
+        42136,
+        44592
+      ],
+      "grouping": "input_tokens_quartile",
+      "levels": {
+        "Q1": {
+          "both_arms_fail": 94,
+          "both_arms_fail_fraction": 0.7899159663865546,
+          "delta": -0.008403361344537813,
+          "mean_reward_with": 0.15126050420168066,
+          "mean_reward_without": 0.15966386554621848,
+          "n_cells": 119
+        },
+        "Q2": {
+          "both_arms_fail": 99,
+          "both_arms_fail_fraction": 0.825,
+          "delta": 0.008333333333333331,
+          "mean_reward_with": 0.15,
+          "mean_reward_without": 0.14166666666666666,
+          "n_cells": 120
+        },
+        "Q3": {
+          "both_arms_fail": 98,
+          "both_arms_fail_fraction": 0.8166666666666667,
+          "delta": 0.008333333333333331,
+          "mean_reward_with": 0.15,
+          "mean_reward_without": 0.14166666666666666,
+          "n_cells": 120
+        },
+        "Q4": {
+          "both_arms_fail": 85,
+          "both_arms_fail_fraction": 0.7083333333333334,
+          "delta": -0.016666666666666663,
+          "mean_reward_with": 0.23333333333333334,
+          "mean_reward_without": 0.25,
+          "n_cells": 120
+        }
+      }
+    },
+    "by_similarity_band": {
+      "grouping": "semantic_distance_band",
+      "levels": {
+        "FAR": {
+          "both_arms_fail": 127,
+          "both_arms_fail_fraction": 0.79375,
+          "delta": 0.0,
+          "mean_reward_with": 0.175,
+          "mean_reward_without": 0.175,
+          "n_cells": 160
+        },
+        "MID": {
+          "both_arms_fail": 124,
+          "both_arms_fail_fraction": 0.775,
+          "delta": -0.012500000000000011,
+          "mean_reward_with": 0.175,
+          "mean_reward_without": 0.1875,
+          "n_cells": 160
+        },
+        "NEAR": {
+          "both_arms_fail": 125,
+          "both_arms_fail_fraction": 0.7861635220125787,
+          "delta": 0.0062893081761006275,
+          "mean_reward_with": 0.16352201257861634,
+          "mean_reward_without": 0.15723270440251572,
+          "n_cells": 159
+        }
+      }
+    },
+    "by_target_position": {
+      "grouping": "target_position",
+      "levels": {
+        "0": {
+          "both_arms_fail": 62,
+          "both_arms_fail_fraction": 0.775,
+          "delta": 0.0,
+          "mean_reward_with": 0.175,
+          "mean_reward_without": 0.175,
+          "n_cells": 80
+        },
+        "1": {
+          "both_arms_fail": 56,
+          "both_arms_fail_fraction": 0.7887323943661971,
+          "delta": -0.02816901408450706,
+          "mean_reward_with": 0.15492957746478872,
+          "mean_reward_without": 0.18309859154929578,
+          "n_cells": 71
+        },
+        "2": {
+          "both_arms_fail": 49,
+          "both_arms_fail_fraction": 0.7903225806451613,
+          "delta": 0.0,
+          "mean_reward_with": 0.16129032258064516,
+          "mean_reward_without": 0.16129032258064516,
+          "n_cells": 62
+        },
+        "3": {
+          "both_arms_fail": 41,
+          "both_arms_fail_fraction": 0.7735849056603774,
+          "delta": 0.0,
+          "mean_reward_with": 0.18867924528301888,
+          "mean_reward_without": 0.18867924528301888,
+          "n_cells": 53
+        },
+        "4": {
+          "both_arms_fail": 48,
+          "both_arms_fail_fraction": 0.8275862068965517,
+          "delta": 0.01724137931034482,
+          "mean_reward_with": 0.13793103448275862,
+          "mean_reward_without": 0.1206896551724138,
+          "n_cells": 58
+        },
+        "5": {
+          "both_arms_fail": 62,
+          "both_arms_fail_fraction": 0.7848101265822784,
+          "delta": 0.0,
+          "mean_reward_with": 0.17721518987341772,
+          "mean_reward_without": 0.17721518987341772,
+          "n_cells": 79
+        },
+        "6": {
+          "both_arms_fail": 58,
+          "both_arms_fail_fraction": 0.7631578947368421,
+          "delta": 0.0,
+          "mean_reward_with": 0.19736842105263158,
+          "mean_reward_without": 0.19736842105263158,
+          "n_cells": 76
+        }
+      }
+    }
+  },
+  "n_cells": 479,
+  "rows_artifact": "results/deltau_pilot/cells.jsonl",
+  "wilson_hi": 0.8194172410002011,
+  "wilson_lo": 0.7459857396526682
+}
