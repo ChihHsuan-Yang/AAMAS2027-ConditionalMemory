@@ -49,6 +49,10 @@ from p1mem.schema import load_jsonl, write_json_atomic  # noqa: E402
 STRATA = ("BEARING", "MATCHED_CONTROL", "RANDOM")
 
 
+def f4(x) -> str:
+    return "—" if x is None else f"{x:.4f}"
+
+
 def stratum_of(r: dict) -> str | None:
     return (r.get("provenance") or {}).get("stratum")
 
@@ -675,6 +679,54 @@ def main() -> int:
     report["_unscreened_comparator"] = {
         "handwritten_all_cells": 0.7850, "official_all_cells": 0.8375,
         "source": "docs/SUBAGENT_J_DIAGNOSTIC.md section 3 table"}
+
+    # ---- MECHANICAL READING RULES ----
+    # Where a ruling can be made mechanical, make it mechanical: a rule a human
+    # must remember at reporting time is a rule that gets forgotten. These
+    # fields are emitted INTO the artifact so it refuses to be misread, rather
+    # than relying on whoever opens it (including me) to recall the policy.
+    bf = {st: ((report["per_stratum"].get(st) or {}).get("both_arms_fail") or {}).get("rate")
+          for st in STRATA}
+    bear, rand = bf.get("BEARING"), bf.get("RANDOM")
+    stop = {
+        "_rule": "docs/CONTRAST_FRAMING.md / K report section 16: if BEARING's "
+                 "both-arms-fail is not MATERIALLY below RANDOM's, the instrument "
+                 "cannot detect anything and THAT is the headline. Committed before "
+                 "results existed so it cannot be softened after seeing them.",
+        "bearing_both_arms_fail": bear,
+        "random_both_arms_fail": rand,
+        "absolute_reduction": (None if bear is None or rand is None else rand - bear),
+        "unscreened_comparator": 0.7850,
+    }
+    if bear is not None and rand is not None:
+        # "materially" fixed here, not chosen after the fact: the BEARING Wilson
+        # upper bound must sit below the RANDOM point estimate. That is a
+        # separation the interval itself supports, not an eyeballed gap.
+        bci = (((report["per_stratum"].get("BEARING") or {}).get("both_arms_fail")
+                or {}).get("wilson_ci") or [None, None])
+        stop["bearing_wilson_upper"] = bci[1]
+        stop["separated"] = (None if bci[1] is None else bool(bci[1] < rand))
+        stop["VERDICT"] = (
+            "SCREEN BOUGHT MEASUREMENT CAPACITY" if stop["separated"]
+            else "SCREEN DID NOT MATERIALLY REDUCE BOTH-ARMS-FAIL -- this is the "
+                 "headline and nothing downstream gets dressed up")
+    report["STOPPING_RULE"] = stop
+    print(f"\n  STOPPING RULE: BEARING={f4(bear)} vs RANDOM={f4(rand)} "
+          f"-> {stop.get('VERDICT', 'UNEVALUABLE')}")
+
+    # A1.4 / section 4: F_exec == 0 makes the floor clause vacuous, so robust and
+    # naive coincide MECHANICALLY. Stated as a field so the gap is never read as
+    # a measured zero.
+    report["ROBUST_NAIVE_GAP_STATUS"] = (
+        {"status": "NOT_MEASURABLE",
+         "_why": "F_exec[delta] == 0 for a deterministic reader, so section 4's "
+                 "magnitude clause |mean dU| > F is vacuous and robust == naive by "
+                 "construction. A gap of 0.0 here would imply a measurement was "
+                 "taken; it cannot be taken at this replicate count.",
+         "F_exec_delta": F_ref}
+        if not F_ref else
+        {"status": "MEASURABLE", "F_exec_delta": F_ref})
+    print(f"  ROBUST/NAIVE GAP: {report['ROBUST_NAIVE_GAP_STATUS']['status']}")
 
     write_json_atomic(args.out / "k3_screened_analysis.json", jsonable(report))
     print(f"\n[wrote] {args.out / 'k3_screened_analysis.json'}")
