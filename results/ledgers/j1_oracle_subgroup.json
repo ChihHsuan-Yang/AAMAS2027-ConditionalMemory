@@ -1,0 +1,174 @@
+{
+  "_not_selected_on_outcome": "the subgroup is defined by whether memory_text literally contains the gold answer -- a property of the CONTENT. No reward enters its definition. It is therefore NOT a selected subgroup; 'cells where at least one arm succeeded' would be, and is not used here.",
+  "_what": "J1 oracle-bearing subgroup, leakage RE-DERIVED from memory_text",
+  "arms": {
+    "handwritten": {
+      "ALL": {
+        "acc_with": 0.17118997912317327,
+        "acc_with_wilson": [
+          0.14010635679087477,
+          0.20750558860966092
+        ],
+        "acc_without": 0.1732776617954071,
+        "acc_without_wilson": [
+          0.14201754882724585,
+          0.20973654295169916
+        ],
+        "both_arms_fail": 376,
+        "both_arms_fail_rate": 0.7849686847599165,
+        "both_arms_fail_wilson": [
+          0.7459857396526682,
+          0.8194172410002011
+        ],
+        "delta": -0.0020876826722338203,
+        "n_cells": 479,
+        "n_correct_with": 82,
+        "n_correct_without": 83
+      },
+      "CLEAN": {
+        "acc_with": 0.1441717791411043,
+        "acc_with_wilson": [
+          0.11018221598092334,
+          0.18644956333060933
+        ],
+        "acc_without": 0.15950920245398773,
+        "acc_without_wilson": [
+          0.12376185850513269,
+          0.20318751652573044
+        ],
+        "both_arms_fail": 266,
+        "both_arms_fail_rate": 0.8159509202453987,
+        "both_arms_fail_wilson": [
+          0.770288676291968,
+          0.85425379552624
+        ],
+        "delta": -0.015337423312883436,
+        "n_cells": 326,
+        "n_correct_with": 47,
+        "n_correct_without": 52
+      },
+      "ORACLE_BEARING": {
+        "acc_with": 0.22875816993464052,
+        "acc_with_wilson": [
+          0.16933105220503897,
+          0.30147213577800513
+        ],
+        "acc_without": 0.20261437908496732,
+        "acc_without_wilson": [
+          0.146572583431641,
+          0.27322368291121457
+        ],
+        "both_arms_fail": 110,
+        "both_arms_fail_rate": 0.7189542483660131,
+        "both_arms_fail_wilson": [
+          0.6430385596574171,
+          0.7841444090791618
+        ],
+        "delta": 0.026143790849673203,
+        "n_cells": 153,
+        "n_correct_with": 35,
+        "n_correct_without": 31
+      },
+      "mismatch_examples": [],
+      "n_clean": 326,
+      "n_live_cells": 479,
+      "n_oracle_bearing": 153,
+      "n_rows": 960,
+      "n_undecidable": 0,
+      "oracle_detector_counts": {
+        "exact": 137,
+        "normalized": 48,
+        "numeric_only": 6,
+        "official": 28
+      },
+      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_pilot/cells.jsonl",
+      "stored_vs_rederived_mismatches": 0
+    },
+    "official": {
+      "ALL": {
+        "acc_with": 0.11458333333333333,
+        "acc_with_wilson": [
+          0.08909763826791334,
+          0.14618905894519674
+        ],
+        "acc_without": 0.12083333333333333,
+        "acc_without_wilson": [
+          0.09464618560887236,
+          0.15304126786564676
+        ],
+        "both_arms_fail": 402,
+        "both_arms_fail_rate": 0.8375,
+        "both_arms_fail_wilson": [
+          0.8018401771254301,
+          0.8678006609906573
+        ],
+        "delta": -0.00625,
+        "n_cells": 480,
+        "n_correct_with": 55,
+        "n_correct_without": 58
+      },
+      "CLEAN": {
+        "acc_with": 0.10122699386503067,
+        "acc_with_wilson": [
+          0.07299029121304915,
+          0.1387522200843581
+        ],
+        "acc_without": 0.11042944785276074,
+        "acc_without_wilson": [
+          0.08083934954136798,
+          0.14909371918763759
+        ],
+        "both_arms_fail": 281,
+        "both_arms_fail_rate": 0.8619631901840491,
+        "both_arms_fail_wilson": [
+          0.8202844737011477,
+          0.8952107852750519
+        ],
+        "delta": -0.009202453987730062,
+        "n_cells": 326,
+        "n_correct_with": 33,
+        "n_correct_without": 36
+      },
+      "ORACLE_BEARING": {
+        "acc_with": 0.14285714285714285,
+        "acc_with_wilson": [
+          0.0962711916321223,
+          0.2068269878838274
+        ],
+        "acc_without": 0.14285714285714285,
+        "acc_without_wilson": [
+          0.0962711916321223,
+          0.2068269878838274
+        ],
+        "both_arms_fail": 121,
+        "both_arms_fail_rate": 0.7857142857142857,
+        "both_arms_fail_wilson": [
+          0.7143714117460493,
+          0.843150044641191
+        ],
+        "delta": 0.0,
+        "n_cells": 154,
+        "n_correct_with": 22,
+        "n_correct_without": 22
+      },
+      "mismatch_examples": [],
+      "n_clean": 326,
+      "n_live_cells": 480,
+      "n_oracle_bearing": 154,
+      "n_rows": 960,
+      "n_undecidable": 0,
+      "oracle_detector_counts": {
+        "exact": 138,
+        "normalized": 48,
+        "numeric_only": 6,
+        "official": 28
+      },
+      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_official/cells.jsonl",
+      "stored_vs_rederived_mismatches": 0
+    }
+  },
+  "leakage_detector_controls": {
+    "all_passed": true,
+    "n": 17
+  }
+}
