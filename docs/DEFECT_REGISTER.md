@@ -60,6 +60,33 @@ should behave differently.**
 - exercising the same probe on real data rather than synthetic (#5)
 - a positive control on a known-good case (#15)
 
+## A named pattern: the pooled number hides the structure that matters
+
+Three times in one day, a correctly-computed pooled figure led to a wrong reading, and each
+time the fix was to split it by the variable that actually varied:
+
+| pooled figure | what it hid |
+|---|---|
+| V2 leakage **26.96%** | 97.71% at ≤2-char golds (multiple choice — measuring the alphabet) vs **4.68%** at >30 chars. The pooled rate tracks answer length, not memory |
+| both-arms-fail **~80%** | that the rate is a property of the *pairing*, and collapses on cells where the memory bears on the task |
+| task concentration **34.6%** | that MATCHED_CONTROL — the stratum carrying the claim — is **2.2× less concentrated** than RANDOM (max 4 cells/task vs 40) |
+
+None of these was a computation error. Each was a real number that answered a question
+nobody had asked, and in two of the three the pooled version pointed the *opposite* way
+from the truth.
+
+> **Rule: before quoting a rate, ask what it is an average over, and split it by that.**
+> If the split changes the reading, the pooled number does not go in the paper alone.
+
+## Make the ruling mechanical where you can
+
+A ruling a human must remember at reporting time is a ruling that will eventually be
+forgotten. Sub-agent K's `GOVERNING: task_clustered` field — emitted into the analysis
+artifact whenever the clustered CI and the cell-level p disagree — is the better form: the
+artifact refuses to be misread, rather than relying on the reader to recall a policy.
+
+Prefer: a field in the artifact > an assertion in code > a line in a doc > an agreement.
+
 ## Three of these were mine
 
 Defects #1, #4, #5 were in code or reasoning I authored, and #3 I reported to the user as a
