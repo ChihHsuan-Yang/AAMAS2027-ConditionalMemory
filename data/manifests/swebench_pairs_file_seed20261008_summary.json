@@ -1,0 +1,10 @@
+{
+  "n_pairs": 406,
+  "n_memories": 133,
+  "memories_with_1_task": 0,
+  "memories_with_ge2_tasks": 133,
+  "memories_with_ge3_tasks": 83,
+  "pct_diagonal": 0.0,
+  "max_tasks_per_memory": 4,
+  "beam_reference_pct_diagonal": 92.6
+}
