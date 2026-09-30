@@ -71,8 +71,16 @@ except ImportError:  # pragma: no cover
 # The previous value is kept so a v1 artifact can still be RECOGNISED rather than
 # merely rejected -- a reader that cannot name the old contract cannot migrate it.
 SCHEMA_VERSION_V1 = "p1mem_conditional_memory_utility_v1"
-SCHEMA_VERSION = "p1mem_conditional_memory_utility_v2"
-KNOWN_SCHEMA_VERSIONS: tuple[str, ...] = (SCHEMA_VERSION_V1, SCHEMA_VERSION)
+SCHEMA_VERSION_V2 = "p1mem_conditional_memory_utility_v2"
+# v3 (2026-09-30, release v0.2): ONE field added, ``faithfulness_detail``, because the
+# representation arm made faithfulness genuinely measurable for the first time. Presence
+# is the contract -- validate.py reports a missing KEY and null is a legal value -- so a
+# v2 row lacks the key and would fail v3 validation. The bump is therefore required, not
+# cosmetic. v0.1's published rows are re-migrated to v3 as part of v0.2; the v0.1 tag
+# keeps its own pinned copy of the v2 validator beside its own data.
+SCHEMA_VERSION = "p1mem_conditional_memory_utility_v3"
+KNOWN_SCHEMA_VERSIONS: tuple[str, ...] = (
+    SCHEMA_VERSION_V1, SCHEMA_VERSION_V2, SCHEMA_VERSION)
 
 # Version of the rule that maps replicate rewards -> utility_label. Stored per row so a
 # relabelled dataset is distinguishable from the original. The rule itself is
@@ -637,6 +645,24 @@ _SPEC: tuple[tuple[str, str, str, bool, bool, str], ...] = (
      "reason is indistinguishable from a forgotten field, which is the failure this "
      "field exists to prevent. For raw rows it records that raw is the source, that the "
      "proxy would be a tautology, and what would have to change for a real score."),
+    ("faithfulness_detail", "quality", "obj", True, False,
+     "ADDED IN v3 (release v0.2). The FULL multi-axis faithfulness proxy score, because "
+     "faithfulness_check is a single float and one axis cannot carry this measurement.\n"
+     "🔴 WHY A SECOND FIELD RATHER THAN ONE NUMBER — this is the whole reason it exists. "
+     "MEASURED on the v0.2 corpus: structured memories score number_support 1.0000 on "
+     "average, while entity_support is 0.8322; 55 of 57 structured memories and 37 of 60 "
+     "summary memories have number_support == 1.0 with entity_support < 1.0. Publishing "
+     "only faithfulness_check would therefore have shipped a column of perfect 1.0s for "
+     "structured — the same 'tautology dressed as a measurement' that keeps this field "
+     "null on raw, arrived at by a different route. Both axes ship or neither does.\n"
+     "Keys: rule_version, representation, number_support, entity_support, "
+     "contradiction_rate, contradiction_rate_excl_scope_collision, n_numbers, "
+     "n_numbers_supported, n_entities, n_entities_supported, n_bindings_checked, "
+     "n_bindings_contradicted, n_bindings_scope_collision, length_ratio.\n"
+     "NULL on raw (the proxy is a tautology there) and null on the 3 structured rows "
+     "whose write hit the token cap. Copied verbatim from the write-time score in "
+     "results/repr_scaleup/memories.jsonl; not recomputed at export, so the published "
+     "value is the one the experiment actually used."),
     # ------------------------------------------------- memory-task relationship
     ("bearing_label", "bearing", "str", True, False,
      "ADDED for the user's memory–task-relationship group. Whether this memory is "
@@ -997,7 +1023,34 @@ FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE = (
     "exactly that comparison, and is documented as a POSITIVE CONTROL that must pass). "
     "A column of 1.0s would assert that every memory was checked and found faithful, "
     "which is not what a tautology measures. A real score requires a model-written "
-    "representation (summary/structured), which this release does not contain."
+    "representation (summary or structured); those rows arrived in v0.2 and DO carry "
+    "a score -- see FAITHFULNESS_SCORED_NOTE."
+)
+
+# v0.2. Summary and structured memories ARE scored -- the proxy was run at write time
+# by scripts/r1_write_representations.py and the per-memory result is in
+# results/repr_scaleup/memories.jsonl. The v0.1 migration wrote "No faithfulness proxy
+# was run for this representation" for every non-raw row, which would have been FALSE
+# the moment such a row existed: a stated reason is part of the record, and a null
+# whose reason is wrong is worse than a null whose reason is absent.
+FAITHFULNESS_SCORED_NOTE = (
+    "SCORED by the deterministic proxy {rule}. The value in faithfulness_check is "
+    "number_support (numeric literals in the memory that appear in the source), the "
+    "single most consequential axis for a QA benchmark; the full multi-axis score -- "
+    "entity_support, contradiction_rate, the scope-collision split, and the "
+    "unsupported-token lists -- is in faithfulness_detail.\n"
+    "READ IT ASYMMETRICALLY. The proxies are blind to recombination, omission, "
+    "unsupported inference and negation, so a HIGH score is weak evidence of "
+    "faithfulness while a LOW score is strong evidence of a problem. entity_support "
+    "in particular is a LOWER bound: sentence-initial capitalised verbs and the "
+    "structured renderer's own key names are scored as unsupported entities without "
+    "being model-invented content."
+)
+
+FAITHFULNESS_WRITE_FAILED_NOTE = (
+    "NOT SCORED. The write that produced this memory did not complete "
+    "(finish_reason={finish!r}), so there is no well-formed memory text to score. "
+    "Null here is a failed write, not an unmeasured one."
 )
 
 # Known weakness of the bearing screen, carried INSIDE bearing_evidence so it travels
@@ -1272,7 +1325,8 @@ __all__ = [
     "MEMORY_REPRESENTATIONS", "MEMORY_SEMANTIC_TYPES", "SEMANTIC_DISTANCE_BANDS",
     "RETRIEVAL_METHODS", "UTILITY_LABELS", "BEARING_LABELS", "MEMORY_TYPES_COARSE",
     "MEMORY_TYPE_COARSE_OF", "BEARING_SCREEN_CAVEAT",
-    "FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE",
+    "FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE", "FAITHFULNESS_SCORED_NOTE",
+    "FAITHFULNESS_WRITE_FAILED_NOTE",
     "classify_memory_type", "compute_compression_ratio",
     "compute_extraction_cost_proxy", "compute_storage_bytes",
     "build_bearing_evidence",

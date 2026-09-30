@@ -223,6 +223,22 @@ def redact_row(row: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
         if out.get("source_episode_metadata") is not None:
             out["source_episode_metadata"] = {"__withheld__": True, "license": pol.key}
             withheld.append("source_episode_metadata")
+        # v0.2: faithfulness_detail QUOTES SOURCE TEXT. Three of its keys carry
+        # verbatim fragments -- ``contradictions[].source`` holds the source-side
+        # binding ("click('287')"), and the unsupported_* lists hold tokens and URLs
+        # lifted out of the memory, which for a raw-derived memory IS source text.
+        # The numeric axes are ours and stay; the quoted fragments follow the same
+        # rule as memory_text. Withholding the WHOLE object would destroy the
+        # measurement over a licence question that only bites on the quotations.
+        fd = out.get("faithfulness_detail")
+        if isinstance(fd, dict):
+            quoting = ("unsupported_numbers", "unsupported_entities", "contradictions")
+            if any(fd.get(k) for k in quoting):
+                trimmed = {k: v for k, v in fd.items() if k not in quoting}
+                trimmed["__quoted_fragments_withheld__"] = True
+                trimmed["__license__"] = pol.key
+                out["faithfulness_detail"] = trimmed
+                withheld.append("faithfulness_detail.quoted_fragments")
 
     if not _output_may_quote_source(pol):
         for f in ("output_with_memory", "output_without_memory"):
@@ -302,6 +318,14 @@ def gate_license_exclusion(exported: Sequence[dict[str, Any]]) -> dict[str, int]
             md = r.get("source_episode_metadata")
             if isinstance(md, dict) and not md.get("__withheld__"):
                 leaks.append(f"row[{i}].source_episode_metadata survived under {pol.key!r}")
+            fd = r.get("faithfulness_detail")
+            if isinstance(fd, dict):
+                for k in ("unsupported_numbers", "unsupported_entities",
+                          "contradictions"):
+                    if fd.get(k):
+                        leaks.append(
+                            f"row[{i}].faithfulness_detail.{k} carries verbatim source "
+                            f"fragments under non-redistributable policy {pol.key!r}")
         if not _output_may_quote_source(pol):
             for f in ("output_with_memory", "output_without_memory"):
                 v = r.get(f)
@@ -415,6 +439,50 @@ def self_test(rows: Sequence[dict[str, Any]]) -> list[str]:
         raise AssertionError("SELF-TEST FAILED: unknown license failed OPEN")
     except GateFailure:
         log.append("PASS gate3: an unrecognized license reference fails CLOSED")
+
+    # -- GATE 3 positive #3 (v0.2): faithfulness_detail quotes SOURCE TEXT in three of
+    #    its keys. A new field added late is exactly the one a licence gate written
+    #    before it existed cannot see, so the plant goes INSIDE the new field.
+    quoting = dict(sample)
+    quoting["license_source_reference"] = "longmemeval_v1:MIT+sharegpt_upstream"
+    quoting["faithfulness_detail"] = {
+        "rule_version": "deterministic_proxy@1.0.0", "representation": "summary",
+        "number_support": 1.0, "entity_support": 0.9,
+        "contradictions": [{"key": "action", "source": ["click('287')"],
+                            "memory": ["clicked the link"]}],
+        "unsupported_entities": ["http://localhost:9080/f/AskReddit/10224/some-thread"],
+    }
+    try:
+        gate_license_exclusion([quoting])
+        raise AssertionError("SELF-TEST FAILED: license gate passed verbatim source "
+                             "fragments inside faithfulness_detail")
+    except GateFailure:
+        log.append("PASS gate3: source fragments quoted inside faithfulness_detail "
+                   "were caught")
+
+    # -- GATE 3 negative #3: redaction must keep the NUMERIC axes. Stripping the whole
+    #    object would destroy a measurement to answer a question about quotations.
+    red, _ = redact_row(dict(quoting))
+    gate_license_exclusion([red])
+    fdr = red["faithfulness_detail"]
+    if fdr.get("number_support") != 1.0 or fdr.get("entity_support") != 0.9:
+        raise AssertionError(
+            f"SELF-TEST FAILED: redaction destroyed the faithfulness measurement "
+            f"rather than only its quoted fragments: {fdr}")
+    if not fdr.get("__quoted_fragments_withheld__"):
+        raise AssertionError("SELF-TEST FAILED: redaction did not mark the withholding")
+    log.append("PASS gate3-negative: redaction removes the quotes and KEEPS the "
+               "numeric faithfulness axes")
+
+    # -- GATE 3 negative #4: an Apache-2.0 row KEEPS its quoted fragments, or every
+    #    contradiction example in the release is destroyed for no licence reason.
+    keep, _ = redact_row({**sample,
+                          "license_source_reference": "longmemeval_v2:Apache-2.0",
+                          "faithfulness_detail": quoting["faithfulness_detail"]})
+    if not keep["faithfulness_detail"].get("contradictions"):
+        raise AssertionError(
+            "SELF-TEST FAILED: Apache-2.0 row lost its faithfulness quotations")
+    log.append("PASS gate3-negative: Apache-2.0 keeps faithfulness quotations")
 
     # -- GATE 3 negative: a properly redacted row must pass, or the gate rejects all.
     ok_row, _ = redact_row({**sample,

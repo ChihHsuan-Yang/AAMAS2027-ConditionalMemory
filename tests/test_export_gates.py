@@ -163,3 +163,151 @@ def test_v1_source_text_is_actually_withheld_and_the_gate_agrees():
     assert "memory_text" in withheld
     assert out["reconstruction_required"] is True
     EH.gate_license_exclusion([out])          # must now pass
+
+
+# ===================================================================== v0.2 / schema v3
+# The representation arm made faithfulness measurable for the first time. Two v0.1
+# behaviours were correct only because every row was raw, and would have shipped as
+# FALSE the moment a model-written row existed. These tests pin the repair.
+
+
+def _written_row():
+    """A summary row carrying a real multi-axis faithfulness score."""
+    r = _exported_rows(1)[0]
+    r["memory_representation"] = "summary"
+    r["memory_writer_model"] = "gpt-oss-120b"
+    r["memory_writer_cluster"] = "metis"
+    r["memory_writer_prompt_version"] = "summary_v1@1.0.0"
+    r["memory_extraction_latency"] = 1.5
+    r["memory_extraction_output_tokens"] = 200
+    r["extraction_cost_proxy"] = 200.0
+    r["compression_ratio"] = None
+    r["source_span_tokens"] = None
+    r["faithfulness_check"] = 1.0
+    r["faithfulness_notes"] = "SCORED by the deterministic proxy."
+    r["faithfulness_detail"] = {
+        "rule_version": "deterministic_proxy@1.0.0", "representation": "summary",
+        "number_support": 1.0, "entity_support": 0.9,
+        "n_numbers": 4, "n_numbers_supported": 4,
+        "n_entities": 10, "n_entities_supported": 9,
+    }
+    # memory_representation and the writer fields are MEMORY_ID_KEYS, so the ids must
+    # be re-minted or the row trips id_mismatch -- which is that check working, not a
+    # faithfulness problem. Re-mint in dependency order: memory -> cell -> row.
+    r["memory_id"] = S.compute_memory_id(r)
+    r["cell_id"] = S.compute_cell_id(r)
+    r["row_id"] = S.compute_row_id(r)
+    return r
+
+
+def test_the_v01_note_would_now_be_rejected_on_a_written_memory():
+    """🔴 THE REGRESSION THIS FILE EXISTS FOR.
+
+    v0.1's migration wrote "NOT SCORED. No faithfulness proxy was run for this
+    representation." onto every non-raw row. There were no non-raw rows, so it was
+    never false -- and 1,124 arrived carrying real scores (mean number_support 0.9968
+    summary / 1.0000 structured). A null beside a reason that is untrue is worse than
+    a null with no reason, because the reader has no cue to check it.
+    """
+    r = _written_row()
+    r["faithfulness_check"] = None
+    r["faithfulness_detail"] = None
+    r["faithfulness_notes"] = ("NOT SCORED. No faithfulness proxy was run for this "
+                               "representation.")
+    codes = {i.code for i in V.validate_row(r)}
+    assert "faithfulness_claimed_unscored_on_a_written_memory" in codes
+
+
+def test_a_failed_write_is_a_different_fact_from_an_unmeasured_one():
+    """3 of 60 structured writes hit the token cap. Their null is a failed write."""
+    r = _written_row()
+    r["faithfulness_check"] = None
+    r["faithfulness_detail"] = None
+    r["faithfulness_notes"] = ("NOT SCORED. The write that produced this memory did "
+                               "not complete (finish_reason='length').")
+    codes = {i.code for i in V.validate_row(r)}
+    assert "faithfulness_claimed_unscored_on_a_written_memory" not in codes
+
+
+def test_raw_still_refuses_both_the_score_and_the_detail():
+    """The tautology argument is unchanged for raw; v3 must not have loosened it."""
+    r = _exported_rows(1)[0]
+    assert r["memory_representation"] == "raw"
+    r["faithfulness_detail"] = {"rule_version": "x", "representation": "raw",
+                                "number_support": 1.0, "entity_support": 1.0}
+    assert "faithfulness_detail_on_raw" in {i.code for i in V.validate_row(r)}
+
+
+def test_one_axis_is_not_the_score():
+    """MEASURED: structured averages number_support 1.0000 and entity_support 0.8322;
+    55 of 57 structured memories have number_support==1.0 with entity_support<1.0.
+    Shipping the headline float alone would report a clean bill of health."""
+    r = _written_row()
+    r["faithfulness_detail"] = {"rule_version": "x", "representation": "summary",
+                                "number_support": 1.0}
+    assert "faithfulness_detail_incomplete" in {i.code for i in V.validate_row(r)}
+
+
+def test_the_headline_float_must_be_one_of_its_own_axes():
+    r = _written_row()
+    r["faithfulness_detail"]["number_support"] = 0.5      # check still says 1.0
+    assert "faithfulness_check_detail_disagree" in {i.code for i in V.validate_row(r)}
+
+
+def test_a_score_joined_from_the_wrong_representation_is_caught():
+    """memory_id is a content hash and differs across representations by design, so
+    the join is on the locator -- and a locator join can still pick the wrong arm."""
+    r = _written_row()
+    r["faithfulness_detail"]["representation"] = "structured"
+    assert "faithfulness_detail_wrong_representation" in {
+        i.code for i in V.validate_row(r)}
+
+
+def test_a_clean_written_row_passes(  ):
+    """Negative control: the checks must not reject every scored row."""
+    errs = [i for i in V.validate_row(_written_row()) if i.severity == V.SEVERITY_ERROR]
+    assert errs == [], errs
+
+
+def test_faithfulness_detail_quotations_are_redacted_under_a_closed_licence():
+    """faithfulness_detail QUOTES SOURCE TEXT in three keys. A field added after the
+    licence gate was written is exactly the one the gate cannot see."""
+    r = _written_row()
+    r["license_source_reference"] = "longmemeval_v1:MIT+sharegpt_upstream"
+    r["faithfulness_detail"] = {
+        **r["faithfulness_detail"],
+        "contradictions": [{"key": "action", "source": ["click('287')"],
+                            "memory": ["clicked the link"]}],
+        "unsupported_entities": ["http://localhost:9080/f/AskReddit/10224/thread"],
+    }
+    with pytest.raises(EH.GateFailure):
+        EH.gate_license_exclusion([r])                    # un-redacted must fail
+    out, withheld = EH.redact_row(r)
+    EH.gate_license_exclusion([out])                      # redacted must pass
+    assert "faithfulness_detail.quoted_fragments" in withheld
+    # and the MEASUREMENT survives -- withholding the whole object would destroy a
+    # number over a licence question that only bites on the quotations.
+    assert out["faithfulness_detail"]["number_support"] == 1.0
+    assert out["faithfulness_detail"]["entity_support"] == 0.9
+    assert not out["faithfulness_detail"].get("contradictions")
+
+
+def test_apache_rows_keep_their_faithfulness_quotations():
+    """Negative control: over-redaction would strip every contradiction example in the
+    release for a licence reason that does not apply."""
+    r = _written_row()
+    r["license_source_reference"] = "longmemeval_v2:Apache-2.0"
+    r["faithfulness_detail"] = {**r["faithfulness_detail"],
+                                "contradictions": [{"key": "a", "source": ["x"]}]}
+    out, _ = EH.redact_row(r)
+    assert out["faithfulness_detail"]["contradictions"]
+
+
+def test_schema_version_was_bumped_and_the_old_one_is_still_recognised():
+    """A v2 row lacks faithfulness_detail, so presence-is-the-contract means it fails
+    v3 validation -- the bump is required. But a v2 artifact must still be NAMEABLE,
+    or a reader cannot migrate what they cannot identify."""
+    assert S.SCHEMA_VERSION.endswith("_v3")
+    assert "faithfulness_detail" in S.FIELD_ORDER
+    assert S.SCHEMA_VERSION_V2 in S.KNOWN_SCHEMA_VERSIONS
+    assert S.SCHEMA_VERSION_V1 in S.KNOWN_SCHEMA_VERSIONS

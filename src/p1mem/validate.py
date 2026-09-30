@@ -411,6 +411,70 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
             "null cannot be told apart from an unpopulated field; record WHY there is no "
             "score", "faithfulness_notes", sev=SEVERITY_WARN)
 
+    # ---- v3: faithfulness_detail. Added with the representation arm (release v0.2).
+    #
+    # 🔴 Three checks, and the FIRST one is the one that matters. The v0.1 migration
+    # wrote "NOT SCORED. No faithfulness proxy was run for this representation" onto
+    # every non-raw row. There were no non-raw rows, so it was never false -- and the
+    # moment 1,124 arrived it would have shipped as a FALSE STATED REASON beside a null
+    # for a quantity that HAD been measured (mean number_support 0.9968 summary /
+    # 1.0000 structured, entity_support 0.9372 / 0.8322, at write time). A check's
+    # message is part of the check: a correct-looking null with a wrong reason is
+    # harder to catch than a wrong value, so the validator now refuses the combination
+    # rather than trusting the migration to get the sentence right.
+    fd = row.get("faithfulness_detail")
+    rep = row.get("memory_representation")
+    notes_raw = row.get("faithfulness_notes")
+    # A validator that crashes turns one bad row into a dead run and hides every other
+    # row's verdict, so a non-string here is coerced rather than indexed into. The
+    # wrong TYPE is already reported by the type check above; this branch only asks
+    # what the note SAYS, and a non-string says nothing.
+    notes = notes_raw if isinstance(notes_raw, str) else ""
+
+    if rep == "raw" and fd is not None:
+        add("faithfulness_detail_on_raw",
+            f"faithfulness_detail is populated on a raw memory. Raw IS the source, so "
+            f"every axis is 1.0 by construction -- the same tautology "
+            f"faithfulness_check is kept null for. Leave it null.",
+            "faithfulness_detail")
+
+    if rep in ("summary", "structured") and fd is None and "NOT SCORED" in notes \
+            and "did not complete" not in notes:
+        add("faithfulness_claimed_unscored_on_a_written_memory",
+            f"representation={rep!r} carries a note claiming no faithfulness proxy was "
+            f"run, but a model-written memory IS scorable and the proxy runs at write "
+            f"time (p1mem.memory.faithfulness.score_record). Either attach the score or "
+            f"state the real reason -- a failed write is a different fact from an "
+            f"unmeasured one. A null whose stated reason is false is worse than a null "
+            f"with no reason at all.", "faithfulness_notes")
+
+    if fd is not None:
+        if not isinstance(fd, dict):
+            add("faithfulness_detail_malformed", "faithfulness_detail must be an object",
+                "faithfulness_detail")
+        else:
+            for k in ("rule_version", "representation", "number_support",
+                      "entity_support"):
+                if k not in fd:
+                    add("faithfulness_detail_incomplete",
+                        f"faithfulness_detail is missing {k!r}. Shipping one axis of a "
+                        f"multi-axis proxy invites the reader to treat it as the score: "
+                        f"structured averages number_support 1.0000 while entity_support "
+                        f"is 0.8322, so a single axis reads as a clean bill of health "
+                        f"the data does not support.", "faithfulness_detail")
+            if fd.get("representation") not in (None, rep):
+                add("faithfulness_detail_wrong_representation",
+                    f"faithfulness_detail.representation={fd.get('representation')!r} but "
+                    f"the row is {rep!r}. The score was joined from the wrong memory.",
+                    "faithfulness_detail")
+            fcn = fd.get("number_support")
+            if fc is not None and fcn is not None and abs(float(fc) - float(fcn)) > 1e-9:
+                add("faithfulness_check_detail_disagree",
+                    f"faithfulness_check={fc!r} but faithfulness_detail.number_support="
+                    f"{fcn!r}. The headline float must BE one of the axes it summarises, "
+                    f"or a reader cannot tell which quantity they are reading.",
+                    "faithfulness_check")
+
     # extraction cost: raw made no call, so its billable cost is a measured 0.0 -- but
     # the LATENCY must stay null, because "no call" has no duration.
     if row.get("memory_writer_model") == "none:deterministic_span":
