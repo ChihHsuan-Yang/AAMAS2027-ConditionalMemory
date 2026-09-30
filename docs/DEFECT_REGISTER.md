@@ -89,6 +89,50 @@ Two things worth keeping:
    no ruling**, because downstream code then joins on a name that is authoritative in one
    file and misleading in another.
 
+## 🔴 The most dangerous defect of the session: a correct verdict derived from no data
+
+Sub-agent K's `FOUNDING_HYPOTHESIS` field printed:
+
+```text
+SIGN-REVERSAL COMPONENT NOT SUPPORTED: 0 of 0 flip-eligible BEARING memories
+```
+
+**0 of 0.** It read `labels_and_flips["flips"]`, a key that does not exist — the emitter
+produces `primary_balanced` / `secondary_all_replicates` / `bh_corrected`. A `.get()` chain
+defaulted to `{}`, the denominator came out zero, and the verdict string was assembled from
+nothing.
+
+### Why this is worse than every other defect here
+
+**The verdict was correct.** The true value is 0 of 35, the conclusion the paper will
+publish is the one the data supports, and the sentence would have survived every review —
+including mine.
+
+> **It was not derived from the data.** Had the truth been "17 flips", the field would have
+> printed the identical verdict. A guard that reaches the right conclusion from an empty
+> input **has not been tested by agreeing with you.**
+
+Every other defect in this register announced itself by producing a *wrong* number. This
+one produced a right one.
+
+### What actually caught it
+
+Not review, not a test, not the verdict looking odd. **K had hand-computed 0 of 35 from the
+rows an hour earlier, and the printed denominator disagreed.** Without that prior
+independent number, nothing in the pipeline would have flagged it.
+
+### The two rules this yields
+
+1. **A verdict must print the evidence it rests on.** `0 of 0` and `0 of 35` give the same
+   conclusion and are distinguishable only because the denominator is shown. A verdict
+   string without its denominator cannot be checked by anyone, including its author.
+2. **A zero denominator must raise, never report.** Fixed to read `primary_balanced`
+   (prereg §12: the balanced minimum-replicate subset is primary) and to raise on a missing
+   block or an empty denominator.
+
+This generalizes past this project: **the last defect you find is the one whose output you
+agreed with.**
+
 ## A named pattern: the pooled number hides the structure that matters
 
 Three times in one day, a correctly-computed pooled figure led to a wrong reading, and each
