@@ -363,6 +363,56 @@ def frontier():
     return out, reuse, formation
 
 
+def crossbench():
+    """Figure 5: the ONE quantity both benchmarks define identically.
+
+    The comparable quantity is the **paired representation contrast** --
+    per cell, deltaU(rep A) minus deltaU(rep B) for the same memory against
+    the same task -- with a task-clustered interval. Both analyses compute
+    exactly this, on cells interpretable under all representations.
+
+    What is deliberately NOT plotted: per-representation mean deltaU. Those
+    are not comparable across these benchmarks, because LongMemEval's
+    execution floor is exactly 0 while SciCode's is 0.0370, so equal bar
+    heights would mean different things. The contrast differences the floor
+    out -- both terms carry it -- which is why it, and only it, is drawn.
+    """
+    lm = json.loads((REPO / "results/repr_scaleup/analysis"
+                     / "r3_representation_analysis.json").read_text())
+    sc = json.loads((REPO / "results/ledgers/repro/scicode"
+                     / "scaleup_analysis.json").read_text())
+    lpc = lm["Q1_paired_delta_utility"]["paired_contrasts"]
+    spc = sc["paired_contrasts"]
+    out = {}
+    for key, lkey, skey in (("SR", "summary_minus_raw", "summary_minus_raw"),
+                            ("TR", "structured_minus_raw", "structured_minus_raw")):
+        lv = lpc[lkey]
+        lt = lv.get("task_clustered", lv)
+        sv = spc[skey]
+        out[key] = {
+            "lmev": (lv["mean"], lt["ci_lower"], lt["ci_upper"], lv["n"]),
+            "scicode": (sv["mean"], sv["ci95_task_clustered"][0],
+                        sv["ci95_task_clustered"][1], sc["MATCHED_CELL_SET_N"]),
+        }
+    # Guard: the two analyses must agree on what the contrast MEANS.
+    expect("crossbench: LongMemEval contrast basis is the common-cell join",
+           lm["Q1_paired_delta_utility"]["n_common_cells"], 277)
+    expect("crossbench: SciCode contrast basis is the matched cell set",
+           sc["MATCHED_CELL_SET_N"], 122)
+    # Guard: never plot a SciCode contrast as separated while the artifact
+    # says the ordering is not established.
+    if sc["ORDERING_VERDICT"] != "NOT_ESTABLISHED":
+        FAIL.append("crossbench: SciCode ORDERING_VERDICT changed -- the "
+                    "figure's caption asserts every SciCode interval crosses "
+                    "zero and must be rewritten before this passes")
+    for k, v in out.items():
+        lo, hi = v["scicode"][1], v["scicode"][2]
+        if not (lo <= 0.0 <= hi):
+            FAIL.append(f"crossbench: SciCode {k} interval [{lo},{hi}] no "
+                        "longer crosses zero; caption is now false")
+    return out
+
+
 def _boot_mean_ci(xs, n_boot=200000, seed=20260929, alpha=0.05):
     """Percentile bootstrap of a mean, matching p1mem.analysis.common's estimator.
 
@@ -391,6 +441,8 @@ def main():
     pooled, rand_only, by_str, sim_edges, rho_all, rho_rand = similarity_vs_bearing()
     print("== utility-efficiency frontier (fig. 4) ==")
     front, reuse, formation = frontier()
+    print("== cross-benchmark paired contrasts (fig. 5) ==")
+    xb = crossbench()
 
     if FAIL:
         print("\nFIGURE DATA FAILED TO REPRODUCE:")
@@ -538,6 +590,27 @@ def main():
     L.append(rf"\def\frRatioChg{{{front['raw']['eff_charged'] / front['summary']['eff_charged']:.2f}}}")
     L.append(rf"\def\frFormSum{{{formation['summary']:,.0f}}}".replace(",", "{,}"))
     L.append(rf"\def\frFormStr{{{formation['structured']:,.0f}}}".replace(",", "{,}"))
+    L.append("")
+
+    # ---- figure 5: cross-benchmark paired representation contrasts -------
+    for key in ("SR", "TR"):
+        for bench, tag in (("lmev", "Lm"), ("scicode", "Sc")):
+            m, lo, hi, n = xb[key][bench]
+            L.append(rf"\def\xb{key}{tag}M{{{m:+.4f}}}")
+            L.append(rf"\def\xb{key}{tag}Lo{{{lo:+.4f}}}")
+            L.append(rf"\def\xb{key}{tag}Hi{{{hi:+.4f}}}")
+            L.append(rf"\def\xb{key}{tag}N{{{n}}}")
+    # Plot geometry, computed here so LaTeX does no arithmetic on a measurement.
+    _XBW = 64.0    # pt, half-width of the value axis (column is 241pt; row
+                   # labels take ~55pt, so a wider axis overflows)
+    _XBS = 0.45    # value at the axis end
+    for key in ("SR", "TR"):
+        for bench, tag in (("lmev", "Lm"), ("scicode", "Sc")):
+            m, lo, hi, _ = xb[key][bench]
+            for nm, v in (("M", m), ("Lo", lo), ("Hi", hi)):
+                L.append(rf"\def\xb{key}{tag}X{nm}{{{max(-_XBW, min(_XBW, v / _XBS * _XBW)):.2f}pt}}")
+    L.append(rf"\def\xbAxisW{{{_XBW:.1f}pt}}")
+    L.append(rf"\def\xbAxisMax{{{_XBS:.2f}}}")
     L.append("")
 
     dest = OVERLEAF / "figdata.tex"
