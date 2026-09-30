@@ -45,3 +45,4 @@ results/bench/*_raw.jsonl
 hf_staging/
 hf_out/
 *.rejected.jsonl
+logs/

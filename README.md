@@ -72,7 +72,7 @@ A learned predictor appears only if the measurement survives a kill criterion.
 
 **Use `/Users/bellayang/miniconda3/bin/python3` (3.13).** The system `python3` is 3.9 and
 aborts pytest collection on a vendored file. `pip install -e .` per `pyproject.toml`, then
-`pytest -q` (487 tests) and `python3 scripts/audit_claims.py` (58 checks).
+`pytest -q` (**593 tests**) and `python3 scripts/audit_claims.py` (**123 checks**).
 
 ---
 
@@ -101,7 +101,7 @@ is the wrong object, for a different reason than we hypothesised.
 | **Current Overleaf commit** | **`3c06d3a`** "Abstract v5: lead with conditional utility and sparsity", 2026-09-30 16:16 CDT |
 | **Code repo** | `github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory` (`main`) |
 | **HF dataset** | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
-| **Current HF version** | **v0.1 `lmev2-derived`**, tag `v0.1-lmev2-derived` — 4,519 rows / 2,117 cells, schema `p1mem_conditional_memory_utility_v2`, 97 fields, 13 files, 126.0 MB. **Raw representation only.** v0.2 (Summary/Structured) is P1-C04 |
+| **Current HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Verified by downloading the tag; unauthenticated fetch → 401. v0.3 (SciCode) and v0.4 (SWE-bench) not yet cut. |
 
 ### Main local paths
 
@@ -123,8 +123,8 @@ and aborts pytest collection on a vendored file — a healthy suite looks broken
 | | status |
 |---|---|
 | **LongMemEval-V2** | ✅ **primary, complete** — 1,889 memory units, 1,157 evaluated cells, 5,198 calls, 0 errors, plus two earlier unscreened arms |
-| **SWE-bench Verified** | 🟡 **selected as Benchmark C, NOT cleared.** Pairing is excellent (406 cells, 133 donors, **0.0% diagonal**, 0/406 temporal violations, real unit tests). The floor pilot **stopped at the gate**: both-arms-fail **4/7 = 57.1%**, caused by an **arm-asymmetric apply failure** (WITHOUT 7/7 applicable, WITH 4/7), not by task difficulty — the reader solves 42.9% unaided. **No SWE-bench number enters any table until WITH-arm apply failure reaches parity.** `docs/BENCHMARK_C_DECISION.md` |
-| **SciCode** | 🟡 scoped, **not built** — memory = a reusable procedure; usable N ≈ 8–12 cross-problem pairs, so a case study, never a main table |
+| **SWE-bench Verified** | 🟡 **gate PASSED; the measurement arm is NOT done.** Pairing is excellent (406 cells, 133 donors, **0.0% diagonal**, 0/406 temporal violations, real unit tests). The v1 arm asymmetry was diagnosed as **output-format imitation** (the reader copied the memory's ``` ```diff ``` fence) and fixed by lossless `[added]`/`[removed]` re-encoding: apply-failure gap **0.375 → 0.000**, 8/8 cells arm-symmetric (`results/swebench/parity_v2.json`). What exists so far is a **32-cell, django-only** presence pilot: both-arms-fail 12/32 = 37.5% [22.9, 54.8], ΔU **not significant** (exact p=0.125). 🔴 **No representation arm exists yet** — these cells carry no `memory_representation` field; they vary memory *presence*, not representation. `docs/BENCHMARK_C_DECISION.md` |
+| **SciCode** | 🟡 **executed as a case study, never a main table.** Gate cleared; all three representations run on a 68-pair pilot (408 rows). both-arms-fail 0.456 raw / 0.379 summary / 0.370 structured; ΔU +0.0000 / +0.0690 / +0.0556. 🔴 **Every interval crosses zero.** The defensible reading is that **the point-estimate ordering differs across benchmarks** — LongMemEval's Raw-dominant ordering is **not reproduced** here. This is **not** an established "inversion" and `audit_claims.py` forbids that word. A full-pool 154-pair scale-up is running. `docs/SCICODE_RESULT.md` |
 | **BEAM** | ❌ **DROPPED, with the measured reason: 92.6% of cited turns are cited by exactly one question**, so BEAM cannot supply the multi-task-per-memory axis this paper needs. Secondary reason: **CC BY-SA 4.0** — ShareAlike is infectious and would force a separate dataset release. `docs/BENCHMARK_DECISIONS.md`, `docs/BENCHMARK_LICENSES.md` |
 | rejected replacements | **DS-1000** (CC BY-SA 4.0 — the same ShareAlike trap) · **SWE-Gym** (MIT, 1,868 multi-recipient donors, held in reserve, but it is agent *training* data so contamination argues against it) · **τ-bench** (HF API 401 — **UNRESOLVED**, not absent) |
 
@@ -186,16 +186,24 @@ figures: [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md).
 and mean ΔU per stratum, with both unscreened arms as comparator rows). Both are typed into
 `main.tex` and protected by `audit_claims.py` rather than generated.
 
-### Running jobs (2026-09-30 16:20 CDT)
+### Running jobs (2026-09-30 17:45 CDT)
 
-Six sub-agents dispatched under Phase 3: **SA-WRITE** (abstract/story reframe — landed
-`3c06d3a`) · **SA-FIG2** (frontier figure + figure/table set) · **SA-HF2** (HF v0.2 +
-data card) · **SA-SWE** (SWE-bench harness parity fix) · **SA-SCI** (SciCode adapter) ·
-**SA-ARCHIVE** (these indices). **No long-running compute job is on the queue** — every
-run to date executed on this laptop against the ALCF gateway.
+All six Phase-3 sub-agents have **finished and been integrated**. The Master Agent now
+executes directly. **One job is in flight:**
 
-⚠️ **Several agents commit concurrently.** **Never `git add -A`** — it has already
-mis-attributed files twice in this repo, in both directions. Stage explicit paths.
+- **SciCode representation scale-up** — the full 154-pair candidate pool × 3
+  representations × 2 arms (924 calls), pid 90620, out
+  `results/scicode/scaleup_all3.json`. Design pre-committed before running:
+  [`docs/SCICODE_SCALEUP_PRECOMMITMENT.md`](docs/SCICODE_SCALEUP_PRECOMMITMENT.md).
+  Liveness = `lsof -p <pid> | grep -c ESTABLISHED` → 16. **Its stdout log is
+  block-buffered; empty ≠ stalled, and CPU%% ≈ 0 is normal for endpoint-bound work.**
+
+Exact command and restart procedure: [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md)
+§Currently running. **No long-running compute job is on any cluster queue** — every run to
+date executed on this laptop against the ALCF gateway.
+
+⚠️ **Never `git add -A`** — it has already mis-attributed files twice in this repo, in
+both directions. Stage explicit paths and verify with `git show --stat`.
 
 ### Failed, invalid, and superseded runs
 
@@ -250,9 +258,10 @@ training a retention policy. **Recorded so they are not lost; none is in scope n
 
 ### Verification
 
-`scripts/audit_claims.py` re-derives **58 checks** across 10 sections from tracked
-artifacts and is **proven able to fail** (a single flipped reward trips four checks).
-**487 tests pass** under the 3.13 interpreter. `scripts/make_figures.py` independently
+`scripts/audit_claims.py` re-derives **123 checks** from tracked artifacts and is **proven
+able to fail** (a single flipped reward trips four checks; each newly added guard is
+verified by planting the defect it forbids and watching it FAIL).
+**593 tests pass** under the 3.13 interpreter. `scripts/make_figures.py` independently
 recomputes every figure number and **exits non-zero if it disagrees with the audit**.
 
 ### Handoff

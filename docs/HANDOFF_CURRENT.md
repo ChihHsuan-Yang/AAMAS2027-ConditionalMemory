@@ -1,6 +1,6 @@
 # P1 — Current Handoff
 
-**Updated 2026-09-30 16:25 CDT by SA-ARCHIVE.** The detailed state.
+**Updated 2026-09-30 17:45 CDT by the Master Agent (live, mid-run).** The detailed state.
 `README.md` §Current Project State is the short version;
 [`docs/RESULT_INDEX.md`](RESULT_INDEX.md) and [`docs/FIGURE_INDEX.md`](FIGURE_INDEX.md)
 are the lookup tables. **Update this at every milestone.**
@@ -12,11 +12,11 @@ are the lookup tables. **Update this at every milestone.**
 | what | where |
 |---|---|
 | code repo | `/Users/bellayang/Documents/2026/p1_memory_utility/repo` → `github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory` (`main`) |
-| **repo HEAD** | **`70426bd`** "Open Phase 3: autonomous execution to a terminal state", 2026-09-30 16:06 CDT · **151 commits** |
+| **repo HEAD** | **`027be3c`** "docs: pre-commit the SciCode scale-up design", 2026-09-30 17:42 CDT · **174 commits** |
 | Overleaf | `/Users/bellayang/Documents/2026/p1_memory_utility/overleaf` → `git.overleaf.com/6abbde4a9eb777031afef068` (`main`) |
-| **Overleaf HEAD** | **`3c06d3a`** "Abstract v5: lead with conditional utility and sparsity", 2026-09-30 16:16 CDT · working tree clean |
+| **Overleaf HEAD** | **`604e2b3`** · working tree clean, compiles, body in 8 pages, anonymity verified |
 | HF dataset | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
-| **HF version** | **v0.1 `lmev2-derived`**, tag `v0.1-lmev2-derived` — 4,519 rows / 2,117 cells, schema `p1mem_conditional_memory_utility_v2`, **97 fields**, 13 files, 126.0 MB, **Raw only**. Remote verified by fresh download: 13/13 sha256 match, the card's own load command runs clean, headline re-derives to +0.3349 from the remote copy |
+| **HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private** (unauthenticated fetch → 401, verified). v0.1 tag `v0.1-lmev2-derived` retained. **v0.3 (SciCode) and v0.4 (SWE-bench) not yet cut.** |
 | HF staging (**never committed, never uploaded from the repo**) | `/Users/bellayang/Documents/2026/p1_memory_utility/hf_staging/AAMAS2027-ConditionalMemory/` |
 | data card | `docs/hf_card/README.md` (byte-identical to the uploaded card) |
 | LongMemEval-V2 | `/tmp/lmev2` (checksum-verified; `trajectories.jsonl` ~1.1 GiB, `questions.jsonl` 451 rows) |
@@ -157,20 +157,42 @@ Re-derived on 2026-09-30 unless noted.
 - SWE-bench floor pilot **#1 is VOID** (the model was shown the wrong 90 lines); **#2 stopped at the gate.**
 - The n=8 representation pilot is **superseded for every rate**; keep only its compression ratios.
 
-## Currently running (2026-09-30 16:25 CDT)
+## Currently running (2026-09-30 17:45 CDT) — LIVE
 
-Phase 3, six sub-agents, no pausing at milestones:
+**Phase 3 sub-agents are all finished and integrated.** The Master Agent is now executing
+directly. One job is in flight:
 
-| agent | task | state |
+| what | how to check | state |
 |---|---|---|
-| SA-WRITE | abstract / story reframe (P1-C01) | landed Overleaf `3c06d3a` |
-| SA-FIG2 | utility–efficiency frontier + figure/table set (P1-C03, C13) | running |
-| SA-HF2 | HF v0.2 representation release + data card (P1-C04, C15) | running |
-| SA-SWE | SWE-bench harness parity fix, then pilot (P1-C05 → C06) | running |
-| SA-SCI | SciCode adapter, then pilot (P1-C08 → C09) | running |
-| SA-ARCHIVE | result/figure indices, README, this file, TODO (P1-C14) | this document |
+| **SciCode representation SCALE-UP** — the full 154-pair candidate pool × 3 representations (raw/summary/structured) × 2 arms = 924 calls | `results/scicode/scaleup_all3.json` appears on completion; `logs/scicode_scaleup.log` (**stdout is block-buffered — an empty log is NOT a stall**) | **RUNNING**, pid 90620, launched 17:37 CDT |
 
-**No batch or cluster job is queued.** Everything has run on this laptop against the ALCF
+Command, verbatim and re-runnable:
+
+```bash
+/Users/bellayang/miniconda3/bin/python3 scripts/scicode_pilot.py \
+  --n-cells 999 --tasks-per-memory 99 --relatedness lexical \
+  --representations raw,summary,structured \
+  --workdir /tmp/sci_harness/scaleup \
+  --out results/scicode/scaleup_all3.json
+```
+
+Design pre-committed **before** it ran: [`docs/SCICODE_SCALEUP_PRECOMMITMENT.md`](SCICODE_SCALEUP_PRECOMMITMENT.md).
+`--tasks-per-memory 99` makes sampling **inert** (max pool is 17), so the design is the
+entire pool, not a knob I tuned after seeing the pilot direction.
+
+**How to tell it is alive** (this laptop, endpoint-bound work):
+`lsof -p <pid> | grep -c ESTABLISHED` → expect **16** (the bound concurrency).
+**CPU%% is near zero and is NOT a liveness signal for this workload.**
+
+If it died: the run is idempotent through the response cache; re-issue the same command.
+Nothing downstream has consumed its output yet.
+
+**Next, not yet started:** SWE-bench Raw/Summary/Structured representation arms. Parity is
+fixed (`results/swebench/parity_v2.json`, gap 0.000, 8/8 symmetric) but the existing
+SWE-bench cells carry **no `memory_representation` field** — they vary memory *presence*,
+not representation. That arm must be built before cross-benchmark Figure 5 can be filled.
+
+**No batch or cluster job is queued.** Everything runs on this laptop against the ALCF
 gateway. Aurora is allocated but gateway-bound and unused.
 
 ## Active TODOs
@@ -190,7 +212,7 @@ disclosure — AAMAS requires it and the section is still empty)**.
    [`docs/DEFECT_REGISTER.md`](DEFECT_REGISTER.md).
 2. Run `/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py` — **if it fails,
    stop and find out why before anything else.**
-3. Run the suite with the 3.13 interpreter (`pytest -q`, 487 tests).
+3. Run the suite with the 3.13 interpreter (`pytest -q`, **593 tests**).
 4. Before touching a figure, run `scripts/make_figures.py`; a stale `figdata.tex` cannot
    silently ship, but a *missing* regeneration can leave you editing the wrong number.
 5. **Never quote a number you have not re-derived from an artifact.**
