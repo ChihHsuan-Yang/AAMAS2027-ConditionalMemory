@@ -45,3 +45,18 @@ screening on LongMemEval (0.7007 → 0.5252). **Pilot before committing.**
   and far larger, but it is agent *training* data (contamination) and not human-validated.
   **Held as the scale reserve** if N binds.
 - **τ-bench** — HF API 401, not reachable on this channel. UNRESOLVED.
+
+## Floor-effect pilot: UNRESOLVED, and my first attempt was void
+
+5 cells x 2 arms gave 1/5 (WITHOUT) and 0/5 (WITH) applicable edits — which looks fatal.
+It is not interpretable: I showed the model **the first 90 lines of the file**, and in
+**4 of 5 cells the gold patch edits code outside that window** (hunks at lines 278, 152,
+106, 1386 of files up to 7,079 lines). A byte-exact SEARCH for unseen code is impossible,
+so `search_miss` was the only reachable outcome. Same defect class as
+`test-the-mechanism-not-a-comparator`.
+
+**Consequence for the design: retrieval/localization is a REQUIRED pipeline stage.** The
+adapter must show the region around the recipient's relevant code, not the file head.
+
+**Floor effect therefore remains the one open risk.** Re-run the pilot with correct
+localization (~20 calls) before committing SWE-bench to a main table.
