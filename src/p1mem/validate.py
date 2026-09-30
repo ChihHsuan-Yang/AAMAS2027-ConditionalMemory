@@ -36,6 +36,7 @@ from .schema import (
     P3_RESERVED_FIELDS,
     SCHEMA_VERSION,
     compute_cell_id,
+    compute_compression_ratio,
     compute_memory_id,
     compute_row_id,
     condition_key,
@@ -363,6 +364,129 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
         add("confidence_out_of_range", f"robustness_confidence {rc!r} outside [0, 1]",
             "robustness_confidence")
 
+    # ---------------- user-field checks (schema v2, added 2026-09-30) ----------------
+    # Each of these guards a way the new fields could carry a FABRICATED value. A field
+    # added "because the user asked for it" is exactly the field most likely to be
+    # filled with something plausible, so each one that cannot be populated is checked
+    # to be null, and each one that can is checked to be recomputable from the row.
+
+    # compression_ratio must equal its own components, like delta_utility does.
+    cr = row.get("compression_ratio")
+    if cr is not None:
+        expected_cr = compute_compression_ratio(
+            row.get("memory_tokens"), row.get("source_span_tokens"))
+        if expected_cr is None:
+            add("compression_ratio_not_derivable",
+                "compression_ratio is set but memory_tokens / source_span_tokens cannot "
+                "produce it; the ratio is not recomputable from this row",
+                "compression_ratio")
+        elif abs(float(cr) - expected_cr) > 1e-9:
+            add("compression_ratio_mismatch",
+                f"compression_ratio={cr!r} but memory_tokens/source_span_tokens = "
+                f"{expected_cr!r}", "compression_ratio")
+
+    # A raw memory IS its source span, so its ratio is exactly 1.0. Anything else means
+    # the span denominator was joined from the wrong unit.
+    if row.get("memory_representation") == "raw" and isinstance(cr, (int, float)) \
+            and not isinstance(cr, bool) and abs(float(cr) - 1.0) > 1e-9:
+        add("raw_compression_not_unity",
+            f"representation='raw' but compression_ratio={cr!r}. Raw is the source span "
+            f"verbatim, so the ratio must be 1.0; a different value means the span "
+            f"denominator came from a different unit", "compression_ratio")
+
+    # THE faithfulness trap: a score on raw can only be the 1.0 tautology.
+    fc = row.get("faithfulness_check")
+    if fc is not None and row.get("memory_representation") == "raw":
+        add("faithfulness_scored_on_raw",
+            f"faithfulness_check={fc!r} on a raw memory. Raw IS the source text, so any "
+            f"source-grounded proxy returns 1.0 by construction (raw_control is that "
+            f"comparison and is a POSITIVE CONTROL). Storing it asserts a check that "
+            f"measured nothing; leave it null and say why in faithfulness_notes.",
+            "faithfulness_check")
+    # A null with no stated reason is indistinguishable from a forgotten field.
+    if fc is None and not (isinstance(row.get("faithfulness_notes"), str)
+                           and row["faithfulness_notes"].strip()):
+        add("faithfulness_null_without_reason",
+            "faithfulness_check is null and faithfulness_notes is empty. An unexplained "
+            "null cannot be told apart from an unpopulated field; record WHY there is no "
+            "score", "faithfulness_notes", sev=SEVERITY_WARN)
+
+    # extraction cost: raw made no call, so its billable cost is a measured 0.0 -- but
+    # the LATENCY must stay null, because "no call" has no duration.
+    if row.get("memory_writer_model") == "none:deterministic_span":
+        ecp = row.get("extraction_cost_proxy")
+        if ecp is not None and float(ecp) != 0.0:
+            add("raw_extraction_cost_nonzero",
+                f"extraction_cost_proxy={ecp!r} for a deterministic-span memory, which "
+                f"makes no extraction call", "extraction_cost_proxy")
+        if row.get("memory_extraction_latency") == 0.0:
+            add("absent_latency_reported_as_zero",
+                "memory_extraction_latency=0.0 for a memory written with no call. No "
+                "call has no duration; use null. A 0.0 here is averaged into a mean "
+                "latency and describes nothing", "memory_extraction_latency")
+
+    # bearing_evidence must not claim more than the screen did.
+    be = row.get("bearing_evidence")
+    bl = row.get("bearing_label")
+    if isinstance(be, dict):
+        if not be.get("caveat"):
+            add("bearing_evidence_without_caveat",
+                "bearing_evidence carries no caveat. The screen's known weakness must "
+                "travel WITH the evidence, not only in a doc", "bearing_evidence",
+                sev=SEVERITY_WARN)
+        if be.get("screen_is_content_only") is not True:
+            add("bearing_screen_not_content_only",
+                "bearing_evidence.screen_is_content_only is not True. If a reward ever "
+                "entered the screen, the BEARING vs CONTROL contrast is circular and the "
+                "headline is void", "bearing_evidence")
+        h, s = be.get("task_pool_hits"), be.get("task_pool_size")
+        d = be.get("discriminativeness")
+        if (isinstance(h, int) and isinstance(s, int) and not isinstance(h, bool)
+                and not isinstance(s, bool) and s > 0 and isinstance(d, (int, float))
+                and not isinstance(d, bool) and abs(float(d) - h / s) > 1e-9):
+            add("discriminativeness_mismatch",
+                f"discriminativeness={d!r} but task_pool_hits/task_pool_size = {h/s!r}",
+                "bearing_evidence")
+    if bl == "BEARING" and isinstance(be, dict) and be.get("detector_fires") is False:
+        add("bearing_label_contradicts_evidence",
+            "bearing_label='BEARING' but bearing_evidence.detector_fires is False",
+            "bearing_label")
+    if bl == "MATCHED_CONTROL" and isinstance(be, dict) and be.get("detector_fires") is True:
+        add("control_label_contradicts_evidence",
+            "bearing_label='MATCHED_CONTROL' but the detector fired; a matched control "
+            "is defined by the detector being SILENT", "bearing_label")
+
+    # candidate_pool_size must agree with the evidence it was copied from.
+    cps = row.get("candidate_pool_size")
+    if (cps is not None and isinstance(be, dict) and be.get("task_pool_size") is not None
+            and cps != be["task_pool_size"]):
+        add("candidate_pool_size_mismatch",
+            f"candidate_pool_size={cps!r} but bearing_evidence.task_pool_size="
+            f"{be['task_pool_size']!r}", "candidate_pool_size")
+
+    # storage_bytes must be the actual byte length, not an estimate.
+    sb, mt = row.get("storage_bytes"), row.get("memory_text")
+    if (sb is not None and isinstance(mt, str) and mt != "__WITHHELD_SEE_LICENSE__"
+            and sb != len(mt.encode("utf-8"))):
+        add("storage_bytes_mismatch",
+            f"storage_bytes={sb!r} but len(memory_text.encode('utf-8'))="
+            f"{len(mt.encode('utf-8'))}", "storage_bytes")
+
+    # stability is a sampling-noise measurement, NOT a confidence. Guard the conflation.
+    cos = row.get("confidence_or_stability")
+    if isinstance(cos, (int, float)) and not isinstance(cos, bool) and not (0.0 <= cos <= 1.0):
+        add("stability_out_of_range", f"confidence_or_stability {cos!r} outside [0, 1]",
+            "confidence_or_stability")
+
+    # context_budget: a budget that was never enforced must not be recorded as one.
+    cb = row.get("context_budget")
+    ex2, ret2 = row.get("memory_tokens_exposed"), row.get("memory_tokens_retrieved")
+    if cb is not None and ex2 == ret2 and isinstance(ex2, int) and not isinstance(ex2, bool):
+        add("context_budget_never_bound",
+            f"context_budget={cb!r} but memory_tokens_exposed == memory_tokens_retrieved "
+            f"({ex2}), so no truncation ever occurred. Recording a cap that never bound "
+            f"states a control the run did not have", "context_budget", sev=SEVERITY_WARN)
+
     # --- a successful row must not be missing its provenance ---
     prov = row.get("provenance")
     if isinstance(prov, dict):
@@ -411,8 +535,8 @@ def validate_dataset(rows: Sequence[dict[str, Any]]) -> Report:
         wc = r.get("memory_writer_cluster")
         if isinstance(wc, str) and wc:
             by_cond_writer[key][wc].append(i)
-        vk = (r.get("verifier_id"), r.get("verifier_version"))
-        if vk != (None, None):
+        vk = (r.get("verifier_version"),)
+        if vk != (None,):
             by_cond_verifier[key][vk].append(i)
 
     for key, clusters in by_cond.items():
@@ -438,15 +562,83 @@ def validate_dataset(rows: Sequence[dict[str, Any]]) -> Report:
 
     # --- verifier drift: WITH and WITHOUT already share a row, but arms across a
     #     condition must also share a verifier. This has invalidated a sibling table. ---
+    #
+    # 🔴 CORRECTED 2026-09-30 (Sub-agent HF). This check previously keyed on
+    # ``(verifier_id, verifier_version)`` and fired on all three P1 result arms. It was
+    # measuring the wrong subject, and its MESSAGE named a third thing again:
+    #
+    #   * It reported "scored under different verifier VERSIONS". Measured: there is
+    #     exactly ONE version in the entire corpus, ``vendored@f8ba659e237c``, on all
+    #     4,519 rows. The stated reason was false while the verdict looked plausible.
+    #   * What actually varied was ``verifier_id`` -- and that is the BENCHMARK'S OWN
+    #     per-question ``eval_function``, not a choice of ours. Verified: for all 275
+    #     tasks, ``verifier_id`` equals the head of that question's ``eval_function`` in
+    #     LongMemEval-V2's ``questions.jsonl``, 275/275, zero disagreements. A
+    #     multiple-choice question is scored by ``mc_choice_match`` and a phrase
+    #     question by ``norm_phrase_set_match`` because the benchmark says so.
+    #   * A condition spans many questions, so requiring one scorer per condition
+    #     demands that every question in a benchmark be scored the same way. That is
+    #     not the prohibition EXPERIMENT_PLAN 8.4 states; 8.4 forbids an ARM-DEPENDENT
+    #     verifier -- scoring WITH and WITHOUT differently.
+    #
+    # The repair keys the drift check on ``verifier_version`` alone (the thing that can
+    # actually change under us, e.g. a re-vendored scorer), and adds a SEPARATE, tighter
+    # check below for the arm-dependence 8.4 really prohibits. This is strictly stronger
+    # than what it replaces: the old check could not see a scorer that varied ACROSS a
+    # paired contrast, which is the only place the difference can bias a result.
     for key, vs in by_cond_verifier.items():
         if len(vs) > 1:
             detail = ", ".join(f"{v}: {len(ix)} rows" for v, ix in sorted(map(
                 lambda kv: (str(kv[0]), kv[1]), vs.items())))
             report.issues.append(Issue(
                 "verifier_drift_in_condition", SEVERITY_ERROR,
-                f"condition {key} was scored by more than one verifier -- {detail}. Arms "
-                f"scored under different verifier versions are not comparable.",
+                f"condition {key} was scored by more than one verifier VERSION -- "
+                f"{detail}. A scorer that changed under us makes arms incomparable.",
                 "verifier_version"))
+
+    # --- the prohibition EXPERIMENT_PLAN 8.4 actually states: one task must not be
+    #     scored by two different scorers. This is where arm-dependence would show. ---
+    by_task_verifier: dict[Any, dict[tuple, list[int]]] = defaultdict(lambda: defaultdict(list))
+    for i, r in enumerate(good):
+        tid = r.get("future_task_id")
+        vk = (r.get("verifier_id"), r.get("verifier_version"))
+        if tid is not None and vk != (None, None):
+            by_task_verifier[tid][vk].append(i)
+    for tid, vs in by_task_verifier.items():
+        if len(vs) > 1:
+            detail = ", ".join(f"{v}: {len(ix)} rows" for v, ix in sorted(map(
+                lambda kv: (str(kv[0]), kv[1]), vs.items())))
+            report.issues.append(Issue(
+                "verifier_varies_within_task", SEVERITY_ERROR,
+                f"task {tid!r} was scored by more than one verifier -- {detail}. One "
+                f"question has one correct-answer criterion; two scorers on one task "
+                f"means the criterion depended on something other than the question, "
+                f"which is the arm-dependence EXPERIMENT_PLAN 8.4 forbids.",
+                "verifier_id"))
+
+    # --- scorer composition must not differ across a PAIRED contrast ---
+    # The headline is BEARING minus MATCHED_CONTROL within a memory. If the two strata
+    # draw on different scorers, part of that difference is scorer difficulty rather
+    # than bearing. This is not a validity error -- the design is composition-matched on
+    # question family, not on scorer -- but it is a confound a consumer must be able to
+    # see, so it is reported rather than left for them to discover.
+    by_mem_stratum: dict[Any, dict[str, set]] = defaultdict(lambda: defaultdict(set))
+    for r in good:
+        prov = r.get("provenance")
+        st = prov.get("stratum") if isinstance(prov, dict) else None
+        if st and r.get("memory_id") and r.get("verifier_id"):
+            by_mem_stratum[r["memory_id"]][st].add(r["verifier_id"])
+    mismatched = [m for m, s in by_mem_stratum.items()
+                  if len(s) > 1 and len({frozenset(v) for v in s.values()}) > 1]
+    if mismatched:
+        report.issues.append(Issue(
+            "scorer_composition_differs_across_strata", SEVERITY_WARN,
+            f"{len(mismatched)} of {len(by_mem_stratum)} memories draw on a DIFFERENT "
+            f"set of verifiers in different strata. Each task keeps the benchmark's own "
+            f"scorer, so this is not arm-dependence -- but a paired stratum contrast on "
+            f"these memories differences two scorer mixes as well as two strata, and the "
+            f"contrast should be reported split by whether the mix is constant.",
+            "verifier_id"))
 
     # --- a cell's replicates must agree on everything except sampling ---
     by_cell: dict[str, list[tuple[int, dict]]] = defaultdict(list)
@@ -469,6 +661,65 @@ def validate_dataset(rows: Sequence[dict[str, Any]]) -> Report:
                     "cell_inconsistent_across_replicates", SEVERITY_ERROR,
                     f"cell {cid} replicates disagree on {fname}; replicates must differ "
                     f"ONLY in sampling", fname))
+
+    # --- num_replicates must equal the replicates actually present (schema v2) ---
+    # This is the check that makes num_replicates a MEASUREMENT rather than a copy of
+    # the planned count. A design can plan 3 replicates and deliver 2; if the field
+    # restates the plan, every per-cell average silently uses the wrong denominator.
+    for cid, items in by_cell.items():
+        actual = len(items)
+        for i, r in items:
+            declared = r.get("num_replicates")
+            if declared is None:
+                continue
+            if declared != actual:
+                report.issues.append(Issue(
+                    "num_replicates_mismatch", SEVERITY_ERROR,
+                    f"row declares num_replicates={declared!r} but cell {cid} has "
+                    f"{actual} rows present. A planned count written where a measured "
+                    f"one belongs biases every per-cell mean.", "num_replicates",
+                    r.get("row_id"), i))
+                break
+
+    # --- confidence_or_stability must match the replicates it summarises (schema v2) ---
+    # Stability is the fraction of a cell's replicates agreeing on delta_utility. If it
+    # were stored without this check, a 1.0 could mean "we did not look".
+    for cid, items in by_cell.items():
+        deltas = [r.get("delta_utility") for _, r in items
+                  if isinstance(r.get("delta_utility"), (int, float))
+                  and not isinstance(r.get("delta_utility"), bool)]
+        if len(deltas) < 2:
+            continue
+        modal = max(set(deltas), key=deltas.count)
+        expected = deltas.count(modal) / len(deltas)
+        for i, r in items:
+            got = r.get("confidence_or_stability")
+            if got is None:
+                continue
+            if abs(float(got) - expected) > 1e-9:
+                report.issues.append(Issue(
+                    "stability_mismatch", SEVERITY_ERROR,
+                    f"confidence_or_stability={got!r} but cell {cid}'s replicates agree "
+                    f"on delta_utility at rate {expected!r}", "confidence_or_stability",
+                    r.get("row_id"), i))
+                break
+
+    # --- a stability of 1.0 everywhere means F_exec = 0, and that must be VISIBLE ---
+    # Reported as a warning, not hidden: it is the reason the variance decomposition is
+    # unidentifiable, and a consumer who reads stability as "confidence" would draw the
+    # opposite conclusion from the one the data supports.
+    stab = [r.get("confidence_or_stability") for r in good
+            if isinstance(r.get("confidence_or_stability"), (int, float))
+            and not isinstance(r.get("confidence_or_stability"), bool)]
+    if len(stab) >= 20 and all(s == 1.0 for s in stab):
+        report.issues.append(Issue(
+            "zero_execution_noise", SEVERITY_WARN,
+            f"all {len(stab)} rows have confidence_or_stability=1.0: every replicate of "
+            f"every cell agreed exactly, so measured execution noise F_exec = 0. This is "
+            f"real temperature-0 determinism, NOT a defect -- but replicates therefore "
+            f"carry NO information about sampling noise, the variance decomposition is "
+            f"unidentifiable, and this field must not be read as confidence that a delta "
+            f"is real.", "confidence_or_stability"))
 
     # --- "continuous reward" that is binary in fact ---
     cont = [r for r in good if r.get("reward_is_continuous") is True]

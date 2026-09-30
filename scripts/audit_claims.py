@@ -85,6 +85,23 @@ ge2 = {k: v for k, v in pm.items() if len(v) >= 2}
 check("memories with >=1 bearing task", len(pm), 165)
 check("memories with >=2 bearing tasks", len(ge2), 46)
 check("  source episodes hosting them", len({k.split(":")[0] for k in ge2}), 23)
+# BASIS PIN. The 76-task and 75-task bases give DIFFERENT edge counts and
+# histograms (267 / {3:17,4:5} vs 266 / {3:18,4:4}). A draft of Sec. 8.1 mixed
+# them. The executed design uses 75 (results/ledgers/k1_screened_design.json:
+# n_discriminative_tasks=75, n_bearing_edges_total=266), so the paper must too.
+check("bearing edges, on the 75-task basis", sum(len(v) for v in pm.values()), 266)
+hist = collections.Counter(len(v) for v in pm.values())
+check("  bear on exactly one task", hist[1], 119)
+check("  bear on exactly two", hist[2], 18)
+check("  bear on exactly three", hist[3], 18)
+check("the executed design used the same basis",
+      json.loads((REPO / "results/ledgers/k1_screened_design.json").read_text()
+                 )["screening_yield_and_scarcity"]["n_bearing_edges_total"], 266)
+_tex = (REPO.parent / "overleaf" / "main.tex").read_text()
+_body = _tex[_tex.index("\\begin{document}"):]
+_body = "\n".join(l for l in _body.split("\n") if not l.lstrip().startswith("%"))
+check("the paper does not quote the other basis's edge count",
+      "267 bearing" in _body, False)
 
 print("== Screened design ==")
 d = load("data/manifests/k1_screened_cells.jsonl")

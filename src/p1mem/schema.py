@@ -60,7 +60,19 @@ except ImportError:  # pragma: no cover
     fcntl = None  # type: ignore[assignment]
 
 # Bumped whenever the row contract changes in a way that invalidates written rows.
-SCHEMA_VERSION = "p1mem_conditional_memory_utility_v1"
+#
+# v2 (2026-09-30, Sub-agent HF): added 17 fields from the user's required field list
+# (chronology / lineage / quality / bearing / efficiency / P3 groups). The bump is
+# REQUIRED, not cosmetic: presence is the contract (validate.py reports a missing KEY,
+# null being a legal value), so every v1 row lacks 17 keys and would fail validation
+# against this spec. scripts/migrate_schema_v2.py upgrades a v1 ledger in place-safe
+# fashion, deriving what is derivable and writing explicit nulls elsewhere.
+#
+# The previous value is kept so a v1 artifact can still be RECOGNISED rather than
+# merely rejected -- a reader that cannot name the old contract cannot migrate it.
+SCHEMA_VERSION_V1 = "p1mem_conditional_memory_utility_v1"
+SCHEMA_VERSION = "p1mem_conditional_memory_utility_v2"
+KNOWN_SCHEMA_VERSIONS: tuple[str, ...] = (SCHEMA_VERSION_V1, SCHEMA_VERSION)
 
 # Version of the rule that maps replicate rewards -> utility_label. Stored per row so a
 # relabelled dataset is distinguishable from the original. The rule itself is
@@ -243,12 +255,39 @@ UTILITY_LABELS: tuple[str, ...] = (
     "undetermined",
 )
 
+# Bearing stratum (added 2026-09-30 with ``bearing_label``).
+#
+# 'unscreened' is a REAL value, not a missing one. The pilot and official-prompt arms
+# were drawn by the original question_type-spread rule with no bearing test applied, so
+# saying so is a measurement; leaving them null would imply the screen ran and lost its
+# answer. docs/BEARING_SCARCITY.md owns the definitions.
+BEARING_LABELS: tuple[str, ...] = (
+    "BEARING",
+    "MATCHED_CONTROL",
+    "RANDOM",
+    "unscreened",
+)
+
+# Coarse memory category (added 2026-09-30 with ``memory_type_coarse``). Strictly a
+# bucketing of MEMORY_SEMANTIC_TYPES; it can never contradict the fine label because it
+# is DERIVED from it by MEMORY_TYPE_COARSE_OF below.
+MEMORY_TYPES_COARSE: tuple[str, ...] = ("experience", "knowledge")
+
+MEMORY_TYPE_COARSE_OF: dict[str, str] = {
+    "episodic": "experience",
+    "failure_reflection": "experience",
+    "semantic_fact": "knowledge",
+    "procedural": "knowledge",
+}
+
 ENUMS: dict[str, tuple[str, ...]] = {
     "memory_representation": MEMORY_REPRESENTATIONS,
     "memory_semantic_type": MEMORY_SEMANTIC_TYPES,
     "semantic_distance_band": SEMANTIC_DISTANCE_BANDS,
     "retrieval_method": RETRIEVAL_METHODS,
     "utility_label": UTILITY_LABELS,
+    "bearing_label": BEARING_LABELS,
+    "memory_type_coarse": MEMORY_TYPES_COARSE,
 }
 
 
@@ -496,6 +535,208 @@ _SPEC: tuple[tuple[str, str, str, bool, bool, str], ...] = (
      "ADDED (populator: sanitized_base_url_hash). Credential-safe fingerprint of the full "
      "reader base URL. Lets provenance be verified without ever storing a URL that could "
      "embed a token."),
+    # ================================================== USER FIELD LIST (2026-09-30)
+    # Added by Sub-agent HF after a field-by-field audit of the user's required list
+    # against this spec. Each entry states its populator AND whether it can be
+    # populated on TODAY's corpus. Fields that nobody can populate are marked
+    # RESERVED and carry null with a documented reason -- they are NOT quietly filled
+    # with a plausible value. See the audit in subagent_HF_report.md.
+    #
+    # ---------------------------------------------------------------- chronology
+    ("source_episode_completion_timestamp", "chronology", "str", True, False,
+     "ADDED for the user's source/chronology group. ISO-8601 UTC time the SOURCE "
+     "EPISODE finished, i.e. when the memory became available to be written.\n"
+     "🔴 RESERVED — NULL ON EVERY LongMemEval-V2 ROW, AND THAT IS A PROPERTY OF THE "
+     "BENCHMARK, NOT AN OVERSIGHT. An exhaustive key scan of all 1,870 trajectories in "
+     "trajectories.jsonl returns exactly "
+     "{domain, environment, goal, id, outcome, start_url, states}, and every state "
+     "carries only {accessibility_tree, action, screenshot, state_index, step, thought, "
+     "url}. There is NO wall-clock field anywhere in LongMemEval-V2, so no true value "
+     "exists to record. `state_index`/`step` give a within-trajectory ORDER, which is "
+     "already stored in memory_source_span, and an order is not a timestamp.\n"
+     "POPULATABLE for LongMemEval-V1, which ships real `haystack_dates` "
+     "('2023/04/10 (Mon) 17:50') and `question_date` — so the field is defined now "
+     "rather than bolted on when a V1 arm lands. Writing a synthesized or run-time "
+     "value here would be a stamp nobody measured."),
+    # ------------------------------------------------------------- memory lineage
+    ("parent_memory_id", "lineage", "str", True, False,
+     "ADDED for the user's memory-lineage group. memory_id of the memory this one was "
+     "DERIVED FROM — a summary's parent is the raw span it compressed, a consolidated "
+     "memory's parents are what it merged.\n"
+     "🔴 RESERVED — NULL ON EVERY ROW TODAY, because every row in this release is "
+     "memory_representation='raw' (measured: 2,599/2,599 screened, 4,519/4,519 over all "
+     "three arms). A raw span is extracted deterministically from the source trajectory "
+     "and has NO parent memory: its parent is the episode, which is already "
+     "source_episode_id. Populating it with source_episode_id would conflate two "
+     "different relations. It becomes populatable the moment a summary or structured "
+     "arm is run, and the writer already has the raw memory_id in hand at that point."),
+    ("memory_type_coarse", "lineage", "str", True, False,
+     "ADDED for the user's memory-quality group. Coarse memory category. POPULATABLE "
+     "TODAY: it is memory_semantic_type's top-level bucket "
+     "(episodic|semantic_fact|procedural|failure_reflection -> experience|knowledge). "
+     "Populated by classify_memory_type() below, which reads ONLY fields already on the "
+     "row. NOTE this is a deliberate near-duplicate of memory_semantic_type, kept "
+     "because the user asked for a coarse/fine pair; the coarse level is derived from "
+     "the fine one and never contradicts it."),
+    ("memory_type_fine", "lineage", "str", True, False,
+     "ADDED for the user's memory-quality group. Fine memory category. POPULATABLE "
+     "TODAY from fields already on the row: it combines the semantic type with the "
+     "source episode's OUTCOME and the span's shape, e.g. "
+     "'episodic.page_visit.failure.multi_state'. Measured on the screened corpus: "
+     "outcome is success 938 / failure 1,661 and n_states ranges 1..15, so this field "
+     "carries real variation rather than one constant. Populated by "
+     "classify_memory_type()."),
+    # -------------------------------------------------------------- memory quality
+    ("compression_ratio", "quality", "float", True, False,
+     "ADDED for the user's memory-quality group. memory_tokens / source_span_tokens — "
+     "how much the representation compressed the source span.\n"
+     "POPULATABLE TODAY and its value is EXACTLY 1.0 for every raw row, which is a "
+     "measurement and not a placeholder: raw IS the source span, verbatim. VERIFIED by "
+     "joining all 2,599 screened rows to lmev2_memory_units_small.jsonl — "
+     "memory_tokens == the unit's n_tokens in 2,599/2,599 cases, so the ratio is "
+     "1.000000 with zero spread. It is stored anyway because raw's 1.0 is the CONTROL "
+     "that makes a summary arm's 0.2 interpretable, and because a reader who cannot see "
+     "the column cannot tell 'uncompressed' from 'unmeasured'."),
+    ("source_span_tokens", "quality", "int", True, False,
+     "ADDED by Sub-agent HF (populator: build/export join to the unit manifest). "
+     "Denominator of compression_ratio. Stored explicitly so the ratio is recomputable "
+     "from the row instead of requiring the manifest — the same recomputability rule "
+     "design requirement 2 applies to utility_label."),
+    ("extraction_cost_proxy", "quality", "float", True, False,
+     "ADDED for the user's memory-quality group. Cost of WRITING the memory, as "
+     "extraction output tokens (the billable quantity docs/MEMORY_PROTOCOL.md §5 "
+     "charges to the representation).\n"
+     "POPULATABLE TODAY and its value is 0.0 for raw — a measured zero, per "
+     "memory/metrics.py's 'three separate zeros, never merged' rule: raw makes NO call, "
+     "so extraction_calls=0 is a fact, while memory_extraction_latency stays NULL "
+     "because no call means no duration. Verified: all 2,599 rows have "
+     "memory_extraction_output_tokens=None and memory_writer_model="
+     "'none:deterministic_span'. Writing 0.0 for the LATENCY instead would be the "
+     "absent-as-zero defect; writing 0.0 for the COST is the honest counterweight to "
+     "raw's token bulk."),
+    ("faithfulness_check", "quality", "float", True, False,
+     "ADDED for the user's memory-quality group (the user named it explicitly).\n"
+     "🔴 RESERVED — NULL ON EVERY ROW, DELIBERATELY. There is NO VALID AUTOMATIC SCORE "
+     "for this corpus and the honest answer is to say so rather than emit a number.\n"
+     "REASON, and it is not a plumbing gap: p1mem.memory.faithfulness scores a memory "
+     "against its SOURCE. Every memory here is RAW — it IS the source text, byte for "
+     "byte. Scoring raw against itself is raw_control(), whose docstring calls it a "
+     "POSITIVE CONTROL that MUST return 1.0. VERIFIED by running it on three real "
+     "memory texts from the screened corpus: number_support=1.0, entity_support=1.0, "
+     "contradictions=[] on all three. A column of 1.0s carrying no information about "
+     "any memory would read to a downstream user as 'every memory was checked and "
+     "passed'. It would be a tautology dressed as a measurement.\n"
+     "The field becomes meaningful ONLY for model-written representations (summary, "
+     "structured), which do not exist in this release. Even then, faithfulness.py's own "
+     "PROXY_LIMITATIONS are binding: the proxies are blind to recombination, omission "
+     "and unsupported inference, so a high score is weak evidence and only a LOW score "
+     "is informative."),
+    ("faithfulness_notes", "quality", "str", True, False,
+     "ADDED for the user's memory-quality group. Why faithfulness_check holds what it "
+     "holds. NON-NULL EVEN WHEN faithfulness_check IS NULL — a null score with no stated "
+     "reason is indistinguishable from a forgotten field, which is the failure this "
+     "field exists to prevent. For raw rows it records that raw is the source, that the "
+     "proxy would be a tautology, and what would have to change for a real score."),
+    # ------------------------------------------------- memory-task relationship
+    ("bearing_label", "bearing", "str", True, False,
+     "ADDED for the user's memory–task-relationship group. Whether this memory is "
+     "believed to BEAR on this task: BEARING | MATCHED_CONTROL | RANDOM | unscreened.\n"
+     "POPULATABLE TODAY for the screened arm from provenance.stratum (measured: BEARING "
+     "417, MATCHED_CONTROL 438, RANDOM 1,744 = 2,599). The two earlier arms predate the "
+     "screen and carry 'unscreened' — which is a real value, not a missing one: those "
+     "pairs were drawn by the original question_type-spread rule with no bearing test "
+     "applied at all."),
+    ("bearing_evidence", "bearing", "obj", True, False,
+     "ADDED for the user's memory–task-relationship group. **THE MOST IMPORTANT ADDED "
+     "FIELD.** Bearing became this project's central concept, so the dataset must store "
+     "WHY a pair is believed to bear, never just a boolean. A downstream reader must be "
+     "able to disagree with our screen without re-running it.\n"
+     "POPULATABLE TODAY, entirely from fields already on the row. Shape:\n"
+     "  {'detector_fires': bool,        -- did the content-only detector single this "
+     "memory out?\n"
+     "   'task_pool_hits': int,         -- how many of the same-domain pool the task "
+     "fires on\n"
+     "   'task_pool_size': int,         -- the pool it was screened against\n"
+     "   'discriminativeness': float,   -- hits/size; LOW = discriminative. Derived and "
+     "stored so the reader need not divide.\n"
+     "   'n_bearing_tasks_for_this_memory': int,\n"
+     "   'why_stratum': str,            -- the screen's own sentence, e.g. 'detector "
+     "fires; task fires on 6 of 1024 same-domain memories'\n"
+     "   'screen_is_content_only': True,-- NO REWARD ENTERS THE SCREEN. This is what "
+     "makes the BEARING/CONTROL contrast non-circular, and it is asserted per row.\n"
+     "   'leakage_flag': bool|None,     -- gold answer present in memory_text (FLAG, "
+     "NEVER DROP)\n"
+     "   'caveat': str}                 -- the instrument's known weakness, carried "
+     "WITH the evidence.\n"
+     "The caveat travels inside the field on purpose: docs/PAIRING_VERDICT.md records "
+     "that the as-shipped leakage_flag fires on a memory the task was NEVER PAIRED WITH "
+     "at ratio 0.995, and a conclusion was once drawn from that defective instrument. A "
+     "caveat in a doc the reader may not open is a caveat that does not travel."),
+    ("candidate_pool_size", "bearing", "int", True, False,
+     "ADDED for the user's memory–task-relationship group. Size of the same-domain "
+     "memory pool this pair was screened against — the denominator that makes "
+     "'discriminative' mean anything. POPULATABLE TODAY from provenance.task_pool_size "
+     "(measured: 865 on 1,787 rows, 1,024 on 812 rows — it varies by domain, so a "
+     "hardcoded constant would have been wrong)."),
+    # -------------------------------------------------------- retrieval / exposure
+    ("context_budget", "retrieval", "int", True, False,
+     "ADDED for the user's retrieval/exposure group. The reader's context budget in "
+     "tokens for this cell, i.e. the cap that decides what gets truncated away between "
+     "memory_tokens_retrieved and memory_tokens_exposed.\n"
+     "🔴 RESERVED — NULL ON EVERY ROW, because NO TRUNCATION BUDGET WAS EVER APPLIED to "
+     "the reader context. VERIFIED: memory_tokens_exposed == memory_tokens_retrieved on "
+     "2,599/2,599 screened rows, and the runner (scripts/k2_run_screened.py) has no "
+     "context-cap argument at all — its only --max-tokens is the OUTPUT cap of 512, "
+     "which is a different quantity and must not be copied in here. The 20,000-token cap "
+     "in docs/BEARING_SCARCITY.md is a MEMORY-SELECTION rule applied when choosing which "
+     "35 of 46 memories to run; it never truncated a context, so recording it here would "
+     "attribute a selection rule to the exposure path.\n"
+     "Null is the correct value: 'no budget was enforced' is not the same as 'a budget "
+     "of 0', and not the same as an unrecorded budget."),
+    # ------------------------------------------------------- counterfactual utility
+    ("num_replicates", "label_rule", "int", True, False,
+     "ADDED for the user's counterfactual-utility group. Replicates actually run for "
+     "THIS cell. POPULATABLE TODAY by counting rows per cell_id (measured: 872 cells "
+     "with 2, 285 cells with 3 = 1,157 cells / 2,599 rows). Distinct from replicate_id, "
+     "which is this row's index. ANALYSIS_PREREGISTRATION §12 requires it per cell "
+     "because adaptive replication makes the count non-random and biases naive pooling. "
+     "It is populated here rather than left to replicate_count, which D reserved for the "
+     "count backing the CI and which is still null because no CI exists."),
+    ("confidence_or_stability", "label_rule", "float", True, False,
+     "ADDED for the user's counterfactual-utility group. Replicate STABILITY: the "
+     "fraction of this cell's replicates agreeing on delta_utility, in [0,1].\n"
+     "POPULATABLE TODAY, and the measured answer is 1.0 for all 1,157 cells — every "
+     "replicate of every cell produced BYTE-IDENTICAL output in both arms. That is real "
+     "temperature-0 determinism, NOT cache reuse: the cache holds 5,198 DISTINCT keys "
+     "(replicate_id is a key field) spread 2,314/2,314/570 over replicate ids 0/1/2, so "
+     "each replicate was a separate real endpoint call. It reproduces the standalone "
+     "determinism probe (30 calls, 6/6 prompts identical; 24 calls at 23k-26k context, "
+     "6/6 identical).\n"
+     "🔴 READ IT AS A SAMPLING-NOISE MEASUREMENT AND NOTHING MORE. Stability 1.0 means "
+     "F_exec = 0: re-sampling the reader reveals no variation, so replicates cannot "
+     "distinguish signal from noise here and the variance decomposition is "
+     "unidentifiable. It is NOT confidence that a delta is real, which is why it is a "
+     "SEPARATE field from robustness_confidence — that one needs the noise floor F "
+     "(P1-051) and stays null. Collapsing the two would turn 'the model is "
+     "deterministic' into 'we are certain', which is the opposite of what the data "
+     "says."),
+    # -------------------------------------------------------------------- efficiency
+    ("storage_bytes", "cost", "int", True, False,
+     "ADDED for the user's efficiency group. UTF-8 byte length of memory_text — what "
+     "storing this memory actually costs on disk, as opposed to what showing it costs in "
+     "context (memory_tokens). POPULATABLE TODAY by measuring the string already on the "
+     "row (measured on the screened corpus: min 4,120, median 21,485, max 61,163 bytes). "
+     "Kept distinct from memory_tokens because the two diverge by tokenizer and the "
+     "efficiency frontier needs both."),
+    # ----------------------------------------------------------- P3 compatibility
+    ("propagation_metadata", "p3_reserved", "obj", True, False,
+     "ADDED for the user's P3-compatibility group. How a memory propagated between "
+     "agents — sender, receiver, channel, hop count.\n"
+     "🔴 RESERVED, NULL IN P1 BY CONTRACT, and enforced: it sits in the p3_reserved "
+     "group, so validate.py's p3_field_populated check REJECTS any row that fills it. "
+     "P1 is single-agent — there is no second agent for a memory to propagate to — so a "
+     "non-null value here could only be fabricated. The field exists now so a P3 row and "
+     "a P1 row share one schema instead of forking it."),
     # ---------------------------------------------------------------- P3 reserved
     ("receiver_id", "p3_reserved", "any", True, True,
      "P3 RESERVED. Must be null in P1."),
@@ -724,6 +965,155 @@ def compute_delta_utility(
     return float(reward_with) - float(reward_without)
 
 
+# ===========================================  USER-FIELD POPULATORS (2026-09-30)
+# Every function here derives a value from fields ALREADY ON THE ROW. None of them
+# invents, infers from a run-time clock, or fills an absent upstream value. Where no
+# value exists, the function returns None and the paired ``*_notes`` field says why.
+
+FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE = (
+    "NOT SCORED. This memory is representation='raw': the memory text IS the source "
+    "span, verbatim, so a source-grounded faithfulness proxy compares the text with "
+    "itself and returns 1.0 by construction (p1mem.memory.faithfulness.raw_control is "
+    "exactly that comparison, and is documented as a POSITIVE CONTROL that must pass). "
+    "A column of 1.0s would assert that every memory was checked and found faithful, "
+    "which is not what a tautology measures. A real score requires a model-written "
+    "representation (summary/structured), which this release does not contain."
+)
+
+# Known weakness of the bearing screen, carried INSIDE bearing_evidence so it travels
+# with the number instead of living only in a doc the reader may never open.
+BEARING_SCREEN_CAVEAT = (
+    "The screen is content-only and no reward enters it, so the BEARING vs "
+    "MATCHED_CONTROL contrast is not circular. But 'bears' here means a deterministic "
+    "content detector singled this memory out of its same-domain pool -- it is OUR "
+    "operationalization, not a natural or annotated relation. docs/PAIRING_VERDICT.md "
+    "records that the UNSCREENED leakage_flag fires on a memory the task was never "
+    "paired with at ratio 0.995, and a wrong conclusion was once drawn from it; the "
+    "discriminativeness ratio, not the bare flag, is what carries the information."
+)
+
+
+def classify_memory_type(row: dict[str, Any]) -> tuple[str | None, str | None]:
+    """(memory_type_coarse, memory_type_fine) from fields already on the row.
+
+    Reads ONLY the memory's own properties and its source episode -- never the future
+    task, never any reward. That keeps it inside the same writer-blindness discipline as
+    the memory writers themselves.
+
+    The fine label is deliberately compositional rather than a new taxonomy:
+    ``<semantic_type>.<unit_shape>.<source_outcome>.<span_shape>``. Every component is a
+    stored fact, so a reader can decompose the label instead of trusting it.
+    """
+    sem = row.get("memory_semantic_type")
+    if not isinstance(sem, str) or sem not in MEMORY_TYPE_COARSE_OF:
+        return None, None
+    coarse = MEMORY_TYPE_COARSE_OF[sem]
+
+    span = row.get("memory_source_span") or {}
+    meta = row.get("source_episode_metadata") or {}
+    n_states = span.get("n_states") if isinstance(span, dict) else None
+    outcome = meta.get("outcome") if isinstance(meta, dict) else None
+
+    # Unit shape is a property of HOW the span was cut, which the writer prompt names.
+    wpv = row.get("memory_writer_prompt_version")
+    unit = "page_visit" if isinstance(wpv, str) and "page_visit" in wpv else "span"
+
+    if isinstance(n_states, int) and not isinstance(n_states, bool):
+        shape = "single_state" if n_states <= 1 else "multi_state"
+    else:
+        shape = "unknown_shape"
+    oc = outcome if isinstance(outcome, str) and outcome else "unknown_outcome"
+    return coarse, f"{sem}.{unit}.{oc}.{shape}"
+
+
+def compute_compression_ratio(
+    memory_tokens: Any, source_span_tokens: Any
+) -> float | None:
+    """memory_tokens / source_span_tokens, or None if either is unusable.
+
+    Returns None rather than 1.0 when the denominator is missing: an unmeasured ratio
+    and a ratio that happens to equal 1.0 are different facts, and raw's genuine 1.0 is
+    only interpretable if it cannot be confused with a default.
+    """
+    def _n(v: Any) -> float | None:
+        return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+
+    m, s = _n(memory_tokens), _n(source_span_tokens)
+    if m is None or s is None or s <= 0:
+        return None
+    return m / s
+
+
+def compute_extraction_cost_proxy(row: dict[str, Any]) -> float | None:
+    """Billable cost of WRITING this memory, in extraction output tokens.
+
+    Raw's 0.0 is a MEASUREMENT (no call was made, so nothing was billed) and must
+    survive into the efficiency frontier -- omitting it makes model-written
+    representations look free. This is the one zero of metrics.py's "three separate
+    zeros" that is genuinely zero; the LATENCY stays null, because "no call" has no
+    duration and averaging it as 0.0 would describe nothing.
+    """
+    if row.get("memory_writer_model") == "none:deterministic_span":
+        return 0.0
+    tok = row.get("memory_extraction_output_tokens")
+    if isinstance(tok, (int, float)) and not isinstance(tok, bool):
+        return float(tok)
+    return None
+
+
+def compute_storage_bytes(memory_text: Any) -> int | None:
+    if not isinstance(memory_text, str):
+        return None
+    return len(memory_text.encode("utf-8"))
+
+
+def build_bearing_evidence(row: dict[str, Any]) -> tuple[str | None, dict[str, Any] | None]:
+    """(bearing_label, bearing_evidence) from the row's own provenance.
+
+    Stores WHY a pair is believed to bear, not merely THAT it does. The
+    discriminativeness ratio is derived and stored so a reader can re-threshold our
+    screen without recomputing it, and the caveat is embedded so it travels with the
+    evidence.
+    """
+    prov = row.get("provenance")
+    if not isinstance(prov, dict):
+        return None, None
+    stratum = prov.get("stratum")
+
+    hits, size = prov.get("task_pool_hits"), prov.get("task_pool_size")
+    disc = None
+    if (isinstance(hits, int) and not isinstance(hits, bool)
+            and isinstance(size, int) and not isinstance(size, bool) and size > 0):
+        disc = hits / size
+
+    if not isinstance(stratum, str) or not stratum:
+        # The arm predates the screen. 'unscreened' is a real value; see BEARING_LABELS.
+        return "unscreened", {
+            "detector_fires": None,
+            "task_pool_hits": None,
+            "task_pool_size": None,
+            "discriminativeness": None,
+            "n_bearing_tasks_for_this_memory": None,
+            "why_stratum": "arm predates the bearing screen; pair drawn by the original "
+                           "question_type-spread rule with NO bearing test applied",
+            "screen_is_content_only": True,
+            "leakage_flag": row.get("leakage_flag"),
+            "caveat": BEARING_SCREEN_CAVEAT,
+        }
+
+    return stratum, {
+        "detector_fires": prov.get("detector_fires"),
+        "task_pool_hits": hits,
+        "task_pool_size": size,
+        "discriminativeness": disc,
+        "n_bearing_tasks_for_this_memory": prov.get("n_bearing_tasks_for_this_memory"),
+        "why_stratum": prov.get("why_stratum"),
+        "screen_is_content_only": True,
+        "leakage_flag": row.get("leakage_flag"),
+        "caveat": BEARING_SCREEN_CAVEAT,
+    }
+
+
 # =====================================================  DIGEST-IN-TEXT DETECTOR
 _BARE_DIGEST = re.compile(r"^\s*(?:sha256:|sha1:|md5:|0x)?[0-9a-fA-F]{32,128}\s*$")
 
@@ -854,12 +1244,18 @@ def field_report() -> str:
 
 
 __all__ = [
-    "SCHEMA_VERSION", "UTILITY_LABEL_RULE_VERSION", "DELTA_TOLERANCE",
+    "SCHEMA_VERSION", "SCHEMA_VERSION_V1", "KNOWN_SCHEMA_VERSIONS",
+    "UTILITY_LABEL_RULE_VERSION", "DELTA_TOLERANCE",
     "FIELD_SPEC", "FIELD_ORDER", "REQUIRED_FIELDS", "BRIEF_REQUIRED_FIELDS",
     "ADDED_FIELDS", "GROUPS", "P3_RESERVED_FIELDS", "NON_NULLABLE_IDENTITY",
     "IMPLICIT_CONDITION_KEYS", "REDISTRIBUTABLE_TEXT_FIELDS", "ENUMS",
     "MEMORY_REPRESENTATIONS", "MEMORY_SEMANTIC_TYPES", "SEMANTIC_DISTANCE_BANDS",
-    "RETRIEVAL_METHODS", "UTILITY_LABELS",
+    "RETRIEVAL_METHODS", "UTILITY_LABELS", "BEARING_LABELS", "MEMORY_TYPES_COARSE",
+    "MEMORY_TYPE_COARSE_OF", "BEARING_SCREEN_CAVEAT",
+    "FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE",
+    "classify_memory_type", "compute_compression_ratio",
+    "compute_extraction_cost_proxy", "compute_storage_bytes",
+    "build_bearing_evidence",
     "canonical_json", "sha256_text", "file_sha256", "sanitized_base_url_hash",
     "utc_now", "write_json_atomic", "write_jsonl_atomic", "append_jsonl_atomic",
     "load_jsonl",
