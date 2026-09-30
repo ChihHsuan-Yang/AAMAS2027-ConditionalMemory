@@ -98,7 +98,7 @@ def bearing_breadth():
     expect("  source episodes hosting those", len(episodes), 23)
     expect("units bearing on exactly one task", dist[1], 119)
     expect("units bearing on nothing", dist[0], 1724)
-    return dist, len(all_units), len(bearing), len(ge2), len(episodes)
+    return (dist, len(all_units), len(bearing), len(ge2), len(episodes), len(det))
 
 
 # ---------------------------------------------------------------------------
@@ -143,14 +143,97 @@ def flips_by_stratum():
     return out
 
 
+
+# ---------------------------------------------------------------------------
+# FIGURE 3 -- what locates utility: embedding similarity, or content bearing?
+# ---------------------------------------------------------------------------
+def similarity_vs_bearing():
+    """Mean Delta-U by similarity sextile, against the content-based screen.
+
+    Two honesty constraints shape this, and both are visible in the figure.
+
+    1. CONFOUND. BEARING cells concentrate in the top similarity bins (54 of
+       139 land in the top sextile, against 5 in the bottom). So the POOLED
+       similarity trend is partly the content screen showing through, and
+       quoting it alone would credit the embedding with the screen's work. The
+       within-RANDOM series is therefore computed and plotted beside it: same
+       similarity axis, no bearing cells in it at all.
+
+    2. ATTENUATION, which cuts against us and is stated anyway: the similarity
+       for most memories is computed on a truncated prefix, which pushes any
+       similarity-utility relationship toward zero.
+    """
+    sc = load("results/ledgers/repro/screened_cells_slim.jsonl")
+    cells = collections.defaultdict(list)
+    for r in sc:
+        if r.get("reward_with_memory") is None:
+            continue
+        cells[(r["stratum"], r["memory_id"], r["future_task_id"])].append(r)
+    rows = [(k[0],
+             statistics.mean(x["semantic_similarity"] for x in v),
+             statistics.mean(x["reward_with_memory"] - x["reward_without_memory"]
+                             for x in v))
+            for k, v in cells.items()]
+    expect("cells entering the similarity panel", len(rows), 1157)
+
+    n_bins = 6
+    sims = sorted(r[1] for r in rows)
+    edges = [sims[min(len(sims) - 1, i * len(sims) // n_bins)] for i in range(n_bins)]
+    edges.append(sims[-1] + 1e-9)
+
+    def series(subset):
+        out = []
+        for i in range(n_bins):
+            sub = [r for r in subset if edges[i] <= r[1] < edges[i + 1]]
+            out.append((len(sub), statistics.mean(r[2] for r in sub) if sub else 0.0))
+        return out
+
+    pooled = series(rows)
+    random_only = series([r for r in rows if r[0] == "RANDOM"])
+
+    # composition, which is the reason the second series exists
+    comp = [sum(1 for r in rows
+                if edges[i] <= r[1] < edges[i + 1] and r[0] == "BEARING")
+            for i in range(n_bins)]
+    expect("BEARING cells in the top similarity bin", comp[-1], 54)
+    expect("BEARING cells in the bottom similarity bin", comp[0], 5)
+    expect("  so the pooled trend is confounded", comp[-1] > 5 * comp[0], True)
+
+    by_str = {}
+    for s_ in ("BEARING", "MATCHED_CONTROL", "RANDOM"):
+        sub = [r for r in rows if r[0] == s_]
+        by_str[s_] = (len(sub), statistics.mean(r[2] for r in sub))
+    def spearman(xs, ys):
+        rx = {v: i for i, v in enumerate(sorted(set(xs)))}
+        ry = {v: i for i, v in enumerate(sorted(set(ys)))}
+        a = [rx[v] for v in xs]
+        b = [ry[v] for v in ys]
+        ma, mb = statistics.mean(a), statistics.mean(b)
+        num = sum((i - ma) * (j - mb) for i, j in zip(a, b))
+        den = math.sqrt(sum((i - ma) ** 2 for i in a) * sum((j - mb) ** 2 for j in b))
+        return num / den if den else 0.0
+
+    rho_all = spearman([r[1] for r in rows], [r[2] for r in rows])
+    rnd = [r for r in rows if r[0] == "RANDOM"]
+    rho_rand = spearman([r[1] for r in rnd], [r[2] for r in rnd])
+    expect("Spearman rho, all cells", round(rho_all, 4), 0.0868)
+    expect("Spearman rho, unscreened only", round(rho_rand, 4), 0.0061)
+    expect("BEARING mean dU", round(by_str["BEARING"][1], 4), 0.3453)
+    expect("MATCHED_CONTROL mean dU", round(by_str["MATCHED_CONTROL"][1], 4), 0.0274)
+    expect("RANDOM mean dU", round(by_str["RANDOM"][1], 4), 0.0642)
+    return pooled, random_only, by_str, edges, rho_all, rho_rand
+
+
 # ---------------------------------------------------------------------------
 # emit
 # ---------------------------------------------------------------------------
 def main():
     print("== bearing breadth (fig. 2a) ==")
-    dist, n_units, n_bear, n_ge2, n_eps = bearing_breadth()
+    dist, n_units, n_bear, n_ge2, n_eps, n_det = bearing_breadth()
     print("== sign reversal by stratum (fig. 2b) ==")
     flips = flips_by_stratum()
+    print("== similarity vs the content screen (fig. 3) ==")
+    pooled, rand_only, by_str, sim_edges, rho_all, rho_rand = similarity_vs_bearing()
 
     if FAIL:
         print("\nFIGURE DATA FAILED TO REPRODUCE:")
@@ -200,6 +283,7 @@ def main():
     L.append(rf"\def\bearAny{{{n_bear}}}")
     L.append(rf"\def\bearGeTwo{{{n_ge2}}}")
     L.append(rf"\def\bearEpisodes{{{n_eps}}}")
+    L.append(rf"\def\bearDetTasks{{{n_det}}}")
     for tick in (1, 10, 100, 1000):
         L.append(rf"\def\bearTick{ROMAN[int(math.log10(tick))]}{{{barh(tick):.2f}pt}}")
     L.append("")
@@ -219,6 +303,33 @@ def main():
         L.append(rf"\def\flipTick{ROMAN[int(round(t * 10))]}{{{fx(t):.2f}pt}}")
     L.append(rf"\def\flipAxisW{{{FOREST_W:.2f}pt}}")
     L.append(rf"\def\bearAxisW{{{PANEL_W:.2f}pt}}")
+    L.append("")
+
+    # ---- figure 3: similarity sextiles vs the content screen ----
+    SIM_W, SIM_H = 100.0, 40.0
+    DU_MAX = 0.40       # tallest plotted series value is BEARING's 0.3453
+    def sy(v):
+        return SIM_H * v / DU_MAX
+    L.append("%% --- similarity sextiles: y-offsets in pt, DU_MAX = 0.40 ---")
+    for i, ((n_p, m_p), (n_r, m_r)) in enumerate(zip(pooled, rand_only)):
+        L.append(rf"\def\simPooledY{ROMAN[i]}{{{sy(m_p):.2f}pt}}")
+        L.append(rf"\def\simPooledV{ROMAN[i]}{{{m_p:.4f}}}")
+        L.append(rf"\def\simRandY{ROMAN[i]}{{{sy(m_r):.2f}pt}}")
+        L.append(rf"\def\simRandV{ROMAN[i]}{{{m_r:.4f}}}")
+        L.append(rf"\def\simX{ROMAN[i]}{{{SIM_W * (i + 0.5) / len(pooled):.2f}pt}}")
+    for s_, tag in (("BEARING", "Bear"), ("MATCHED_CONTROL", "Ctrl"), ("RANDOM", "Rand")):
+        n_, mu = by_str[s_]
+        L.append(rf"\def\strat{tag}Y{{{sy(mu):.2f}pt}}")
+        L.append(rf"\def\strat{tag}V{{{mu:+.4f}}}")
+        L.append(rf"\def\strat{tag}N{{{n_}}}")
+    for t in (0.0, 0.1, 0.2, 0.3, 0.4):
+        L.append(rf"\def\simTick{ROMAN[int(round(t * 10))]}{{{sy(t):.2f}pt}}")
+    L.append(rf"\def\simAxisW{{{SIM_W:.2f}pt}}")
+    L.append(rf"\def\simRhoAll{{{rho_all:+.3f}}}")
+    L.append(rf"\def\simRhoRand{{{rho_rand:+.3f}}}")
+    L.append(rf"\def\simCells{{{sum(n for n, _ in pooled):,}}}".replace(",", "{,}"))
+    L.append(rf"\def\simLoEdge{{{sim_edges[0]:.2f}}}")
+    L.append(rf"\def\simHiEdge{{{sim_edges[-1]:.2f}}}")
     L.append("")
 
     dest = OVERLEAF / "figdata.tex"
