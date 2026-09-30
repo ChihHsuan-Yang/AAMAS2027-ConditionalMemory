@@ -69,3 +69,68 @@ A learned predictor appears only if the measurement survives a kill criterion.
 
 Not yet specified — the dependency set follows the experiment design. See
 `docs/MASTER_TODO.md` Phase 2.
+
+---
+
+## Current Project State
+
+**Updated 2026-09-30.** Detail in [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md).
+
+### Current scientific story
+
+Past experience can be represented as memory in different ways. We ask **what future tasks
+each memory is actually useful for**, when it is neutral or harmful, and **what it costs**
+in storage, retrieval, exposure, latency and compute. The paper is about
+**Memory × Task × Representation × Cost**; the object is `U(memory, future_task)`.
+
+### Benchmarks
+
+| | status |
+|---|---|
+| **LongMemEval-V2** | ✅ **primary, complete** — 1,889 memories, 1,157 evaluated cells, 5,198 calls, 0 errors |
+| **SciCode** | 🟡 scoped, not built — memory = a reusable procedure; usable N ≈ 8–12 cross-problem pairs, so a case study |
+| **BEAM** | ❌ **DROPPED for core P1** — **92.6% of cited turns are cited by exactly one question**, so it cannot supply the multi-task-per-memory axis. Also CC BY-SA 4.0 (ShareAlike would force a separate release) |
+| **replacement** | 🟡 selection pending — prefer a coding/software benchmark with cross-episode transfer |
+
+### Memory representations
+
+| | status |
+|---|---|
+| **Raw / extractive** | ✅ at scale — 1,889 units, deterministic, **0 model calls** |
+| **Summary** | 🟡 pilot (8 segments, compression 0.063) — **scale-up running** |
+| **Structured** | 🟡 pilot (8 segments, compression 0.037, 0/8 malformed) — **scale-up running** |
+
+### Strongest verified findings
+
+1. **Screening the pairing makes the effect measurable** — both-arms-fail 0.7007 → **0.5252**; a stopping rule committed in code *before* the data passed.
+2. **Where a memory bears on a task, it helps** — paired within-memory **+0.3349**, episode-clustered CI **[0.1974, 0.4736]**, p = 5×10⁻⁵, on the same 60 memories.
+3. **Bearing is scarce** — a memory bears on a **median of one** future task out of hundreds.
+4. **The founding hypothesis is not supported** — **0 sign flips / 35** bearing memories (bound ≤9.9%); flips concentrate in the unscreened stratum (**17/60**); the excess over the additive null is **negative in every stratum**.
+5. **Similarity is a poor proxy for utility** — Spearman **+0.087** overall, **+0.006** unscreened.
+
+### Failed / dropped
+
+BEAM (diagonality) · the semantic-type axis (κ = 0.000) · the variance decomposition
+(unidentifiable: `F_exec = 0` leaves no residual scale) · unscreened pairing (~80%
+both-arms-fail) · the official-prompt "fix" (**lowered** accuracy 5.7 pts — abstentions
+score as wrong).
+
+### Figures · dataset · manuscript
+
+Figures: 2 tables in; **0 figures** — pipeline + audit in progress.
+HF `AgentsSci/AAMAS2027-ConditionalMemory`: **empty**, v0.1 in progress.
+Overleaf `964bbcb` — 8 pages, 0 undefined citations, anonymity verified.
+
+### Verification
+
+`scripts/audit_claims.py` re-derives **38 headline claims** from tracked artifacts and is
+**proven able to fail**. 416 tests pass. **17 instrument defects** found on the first
+execution day, **none reaching a reported number** — see
+[`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md).
+
+### Handoff
+
+Read [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) →
+[`docs/THE_HONEST_HEADLINE.md`](docs/THE_HONEST_HEADLINE.md) →
+[`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md). Then run `audit_claims.py` before
+touching the manuscript. **Never quote a number you have not re-derived.**
