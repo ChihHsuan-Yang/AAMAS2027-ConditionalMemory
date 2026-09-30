@@ -908,17 +908,40 @@ def main() -> int:
     # headline. Emitted as a field with its Wilson bound so the artifact states
     # the verdict rather than relying on a reader to derive it -- and so a ZERO
     # is reported as a bounded zero, never as "not observed".
+    # READ THE KEY THE ANALYSIS LAYER ACTUALLY WRITES. My first version read
+    # labels_and_flips["flips"], which does not exist -- label_analysis emits
+    # "primary_balanced" / "secondary_all_replicates" / "bh_corrected". The
+    # .get() chain defaulted to {} and the field reported "0 of 0", i.e. a zero
+    # NUMERATOR over a zero DENOMINATOR, which is the project's own
+    # absent-input-becomes-a-plausible-zero failure. The tell was that an
+    # independent hand computation gave 0 of 35. A denominator of 0 must never
+    # be silently accepted, so it now RAISES.
     fh = {}
     for st in STRATA:
-        fl = ((report["per_stratum"].get(st) or {}).get("labels_and_flips")
-              or {}).get("flips") or {}
-        per_mem = fl.get("per_memory") or {}
-        elig = {m: v for m, v in per_mem.items() if v.get("eligible")}
-        nflip = sum(1 for v in elig.values() if v.get("naive_flip"))
-        rate, lo, hi = wilson_ci(nflip, len(elig)) if elig else (None, None, None)
-        fh[st] = {"n_flip_eligible_memories": len(elig),
+        lab = (report["per_stratum"].get(st) or {}).get("labels_and_flips") or {}
+        # prereg section 12: the BALANCED minimum-replicate subset is primary.
+        fl = lab.get("primary_balanced")
+        if not fl:
+            raise SystemExit(
+                f"{st}: labels_and_flips has no 'primary_balanced' block "
+                f"(keys: {sorted(lab)}); refusing to report a flip rate from a "
+                f"structure I cannot read.")
+        elig = fl.get("n_memories_eligible_denominator")
+        nflip = fl.get("n_naive_flip_memories")
+        nrob = fl.get("n_robust_flip_memories")
+        if elig in (None, 0):
+            raise SystemExit(
+                f"{st}: flip-eligible denominator is {elig!r}. A zero denominator "
+                f"is not a measurement -- 'no memory qualified' and 'no memory "
+                f"flipped' are different statements.")
+        rate, lo, hi = wilson_ci(nflip, elig)
+        fh[st] = {"n_flip_eligible_memories": elig,
                   "n_memories_with_a_sign_flip": nflip,
-                  "flip_rate": rate, "wilson_ci": [lo, hi]}
+                  "n_robust_flip_memories": nrob,
+                  "flip_rate": rate, "wilson_ci": [lo, hi],
+                  "_denominator_definition": fl.get("denominator_definition"),
+                  "_source": "labels_and_flips.primary_balanced (prereg section 12: "
+                             "the balanced minimum-replicate subset is primary)"}
     b = fh.get("BEARING") or {}
     fh["VERDICT"] = (
         "SIGN-REVERSAL COMPONENT NOT SUPPORTED: "
