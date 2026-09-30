@@ -92,3 +92,40 @@ so a gate that rejects everything is caught rather than mistaken for working.
 Milestones: `schema-v0` · `pilot` · `lmev2-derived` · `beam-derived` · `scicode-derived` ·
 `release-candidate` · `submission-snapshot`. Every snapshot must be reproducible from the
 GitHub code at a named commit.
+
+
+---
+
+## Release log
+
+### v0.2 — `v0.2-repr-derived`, 2026-09-30 ✅ VERIFIED
+
+**Master Agent verified by downloading the tag**, not from the upload's exit code:
+**5,643 rows** (raw 4,519 · summary 570 · structured 554), **98 fields**, schema
+`p1mem_conditional_memory_utility_v3`, 18 files, private, unauthenticated access → **401**.
+`benchmark == longmemeval_v2` on 5,643/5,643.
+
+All seven gates ran; the post-download validator returned **5,643 rows / 0 errors**, matching
+the card's documented expected output.
+
+#### Two "deliberately null" reasons that were about to become false
+
+v0.1 wrote *"No faithfulness proxy was run for this representation"* on non-raw rows — a
+statement that **could never be false because no such row existed.** The proxy does run at
+write time, and all 1,124 new rows carry real scores.
+
+> **A documented reason for a null is a claim, and it decays.** When the data it describes
+> changes, the reason becomes a false statement shipped inside a published artifact. Re-check
+> every null's justification at each release, not just the nulls themselves.
+
+Also refused: a **single-float** faithfulness column (it would report structured as a flat
+1.0 while entity support is 0.8322 on 55/57 memories — hence `faithfulness_detail`), a
+back-filled `config_sha256` the runner never reads, verbatim source fragments inside
+`faithfulness_detail` under a closed licence (**a leak path the existing gate could not
+see**), and all SciCode/SWE-bench rows — both landed mid-task and belong to v0.3/v0.4.
+
+### v0.1 — `v0.1-lmev2-derived` ✅ 4,519 rows, 15 files
+Its **first** upload succeeded and was broken: gates passed, exit 0, and every published row
+failed the validator published beside it, because redaction added fields after validation.
+Found only by downloading and running the card's own command. Gates 4 and 5 exist because of
+it.
