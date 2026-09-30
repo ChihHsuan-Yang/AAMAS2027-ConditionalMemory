@@ -177,6 +177,86 @@ def _rho(x, y):
     return num / den if den else 0.0
 check("similarity rho is small (<0.25)", abs(_rho(sims, dus)) < 0.25, True)
 
+print("== Representation scale-up: the frontier, CHARGED for formation ==")
+# The uncharged column was published first and read as "Summary is 5.5x more
+# token-efficient". MEMORY_PROTOCOL section 5 requires the charge; A1.5
+# pre-registers the asymmetry as the correctness test. Both columns are
+# re-derived here so the corrected reading cannot silently revert.
+_rsr = load("results/repr_scaleup/cells.jsonl")
+_rawr = [r for r in load("results/deltau_screened/cells.jsonl")
+         if (r.get("provenance") or {}).get("stratum") in ("BEARING", "MATCHED_CONTROL")]
+_memr = load("results/repr_scaleup/memories.jsonl")
+
+def _loc(r):
+    pr = r.get("provenance") or {}
+    return pr.get("memory_unit_locator") or (
+        r.get("source_episode_metadata") or {}).get("memory_unit_locator")
+
+def _pk(r):
+    return f"{_loc(r)}|{r['future_task_id']}"
+
+_byrep = {"raw": _rawr}
+for _r in _rsr:
+    _byrep.setdefault(_r["memory_representation"], []).append(_r)
+_common = set.intersection(*[{_pk(r) for r in v} for v in _byrep.values()])
+check("representation arms share 277 pair keys", len(_common), 277)
+
+# amortized formation tokens per cell, per representation
+_form = {"raw": 0.0}
+for _rep in ("summary", "structured"):
+    _ms = [m for m in _memr if m["representation"] == _rep]
+    _tot = sum((m["extraction_input_tokens"] or 0) + (m["extraction_output_tokens"] or 0)
+               for m in _ms)
+    _form[_rep] = _tot / len({_pk(r) for r in _byrep[_rep]})
+
+def _per1k(rep, stratum, charged):
+    cell, tok = collections.defaultdict(list), {}
+    for r in _byrep[rep]:
+        k = _pk(r)
+        if k not in _common or r.get("delta_utility") is None:
+            continue
+        if stratum and (r["provenance"] or {})["stratum"] != stratum:
+            continue
+        cell[k].append(float(r["delta_utility"]))
+        tok[k] = float(r["memory_tokens_exposed"])
+    num = sum(statistics.mean(v) for v in cell.values())
+    den = sum(tok[k] + (_form[rep] if charged else 0.0) for k in tok)
+    return 1000.0 * num / den
+
+# BEARING cells, the table in docs/REPRESENTATION_RESULT.md
+for _rep, _unch, _ch in (("raw", 0.0368, 0.0368),
+                         ("summary", 0.2054, 0.0342),
+                         ("structured", 0.0622, 0.0076)):
+    check(f"{_rep} dU/1k BEARING exposure-only",
+          round(_per1k(_rep, "BEARING", False), 4), _unch)
+    check(f"{_rep} dU/1k BEARING formation-charged",
+          round(_per1k(_rep, "BEARING", True), 4), _ch)
+
+# A1.5: raw must be EXACTLY unchanged, the model-written arms must move.
+check("A1.5 raw is bit-identical when formation is charged",
+      _per1k("raw", "BEARING", False) == _per1k("raw", "BEARING", True), True)
+check("A1.5 summary MOVES when formation is charged",
+      _per1k("summary", "BEARING", False) != _per1k("summary", "BEARING", True), True)
+check("A1.5 structured MOVES when formation is charged",
+      _per1k("structured", "BEARING", False) != _per1k("structured", "BEARING", True), True)
+# The correction itself: uncharged Summary beats Raw, charged it does not.
+check("uncharged Summary beats Raw (the flattering reading)",
+      _per1k("summary", "BEARING", False) > _per1k("raw", "BEARING", False), True)
+check("CHARGED Summary does NOT beat Raw (the protocol's reading)",
+      _per1k("summary", "BEARING", True) > _per1k("raw", "BEARING", True), False)
+
+print("== Representation scale-up: write-pass instrument facts ==")
+_ns = sum(1 for m in _memr if m["representation"] == "structured")
+_nbad = sum(1 for m in _memr if m["representation"] == "structured" and not m["ok"])
+_nbad_fin = sum(1 for m in _memr if m["representation"] == "structured"
+                and not m["ok"] and not m["truncated"])
+_nfin = sum(1 for m in _memr if m["representation"] == "structured" and not m["truncated"])
+check("malformed structured, all writes", f"{_nbad}/{_ns}", "3/60")
+check("malformed structured, writes that FINISHED", f"{_nbad_fin}/{_nfin}", "0/57")
+check("truncated summaries admitted as ok=True",
+      sum(1 for m in _memr if m["representation"] == "summary"
+          and m["truncated"] and m["ok"]), 7)
+
 print("== No variance share is quoted as a result ==")
 tex = (REPO.parent / "overleaf" / "main.tex").read_text()
 body = tex[tex.index("\\begin{document}"):]
