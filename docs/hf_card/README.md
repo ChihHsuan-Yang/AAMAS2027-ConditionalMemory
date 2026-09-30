@@ -375,13 +375,35 @@ Each of these is a **measured** constraint with a command behind it.
 
 | version | date | contents |
 |---|---|---|
-| **v0.1 `lmev2-derived`** | 2026-09-30 | First upload. 4,519 rows / 2,117 cells from three LongMemEval-V2 arms (screened, pilot, official-prompt). Schema v2, 94 fields. |
+| **v0.1 `lmev2-derived`** | 2026-09-30 | First upload. 4,519 rows / 2,117 cells from three LongMemEval-V2 arms (screened, pilot, official-prompt). Schema v2, 97 fields. |
 
-Schema `p1mem_conditional_memory_utility_v2`, **94 fields**. v2 added 17 fields over v1
-(chronology, lineage, quality, bearing, efficiency, P3 groups); 5 of them are null by
-design with the reasons in §7. The authoritative definition is `code/schema.py`; the
-validator is `code/validate.py`, and it is tested by **deliberate corruption** — 66 tests
-that each break a good row in one specific way and assert the specific issue code.
+Schema `p1mem_conditional_memory_utility_v2`, **97 fields**. v2 added 20 fields over v1:
+17 from the required field list (chronology, lineage, quality, bearing, efficiency, P3
+groups), of which 5 are null by design with the reasons in §7; plus 3 **export-provenance**
+fields (`license_policy`, `text_fields_withheld`, `reconstruction_required`) written by the
+exporter rather than the runner. Those three were previously added to published rows
+*without* being in the schema, which made every published row fail the validator published
+beside it — caught by downloading the release and running its own documented command, and
+now prevented by GATE 4, which re-reads and re-validates the written file before it ships.
+
+The authoritative definition is `code/schema.py`; the validator is `code/validate.py`, and
+it is tested by **deliberate corruption** — each test breaks a good row in one specific way
+and asserts the specific issue code, because a check whose verdict is right for the wrong
+reason is harder to catch than a wrong verdict.
+
+**Verify this release yourself**, exactly as we do:
+
+```python
+import sys; sys.path.insert(0, "code")          # the shipped schema.py + validate.py
+from p1mem import schema as S, validate as V
+rows = S.load_jsonl("data/cells.jsonl", strict=True)
+print(V.validate_dataset(rows).summary())        # expect: 4519 rows | 0 errors
+```
+
+The warnings it prints are **intended** and each is documented above:
+`zero_execution_noise` (§11), `all_labels_undetermined` (§11),
+`scorer_composition_differs_across_strata` (§19.9), and two `unknown_error_code` rows
+(§4 — 2 errored cells carrying no reward).
 
 ## 21. Relation to P3
 

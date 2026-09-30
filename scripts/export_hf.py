@@ -7,7 +7,7 @@ The staging directory is built OUTSIDE the repository. The repo root is never up
 it contains a git history, endpoint benchmark logs, and configs, none of which belong in
 a public dataset release.
 
-**Three gates run BEFORE a single byte is emitted.** If any fails the script writes
+**Gates 1-3 run BEFORE a single byte is emitted.** If any fails the script writes
 nothing at all -- it does not write a partial export and warn:
 
   GATE 1  schema validation      -- every row conforms (scripts cannot fix data)
@@ -15,6 +15,22 @@ nothing at all -- it does not write a partial export and warn:
                                     including inside model outputs and metadata
   GATE 3  license exclusion      -- no text field is emitted whose source license forbids
                                     redistribution
+
+**Gates 4-5 run AFTER the directory is written, on the artifact itself**, because gates
+1-3 inspect rows held in memory and cannot see a defect introduced by the writing:
+
+  GATE 4  re-validate the FILE   -- load data/cells.jsonl back from disk and run the
+                                    shipped validator on it
+  GATE 5  run the card's command -- execute the verification snippet the README tells a
+                                    consumer to run, in a subprocess, from the staging
+                                    root, with no repo paths available
+
+Both exist because of a defect that shipped on 2026-09-30: ``redact_row`` adds three
+export-provenance fields AFTER gate 1 validates, and they were not in ``FIELD_SPEC``, so
+all 4,519 published rows failed the validator published beside them. Every component was
+individually correct; the defect lived in the SEAM, and no check read the emitted
+artifact back. It was found by downloading the release and running its own documented
+command -- which is now gate 5.
 
 A gate that has never rejected anything is not known to work, so ``--self-test`` plants a
 secret and a non-redistributable payload into a copy of the data and asserts each gate
@@ -31,6 +47,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
@@ -498,9 +515,23 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
         S.write_jsonl_atomic(staging / "data" / "cells.jsonl", exported)
 
     # Reconstruction code: how to rebuild withheld text from the original benchmark.
+    #
+    # Shipped as an IMPORTABLE PACKAGE (code/p1mem/), not as two loose modules. The data
+    # card tells a consumer to run `sys.path.insert(0, "code"); from p1mem import ...`,
+    # and validate.py does `from .schema import ...` -- a relative import that only
+    # resolves inside a package. Two loose files would make the card's own documented
+    # verification command fail with ImportError on the consumer's first try.
+    # Run the command the doc prescribes, rather than a hand-rolled equivalent.
+    pkg = staging / "code" / "p1mem"
+    pkg.mkdir(parents=True, exist_ok=True)
     for src in (REPO_ROOT / "src" / "p1mem" / "schema.py",
                 REPO_ROOT / "src" / "p1mem" / "validate.py"):
-        shutil.copy2(src, staging / "code" / src.name)
+        shutil.copy2(src, pkg / src.name)
+    (pkg / "__init__.py").write_text(
+        '"""Schema and validator for the Conditional Memory Utility Dataset.\n\n'
+        'Shipped so a consumer can verify the release with the command in the data\n'
+        'card. See README.md, "Verify this release yourself".\n"""\n'
+        "from . import schema, validate  # noqa: F401\n")
     shutil.copy2(LICENSE_DOC, staging / "docs" / LICENSE_DOC.name)
     if not CARD_SRC.exists():
         raise GateFailure(f"data card missing: {CARD_SRC}")
@@ -543,7 +574,48 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
     S.write_json_atomic(staging / "MANIFEST.json", manifest)
     gate_secret_scan_tree(staging)     # final sweep over what will actually ship
     gate_exported_file_revalidates(staging / "data" / "cells.jsonl", len(exported))
+    gate_card_command_actually_runs(staging)
     return manifest
+
+
+def gate_card_command_actually_runs(staging: Path) -> None:
+    """GATE 5: run the verification command the DATA CARD prescribes, as written.
+
+    The card tells a consumer to do exactly this, from the release root:
+
+        sys.path.insert(0, "code")
+        from p1mem import schema as S, validate as V
+        rows = S.load_jsonl("data/cells.jsonl", strict=True)
+        V.validate_dataset(rows)
+
+    Hand-verifying the same property a different way is a DIFFERENT TEST. Shipping two
+    loose modules instead of a package, for instance, leaves every documented claim true
+    while the printed command dies on ``ImportError`` -- because validate.py imports
+    ``.schema`` relatively. This gate runs the documented command in a subprocess, from
+    the staging root, with no repo paths available, so a consumer's experience is what
+    is actually checked.
+    """
+    data = staging / "data" / "cells.jsonl"
+    if not data.exists():
+        return
+    script = (
+        "import sys; sys.path.insert(0, 'code')\n"
+        "from p1mem import schema as S, validate as V\n"
+        "rows = S.load_jsonl('data/cells.jsonl', strict=True)\n"
+        "rep = V.validate_dataset(rows)\n"
+        "print(rep.summary())\n"
+        "raise SystemExit(0 if rep.ok else 3)\n"
+    )
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    proc = subprocess.run([sys.executable, "-c", script], cwd=str(staging), env=env,
+                          capture_output=True, text=True, timeout=600)
+    if proc.returncode != 0:
+        raise GateFailure(
+            "GATE 5 (the data card's own verification command) FAILED. The release "
+            "would not survive a consumer following its README.\n"
+            f"  exit={proc.returncode}\n"
+            f"  stdout: {proc.stdout.strip()[:800]}\n"
+            f"  stderr: {proc.stderr.strip()[:800]}")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
