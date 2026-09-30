@@ -377,6 +377,26 @@ for b in banned:
             hits.append(f"{b}: ...{' '.join(near.split())}...")
 check("no variance share quoted as a number in the manuscript", hits, [])
 
+print("== Benchmark maturity wording ==")
+# The SciCode pilot's intervals ALL cross zero. Calling the cross-benchmark
+# difference an "inversion" or "reversal" of the representation ranking
+# overstates it. Permitted: "the point-estimate ordering differs", or
+# "LongMemEval's Raw-dominant ordering is not reproduced in the SciCode pilot".
+_tex3 = REPO.parent / "overleaf" / "main.tex"
+if _tex3.is_file():
+    _b3 = "\n".join(l for l in _tex3.read_text().split("\n")
+                    if not l.lstrip().startswith("%"))
+    _low = _b3.lower()
+    _bad = []
+    for _w in ("invert", "inversion", "reversal of the representation",
+               "ranking reverses", "ranking is reversed"):
+        for _m in re.finditer(re.escape(_w), _low):
+            _near = _low[max(0, _m.start() - 160): _m.end() + 160]
+            if "scicode" in _near or "cross-benchmark" in _near:
+                _ctx = ' '.join(_low[max(0, _m.start() - 55): _m.end() + 85].split())
+                _bad.append(f"{_w!r} @char {_m.start()}: ...{_ctx}...")
+    check("manuscript does not call the SciCode difference an inversion", _bad, [])
+
 print("== Efficiency ratios stated in the manuscript ==")
 # P1-I13: the paper said the charged reversal is "roughly 5x". True of
 # Structured (4.84x); for SUMMARY it is 1.08x -- indistinguishable -- and the

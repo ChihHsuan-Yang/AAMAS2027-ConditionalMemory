@@ -47,7 +47,7 @@ pairing is **cross-problem by construction**.
 **Every task-clustered CI touches zero.** The pilot establishes that the instrument works,
 not that memory helps. Report it that way.
 
-## 4. 🔬 The representation ranking INVERTS relative to LongMemEval
+## 4. The point-estimate ordering differs from LongMemEval
 
 | | LongMemEval-V2 | SciCode |
 |---|---|---|
@@ -55,13 +55,18 @@ not that memory helps. Report it that way.
 | summary | +0.0613 (spans zero) | **+0.0690** (largest here) |
 | structured | −0.0498 (spans zero) | +0.0556 |
 
-On LongMemEval raw dominates and compression destroys the effect. **On SciCode raw is
-exactly zero and the compressed forms are the only ones with a positive point estimate.**
+On LongMemEval raw dominates and compression destroys the effect. In the SciCode pilot raw
+is exactly zero and the compressed forms carry the only positive point estimates.
 
-⚠️ **All SciCode intervals touch zero, so this is a difference in point estimates, not an
-established reversal.** But it is the single most important reason not to generalize the
-LongMemEval representation ranking — which the execution brief warned against assuming —
-and it is a direct argument for the cross-benchmark axis.
+> 🔴 **This is NOT an established inversion, and must not be described as one.** Every
+> SciCode interval crosses zero. The defensible statements are:
+> **"the point-estimate ordering differs across benchmarks"**, or
+> **"LongMemEval's Raw-dominant ordering is not reproduced in the SciCode pilot."**
+>
+> Strengthen this only if scaled SciCode evidence supports it.
+
+It is still the reason not to generalize the LongMemEval ranking — which the execution
+brief warned against assuming — and a direct argument for the cross-benchmark axis.
 
 ## 5. A finding that bears on every other benchmark
 

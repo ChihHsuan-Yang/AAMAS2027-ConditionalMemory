@@ -36,7 +36,7 @@ TODO 21 · DEFERRED 22 · KILLED 13 — **188 distinct IDs**.
 | **P1-C07** | SWE-bench main run *if* the pilot passes | SA-SWE | **BLOCKED** on C06 | **no SWE-bench number enters any table before this** |
 | **P1-C08** | SciCode adapter | SA-SCI | **DONE** | adapter + 45 tests, mutation-checked 4/4 |
 | **P1-C09** | SciCode pilot | SA-SCI | **DONE** | both-arms-fail 0.370–0.456 across three representations, all below threshold; errors symmetric across arms |
-| **P1-C10** | SciCode procedural-memory evaluation (a **case study**, N ≈ 8–12, never a main table) | SA-SCI | **DONE** | all three representations run; **ranking inverts vs LongMemEval** (raw +0.0000 here); every CI touches zero |
+| **P1-C10** | SciCode procedural-memory evaluation (a **case study**, N ≈ 8–12, never a main table) | SA-SCI | **DONE** | all three representations run. **The point-estimate ordering differs across benchmarks**: LongMemEval's Raw-dominant ordering is **not reproduced** in the SciCode pilot (raw +0.0000 here). ⚠️ **Every SciCode CI crosses zero — this is NOT an established inversion** |
 | **P1-C11** | Cross-benchmark synthesis | Master | **TODO** | **UNBLOCKED** — all three benchmarks are past their gate |
 | **P1-C12** | Final representation comparison (Contribution B) | Master | **DONE** | `docs/REPRESENTATION_RESULT.md`; 9 audit checks re-derive both cost columns |
 | **P1-C13** | Main figures and tables | SA-FIG2 | **RUNNING** | 3 figures + 2 tables in `main.tex` at `3c06d3a`; Figure 4 pending C03. ⚠️ only **~50–80 pt** of float slack remains |
