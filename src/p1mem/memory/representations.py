@@ -37,6 +37,22 @@ than quietly emitting the raw model text as if it were a structured memory.
 The malformed text is KEPT in ``raw_model_output`` -- a discarded failure
 cannot be re-examined, and the malformed-JSON rate is a number we have to
 report.
+
+Truncation is RECORDED, not repaired (``finish_reason`` / ``truncated``)
+------------------------------------------------------------------------
+🔴 ``ok`` does not mean "the model finished". ``P1Client`` raises only when
+``finish_reason == "length"`` AND the content is empty; a summary cut off
+mid-sentence arrives NON-empty and passes :class:`SummaryWriter`'s only
+validity test. Measured on the 60-memory scale-up at ``max_tokens=512``:
+**7 of 60 summaries** and **3 of 60 structured writes** finished on "length".
+The structured three surfaced downstream as malformed JSON; the summary seven
+surfaced nowhere.
+
+So every record carries the endpoint's own ``finish_reason`` and the derived
+``truncated`` flag, and any rate over model-written memories must either split
+on it or say it did not. The malformed-JSON rate in particular has two honest
+denominators -- all writes, and writes that were allowed to finish -- and they
+differ: 3/60 vs 0/57.
 """
 from __future__ import annotations
 
@@ -142,9 +158,42 @@ class MemoryRecord:
     structured: dict[str, str] | None = None
     native_semantic_type: str | None = None
     raw_model_output: str | None = None
+    #: The endpoint's OWN finish_reason for the write call, recorded verbatim.
+    #: None for raw (no call was made). ``"length"`` means the model hit the
+    #: token cap mid-output.
+    #:
+    #: 🔴 RECORDED BECAUSE IT WAS MISSED. ``P1Client`` raises
+    #: ``TruncatedResponseError`` only when finish_reason == "length" AND the
+    #: content is empty. A summary truncated mid-sentence comes back NON-empty,
+    #: passes this class's only validity test ("non-empty"), and is written out
+    #: with ok=True. Measured on the 60-memory scale-up: 7 of 60 summaries and
+    #: 3 of 60 structured writes finished on "length". The structured three were
+    #: caught downstream as malformed JSON; the summary seven were not caught at
+    #: all. The module docstring already named this hazard ("a truncated summary
+    #: silently becomes a degraded memory and would fabricate a 'harmful'
+    #: result") and the guard it pointed at did not cover it.
+    #:
+    #: This field does NOT change ``ok``: whether a truncated-but-parseable
+    #: memory is admitted is an experimental decision, not a plumbing one, and
+    #: flipping it here would silently change the population every downstream
+    #: rate is taken over. It makes the condition VISIBLE and countable so an
+    #: analysis can report both populations. See ``truncated``.
+    finish_reason: str | None = None
     error_code: str | None = None
     error_detail: str | None = None
     written_at_utc: str = field(default_factory=utc_now)
+
+    @property
+    def truncated(self) -> bool:
+        """Did the writer call stop because it hit the token cap?
+
+        A separate question from ``ok``. A truncated summary is ``ok=True``
+        (non-empty prose) and truncated; a truncated structured write is
+        ``ok=False`` (unparseable JSON) and truncated. Reporting a rate over
+        model-written memories without splitting on this mixes a memory the
+        model finished with one it did not.
+        """
+        return self.finish_reason == "length"
 
     @property
     def compression_ratio(self) -> float | None:
@@ -205,6 +254,8 @@ class MemoryRecord:
             "structured": self.structured,
             "native_semantic_type": self.native_semantic_type,
             "raw_model_output": self.raw_model_output,
+            "finish_reason": self.finish_reason,
+            "truncated": self.truncated,
             "error_code": self.error_code,
             "error_detail": self.error_detail,
             "written_at_utc": self.written_at_utc,
@@ -383,6 +434,7 @@ class _LLMWriter:
             cache_hit=bool(getattr(rec, "cache_hit", False)),
             memory_tokens=_maybe_tokens(memory_text) if memory_text else None,
             source_tokens=_maybe_tokens(segment.text),
+            finish_reason=getattr(rec, "finish_reason", None),
             error_code=error_code,
             error_detail=error_detail,
         )
