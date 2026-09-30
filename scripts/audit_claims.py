@@ -8,7 +8,7 @@ Run: /Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py
 Exit 1 if any claim fails to reproduce.
 """
 from __future__ import annotations
-import collections, json, re, statistics, sys
+import collections, json, math, re, statistics, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -475,6 +475,42 @@ if _floor2.is_file():
     check("both-arms-fail re-derives from the cells", _bf, _f["both_arms_fail"])
     check("both-arms-fail denominator is the interpretable count",
           len(_interp), _f["both_arms_fail_denominator"])
+    check("floor pilot both-arms-fail is BELOW the 50% stop threshold",
+          f"{_f['both_arms_fail']}/{_f['both_arms_fail_denominator']}", "12/32")
+    check("floor pilot both-arms-fail pct", _f["both_arms_fail_pct"], 37.5)
+    # Parity must hold UNDER MEASUREMENT, not only on the screen.
+    check("floor pilot apply-failure gap stays at parity",
+          abs(_f["apply_fail_gap"]) <= 0.10, True)
+    check("floor pilot solve rates", (_f["solve_WITHOUT"], _f["solve_WITH"]), (15, 17))
+    # no_block is the diff-contagion signature; it must be gone from WITH.
+    check("no_block is absent from the WITH arm",
+          _f["edit_status_WITH"].get("no_block", 0), 0)
+    check("floor pilot WITH arm shows no diff contagion",
+          _f["diff_contagion_WITH"]["total_diff_marker_lines"], 0)
+
+    # 🔴 The paired interval is NOT quoted as evidence. With 25 pairs of which
+    # only 4 are discordant and all 4 the same sign, a donor-clustered
+    # resample can only go non-positive by drawing none of the 4 discordant
+    # donors -- p = (13/17)^17 = 0.0105. The bootstrap lower bound is bounded
+    # away from zero almost by construction. The exact test is the honest one.
+    _b = sum(1 for c in _interp
+             if c["arms"]["WITH"].get("reward") == 1.0
+             and c["arms"]["WITHOUT"].get("reward") == 0.0)
+    _c = sum(1 for c in _interp
+             if c["arms"]["WITH"].get("reward") == 0.0
+             and c["arms"]["WITHOUT"].get("reward") == 1.0)
+    _n = _b + _c
+    _p = (sum(math.comb(_n, i) for i in range(min(_b, _c) + 1)) * 2 / 2 ** _n
+          if _n else 1.0)
+    check("discordant pairs (WITH-better, WITHOUT-better)", (_b, _c), (4, 0))
+    check("McNemar exact p does NOT reach significance", round(min(_p, 1.0), 4), 0.125)
+    check("no significance is claimed for DeltaU in the decision doc",
+          "p = 0.125" in _bc if (_bc := (REPO / "docs/BENCHMARK_C_DECISION.md").read_text()
+                                 if (REPO / "docs/BENCHMARK_C_DECISION.md").is_file()
+                                 else "") else False, True)
+    # Coverage: the floor number is a django number and must say so.
+    _repos = sorted({c["repo"] for c in _fc})
+    check("floor pilot repositories covered", _repos, ["django/django"])
 else:
     print("  SKIP  floor_pilot_v2.json not present")
 
