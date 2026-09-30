@@ -381,6 +381,10 @@ def crossbench():
                      / "r3_representation_analysis.json").read_text())
     sc = json.loads((REPO / "results/ledgers/repro/scicode"
                      / "scaleup_analysis.json").read_text())
+    sw = json.loads((REPO / "results/ledgers/repro/swebench"
+                     / "representations_v2_analysis.json").read_text())
+    fl = json.loads((REPO / "results/ledgers/repro"
+                     / "cross_benchmark_without_arm_floor.json").read_text())
     lpc = lm["Q1_paired_delta_utility"]["paired_contrasts"]
     spc = sc["paired_contrasts"]
     out = {}
@@ -389,10 +393,13 @@ def crossbench():
         lv = lpc[lkey]
         lt = lv.get("task_clustered", lv)
         sv = spc[skey]
+        wv = sw["paired_contrasts"][skey]
         out[key] = {
             "lmev": (lv["mean"], lt["ci_lower"], lt["ci_upper"], lv["n"]),
             "scicode": (sv["mean"], sv["ci95_task_clustered"][0],
                         sv["ci95_task_clustered"][1], sc["MATCHED_CELL_SET_N"]),
+            "swebench": (wv["mean"], wv["ci95_task_clustered"][0],
+                         wv["ci95_task_clustered"][1], sw["MATCHED_CELL_SET_N"]),
         }
     # Guard: the two analyses must agree on what the contrast MEANS.
     expect("crossbench: LongMemEval contrast basis is the common-cell join",
@@ -405,11 +412,28 @@ def crossbench():
         FAIL.append("crossbench: SciCode ORDERING_VERDICT changed -- the "
                     "figure's caption asserts every SciCode interval crosses "
                     "zero and must be rewritten before this passes")
+    if sw["ORDERING_VERDICT"] != "NOT_ESTABLISHED":
+        FAIL.append("crossbench: SWE-bench ORDERING_VERDICT changed -- the "
+                    "caption asserts its intervals cross zero too")
     for k, v in out.items():
-        lo, hi = v["scicode"][1], v["scicode"][2]
-        if not (lo <= 0.0 <= hi):
-            FAIL.append(f"crossbench: SciCode {k} interval [{lo},{hi}] no "
-                        "longer crosses zero; caption is now false")
+        for bench in ("scicode", "swebench"):
+            lo, hi = v[bench][1], v[bench][2]
+            if not (lo <= 0.0 <= hi):
+                FAIL.append(f"crossbench: {bench} {k} interval [{lo},{hi}] no "
+                            "longer crosses zero; caption is now false")
+    # The caption quotes both floors. They are emitted from the artifact, never
+    # typed: a floor is a measurement and a typed one cannot be re-derived.
+    out["_floors"] = {
+        "lmev": fl["benchmarks"]["longmemeval_v2"],
+        "scicode": fl["benchmarks"]["scicode"],
+    }
+    # SWE-bench reuses ONE WITHOUT call across representations by design, so
+    # its cross-representation disagreement is 0 by construction. Emitting it
+    # beside two measured floors would read as "cleanest benchmark".
+    if fl["benchmarks"]["swebench_verified"]["rate"] is not None:
+        FAIL.append("crossbench: SWE-bench now reports a WITHOUT-arm floor; it "
+                    "is 0 by construction (one shared call) and must not be "
+                    "quoted beside measured floors")
     return out
 
 
@@ -594,7 +618,7 @@ def main():
 
     # ---- figure 5: cross-benchmark paired representation contrasts -------
     for key in ("SR", "TR"):
-        for bench, tag in (("lmev", "Lm"), ("scicode", "Sc")):
+        for bench, tag in (("lmev", "Lm"), ("scicode", "Sc"), ("swebench", "Sw")):
             m, lo, hi, n = xb[key][bench]
             L.append(rf"\def\xb{key}{tag}M{{{m:+.4f}}}")
             L.append(rf"\def\xb{key}{tag}Lo{{{lo:+.4f}}}")
@@ -605,10 +629,15 @@ def main():
                    # labels take ~55pt, so a wider axis overflows)
     _XBS = 0.45    # value at the axis end
     for key in ("SR", "TR"):
-        for bench, tag in (("lmev", "Lm"), ("scicode", "Sc")):
+        for bench, tag in (("lmev", "Lm"), ("scicode", "Sc"), ("swebench", "Sw")):
             m, lo, hi, _ = xb[key][bench]
             for nm, v in (("M", m), ("Lo", lo), ("Hi", hi)):
                 L.append(rf"\def\xb{key}{tag}X{nm}{{{max(-_XBW, min(_XBW, v / _XBS * _XBW)):.2f}pt}}")
+    for tag, bk in (("Lm", "lmev"), ("Sc", "scicode")):
+        f = xb["_floors"][bk]
+        L.append(rf"\def\xbFloor{tag}{{{f['rate']:.3f}}}")
+        L.append(rf"\def\xbFloor{tag}K{{{f['disagreeing']}}}")
+        L.append(rf"\def\xbFloor{tag}N{{{f['denominator']}}}")
     L.append(rf"\def\xbAxisW{{{_XBW:.1f}pt}}")
     L.append(rf"\def\xbAxisMax{{{_XBS:.2f}}}")
     L.append("")

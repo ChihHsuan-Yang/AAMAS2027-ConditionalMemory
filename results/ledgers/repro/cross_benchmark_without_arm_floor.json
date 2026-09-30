@@ -1,0 +1,23 @@
+{
+ "metric": "cross_representation_WITHOUT_arm_disagreement",
+ "_definition": "for one (memory, task), the WITHOUT arm carries no memory and is therefore the same question under every representation. Disagreement is execution/scoring nondeterminism, not an effect. This is NOT F_exec (paired re-execution of the SAME prompt within one run) and NOT F_empty (spread of the WITHOUT arm across memories). It is its own construction, reported so the three benchmarks are compared on one definition.",
+ "benchmarks": {
+  "longmemeval_v2": {
+   "disagreeing": 7,
+   "denominator": 285,
+   "rate": 0.0246,
+   "note": "joined on (memory_unit_locator, future_task_id). condition_id must NOT be in the key: it embeds the representation name, which forces an empty join."
+  },
+  "scicode": {
+   "disagreeing": 5,
+   "denominator": 135,
+   "rate": 0.037
+  },
+  "swebench_verified": {
+   "disagreeing": 0,
+   "denominator": 0,
+   "rate": null,
+   "note": "NOT MEASURABLE and not zero: the runner issues the WITHOUT call ONCE per cell and reuses it across representations by design, so the term cancels exactly in every paired contrast. A 0 here would be an artefact of the design, not a measurement, and must never be plotted or quoted as a floor."
+  }
+ }
+}

@@ -30,5 +30,16 @@
   "analysis": "results/ledgers/repro/scicode/scaleup_analysis.json",
   "precommitment": "docs/SCICODE_SCALEUP_PRECOMMITMENT.md",
   "dropped_fields": "per-arm raw model text and stderr_tail (size); NOT digested-away elsewhere -- the full artifact retains them on disk so later re-scoring stays possible"
+ },
+ "swebench_representations": {
+  "full_artifact_path": "results/swebench/representations_v2.json",
+  "full_artifact_sha256": "31413a0315258baaaf339d283426d52e1f21d2bc0d83ac2a7137b6e6bd083ed4",
+  "full_artifact_bytes": 515311,
+  "full_artifact_tracked": false,
+  "why_untracked": "repo convention (.gitignore results/**); slim slice carries every field the reported numbers use.",
+  "slim_slice": "results/ledgers/repro/swebench/representations_v2_slim.json",
+  "analysis": "results/ledgers/repro/swebench/representations_v2_analysis.json",
+  "dropped_fields": "per-arm raw model response text (size). Retained in the full artifact on disk so re-scoring stays possible.",
+  "supersedes": "results/swebench/representations_v1.json -- v1 used a contagion screen that false-positived on ASCII table borders."
  }
 }
