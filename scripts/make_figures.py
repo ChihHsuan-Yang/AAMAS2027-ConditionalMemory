@@ -633,6 +633,25 @@ def main():
             m, lo, hi, _ = xb[key][bench]
             for nm, v in (("M", m), ("Lo", lo), ("Hi", hi)):
                 L.append(rf"\def\xb{key}{tag}X{nm}{{{max(-_XBW, min(_XBW, v / _XBS * _XBW)):.2f}pt}}")
+    # Benchmark-maturity macros for the prose. Typed numbers in a paragraph
+    # drift from the artifact silently; these cannot.
+    _scd = json.loads((REPO / "results/scicode/scaleup_all3.json").read_text())["design"]
+    _sca = json.loads((REPO / "results/ledgers/repro/scicode"
+                       / "scaleup_analysis.json").read_text())
+    _swa = json.loads((REPO / "results/ledgers/repro/swebench"
+                       / "representations_v2_analysis.json").read_text())
+    L.append(rf"\def\sciPairs{{{_scd['n_pairs']}}}")
+    L.append(rf"\def\sciMems{{{_scd['n_memories']}}}")
+    L.append(rf"\def\sciTasks{{{_scd['n_tasks']}}}")
+    L.append(rf"\def\sciArmRuns{{{_sca['n_arm_runs']}}}")
+    L.append(rf"\def\sciMatched{{{_sca['MATCHED_CELL_SET_N']}}}")
+    L.append(rf"\def\sciDiag{{{_scd['pct_diagonal']:.1f}}}")
+    L.append(rf"\def\sciMedTasks{{{_scd['median_tasks_per_memory']}}}")
+    L.append(rf"\def\sweMatched{{{_swa['MATCHED_CELL_SET_N']}}}")
+    L.append(rf"\def\sweLocMiss{{{_swa['exclusions'].get('raw:localizer_miss', 0)}}}")
+    _sr = _swa["both_arms_fail_matched"]["raw"]
+    L.append(rf"\def\sweBafRaw{{{_sr['k']}/{_sr['n']}}}")
+    L.append(rf"\def\sweRepos{{{len(_swa['repos_present'])}}}")
     for tag, bk in (("Lm", "lmev"), ("Sc", "scicode")):
         f = xb["_floors"][bk]
         L.append(rf"\def\xbFloor{tag}{{{f['rate']:.3f}}}")
