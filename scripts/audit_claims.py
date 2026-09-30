@@ -132,6 +132,41 @@ ge2 = {m_ for m_, c in nbear.items() if c >= 2}
 check("the two 35s overlap on only 25 (NOT convergence)",
       len({m_ for m_, x in paired.items() if abs(x) > 1e-9} & ge2), 25)
 
+print("== Sign reversal and the additive null ==")
+per_s = collections.defaultdict(lambda: collections.defaultdict(list))
+for k, v in cm.items():
+    per_s[k[0]][k[1]].append(statistics.mean(v) if isinstance(v, list) else v)
+for s_, want_el, want_fl in [("BEARING", 35, 0), ("MATCHED_CONTROL", 35, 1), ("RANDOM", 60, 17)]:
+    el = {m: v for m, v in per_s[s_].items() if len(v) >= 2}
+    fl = sum(1 for v in el.values() if any(x > 0 for x in v) and any(x < 0 for x in v))
+    check(f"{s_} flip-eligible", len(el), want_el)
+    check(f"{s_} flips", fl, want_fl)
+
+print("== Similarity is weakly informative ==")
+import math as _m
+sims, dus = [], []
+for r in sc:
+    if r.get("reward_with_memory") is None or r.get("semantic_similarity") is None:
+        continue
+    sims.append(r["semantic_similarity"])
+    dus.append(r["reward_with_memory"] - r["reward_without_memory"])
+def _rho(x, y):
+    rx = {v: i for i, v in enumerate(sorted(set(x)))}
+    ry = {v: i for i, v in enumerate(sorted(set(y)))}
+    a = [rx[v] for v in x]; b = [ry[v] for v in y]
+    ma, mb = statistics.mean(a), statistics.mean(b)
+    num = sum((i - ma) * (j - mb) for i, j in zip(a, b))
+    den = _m.sqrt(sum((i - ma) ** 2 for i in a) * sum((j - mb) ** 2 for j in b))
+    return num / den if den else 0.0
+check("similarity rho is small (<0.25)", abs(_rho(sims, dus)) < 0.25, True)
+
+print("== No variance share is quoted as a result ==")
+tex = (REPO.parent / "overleaf" / "main.tex").read_text()
+body = tex[tex.index("\\begin{document}"):]
+banned = ["variance share", "interaction share", "share of variance"]
+hits = [b for b in banned if b in body.lower() and "not identif" not in body.lower()]
+check("no variance share quoted in the manuscript", hits, [])
+
 print()
 if FAIL:
     print(f"AUDIT FAILED: {len(FAIL)} claim(s) did not reproduce: {FAIL}")
