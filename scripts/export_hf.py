@@ -620,17 +620,23 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
     try:
         _sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
                               capture_output=True, text=True, timeout=30).stdout.strip()
-        _dirty = bool(subprocess.run(["git", "status", "--porcelain"], cwd=str(REPO_ROOT),
-                                     capture_output=True, text=True,
-                                     timeout=30).stdout.strip())
+        # NAME the dirty paths, do not just flag them. A bare `dirty: true` tells a
+        # reader that something differs from the named commit but not WHETHER IT IS IN
+        # THIS RELEASE -- and on a repo several agents commit to, the answer is usually
+        # no. An unexplained alarm gets ignored, which is how a real one gets missed.
+        _status = subprocess.run(["git", "status", "--porcelain"], cwd=str(REPO_ROOT),
+                                 capture_output=True, text=True, timeout=30).stdout
+        _dirty_paths = sorted(l[3:].strip() for l in _status.splitlines() if l.strip())
+        _dirty = bool(_dirty_paths)
     except Exception:
-        _sha, _dirty = "", False
+        _sha, _dirty, _dirty_paths = "", False, []
 
     manifest = {
         "hf_repo_id": HF_REPO_ID,
         "hf_repo_type": HF_REPO_TYPE,
         "release_commit": _sha or "UNKNOWN -- git rev-parse failed at build time",
         "release_tree_dirty": _dirty,
+        "release_tree_dirty_paths": _dirty_paths,
         "schema_version": S.SCHEMA_VERSION,
         "built_at_utc": S.utc_now(),
         "n_rows": len(exported),
@@ -681,6 +687,24 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
     # imports the shipped package and did, briefly, leave __pycache__ behind. A check
     # placed before the last writer is not a check on what ships.
     gate_secret_scan_tree(staging)
+
+    # If the tree was dirty, say whether any dirty path actually reached the release.
+    # This is the question a reader has; leaving them to answer it from a boolean is
+    # how a flag becomes noise.
+    if manifest.get("release_tree_dirty"):
+        shipped_names = {Path(f).name for f in manifest["files"]}
+        touching = sorted(d for d in manifest["release_tree_dirty_paths"]
+                          if Path(d).name in shipped_names)
+        manifest["release_tree_dirty_paths_in_this_release"] = touching
+        manifest["release_tree_dirty_note"] = (
+            "Uncommitted changes existed in the source repo at build time. "
+            + (f"{len(touching)} of them correspond to a file in this release: "
+               f"{touching}. Those bytes are the WORKING COPY, not the named commit."
+               if touching else
+               "NONE of them corresponds to a file in this release, so every shipped "
+               "byte matches the named commit. Other agents commit to this repo "
+               "concurrently; the dirty paths belong to their work."))
+        S.write_json_atomic(staging / "MANIFEST.json", manifest)
 
     # Belt and braces: the manifest must name exactly the files present, or a consumer
     # verifying hashes finds files nobody vouched for.
