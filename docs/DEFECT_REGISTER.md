@@ -133,6 +133,44 @@ independent number, nothing in the pipeline would have flagged it.
 This generalizes past this project: **the last defect you find is the one whose output you
 agreed with.**
 
+## Two published numbers the audit could not see — found by SA-ARCHIVE
+
+Both were mine, both were in the manuscript, and both survived because **the audit checked
+the point estimate and never the quantity the sentence actually asserted.**
+
+### 1. A confidence interval no artifact contained
+
+The paper printed the episode-clustered CI as **[+0.1989, +0.4758]**; the analysis artifact
+says **[+0.1974, +0.4736]**. The printed values were my own one-off bootstrap, not the
+audited ones — close enough to look right, different enough to be wrong.
+
+> **The audit verified `mean_paired_difference` and never either interval.** A number can
+> be adjacent to an audited one and still be unaudited.
+
+Fixed in the paper and in `SCREENED_RESULT.md`; the audit now checks **both** intervals
+against the artifact, and I verified the check fires by restoring the wrong value.
+
+### 2. "Roughly 5×" was true of the wrong representation
+
+The paper said charging formation cost makes Raw more efficient **by roughly 5×**. On the
+audited basis — formation amortised **per memory**, not per cell — that is:
+
+| | ratio |
+|---|---:|
+| uncharged, Summary / Raw | 5.58× |
+| **charged, Raw / Summary** | **1.08×** |
+| charged, Raw / Structured | 4.84× |
+
+**4.84× is Structured. The sentence was about Summary, where the true figure is 1.08×.**
+So charging *erases* Summary's advantage rather than reversing it — a weaker and more
+accurate claim. Corrected, with audit guards on all three ratios plus a check that the
+manuscript no longer contains the overclaiming phrase.
+
+⚠️ Note the near-miss underneath: my own re-derivation gave **4.88×**, agreeing with the
+paper, because I amortised formation **per cell** while the audit amortises **per memory**.
+Two defensible bases, one of which made a wrong sentence look verified. Same shape as the
+76/75-task basis error.
+
 ## A named pattern: the pooled number hides the structure that matters
 
 Three times in one day, a correctly-computed pooled figure led to a wrong reading, and each
