@@ -613,9 +613,24 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
         for f in r.get("text_fields_withheld", []):
             withheld_counter[f] += 1
 
+    # The GitHub commit this staging tree was built from. HF_RELEASE_POLICY requires
+    # every snapshot be reproducible from the code at a NAMED commit, and a manifest
+    # that does not name one leaves the reader to guess. Dirty is recorded as such
+    # rather than silently presented as the commit's content.
+    try:
+        _sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
+                              capture_output=True, text=True, timeout=30).stdout.strip()
+        _dirty = bool(subprocess.run(["git", "status", "--porcelain"], cwd=str(REPO_ROOT),
+                                     capture_output=True, text=True,
+                                     timeout=30).stdout.strip())
+    except Exception:
+        _sha, _dirty = "", False
+
     manifest = {
         "hf_repo_id": HF_REPO_ID,
         "hf_repo_type": HF_REPO_TYPE,
+        "release_commit": _sha or "UNKNOWN -- git rev-parse failed at build time",
+        "release_tree_dirty": _dirty,
         "schema_version": S.SCHEMA_VERSION,
         "built_at_utc": S.utc_now(),
         "n_rows": len(exported),

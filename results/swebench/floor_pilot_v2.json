@@ -9,33 +9,33 @@
     "cluster": "metis",
     "temperature": 0.0,
     "reasoning_effort": "low",
-    "n_cells": 52,
-    "localizer_recall": 30,
-    "n_interpretable": 30,
-    "n_arms": 30,
+    "n_cells": 55,
+    "localizer_recall": 32,
+    "n_interpretable": 32,
+    "n_arms": 32,
     "all_cells_arm_symmetric": true,
     "apply_fail_WITH": 4,
     "apply_fail_WITHOUT": 3,
-    "apply_fail_rate_WITH": 0.1333,
-    "apply_fail_rate_WITHOUT": 0.1,
-    "apply_fail_gap": 0.0333,
-    "apply_fail_denominator": 30,
+    "apply_fail_rate_WITH": 0.125,
+    "apply_fail_rate_WITHOUT": 0.0938,
+    "apply_fail_gap": 0.0312,
+    "apply_fail_denominator": 32,
     "truncated_WITH": 0,
     "truncated_WITHOUT": 0,
     "apply_fail_ci95_WITH": [
-      0.0531,
-      0.2968
+      0.0497,
+      0.2807
     ],
     "apply_fail_ci95_WITHOUT": [
-      0.0346,
-      0.2562
+      0.0324,
+      0.2422
     ],
     "edit_status_WITH": {
-      "ok": 26,
+      "ok": 28,
       "search_miss": 4
     },
     "edit_status_WITHOUT": {
-      "ok": 27,
+      "ok": 29,
       "search_miss": 2,
       "no_block": 1
     },
@@ -51,28 +51,28 @@
       "missing_separator": 1,
       "missing_replace_marker": 0
     },
-    "model_calls": 104,
-    "both_arms_fail": 11,
-    "both_arms_fail_pct": 36.67,
+    "model_calls": 110,
+    "both_arms_fail": 12,
+    "both_arms_fail_pct": 37.5,
     "both_arms_fail_ci95": [
-      0.2187,
-      0.5449
+      0.2293,
+      0.5475
     ],
-    "both_arms_fail_denominator": 30,
-    "solve_WITH": 16,
-    "solve_WITHOUT": 14,
-    "solve_rate_WITH": 0.5333,
-    "solve_rate_WITHOUT": 0.4667,
-    "n_both_applicable": 23,
-    "both_arms_fail_both_applicable": 8,
-    "both_arms_fail_pct_both_applicable": 34.78,
+    "both_arms_fail_denominator": 32,
+    "solve_WITH": 17,
+    "solve_WITHOUT": 15,
+    "solve_rate_WITH": 0.5312,
+    "solve_rate_WITHOUT": 0.4688,
+    "n_both_applicable": 25,
+    "both_arms_fail_both_applicable": 9,
+    "both_arms_fail_pct_both_applicable": 36.0,
     "delta_u_paired": {
-      "mean": 0.1739,
-      "n_pairs": 23,
-      "n_clusters": 15,
+      "mean": 0.16,
+      "n_pairs": 25,
+      "n_clusters": 17,
       "ci95_clustered": [
-        0.0417,
-        0.32
+        0.04,
+        0.2963
       ],
       "cluster_unit": "donor memory_id",
       "n_boot": 10000
@@ -82,7 +82,7 @@
       "WITHOUT_better": 0
     },
     "reward_none_count": 7,
-    "reward_zero_count": 23,
+    "reward_zero_count": 25,
     "no_apply_failure_scored_zero": true
   },
   "cells": [
@@ -4012,6 +4012,231 @@
         }
       },
       "interpretable": false,
+      "arm_symmetric": true
+    },
+    {
+      "memory_id": "django__django-11820",
+      "task_id": "django__django-12273",
+      "repo": "django/django",
+      "path": "django/db/models/base.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          393,
+          401
+        ],
+        [
+          301,
+          420
+        ],
+        [
+          1801,
+          1912
+        ],
+        [
+          1516,
+          1527
+        ],
+        [
+          1878,
+          1882
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def __init__(self, *args, **kwargs):\n        # Alias some things as locals to avoid repeat global lookups\n        cls = self.__class__\n        opts = self._meta\n        _setattr = setattr\n        _DEFERRED = DEFERRED\n\n        pre_init.send(sender=cls, args=args, kwargs=kwargs)\n\n        # Set up the storage for instance state\n        self._state = ModelState()\n\n        # There is a rather weird disparity here; if kwargs, it's set, then args\n        # overrides it. It should be one or the other; don't duplicate the work\n        # The reason for the kwargs check is that standard iterator passes in by\n=======\n    def __init__(self, *args, **kwargs):\n        # Alias some things as locals to avoid repeat global lookups\n        cls = self.__class__\n        opts = self._meta\n        _setattr = setattr\n        _DEFERRED = DEFERRED\n\n        pre_init.send(sender=cls, args=args, kwargs=kwargs)\n\n        # Set up the storage for instance state\n        self._state = ModelState()\n\n        # There is a rather weird disparity here; if kwargs, it's set, then args\n        # overrides it. It should be one or the other; don't duplicate the work\n        # The reason for the kwargs check is that standard iterator passes in by\n\n        # Ensure that resetting a primary key to None marks the instance as a new\n        # object so that save() will perform an INSERT rather than an UPDATE.\n        def _pk_setter(name, value):\n            # If the primary key field is being set to None, treat the instance as\n            # a new object.\n            if name == opts.pk.attname and value is None:\n                self._state.adding = True\n            _setattr(self, name, value)\n\n        # Wrap setattr to intercept primary\u2011key assignments.\n        self.__setattr__ = _pk_setter\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "218d6eab01642ccbd0af9d1f5be2fd5fa23f8c9394c2783fccee93da3c33cb6a",
+          "input_tokens": 2590,
+          "output_tokens": 961,
+          "reasoning_tokens": 536,
+          "finish_reason": "stop",
+          "test_detail": "F2P rc=1 status_lines=1 :: Ran 30 tests in 0.043s\n\nFAILED (errors=2, expected failures=1)\nDestroying test database for alias 'default'..."
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "no_block",
+          "reward": null,
+          "n_blocks": 0,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def save(self, *args, **kwargs):\n        \"\"\"\n        Save the current instance. Override this in a subclass if you want to\n        control the saving process.\n        \"\"\"\n        using = kwargs.get('using')\n        force_insert = kwargs.get('force_insert', False)\n        force_update = kwargs.get('force_update', False)\n\n        if force_insert and force_update:\n            raise ValueError(\"Cannot force both insert and updating in model saving.\")\n\n        if not force_update and not force_insert:\n            # If the primary key attribute is set to None, we need to do an INSERT.\n            if self._meta.pk.get_attname(self) is None:\n                force_insert = True\n            else:\n                force_update = True\n\n        if force_insert:\n            self._state.adding = True\n        else:\n            self._state.adding = False\n\n        # ... rest of the save implementation ...\n>>>>>>> REPLACE\n    def save(self, *args, **kwargs):\n        \"\"\"\n        Save the current instance. Override this in a subclass if you want to\n        control the saving process.\n        \"\"\"\n        using = kwargs.get('using')\n        force_insert = kwargs.get('force_insert', False)\n        force_update = kwargs.get('force_update', False)\n\n        if force_insert and force_update:\n            raise ValueError(\"Cannot force both insert and updating in model saving.\")\n\n        if not force_update and not force_insert:\n            # If the primary key attribute is set to None, we need to do an INSERT.\n            if self._meta.pk.get_attname(self) is None:\n                force_insert = True\n            else:\n                force_update = True\n\n        if force_insert:\n            self._state.adding = True\n        else:\n            self._state.adding = False\n\n        # ... rest of the save implementation ...",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": false,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "caf11f75d5269002110170ec7b67ff82afda38877eec44b06ad61c7787ac194a",
+          "input_tokens": 2918,
+          "output_tokens": 920,
+          "reasoning_tokens": 535,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": false,
+      "arm_symmetric": true
+    },
+    {
+      "memory_id": "django__django-11820",
+      "task_id": "django__django-13964",
+      "repo": "django/django",
+      "path": "django/db/models/base.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          2100,
+          2107
+        ],
+        [
+          964,
+          978
+        ],
+        [
+          980,
+          993
+        ],
+        [
+          901,
+          1020
+        ],
+        [
+          2041,
+          2144
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 1.0,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n                elif getattr(self, field.attname) is None:\n                    # Use pk from related object if it has been saved after\n                    # an assignment.\n                    setattr(self, field.attname, obj.pk)\n=======\n                elif not getattr(self, field.attname):\n                    # Use pk from related object if it has been saved after\n                    # an assignment.\n                    setattr(self, field.attname, obj.pk)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "e9a4a5ea4dfa3ecab207cdfa0b90585c049f3ef4a1bb7865711c8c1ea8c79948",
+          "input_tokens": 3124,
+          "output_tokens": 257,
+          "reasoning_tokens": 160,
+          "finish_reason": "stop",
+          "test_detail": "F2P rc=0 status_lines=1 :: Ran 37 tests in 0.053s\n\nOK\nDestroying test database for alias 'default'... :: P2P rc=0 Ran 37 tests in 0.049s\n\nOK\nDestroying test database for alias 'default'..."
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": 1.0,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n                elif getattr(self, field.attname) is None:\n                    # Use pk from related object if it has been saved after\n                    # an assignment.\n                    setattr(self, field.attname, obj.pk)\n=======\n                elif not getattr(self, field.attname):\n                    # Use pk from related object if it has been saved after\n                    # an assignment.\n                    setattr(self, field.attname, obj.pk)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "9ad9a42afa3778d44cf80e052410ef7f4b631a566987594a67a4774aa672ebd0",
+          "input_tokens": 3452,
+          "output_tokens": 211,
+          "reasoning_tokens": 114,
+          "finish_reason": "stop",
+          "test_detail": "F2P rc=0 status_lines=1 :: Ran 37 tests in 0.048s\n\nOK\nDestroying test database for alias 'default'... :: P2P rc=0 Ran 37 tests in 0.052s\n\nOK\nDestroying test database for alias 'default'..."
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": true
+    },
+    {
+      "memory_id": "django__django-11885",
+      "task_id": "django__django-12308",
+      "repo": "django/django",
+      "path": "django/contrib/admin/utils.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          380,
+          402
+        ],
+        [
+          361,
+          480
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          405,
+          423
+        ],
+        [
+          301,
+          420
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\ndef display_for_field(value, field, empty_value_display):\n    from django.contrib.admin.templatetags.admin_list import _boolean_icon\n\n    if getattr(field, 'flatchoices', None):\n        return dict(field.flatchoices).get(value, empty_value_display)\n    # BooleanField needs special-case null-handling, so it comes before the\n    # general null test.\n    elif isinstance(field, models.BooleanField):\n        return _boolean_icon(value)\n    elif value is None:\n        return empty_value_display\n    elif isinstance(field, models.DateTimeField):\n        return formats.localize(timezone.template_localtime(value))\n    elif isinstance(field, (models.DateField, models.TimeField)):\n        return formats.localize(value)\n    elif isinstance(field, models.DecimalField):\n        return formats.number_format(value, field.decimal_places)\n    elif isinstance(field, (models.IntegerField, models.FloatField)):\n        return formats.number_format(value)\n    elif isinstance(field, models.FileField) and value:\n        return format_html('<a href=\"{}\">{}</a>', value.url, value)\n    else:\n        return display_for_value(value, empty_value_display)\n=======\ndef display_for_field(value, field, empty_value_display):\n    from django.contrib.admin.templatetags.admin_list import _boolean_icon\n\n    if getattr(field, 'flatchoices', None):\n        return dict(field.flatchoices).get(value, empty_value_display)\n    # BooleanField needs special-case null-handling, so it comes before the\n    # general null test.\n    elif isinstance(field, models.BooleanField):\n        return _boolean_icon(value)\n    elif value is None:\n        return empty_value_display\n    elif isinstance(field, models.DateTimeField):\n        return formats.localize(timezone.template_localtime(value))\n    elif isinstance(field, (models.DateField, models.TimeField)):\n        return formats.localize(value)\n    elif isinstance(field, models.DecimalField):\n        return formats.number_format(value, field.decimal_places)\n    elif isinstance(field, (models.IntegerField, models.FloatField)):\n        return formats.number_format(value)\n    elif isinstance(field, models.FileField) and value:\n        return format_html('<a href=\"{}\">{}</a>', value.url, value)\n    elif isinstance(field, models.JSONField):\n        # Use the field's prepare_value to correctly render JSON, handling\n        # InvalidJSONInput and ensuring proper JSON formatting.\n        return field.prepare_value(value)\n    else:\n        return display_for_value(value, empty_value_display)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "9eaba5d9b9ff9d22f33235b40b1c444fd1b47c55023c990c4c7ecc85f500c1b8",
+          "input_tokens": 3600,
+          "output_tokens": 614,
+          "reasoning_tokens": 83,
+          "finish_reason": "stop",
+          "test_detail": "F2P rc=1 status_lines=1 :: ----------------------------------------------------------------------\nRan 15 tests in 0.028s\n\nFAILED (errors=4)"
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\ndef display_for_field(value, field, empty_value_display):\n    from django.contrib.admin.templatetags.admin_list import _boolean_icon\n\n    if getattr(field, 'flatchoices', None):\n        return dict(field.flatchoices).get(value, empty_value_display)\n    # BooleanField needs special-case null-handling, so it comes before the\n    # general null test.\n    elif isinstance(field, models.BooleanField):\n        return _boolean_icon(value)\n    elif value is None:\n        return empty_value_display\n    elif isinstance(field, models.DateTimeField):\n        return formats.localize(timezone.template_localtime(value))\n    elif isinstance(field, (models.DateField, models.TimeField)):\n        return formats.localize(value)\n    elif isinstance(field, models.DecimalField):\n        return formats.number_format(value, field.decimal_places)\n    elif isinstance(field, (models.IntegerField, models.FloatField)):\n        return formats.number_format(value)\n    elif isinstance(field, models.FileField) and value:\n        return format_html('<a href=\"{}\">{}</a>', value.url, value)\n    else:\n        return display_for_value(value, empty_value_display)\n=======\ndef display_for_field(value, field, empty_value_display):\n    from django.contrib.admin.templatetags.admin_list import _boolean_icon\n\n    if getattr(field, 'flatchoices', None):\n        return dict(field.flatchoices).get(value, empty_value_display)\n    # BooleanField needs special-case null-handling, so it comes before the\n    # general null test.\n    elif isinstance(field, models.BooleanField):\n        return _boolean_icon(value)\n    elif value is None:\n        return empty_value_display\n    elif isinstance(field, models.DateTimeField):\n        return formats.localize(timezone.template_localtime(value))\n    elif isinstance(field, (models.DateField, models.TimeField)):\n        return formats.localize(value)\n    elif isinstance(field, models.DecimalField):\n        return formats.number_format(value, field.decimal_places)\n    elif isinstance(field, (models.IntegerField, models.FloatField)):\n        return formats.number_format(value)\n    elif isinstance(field, models.FileField) and value:\n        return format_html('<a href=\"{}\">{}</a>', value.url, value)\n    elif isinstance(field, models.JSONField):\n        # Use the field's prepare_value to correctly render JSON, handling\n        # InvalidJSONInput and ensuring proper JSON formatting.\n        return field.prepare_value(value)\n    else:\n        return display_for_value(value, empty_value_display)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "801308714ad658db56128ea72c419773688795f0f462f01e8c169cfd3bbbbd79",
+          "input_tokens": 6428,
+          "output_tokens": 614,
+          "reasoning_tokens": 83,
+          "finish_reason": "stop",
+          "test_detail": "F2P rc=1 status_lines=1 :: ----------------------------------------------------------------------\nRan 15 tests in 0.026s\n\nFAILED (errors=4)"
+        }
+      },
+      "interpretable": true,
       "arm_symmetric": true
     }
   ]

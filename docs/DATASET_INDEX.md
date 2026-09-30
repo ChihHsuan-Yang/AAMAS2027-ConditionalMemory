@@ -54,7 +54,7 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
 | **source memories** | 117 locators (234 distinct `memory_id` — a content hash, so one span yields a different id per representation) |
 | **future tasks** | 275 |
 | **schema version** | `p1mem_conditional_memory_utility_v3`, **98 fields** |
-| **release commit** | see `MANIFEST.json` → `provenance` / the tag |
+| **release commit** | `3012945cf38932708ae529d66817cf0c98d6ec3e` |
 | **validation** | **0 errors**, 1,129 warnings, verified **on the downloaded snapshot** |
 | **licence** | Apache-2.0 throughout; nothing withheld (5,643/5,643 redistributable) |
 
