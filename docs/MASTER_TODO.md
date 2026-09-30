@@ -1,293 +1,362 @@
 # P1 Master TODO — authoritative
 
----
+**Terminalized 2026-09-30 by SA-ARCHIVE.** Every task on this page carries one of six
+terminal states. **No task is ever silently removed**; anything dropped carries `KILLED`
+and its measured reason. Legacy IDs from Phases 1–2 are retained in §4 with the Phase 3
+item that absorbed them.
 
-## ⏩ PHASE 3 (opened 2026-09-30) — finish the paper, autonomous execution
-
-**Contract change:** the Master Agent no longer pauses at milestones for authorization.
-Execution continues until the active list reaches a terminal state. Author list, reciprocal
-reviewer, OpenReview logistics and submission administration are **user-owned and off the
-scientific critical path** — they are not blockers and are not reported as such.
-
-Overleaf stays in standard double-blind form: `Anonymous Author(s)`, no affiliations, no
-acknowledgements, no identifying paths.
-
-### Level 1 — submission-critical
-
-| ID | Task | Owner | Status |
-|---|---|---|---|
-| P1-C01 | Abstract / story reframe (drop sign-flip + decomposition emphasis) | SA-WRITE | **RUNNING** |
-| P1-C02 | Overleaf figure audit | SA-FIG | **DONE** |
-| P1-C03 | **Utility–Efficiency Frontier** | SA-FIG2 | **RUNNING** |
-| P1-C04 | HF v0.2 representation release | SA-HF2 | **RUNNING** |
-| P1-C05 | SWE-bench harness parity fix | SA-SWE | **RUNNING** |
-| P1-C06 | SWE-bench valid pilot | SA-SWE | BLOCKED on C05 |
-| P1-C07 | SWE-bench main run *if* pilot passes | SA-SWE | BLOCKED on C06 |
-| P1-C08 | SciCode adapter | SA-SCI | **RUNNING** |
-| P1-C09 | SciCode pilot | SA-SCI | BLOCKED on C08 |
-| P1-C10 | SciCode procedural-memory evaluation | SA-SCI | BLOCKED on C09 |
-| P1-C11 | Cross-benchmark synthesis | Master | BLOCKED on C07/C10 |
-| P1-C12 | Final representation comparison | Master | **DONE** — `docs/REPRESENTATION_RESULT.md` |
-| P1-C13 | Main figures/tables | SA-FIG2 | RUNNING (3 figures + 2 tables in) |
-| P1-C14 | GitHub handoff documentation | SA-ARCHIVE | **RUNNING** |
-| P1-C15 | HF data card update | SA-HF2 | RUNNING |
-| P1-C16 | Claim/evidence audit | Master | ongoing — `audit_claims.py`, 38 claims, proven able to fail |
-| P1-C17 | Final manuscript sync | Master | ongoing |
-
-### Level 2 — important if feasible
-
-P1-I01 top-k retrieval baseline · P1-I02 keep-all baseline · P1-I03 position-effect
-expansion (currently n=12) · P1-I04 cross-benchmark representation ranking ·
-P1-I05 representation-induced harmfulness · P1-I06 domain utility/cost comparison ·
-P1-I07 extra retrieval-budget points for the frontier · P1-I08 benchmark-native memory
-baseline · P1-I09 dataset example notebook · P1-I10 public reproduction script.
-**All TODO.** None blocks submission.
-
-### Level 3 — HOLD / post-submission
-
-P1-H01 Jev decision baseline · P1-H02 learned conditional memory gate · P1-H03 LLM memory
-manager comparison · P1-H04 cross-model replication · P1-H05 vector DB / production store ·
-P1-H06 more benchmarks · P1-H07 semantic-type taxonomy redesign · P1-H08 harmful-memory
-prevalence study · P1-H09 full P3 receiver integration · P1-H10 training a retention policy.
-**All HOLD.** Recorded so they are not lost.
-
-### Demoted this phase, with evidence
-
-| item | verdict |
-|---|---|
-| **Variance decomposition** | **DEMOTED from headline** — unidentifiable: `F_exec = 0` on a deterministic reader leaves no residual scale. Methodology to supplement; **no share quoted**. No further compute |
-| **Sign-flip story** | **DEMOTED from paper identity** — 0/35 in bearing cells, and the excess over the additive null is *negative* in every stratum. Retained as analysis: unrelated pairings manufacture apparent reversals (17/60 in RANDOM) |
-
----
-
----
-
-## ⏩ PHASE 2 (opened 2026-09-30) — complete the four axes
-
-Story frozen as **Memory × Task × Representation × Cost**. The task axis is measured; the
-representation and cost axes are not. That imbalance is this phase's target.
-
-| ID | Pri | Task | Owner | Status | Unblocks |
-|---|---|---|---|---|---|
-| **P2-01** | **P0** | **Summary + Structured at scale on BEARING/control** | SA-R | **RUNNING** | Contribution B **and** the frontier figure |
-| **P2-02** | **P0** | **HF v0.1 + schema audit vs the required field list** | SA-HF | **RUNNING** | the dataset contribution |
-| **P2-03** | **P0** | **Pipeline figure + ranked figure plan** | SA-FIG | **RUNNING** | the paper has 0 figures at the page limit |
-| **P2-04** | **P0** | Freeze the four-axis story | Master | **DONE** | `docs/PROJECT_GOAL.md` |
-| **P2-05** | **P0** | README current-state + `HANDOFF_CURRENT.md` | Master | **DONE** | `a80ba7a` |
-| P2-06 | P1 | BEAM replacement: bounded selection, then implement | SA-N | **RUNNING** | benchmark diversity |
-| P2-07 | P1 | Utility–Efficiency Frontier | SA-EFF | BLOCKED on P2-01 | only 1 point exists today |
-| P2-08 | P1 | Bearing-breadth figure | SA-FIG | TODO — **data exists now** | — |
-| P2-09 | P1 | Similarity-vs-utility figure | SA-FIG | TODO — **data exists now** | — |
-| P2-10 | P1 | **Abstract v5** — drop the obsolete sign-flip framing | Master | TODO | — |
-| P2-11 | P2 | SciCode: scoped → built | SA-S | TODO | procedural memory; N≈8–12, a case study |
-| P2-12 | P2 | HF v0.2 (add Summary/Structured) | SA-HF | BLOCKED on P2-01 | — |
-| P2-13 | P3 | Cross-benchmark synthesis | — | BLOCKED | — |
-| P2-14 | P3 | Final figure selection + page management | Master | BLOCKED | — |
-| P2-15 | P3 | Claim/evidence audit at freeze | Master | TODO | `audit_claims.py` is at 38 claims |
-
-### Killed / deferred this phase, with measured reasons
-
-| item | verdict |
-|---|---|
-| **BEAM as a core benchmark** | ❌ **KILLED** — 92.6% of cited turns cited by exactly one question, so it cannot supply the multi-task axis. Also CC BY-SA 4.0 |
-| **Semantic-type axis** | ❌ **KILLED** — κ = 0.000; the native pass labelled everything `episodic` |
-| **Variance decomposition as a headline** | ❌ **KILLED** — unidentifiable; `F_exec = 0` leaves no residual scale. **No share may be quoted** |
-| **Jev** | ⏸ DEFERRED — explicitly not required for the core paper |
-
----
+```text
+DONE · RUNNING · BLOCKED · TODO · DEFERRED · KILLED
+```
 
 **AAMAS 2027 main track. Abstract 1 Oct AoE · Paper 8 Oct AoE.**
-Statuses: `TODO` `RUNNING` `BLOCKED` `REVIEW` `DONE` `DEFERRED` `KILLED`.
-Tasks are never silently removed. Last updated 2026-09-29.
 
-Columns: ID · Pri · Task · Owner · Status · Dep · Evidence · Next action · Sub? · Done-when
-(**Sub?** = required for the AAMAS submission, or deferrable.)
+**Contract (Phase 3):** the Master Agent does not pause at milestones for authorization.
+Execution continues until the active list is terminal. Author list, reciprocal reviewer,
+OpenReview logistics and submission administration are **user-owned and off the scientific
+critical path** — they are not blockers and are not reported as such. Overleaf stays in
+standard double-blind form: `Anonymous Author(s)`, no affiliations, no acknowledgements, no
+identifying paths.
+
+**Counts (mechanically re-derived, see §5):** DONE 106 · RUNNING 16 · BLOCKED 10 ·
+TODO 21 · DEFERRED 22 · KILLED 13 — **188 distinct IDs**.
 
 ---
 
-## USER-OWNED (Master Agent does not spend cycles here)
+## 1. Level 1 — submission-critical
+
+| ID | Task | Owner | Status | Evidence / blocker |
+|---|---|---|---|---|
+| **P1-C01** | Abstract / story reframe — lead with conditional utility + sparsity, drop the sign-flip framing | SA-WRITE | **DONE** | Overleaf `3c06d3a`, 2026-09-30 16:16 CDT |
+| **P1-C02** | Overleaf figure audit — ranked plan, 3 in / 4 rejected / 1 blocked | SA-FIG | **DONE** | `docs/FIGURE_PLAN.md`; repo `eb4deb3` |
+| **P1-C03** | **Utility–efficiency frontier figure** | SA-FIG2 | **RUNNING** | unblocked by the representation scale-up; inputs in `results/repr_scaleup/`. Was blocked because `memory_representation` was `{'raw'}` on all 2,599 screened rows |
+| **P1-C04** | HF **v0.2** — add Summary/Structured rows | SA-HF2 | **RUNNING** | v0.1 shipped (4,519 rows, tag `v0.1-lmev2-derived`); v0.2 needs the repr rows exported |
+| **P1-C05** | **SWE-bench harness parity fix** — make the prompt arm-symmetric so the memory's own diff cannot be mistaken for the editable region | SA-SWE | **RUNNING** | WITH arm fails to emit an applicable edit 3/7; WITHOUT 0/7. Prompt length **tested and rejected** as the cause (4,051 vs 3,728 tokens) |
+| **P1-C06** | SWE-bench valid pilot at 30–40 cells | SA-SWE | **BLOCKED** on C05 | binding rule: no re-measure of the floor until WITH-arm apply failure reaches parity |
+| **P1-C07** | SWE-bench main run *if* the pilot passes | SA-SWE | **BLOCKED** on C06 | **no SWE-bench number enters any table before this** |
+| **P1-C08** | SciCode adapter | SA-SCI | **RUNNING** | absorbs legacy P1-025/026 |
+| **P1-C09** | SciCode pilot | SA-SCI | **BLOCKED** on C08 | absorbs legacy P1-056 |
+| **P1-C10** | SciCode procedural-memory evaluation (a **case study**, N ≈ 8–12, never a main table) | SA-SCI | **BLOCKED** on C09 | absorbs legacy P1-057 |
+| **P1-C11** | Cross-benchmark synthesis | Master | **BLOCKED** on C07 **and** C10 | both feeders are blocked; may terminate as KILLED if neither clears |
+| **P1-C12** | Final representation comparison (Contribution B) | Master | **DONE** | `docs/REPRESENTATION_RESULT.md`; 9 audit checks re-derive both cost columns |
+| **P1-C13** | Main figures and tables | SA-FIG2 | **RUNNING** | 3 figures + 2 tables in `main.tex` at `3c06d3a`; Figure 4 pending C03. ⚠️ only **~50–80 pt** of float slack remains |
+| **P1-C14** | GitHub handoff documentation — result index, figure index, README hub, handoff, terminal TODO | SA-ARCHIVE | **DONE** | `docs/RESULT_INDEX.md`, `docs/FIGURE_INDEX.md`, `README.md` §Current Project State, `docs/HANDOFF_CURRENT.md`, this file |
+| **P1-C15** | HF data card update for v0.2 | SA-HF2 | **RUNNING** | v0.1 card is live and byte-identical to `docs/hf_card/README.md` |
+| **P1-C16** | Claim/evidence audit | Master | **RUNNING** (standing) | `scripts/audit_claims.py`, **58 checks**, proven able to fail. ⚠️ previously recorded as "38 claims" — stale |
+| **P1-C17** | Final manuscript sync + compile + anonymity + citation check | Master | **TODO** | absorbs legacy P1-095 |
+| **P1-C18** | **AI-assistance disclosure section** (prompt + tool + version) | Master | **TODO** | 🔴 **AAMAS requires it and `main.tex:1337` is an empty stub.** Added by SA-ARCHIVE because legacy P1-096 had no Phase-3 owner and would otherwise have stopped being mentioned |
+
+### Level-1 items that will consume the remaining page budget
+
+C03 (a figure), C13 (its placement) and C18 (required prose) all draw on the same
+~50–80 pt. **Measure where the body ends, not the total page count** — page count is flat
+here because references are uncapped, and reading it as slack is a registered defect.
+
+---
+
+## 2. Level 2 — important if feasible (none blocks submission)
+
+| ID | Task | Status | Note |
+|---|---|---|---|
+| **P1-I01** | Top-k retrieval baseline | **TODO** | absorbs half of legacy P1-010. `retrieval_k` is `None` on every existing row, so this is a new arm |
+| **P1-I02** | Keep-all / no-memory retrieval baselines | **TODO** | absorbs the other half of P1-010 |
+| **P1-I03** | Position-effect expansion | **TODO** | currently **n = 12** and explicitly provisional (`docs/POSITION_EFFECT.md`). Absorbs legacy P1-132 |
+| **P1-I04** | Cross-benchmark representation ranking | **BLOCKED** on C07/C10 | one benchmark cannot rank representations across domains |
+| **P1-I05** | Representation-induced harmfulness | **TODO** | no representation shows robust harm; structured's point estimate is negative with a CI spanning zero |
+| **P1-I06** | Domain utility/cost comparison | **TODO** | — |
+| **P1-I07** | Extra retrieval-budget points for the frontier | **BLOCKED** on I01 | the frontier currently has one budget point per representation |
+| **P1-I08** | Benchmark-native memory baseline | **TODO** | — |
+| **P1-I09** | Dataset example notebook | **TODO** | `notebooks/` is empty |
+| **P1-I10** | Public reproduction script | **TODO** | partially served by `audit_claims.py` + `results/ledgers/repro/MANIFEST.json` |
+| **P1-I11** | **Track the representation scale-up artifacts** — force-add slim slices + a `MANIFEST.json` for `results/repr_scaleup/` | **TODO** | 🔴 **found by SA-ARCHIVE:** Contribution B's entire evidence base is untracked and exists on this laptop only. The ΔU arms got this treatment; the repr arm did not |
+| **P1-I12** | **Resolve the paired-CI disagreement** — the manuscript prints an episode-clustered interval no artifact contains | **TODO** | `docs/RESULT_INDEX.md` §F1. Fix by emitting the bootstrap seed/draw count from `k3_analyze_screened.py`, or by quoting the artifact. **Extend `audit_claims.py` to cover both CIs** — it currently checks neither, which is why this survived |
+| **P1-I13** | **Correct the efficiency ratios in `main.tex`** | **TODO** | `docs/RESULT_INDEX.md` §F3: the paper says `5.2×` (audited: **5.58×**) and "roughly 5×" for the charged reversal, which is true of Structured (4.85×) but wrong for Summary (**1.08×**) — the representation the sentence is about |
+
+---
+
+## 3. Level 3 — HOLD / post-submission
+
+Recorded so they are not lost; none is in scope now.
+
+| ID | Task | Status | Absorbs / note |
+|---|---|---|---|
+| **P1-H01** | Jev decision baseline | **DEFERRED** | legacy D-01 |
+| **P1-H02** | Learned conditional memory gate | **DEFERRED** | legacy D-03 |
+| **P1-H03** | LLM memory-manager comparison | **DEFERRED** | legacy D-02 |
+| **P1-H04** | Cross-model replication | **DEFERRED** | legacy D-05 |
+| **P1-H05** | Vector DB / production store | **DEFERRED** | legacy D-06 |
+| **P1-H06** | More benchmarks | **DEFERRED** | legacy D-04 |
+| **P1-H07** | Semantic-type taxonomy redesign | **DEFERRED** | legacy P1-006, P1-129 |
+| **P1-H08** | Harmful-memory prevalence study | **DEFERRED** | the current design cannot support a harm rate |
+| **P1-H09** | Full P3 receiver integration | **DEFERRED** | 4 reserved schema fields already present and null-enforced |
+| **P1-H10** | Training a retention policy | **DEFERRED** | forbidden until the main paper is complete |
+
+---
+
+## 4. Legacy ledger — every Phase-1/2 ID, terminalized
+
+Nothing here is dropped. Where a Phase-3 item took over, it is named.
+
+### 4.1 Scientific / design
+
+| ID | Task | Status | Reason / successor |
+|---|---|---|---|
+| P1-001 | Freeze storyline | **DONE** | `docs/PROJECT_GOAL.md` |
+| P1-002 | Memory acquisition protocol (writer never sees the future task) | **DONE** | `docs/MEMORY_PROTOCOL.md` |
+| P1-003 | Define Raw | **DONE** | deterministic, 0 calls |
+| P1-004 | Define Summary | **DONE** | median 362 tok, cr 0.063 |
+| P1-005 | Define Structured | **DONE** | median 246 tok, cr 0.037 |
+| P1-006 | Memory semantic-type labels | **KILLED** | κ = 0.000 — the native pass labelled all 8 segments `episodic`. Not safe as an axis; a redesign is held as P1-H07 |
+| P1-007 | WITH/WITHOUT intervention definition | **DONE** | controlled filler required in both arms |
+| P1-008 | Robust useful/harmful definition vs the noise floor | **DONE** | committed before any data |
+| P1-009 | Efficiency metric definitions | **DONE** | partial by design: exposure, formation, latency and API-call families are defined and reported in `r3_representation_analysis.json`. Storage, retrieval and selectivity are killed separately as P1-067 / P1-068 / P1-072 |
+| P1-010 | Retrieval baselines None / Keep-All / Top-k / Oracle | **DEFERRED** | `retrieval_k` is `None` on every row; this is a new arm, now owned by P1-I01 / P1-I02 |
+| P1-011 | Figure/table targets + schema support check | **DONE** | `docs/FIGURE_INDEX.md`; schema v2 carries the fields |
+
+### 4.2 Benchmark / data
+
+| ID | Task | Status | Reason / successor |
+|---|---|---|---|
+| P1-020 | LongMemEval-V2 adapter + official scorers | **DONE** | 8 distinct eval specs, dispatched on the full spec string |
+| P1-021 | V2 memory unit + pairing | **DONE** | page visit, median 7,261 tok, 1,889 units |
+| P1-022 | Leakage audit + detector | **DONE** | 17/17 controls; rates are **lower bounds** |
+| P1-023 | BEAM adapter | **KILLED** | **92.6% of cited turns are cited by exactly one question** — cannot supply the multi-task axis. Also CC BY-SA 4.0 (ShareAlike) |
+| P1-024 | BEAM task/domain mapping | **KILLED** | depends on P1-023 |
+| P1-025 | SciCode adapter | **DEFERRED** | superseded — scoped down to a case study; now owned by P1-C08 |
+| P1-026 | SciCode transfer mapping | **DEFERRED** | superseded — now owned by P1-C08 / P1-C09 |
+| P1-027 | Licence / provenance audit | **DONE** | `docs/BENCHMARK_LICENSES.md`; it unblocked the HF export gate |
+| P1-028* | Benchmark C selection (BEAM replacement) | **DONE** | SWE-bench Verified selected, **conditionally** — `docs/BENCHMARK_C_DECISION.md`. (Tracked as P2-06; given an ID here so the selection itself is not orphaned) |
+
+### 4.3 Infrastructure
+
+| ID | Task | Status | Note |
+|---|---|---|---|
+| P1-030 | Runtime ALCF discovery | **DONE** | 4 clusters incl. undocumented `tara` |
+| P1-031 | Minerva feasibility | **DONE** | `gpt-oss-120b` **503 persistent** on Minerva |
+| P1-032 | Freeze primary model + cluster | **DONE** | gpt-oss-120b on **Metis** |
+| P1-033 | Freeze embedding model | **DONE** | SFR-Embedding-Mistral, 2,000-Qwen budget |
+| P1-034 | Concurrency benchmark | **DONE** | 16 workers, 0 failures / 316 requests |
+| P1-035 | Aurora orchestration runner | **KILLED** | allocated but **gateway-bound**; the laptop path carried every run. Not a submission dependency |
+| P1-036 | Response cache | **DONE** | isolation verified behaviourally |
+| P1-037 | Retry / resume / checkpoint | **DONE** | 12 cells re-ran with 0 calls |
+| P1-038 | Cost / token / latency logger | **DONE** | every call logged |
+
+### 4.4 Data / release
+
+| ID | Task | Status | Note |
+|---|---|---|---|
+| P1-040 | Canonical dataset schema | **DONE** | **94 fields → 97 released**, schema `p1mem_conditional_memory_utility_v2` |
+| P1-041 | HF staging dir, never the repo root | **DONE** | `../hf_staging/`, gitignored |
+| P1-042 | HF data card | **DONE** | `docs/hf_card/README.md`, byte-identical to the uploaded card |
+| P1-043 | Derived-data writer | **DONE** | export gates, now 5 of them after one shipped a defect |
+| P1-044 | Dataset validation script | **DONE** | 66 tests; 15 deliberate corruptions all caught |
+| P1-045 | HF upload / version process | **DONE** | v0.1 only: tag `v0.1-lmev2-derived`, remote verified by fresh download. v0.2 is P1-C04 |
+| P1-046 | P3 reserved fields | **DONE** | 4 reserved fields, validator enforces null |
+
+### 4.5 Experiments
+
+| ID | Task | Status | Note |
+|---|---|---|---|
+| P1-050 | Extraction pilot | **DONE** | 8 segments, 24 calls. ⚠️ **superseded for every rate** by the scale-up |
+| P1-051 | Noise / reliability pilot | **DONE** | F_exec / F_judge = 0.000, each positive-controlled. **F_empty = UNMEASURED** (cached WITHOUT arm), never 0 |
+| P1-052 | LongMemEval-V2 pilot | **DONE** | 1,918 calls. Valid but **floor-limited** |
+| P1-052b | Official-prompt arm | **DONE** | accuracy fell 5.7 pts; 128 correct guesses became abstentions. **Do not re-run another prompt wording** |
+| P1-053 | LongMemEval-V2 main run | **DONE** | the screened run: 5,198 calls, 0 errors |
+| P1-054 | BEAM pilot | **KILLED** | BEAM dropped |
+| P1-055 | BEAM main run | **KILLED** | BEAM dropped |
+| P1-056 | SciCode pilot | **BLOCKED** | superseded — now owned by P1-C09 |
+| P1-057 | SciCode main run | **BLOCKED** | superseded — now owned by P1-C10 |
+| P1-058 | Targeted replication queue | **KILLED** | **`F_exec = 0`** — 0 of 1,157 cells have replicates that disagree. Re-running a deterministic reader buys nothing |
+| P1-059 | Missing-cell recovery | **KILLED** | 0 errors and 0 missing cells across 9,036 calls. Nothing to recover |
+
+### 4.6 Analysis
+
+| ID | Task | Status | Note |
+|---|---|---|---|
+| P1-060 | Continuous ΔU analysis | **DONE** | `k3_screened_analysis.json` |
+| P1-061 | Robust useful/harmful labels | **DONE** | with the `NOT_MEASURABLE` rule on the robust−naive gap |
+| P1-062 | Breadth vs specialization | **DONE** | Figure 2(a); `docs/BEARING_SCARCITY.md` |
+| P1-063 | Sign-flip analysis | **DONE** | Table `tab:flips`; **descriptive only** per A1.1 |
+| P1-064 | NEAR / MID / FAR bands | **DONE** | `\paragraph{Distance bands.}`; far band is 8 cells and no sign is read from it |
+| P1-065 | Similarity vs utility | **DONE** | Figure 3 |
+| P1-066 | Representation comparison (Contribution B) | **DONE** | reported as P1-C12 |
+| P1-067 | Storage efficiency | **KILLED** | not measured and not needed; nothing in the paper rests on it |
+| P1-068 | Retrieval efficiency | **KILLED** | no retrieval arm exists; reinstating it means the new arm in P1-I01 / P1-I07 |
+| P1-069 | Exposure efficiency | **DONE** | ΔU per 1k exposed tokens, both columns |
+| P1-070 | Latency efficiency | **DONE** | amortized per cell in `r3` |
+| P1-071 | API / compute efficiency | **DONE** | writer calls per memory, amortized |
+| P1-072 | Selectivity efficiency | **KILLED** | requires a retrieval arm |
+| P1-073 | Extraction efficiency | **DONE** | formation cost, charged — the finding in `docs/REPRESENTATION_RESULT.md` |
+| P1-074 | Utility–efficiency frontier | **RUNNING** | superseded — now owned by P1-C03 |
+| P1-075 | Variance decomposition | **KILLED** | 🔴 **unidentifiable.** Cause is **`F_exec = 0`** — a deterministic reader leaves no residual scale — not the task-crossing defect that *was* fixed. Shares came back equal to 16 s.f. at the optimizer's clip while reporting `converged=True`. **No share may be quoted**; `audit_claims.py` fails if one appears; a figure is forbidden |
+
+### 4.7 Manuscript
+
+| ID | Task | Status | Note |
+|---|---|---|---|
+| P1-080 | Abstract v3 | **DONE** | superseded — P1-C01 landed v5 |
+| P1-081…087 | Intro · Related Work · Method · Representations · Benchmarks · Utility · Efficiency | **DONE** | 0 undefined citations, CCS added |
+| P1-088…090 | Results · Analysis · Limitations | **DONE** | all three written against verified sources |
+| P1-091…092 | Figures · Tables | **RUNNING** | superseded — now owned by P1-C13 |
+| P1-093 | Reproducibility statement | **DONE** | — |
+| P1-094 | Claim/evidence audit | **RUNNING** | superseded — now owned by P1-C16 |
+| P1-095 | Final compile + anonymity + citation check | **TODO** | superseded — now owned by P1-C17 |
+| P1-096 | AI-assistance disclosure | **TODO** | superseded — now owned by P1-C18. 🔴 still an empty stub and required by AAMAS |
+
+### 4.8 Release
+
+| ID | Task | Status | Note |
+|---|---|---|---|
+| P1-100 | GitHub cleanup | **TODO** | folds into P1-C17 |
+| P1-101 | README reproduction instructions | **DONE** | README §Setup + §Handoff |
+| P1-102 | HF snapshot | **DONE** | v0.1 + tag |
+| P1-103 | Data card | **DONE** | 20 sections |
+| P1-104 | Licence verification | **DONE** | `docs/BENCHMARK_LICENSES.md`; the exporter fails closed on unknown licences |
+| P1-105 | Results ledger | **DONE** | `docs/RESULTS_LEDGER.md` + `docs/RESULT_INDEX.md` |
+| P1-106 | Final consistency audit | **TODO** | folds into P1-C16 / P1-C17 |
+
+### 4.9 Findings recorded as IDs (§32 requires the trigger be kept)
+
+These are **triggers**, not work items. Each is terminal.
+
+| ID | Status | Disposition |
+|---|---|---|
+| P1-110 | **DONE** | V2 ships no evidence labels → the memory unit is defined without them and utility is purely counterfactual |
+| P1-111 | **DONE** | Oracle context is 100% evidence → every cell carries controlled filler |
+| P1-112 | **DONE** | EvoMemEval's 46 multi-task / 17 flipping memories → conceded in Related Work |
+| P1-113 | **DEFERRED** | EvoMemEval's 22.0% natural harm rate; useful external evidence, not cited yet |
+| P1-114 | **DONE** | the headline analysis was written from scratch (`k3_analyze_screened.py`) |
+| P1-115 | **DONE** | `get_embedding` and `vectorstore.py` were written, not reused |
+| P1-116 | **DONE** | the "679 free natural cells" claim was **refuted**; the matrix is constructed and the paper says so |
+| P1-117 | **DONE** | advertised ≠ live → every model dependency needs a real POST. Trap #1 |
+| P1-118 | **DONE** | reasoning tokens eat `max_tokens` → hard error in the client, never scored |
+| P1-119 | **DONE** | 8 eval specs not 6 → the adapter keys on the full spec string |
+| P1-120 | **DONE** | HF `auth-check` always says yes → trap #2 |
+| P1-121 | **DONE** | Python 3.9 aborts collection → 3.13 pinned everywhere |
+| P1-122 | **DONE** | `memory_id` collision → locator ruling. ⚠️ the ruling has **failed three times downstream**; trap #3 |
+| P1-123 | **DONE** | `semantic_distance_band` is a per-benchmark tercile, computed as a post-pass |
+| P1-124 | **DONE** | labels emit `undetermined` until the floor exists, then recompute |
+| P1-125 | **DONE** | REML recovery error at 30 memories → 60 minimum adopted |
+| P1-126 | **DONE** | BEAM diagonality → P1-023 KILLED |
+| P1-127 | **DONE** | one `errors-gotchas` question = 4.6% of RANDOM → task-clustered SEs on **every** contrast |
+| P1-128 | **DONE** | official scorer bug → all leakage rates are lower bounds, pinned as an expected-failure control |
+| P1-129 | **KILLED** | semantic-type κ = 0.000; axis dropped, redesign held as P1-H07 |
+| P1-130 | **DONE** | structured contradiction 0.667 is a scope-collision artifact → **never quote as a hallucination rate** |
+| P1-131 | **DONE** | V2 pairs are stratified by question type, not distance → separate cosine post-pass |
+| P1-132 | **DEFERRED** | position effect 8/12, provisional at n=12; expansion owned by P1-I03 |
+| P1-133 | **DONE** | "endpoint is nondeterministic" **RETRACTED** — it was a position effect |
+| P1-134 | **DONE** | reward vs text disagreement differ 8× → label which floor is meant |
+| P1-135 | **DONE** | 3,400-token embedding cap fails 10/10 on real text → 2,000 adopted |
+| P1-136 | **DONE** | 29 of 1,889 units fit whole → attenuation stated in Limitations |
+| P1-137 | **DONE** | page-budget premise was wrong; the instrument (page count) was flat where it mattered |
+| P1-138 | **DONE** | "variance shares all 0.0000" **RETRACTED**; the reporter now prints UNMEASURED and a test forbids a number from a failed fit |
+| P1-139 | **DONE** | 0×220 balanced sub-design → the task axis was widened (8 → 19.3 tasks/memory). **The fix worked and the conclusion still did not follow** — see P1-075 |
+| P1-140 | **DONE** | the official prompt is not the lever; reportable as prompt sensitivity |
+| P1-141 | **DONE** (verdict retracted) | "the floor is reader capability" rested on a **non-discriminative** leakage flag (ratio 0.995). The needle probe (22/22) settled it: the reader is **not** the constraint |
+| P1-142 | **DONE** | exit code 0 is not success → every analysis stage asserts its own artifact |
+| P1-143 | **DONE** | `AT_UPPER_BOUNDARY` flag added; a tight CI on a clipped ratio is an artifact of the clip |
+
+### 4.10 Phase 2 IDs
+
+| ID | Status | Successor |
+|---|---|---|
+| P2-01 representation scale-up | **DONE** | → P1-C12 |
+| P2-02 HF v0.1 + schema audit | **DONE** | → P1-C04 for v0.2 |
+| P2-03 pipeline figure + figure plan | **DONE** | → P1-C02 |
+| P2-04 freeze the four-axis story | **DONE** | — |
+| P2-05 README + handoff | **DONE** | redone as P1-C14 |
+| P2-06 BEAM replacement | **DONE** | conditional: SWE-bench selected but not cleared; clearing it is P1-C05 → C07 |
+| P2-07 frontier | **RUNNING** | → P1-C03 |
+| P2-08 bearing-breadth figure | **DONE** | Figure 2(a) |
+| P2-09 similarity figure | **DONE** | Figure 3 |
+| P2-10 abstract v5 | **DONE** | → P1-C01 |
+| P2-11 SciCode | **RUNNING** | → P1-C08 |
+| P2-12 HF v0.2 | **RUNNING** | → P1-C04 |
+| P2-13 cross-benchmark synthesis | **BLOCKED** | → P1-C11 |
+| P2-14 final figure selection + page management | **RUNNING** | → P1-C13 |
+| P2-15 claim/evidence audit at freeze | **RUNNING** | → P1-C16 |
+
+### 4.11 User-owned (the Master Agent does not spend cycles here)
 
 | ID | Task | Status |
 |---|---|---|
-| U-01 | Author list | USER |
-| U-02 | Reciprocal reviewer designation (1 Oct) + acceptance (8 Oct) | USER |
-| U-03 | OpenReview profiles/account logistics | USER |
-| U-04 | Submission administration | USER |
-| U-05 | *Optional, 2 min:* logged-in read of OpenReview `n3GMbobXnc` — does EvoMemEval's paper **body** report a cross-task variance statistic? | USER |
+| U-01 | Author list | **TODO** (user) |
+| U-02 | Reciprocal reviewer designation (1 Oct) + acceptance (8 Oct) | **TODO** (user) |
+| U-03 | OpenReview profiles / account logistics | **TODO** (user) |
+| U-04 | Submission administration | **TODO** (user) |
+| U-05 | *Optional:* logged-in read of OpenReview `n3GMbobXnc` | **DEFERRED** |
+
+### 4.12 Legacy deferrals
+
+| ID | Task | Status | Successor |
+|---|---|---|---|
+| D-01 | Jev baseline | **DEFERRED** | P1-H01 |
+| D-02 | Large LLM-manager comparison | **DEFERRED** | P1-H03 |
+| D-03 | Learned retriever / gate | **DEFERRED** | P1-H02 |
+| D-04 | Scientific OOD beyond SciCode | **DEFERRED** | P1-H06 |
+| D-05 | Model scaling ladder | **DEFERRED** | P1-H04 |
+| D-06 | Production vector DB | **DEFERRED** | P1-H05 |
 
 ---
 
-## Scientific / design
+## 5. State counts
 
-| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
-|---|---|---|---|---|---|---|---|---|---|
-| P1-001 | P0 | Freeze storyline in repo + Overleaf | Master | DONE | — | `docs/PROJECT_GOAL.md` | — | yes | frozen doc + abstract agree |
-| P1-002 | P0 | Memory acquisition protocol (writer never sees future task) | Master+B | **DONE** | 001 | `docs/MEMORY_PROTOCOL.md` | B implements | yes | invariant + enforcement stated |
-| P1-003 | P0 | Define Raw representation | B | **DONE** — deterministic, 0 calls | 002 | — | deterministic span rule | yes | spec + code |
-| P1-004 | P0 | Define Summary representation | B | **DONE** — median 362 tok, cr 0.063 | 002 | — | fixed writer + prompt vN | yes | spec + code |
-| P1-005 | P0 | Define Structured representation | B | **DONE** — median 246 tok, cr 0.037, 0/8 malformed | 002 | — | schema incl. procedural variant | yes | spec + code |
-| P1-006 | P1 | Memory semantic-type labels | B | ⚠️ **NOT SAFE AS AN AXIS** — κ=0.000, native pass called all 8 `episodic` | 002 | — | keep distinct from representation | yes | labelling rule + agreement check |
-| P1-007 | P0 | WITH/WITHOUT intervention definition | Master | **DONE** | 002 | `docs/MEMORY_PROTOCOL.md` §4 | — | yes | controlled filler required in both arms |
-| P1-008 | P0 | Robust useful/harmful definition vs noise floor | Master | **DONE** | — | `docs/ANALYSIS_PREREGISTRATION.md` §4-5, committed **before any data** | — | yes | thresholds fixed pre-hoc |
-| P1-009 | P0 | Efficiency metric definitions | D | TODO | 001 | — | 7 families, §17 | yes | each metric has a field |
-| P1-010 | P1 | Retrieval baselines: None / Keep-All / Top-k / Oracle | D | TODO | 001 | — | — | yes | 4 arms specified |
-| P1-011 | P1 | Figure/table targets + schema support check | D | TODO | 040 | — | verify schema can produce Fig 2 | yes | each fig maps to fields |
+**Every one of the 188 distinct task IDs on this page carries exactly one bold terminal
+state.** Counted mechanically, not by hand — re-derive with:
 
-## Benchmark / data — Sub-agent A
+```python
+import re, collections
+t = open("docs/MASTER_TODO.md").read()
+body = t[t.index("## 1. Level 1"):t.index("## 5. State counts")]
+STATES = ["DONE","RUNNING","BLOCKED","TODO","DEFERRED","KILLED"]
+ID = re.compile(r"\b(P1-\d{3}[a-z]?|P1-C\d{2}|P1-I\d{2}|P1-H\d{2}|P2-\d{2}|U-\d{2}|D-\d{2})\b")
+seen = {}
+for ln in body.split("\n"):
+    s = ln.strip()
+    if not s.startswith("|"): continue
+    cells = [c.strip() for c in s.strip("|").split("|")]
+    if not ID.findall(cells[0]): continue
+    m = re.search(r"P1-(\d{3})…(\d{3})", cells[0])
+    ids = ([f"P1-{i:03d}" for i in range(int(m.group(1)), int(m.group(2))+1)]
+           if m else [ID.findall(cells[0])[0]])
+    bold = [x for x in STATES if f"**{x}**" in " | ".join(cells[1:])]
+    assert len(bold) == 1, (ids, bold)          # every row states exactly one
+    for i in ids: seen.setdefault(i, bold[0])
+print(len(seen), collections.Counter(seen.values()))
+```
 
-| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
-|---|---|---|---|---|---|---|---|---|---|
-| P1-020 | P0 | LongMemEval-V2 adapter + official scorers | A | **DONE** | — | `/tmp/lmev2` checksum-verified | extract scorers from `harness.py` | yes | unit tests pass |
-| P1-021 | P0 | V2 memory unit + memory×task pairing | A | **DONE** — page visit, median 7,261 tok; **1,889 mem × 8 tasks** | 020 | 164k tok/trajectory → must subdivide | measured token distribution | yes | unit fixed + seeded pairing |
-| P1-022 | P0 | Leakage audit + detector | A | **DONE** — 17/17 controls; rates are LOWER BOUNDS | 020 | — | must prove detector can fail | yes | rate reported, cells flagged not dropped |
-| P1-023 | P1 | BEAM adapter | A | **DEFERRED** — 92.6% of cited turns cited by exactly 1 question; cannot supply the multi-task axis | — | — | obtainability first | yes | adapter or documented exception |
-| P1-024 | P1 | BEAM task/domain mapping | A | BLOCKED | 023 | — | — | yes | — |
-| P1-025 | P1 | SciCode adapter | A | **SCOPED DOWN** — ~8–12 cross-problem pairs; case study, not a main table | — | — | obtainability first | yes | adapter or documented exception |
-| P1-026 | P1 | SciCode source→future transfer mapping | A | BLOCKED | 025 | — | — | yes | — |
-| P1-027 | P0 | License/provenance audit | A | **DONE** — BEAM CC BY-SA 4.0 ShareAlike forces a separate release | — | — | `docs/BENCHMARK_LICENSES.md` | yes | redistribution rules explicit |
+| state | count |
+|---|---:|
+| **DONE** | **106** |
+| **RUNNING** | **16** |
+| **BLOCKED** | **10** |
+| **TODO** | **21** |
+| **DEFERRED** | **22** |
+| **KILLED** | **13** |
+| **total distinct IDs** | **188** |
 
-## Infrastructure — Sub-agent C
+**Counting rule.** A legacy ID whose work was taken over by a Phase-3 item is counted
+**separately, under its own state**, with the successor named in its row. That is
+deliberate: collapsing them would make a legacy ID stop being mentioned, which this page
+forbids. So `P1-095` (TODO) and its successor `P1-C17` (TODO) are two rows and two counts.
 
-| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
-|---|---|---|---|---|---|---|---|---|---|
-| P1-030 | P0 | Runtime ALCF discovery | C | DONE | — | 4 clusters incl. undocumented `tara`; `/v1/models` 404s on Sophia | — | yes | live list recorded |
-| P1-031 | P0 | Minerva primary-model feasibility | C | **DONE** | 030 | `gpt-oss-120b` **503 persistent** on Minerva; inkling/nemotron serve | — | yes | evidence recorded |
-| P1-032 | P0 | **Freeze primary generation model+cluster** | Master | **DONE** | 031 | `docs/CLUSTER_DECISION.md` — gpt-oss-120b on **Metis** | — | yes | pinned |
-| P1-033 | P0 | Freeze embedding model | Master | **DONE** | — | `SFR-Embedding-Mistral` dim 4096 — ⚠️ **2,000-Qwen-token budget**, 98.5% of units truncated | — | yes | pinned |
-| P1-034 | P0 | Concurrency benchmark | C | **DONE** — **16 workers**, 0 failures /316 reqs; 429s at 24 | 032 | — | `docs/ENDPOINT_THROUGHPUT.md` | yes | chosen value justified by table |
-| P1-035 | P1 | Aurora orchestration runner | C | **DONE (not used)** — allocated, but gateway-bound; laptop path | 034 | — | check allocation first | no* | resumable job or documented fallback |
-| P1-036 | P0 | Response cache | C | **DONE** — isolation verified behaviourally by Master | — | — | test: cross-cluster keys differ | yes | tests pass |
-| P1-037 | P0 | Retry/resume/checkpoint | C | **DONE** — 12 cells re-ran with 0 calls | 036 | — | — | yes | restart re-pays nothing |
-| P1-038 | P0 | Cost/token/latency logger | C | **DONE** | 036 | — | — | yes | every call logged |
+**Active work is the RUNNING + BLOCKED + TODO block (47 IDs), and it is smaller than it
+looks** — 21 of those are user-owned, duplicated legacy IDs, or Level-2 nice-to-haves. The
+submission-critical open set is **P1-C03, C04, C05→C07, C08→C10, C11, C13, C15, C16, C17,
+C18** — 14 IDs, of which 6 are blocked behind two benchmark bring-ups.
 
-\* Aurora is an execution convenience; a gateway-driven run is an acceptable fallback at our scale.
+## 6. Killed this project, with the measured reason
 
-## Data / release — Sub-agent E
-
-| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
-|---|---|---|---|---|---|---|---|---|---|
-| P1-040 | P0 | Canonical dataset schema (+P3 reserved fields) | E | **DONE** | 001 | `src/p1mem/schema.py` — **77 fields**, all 59 required present (Master-verified) | — | yes | schema + validator |
-| P1-041 | P0 | HF staging dir (clean, never the repo root) | E | **BLOCKED** | **P1-027** | exporter hard-refuses without `BENCHMARK_LICENSES.md` | A to deliver licenses | yes | staging isolated |
-| P1-042 | P1 | HF data card (20 sections) | E | TODO | 040 | — | — | yes | card current |
-| P1-043 | P0 | Derived-data writer | E | **DONE** | 040 | committed with export gates 8/8 | — | yes | emits conforming rows |
-| P1-044 | P0 | Dataset validation script | E | **DONE** | 040 | 45 tests, 15 deliberate corruptions all caught; **2 real defects found by failing tests** | — | yes | rejects malformed |
-| P1-045 | P1 | HF upload/version process | E | TODO | 041 | `AgentsSci/AAMAS2027-ConditionalMemory` | — | yes | snapshot uploaded |
-| P1-046 | P0 | P3 receiver-compatible reserved fields | E | **DONE** | 040 | 4 reserved fields, validator enforces null | — | yes | present + null |
-
-## Experiments
-
-| ID | Pri | Task | Owner | Status | Dep | Evidence | Next action | Sub? | Done-when |
-|---|---|---|---|---|---|---|---|---|---|
-| P1-050 | P0 | Extraction pilot | B | **DONE** — 8 segments, 24 calls | 003-005, 032 | — | — | yes | 3 reps for N episodes |
-| P1-051 | P0 | **Noise/reliability pilot** | G | **RUNNING** | 032, 036 | free no-memory arm | — | yes | floor measured |
-| P1-052 | P0 | LongMemEval-V2 pilot | G | **RUNNING** | 020, 050, 051 | — | — | yes | pipeline end-to-end |
-| P1-052b | P0 | **Official-prompt arm (the decisive re-run)** | H | **DONE — REFUTED the hypothesis** | 052 | `docs/OFFICIAL_PROMPT_ARM.md`; `results/deltau_official/`; ledger rows 58-67; TODO P1-138..143 | do NOT re-run another prompt wording; probe the READER | yes | ✅ 1,920 calls, 0 errors; both-arms-fail rose 78.5% → **83.75%** |
-| P1-053 | P0 | LongMemEval-V2 main run | D | BLOCKED | 052 | — | — | yes | main table cells filled |
-| P1-054 | P1 | BEAM pilot | D | BLOCKED | 023 | — | — | yes | — |
-| P1-055 | P1 | BEAM main run | D | BLOCKED | 054 | — | — | no | — |
-| P1-056 | P1 | SciCode pilot | D | BLOCKED | 025 | — | — | yes | — |
-| P1-057 | P1 | SciCode main run | D | BLOCKED | 056 | — | — | no | — |
-| P1-058 | P0 | Targeted replication queue (adaptive) | D | BLOCKED | 051 | — | prioritize near-zero + sign flips | yes | flips replicated |
-| P1-059 | P1 | Missing-cell recovery (same cluster only) | D | BLOCKED | 053 | — | — | yes | no cross-cluster merge |
-
-## Analysis — Sub-agent D
-
-| ID | Pri | Task | Owner | Status | Sub? |
-|---|---|---|---|---|---|
-| P1-060 | P0 | Continuous ΔU analysis | D | BLOCKED | yes |
-| P1-061 | P0 | Robust useful/harmful labels | D | BLOCKED | yes |
-| P1-062 | P1 | Breadth vs specialization | D | BLOCKED | yes |
-| P1-063 | P0 | Sign-flip analysis (must clear floor) | D | BLOCKED | yes |
-| P1-064 | P1 | NEAR/MID/FAR | D | BLOCKED | yes |
-| P1-065 | P1 | Similarity-vs-utility | D | BLOCKED | yes |
-| P1-066 | P0 | Representation comparison (Contribution B) | D | BLOCKED | yes |
-| P1-067..073 | P0 | Efficiency: storage/retrieval/exposure/latency/API/selectivity/extraction | D | BLOCKED | yes |
-| P1-074 | P0 | **Utility–Efficiency Frontier (Fig 2)** | D | BLOCKED | yes |
-| P1-075 | P1 | Variance decomposition (memory/task/interaction) — ~200 new lines, none exists | D | BLOCKED | yes |
-
-## Manuscript — Sub-agent F
-
-| ID | Pri | Task | Owner | Status | Sub? |
-|---|---|---|---|---|---|
-| P1-080 | P0 | Abstract → frozen story (v3) | Master | **DONE** — 271 words, scan clean, in Overleaf | yes |
-| P1-081..087 | P1 | Intro · Related Work · Method · Representations · Benchmarks · Utility · Efficiency | F | **DONE** — 6 pp, 0 undefined citations, CCS added, bibliography rebuilt + spot-checked vs primary sources | yes |
-| P1-088..090 | P0 | Results · Analysis · Limitations | F | BLOCKED | yes |
-| P1-091..092 | P0 | Figures · Tables | F | BLOCKED | yes |
-| P1-093 | P1 | Reproducibility statement | F | **DONE** | yes |
-| P1-094 | P0 | Claim/evidence audit | Master | BLOCKED | yes |
-| P1-095 | P0 | Final compile + anonymity + citation check | Master | BLOCKED | yes |
-| P1-096 | P0 | **AI-assistance disclosure** (prompt + tool + version) — AAMAS requires it | Master | TODO | yes |
-
-## Release
-
-| ID | Pri | Task | Owner | Status | Sub? |
-|---|---|---|---|---|---|
-| P1-100..106 | P1 | GitHub cleanup · README repro · HF snapshot · data card · license verify · results ledger · final consistency audit | Master+E | TODO | yes |
-
----
-
-## Newly added from findings (§32 requires recording the trigger)
-
-| ID | Trigger | Why it matters | Pri | Sub? |
-|---|---|---|---|---|
-| P1-110 | V2 ships **no evidence labels** (verified over all 451 records) | We cannot know which trajectory holds the answer, so "ablate the evidence" is undefined. The memory unit must be defined without evidence labels, and utility measured purely counterfactually | P0 | yes |
-| P1-111 | Oracle ctx is **100% evidence** | Ablating there removes the whole context — a no-context arm, not a memory ablation. Every cell needs controlled filler | P0 | yes |
-| P1-112 | EvoMemEval's artifact already contains 46 multi-task memories, 17 flipping | Related Work must concede this; our claim is signed+replicated+decomposed, not "we found it first" | P0 | yes |
-| P1-113 | EvoMemEval pre-balance metadata: **22.0% natural harm rate** (n=537) | Directly answers the TraceRetain "no pollution → all arms in one CI" hazard. Cite as external evidence | P1 | yes |
-| P1-114 | `analyze_conditional_value.py` has **zero** variance/interaction code and **rejects `replicate_id`** | The headline analysis must be written (~200 lines); start from `analyze_reliability.py`, which does key on replicate_id | P0 | yes |
-| P1-115 | `get_embedding` broken 3 ways; `vectorstore.py` has no retrieval or persistence | Both must be written, not reused | P0 | yes |
-| P1-116 | Inherited "679 free natural cells" **refuted** (0 overlap, positive-controlled) | The matrix is **constructed**, not harvested. The paper must say so | P0 | yes |
-
-| P1-138 | 🔴 "variance shares all 0.0000" was `dec.shares.get(c, 0.0)` over an **empty** dict — the fit never converged and the moments fallback refused (*"balanced sub-design is 0x220"*) | The paper's headline quantity was reported as a hard zero when it was UNMEASURED. Retracted in ledger row 54a. **Make the decomposition reporter print UNMEASURED rather than defaulting**, and add a test that a failed fit cannot print a number | P0 | yes |
-| P1-139 | The pairing gives **0×220** balanced sub-design: tasks/memory 8/8/8, memories/task 1/2/36, only 127 of 220 tasks shared by ≥2 memories | No variance decomposition is estimable at ANY number of memories under this pairing. Re-pair so memories **share** tasks — POWER_ANALYSIS §3's "widen the task axis", now for a second reason | P0 | yes |
-| P1-140 | The official prompt made accuracy **worse** (paired McNemar p=1.12e-09) by converting **128 correct guesses into abstentions**; `harness.py:1055` scores an abstention 0, same as a wrong answer | The prompt is NOT the lever and must not be re-run in another wording. Reportable as a prompt-sensitivity result in its own right | P0 | yes |
-| P1-142 | 🔴 A stage crashed with `ZeroDivisionError` **while the script exited 0** — the wrapper reported success and the artifact was simply absent | "Exit code 0 is not success" now has a concrete instance in THIS pipeline. **Every analysis stage must assert its own artifact exists before the script returns 0** | P0 | yes |
-| P1-143 | 🔴 The REML fit is **not identified**: task and interaction shares exactly equal to 16 s.f., both ratios pinned at the `exp(12)` clip ceiling, yet `converged=True` with a tight CI | The module guarded only the LOWER variance boundary. `AT_UPPER_BOUNDARY` added. **Any future decomposition must be read with this flag checked** — a tight CI on a clipped ratio is an artifact of the clip | P0 | yes |
-| P1-141 | On cells whose memory text **contains the gold answer**, WITH-arm accuracy is only 0.2288 / 0.1429 and 72–79% still fail both arms | The floor is **reader capability**, not pairing or prompt. Probe max_tokens / reasoning_effort / smaller K / stronger reader — each on the oracle-bearing subgroup first, which is the cheapest non-outcome-selected capability test | P0 | yes |
-
-## Added this hour (trigger recorded)
-
-| ID | Trigger | Why it matters | Pri | Sub? |
-|---|---|---|---|---|
-| P1-117 | Minerva advertises `gpt-oss-120b` but returns **503 persistently**; Sophia advertises an embedding model that **502s** | Two advertised-but-dead cases in one day. **A capability listing is not a liveness signal** — every model dependency needs a real POST before use, with a negative control | P0 | yes |
-| P1-118 | Reasoning tokens share the `max_tokens` budget; a truncated empty completion was scored as a wrong answer | Would push ΔU negative and **manufacture harmful memories** — fabricating the phenomenon we measure. Hard error in the client, never scored | P0 | yes |
-| P1-119 | V2 has **8 distinct eval specs, not 6** — two `norm_phrase_set_match` variants differ only in `separators` | Dispatching on function name silently applies the wrong scorer. Adapter must key on the FULL spec string | P0 | yes |
-| P1-120 | HF `auth-check?accessLevel=write` returns **200 for a repo we cannot write**, and 200 unauthenticated | A readiness probe that always says yes is not a test. Only an empty-body commit POST discriminates (400 vs 403); requires a negative control | P0 | yes |
-| P1-121 | System `python3` is 3.9; the vendored scorer's `str \| None` is a TypeError at import, aborting pytest collection | **A healthy suite looks broken.** Pin 3.10+; never edit the vendored scorer to satisfy 3.9 — that would silently change our measurements | P0 | yes |
-| P1-122 | `memory_id` collision: A emits a positional locator, E a content hash | Every row would be rejected at validation. Ruling: A renames to `memory_unit_locator`; a positional id is unstable under re-segmentation | P0 | yes |
-| P1-123 | `semantic_distance_band` looks per-row but is defined as a per-benchmark tercile | A row-by-row writer produces bands that depend on **write order**. Needs a post-pass after all similarities exist | P0 | yes |
-| P1-124 | `utility_label`/`robustness_confidence` depend on the unmeasured floor `F` | They must emit `undetermined` until the noise floor exists, and be **recomputed** afterwards. Filling them now would fabricate | P0 | yes |
-
-## Added (trigger recorded) — third batch
-
-| ID | Trigger | Why it matters | Pri | Sub? |
-|---|---|---|---|---|
-| P1-132 | **Position effect**: 8/12 cells changed their answer when ONLY the memory's position moved | Any with/without study that does not control position measures position + presence. Position now fixed across replicates, varied across cells, recorded per row. **Promote to its own measurement at scale** | P0 | yes |
-| P1-133 | My "endpoint is nondeterministic" claim **RETRACTED** — replicates were not byte-identical (position seeded by `replicate_id`) | Endpoint IS deterministic (6/6 identical, 24 calls, target regime). F_exec ≈ 0 is the expected correct result, not a failure | P0 | yes |
-| P1-134 | Reward disagreement (1/23) vs text disagreement (8/23) differ **8×** | F_exec needs reward, F_judge needs text. Label which is meant everywhere | P0 | yes |
-| P1-135 | Embedding cap of 3,400 tok **fails 10/10 on real text**; my probe prose was 2× sparser than the data | No single numeric cap exists — we count Qwen, the server counts Mistral. Adopted 2,000 + halving retry, recorded per row | P0 | yes |
-| P1-136 | At 2,000 tok only **29 of 1,889 units (1.5%)** fit whole | 98.5% of similarity values come from a truncated prefix. Attenuates similarity-utility toward zero — **cuts against our own claim**, must be stated | P0 | yes |
-| P1-137 | Manuscript at 6 pages with Results empty | ~2 pages of headroom. F's proposed cuts to writer-blindness barriers and infra justifications are **NOT needed** — they are reviewer defences | P1 | yes |
-
-## Added (trigger recorded) — second batch
-
-| ID | Trigger | Why it matters | Pri | Sub? |
-|---|---|---|---|---|
-| P1-125 | REML recovery error **0.0627 at 30 memories** (worst seed 0.1175) | 30 memories gives an 11-point error bar on the headline share. **60 minimum, 120×8 target**; 120×16 beats 240×8, so widen the TASK axis | P0 | yes |
-| P1-126 | BEAM: **92.6% of cited turns cited by exactly one question** | Cannot supply multi-task-per-memory. Demoted to secondary; documented scientific exception to the 3-benchmark target | P0 | yes |
-| P1-127 | Exactly **one** deterministically-scorable `errors-gotchas` question exists, = **12.5% of web cells** | One question could drive an apparent effect. **Cluster SEs by `task_id`** | P0 | yes |
-| P1-128 | Official scorer bug: `normalize_phrase` strips punctuation without a space (`value='GPS`→`valuegps`) | **All leakage rates are LOWER BOUNDS.** Pinned as an expected-failure control | P0 | yes |
-| P1-129 | `memory_semantic_type` agreement **3/8, κ=0.000** — native pass labelled everything `episodic` | Not safe as an analysis axis. Either widen the labelling run or drop the axis and say why | P1 | yes |
-| P1-130 | Structured contradiction rate 0.667 is a **scope-collision artifact** (schema's per-segment `action` vs source's per-state `- Action:`); 0.000 excluding it | Must never be quoted as a hallucination rate | P1 | yes |
-| P1-131 | V2 pairs are stratified by **question type**, not embedding distance | NEAR/MID/FAR needs a separate cosine-tercile post-pass. Two different strata; do not conflate | P0 | yes |
-
-## Deferred
-
-| ID | Task | Reason |
-|---|---|---|
-| D-01 | Jev baseline | §12: optional extension, never a blocker |
-| D-02 | Large LLM-manager comparison | optional extension |
-| D-03 | Learned retriever / gate | only if the main paper is complete |
-| D-04 | Scientific OOD beyond SciCode | optional |
-| D-05 | Model scaling ladder | optional |
-| D-06 | Production vector DB | explicitly out of scope |
+| item | verdict |
+|---|---|
+| **BEAM as a benchmark** | ❌ **92.6% of cited turns are cited by exactly one question** — cannot supply the multi-task-per-memory axis. Secondary: CC BY-SA 4.0 ShareAlike |
+| **DS-1000 as the replacement** | ❌ CC BY-SA 4.0 — the same ShareAlike trap |
+| **SWE-Gym as the replacement** | ⏸ held in reserve — MIT and far larger (1,868 multi-recipient donors), but it is agent *training* data, so contamination argues against it as primary |
+| **τ-bench** | ⚠️ **UNRESOLVED, not absent** — HF API 401 on this channel. Do not record it as rejected |
+| **Semantic-type axis** | ❌ κ = 0.000; the native pass labelled everything `episodic` |
+| **Variance decomposition as a headline** | ❌ unidentifiable; `F_exec = 0` leaves no residual scale. **No share may be quoted** |
+| **Sign-flip rate as the paper's identity** | ❌ **demoted, not deleted.** 0/35 in bearing cells and the excess over the additive null is negative in every stratum. It survives as *analysis*: unrelated pairings manufacture apparent reversals (17/60 in RANDOM) |
+| **Storage / retrieval / selectivity efficiency** | ❌ no retrieval arm exists on any row; reinstating them means a new arm (P1-I01) |
+| **Targeted replication queue** | ❌ 0 of 1,157 cells have replicates that disagree. A deterministic reader makes replication uninformative |
+| **Missing-cell recovery** | ❌ 0 errors, 0 missing cells across 9,036 calls |
+| **Aurora as the execution path** | ❌ allocated but gateway-bound; the laptop path carried every run |
