@@ -99,7 +99,12 @@ PROMPT_VERSION = "swebench_v2_symmetric"
 MEMORY_OPEN = "<<<MEMORY>>>"
 MEMORY_CLOSE = "<<<END MEMORY>>>"
 
-_DIFF_HEADER = re.compile(r"^(diff --git |index |--- |\+\+\+ |@@ )")
+# re.M is required: without it ``^`` anchors only at position 0, so a hunk
+# header on any line but the first is invisible. Verified against the tracked
+# parity artifact -- both spellings count 0 there, so no existing SWE-bench
+# conclusion changes; the flag would have bitten the memory-side check below,
+# where a hunk header lands mid-text rather than at the start.
+_DIFF_HEADER = re.compile(r"^(diff --git |index |--- |\+\+\+ |@@ )", re.M)
 
 
 class ArmAsymmetry(AssertionError):
@@ -233,6 +238,7 @@ def build_prompt(
     variant: PromptVariant = PromptVariant.V2_SYMMETRIC,
     patch_format: PatchFormat = PatchFormat.DEFANGED,
     issue_chars: int = 1500,
+    memory_body: str | None = None,
 ) -> BuiltPrompt:
     """Render one arm's prompt.
 
@@ -258,8 +264,20 @@ def build_prompt(
             patch_format=PatchFormat.RAW_DIFF.value,
             prompt_version="swebench_v1", has_memory=memory is not None)
 
-    body = (render_memory(memory, patch_format) if memory is not None
-            else "(none available for this task)")
+    # ``memory_body`` is the representation arm's entry point: a written
+    # Summary/Structured memory is already text and has no SolvedIssue to
+    # render. It occupies the SAME slot, so arm symmetry is unaffected and
+    # still checked per cell. Supplying both is a caller error, not a
+    # silent precedence rule.
+    if memory_body is not None and memory is not None:
+        raise ValueError("pass memory OR memory_body, not both: their bodies "
+                         "would silently disagree about what the memory is")
+    if memory_body is not None:
+        body = memory_body
+    elif memory is not None:
+        body = render_memory(memory, patch_format)
+    else:
+        body = "(none available for this task)"
     user = (
         "### Prior experience (reference only -- this is NOT the file you edit)\n"
         f"{_memory_slot(body)}\n\n"
@@ -272,8 +290,9 @@ def build_prompt(
     )
     return BuiltPrompt(
         system=_SYSTEM_V2, user=user, variant=variant.value,
-        patch_format=patch_format.value if memory is not None else "n/a",
-        prompt_version=PROMPT_VERSION, has_memory=memory is not None)
+        patch_format=patch_format.value if (memory is not None or memory_body is not None) else "n/a",
+        prompt_version=PROMPT_VERSION,
+        has_memory=(memory is not None or memory_body is not None))
 
 
 # --------------------------------------------------------------------------
@@ -339,4 +358,84 @@ def response_has_diff_contagion(response: str | None) -> dict[str, Any]:
         "has_replace_marker": ">>>>>>> REPLACE" in text,
         "n_diff_marker_lines": len(marker_lines),
         "n_hunk_headers": len(_DIFF_HEADER.findall(text)),
+    }
+
+
+# --------------------------------------------------------------------------
+# representation arm
+# --------------------------------------------------------------------------
+
+#: What a representation writer is allowed to see for a SWE-bench memory.
+#:
+#: The patch is handed over **defanged**. That is not cosmetic. The arm-parity
+#: repair exists because the reader imitates ``+``/``-`` notation it sees; a
+#: model-written summary of a raw diff can reproduce that notation and quietly
+#: reintroduce the contagion inside a representation that is supposed to be
+#: compared against raw on equal footing. Defanging the writer's input makes
+#: the three representations differ in *encoding of the memory*, not in whether
+#: the reader is exposed to diff syntax.
+REPRESENTATION_SEGMENT_VERSION = "swebench_segment_defanged@1.0.0"
+
+
+def to_source_segment(m: "SolvedIssue", *, benchmark_version: str) -> Any:
+    """The only object a representation writer sees for a SWE-bench memory.
+
+    Mirrors the SciCode adapter's entry point, for the same reason: binding
+    the segment once means all three representations are written from the
+    SAME source text, so a later comparison cannot confound representation
+    with content selection.
+    """
+    from p1mem.memory.segment import SourceSegment
+
+    return SourceSegment(
+        segment_id=m.instance_id,
+        benchmark="swebench_verified",
+        benchmark_version=benchmark_version,
+        source_episode_id=m.instance_id,
+        text=(f"### Past issue in {m.repo} (resolved {m.created_at.date()})\n"
+              f"{m.problem_statement.strip()}\n\n"
+              f"### How it was fixed (annotated listing, NOT a diff)\n"
+              f"{defang_patch(m.patch)}"),
+        source_span={"split": "test", "instance_id": m.instance_id,
+                     "fields": ["problem_statement", "patch"],
+                     "patch_encoding": "defanged"},
+        episode_metadata={"repo": m.repo,
+                          "n_files_touched": len(m.files),
+                          "resolved": m.created_at.date().isoformat()},
+    )
+
+
+def memory_body_for_representation(rep: str, *, m: "SolvedIssue",
+                                   written_text: str | None) -> str:
+    """The memory block body for one representation.
+
+    ``raw`` is the deterministic defanged rendering already used by the parity
+    run -- unchanged, so the raw arm of this experiment IS the arm that passed
+    parity. ``summary``/``structured`` wrap the writer's text in the same
+    outer framing so the three differ only in the memory content itself.
+    """
+    if rep == "raw":
+        return render_memory(m, PatchFormat.DEFANGED)
+    if not written_text:
+        raise ValueError(f"representation {rep!r} has no written text")
+    return (f"### Past issue in {m.repo} (resolved {m.created_at.date()})\n"
+            f"### What was learned (annotated notes, NOT a diff -- do not "
+            f"copy this notation)\n```text\n{written_text.strip()}\n```")
+
+
+def memory_contagion_risk(body: str) -> dict[str, Any]:
+    """Does a MEMORY body carry the notation the reader imitates?
+
+    Runs on the memory, not the response. The parity repair removed diff
+    syntax from the raw memory; a model-written representation can put it
+    back. Measuring this on every memory before the run means a
+    representation arm cannot silently reintroduce the defect that voided v1.
+    """
+    lines = [ln for ln in body.splitlines()
+             if ln.startswith(("+", "-")) and not ln.startswith(("+++", "---"))]
+    return {
+        "n_diff_marker_lines": len(lines),
+        "n_hunk_headers": len(_DIFF_HEADER.findall(body)),
+        "has_diff_fence": "```diff" in body,
+        "clean": not lines and not _DIFF_HEADER.findall(body) and "```diff" not in body,
     }
