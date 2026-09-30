@@ -353,9 +353,15 @@ representations**, **57 memories**, 10,000-sample percentile bootstrap over memo
 
 | representation | paired B−MC | 95% CI | non-zero contributors |
 |---|---:|---|---:|
-| **Raw** | **+0.3174** | **[+0.1924, +0.4474]** | 33 / 57 |
-| Summary | +0.0613 | [−0.0417, +0.1631] | 26 / 57 |
-| Structured | −0.0498 | [−0.1418, +0.0385] | 20 / 57 |
+| **Raw** | **+0.3174** | **[+0.1893, +0.4497]** | 33 / 57 |
+| Summary | +0.0613 | [−0.0447, +0.1621] | 26 / 57 |
+| Structured | −0.0498 | [−0.1405, +0.0369] | 20 / 57 |
+
+*The point estimates and contributor counts are exact. The interval endpoints are a
+10,000-draw percentile bootstrap over the 57 memories at **seed 20260930**, and they move
+in the third decimal under a different seed — quoted to four places for reproducibility,
+not because they are resolved that finely. What is stable across seeds is the only thing
+the claim rests on: **Raw's interval excludes zero and the other two do not.***
 
 > **Only Raw's interval excludes zero.** Summarizing or structuring the *same* source
 > experience, with the same writer, reader and tasks, **removes the measured benefit.**
