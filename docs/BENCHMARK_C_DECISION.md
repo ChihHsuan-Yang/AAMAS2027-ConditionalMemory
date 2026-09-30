@@ -275,6 +275,77 @@ control both exist on disk.
 with their denominators, and the parity result. **What may not:** any ΔU effect claim,
 and any figure presented as covering more than django.
 
+## §6 — PARITY ACHIEVED. Gate cleared. Verdict: KEEP.
+
+**SA-SWE, 2026-09-30. Every number re-derived by the Master Agent from
+`results/swebench/*.json`.**
+
+### The diagnosis was better than the hypothesis
+
+I had told SA-SWE the likely mechanism was the memory's diff **competing for the editable
+region**. Wrong. It competes for the **output format**: re-eliciting the three failures
+with the response text captured (v1 stored only the status) shows all three are the reader
+**imitating the memory's ` ```diff ` fence** — two put `+`/`-` lines inside the SEARCH
+block and never emitted `=======`; the third prefixed every SEARCH line with a diff context
+space, verified byte-exactly. The WITHOUT arm emitted **0 diff markers at the same cells,
+3/3**.
+
+### Parity, measured on the same 8 cells at the same budget
+
+| | v1 legacy | **v2 symmetric** |
+|---|---:|---:|
+| apply failures WITHOUT | 0/8 | **0/8** |
+| apply failures WITH | **3/8** | **0/8** |
+| **gap** | **+0.375** | **0.000** |
+
+The fix re-encodes the patch losslessly as `[added]`/`[removed]` — no diff syntax — and
+moves the target region last under an explicit header. **The tempting repair, telling the
+WITH arm not to copy the diff, is forbidden by `MEMORY_PROTOCOL.md` §4**, so the WITHOUT
+arm carries the memory *section* with an empty body. `assert_arm_symmetric` runs on
+**every cell**, not once in a test.
+
+**Budget was never the cause** (negative result): at `max_tokens=2048` all 3 still fail
+under the legacy prompt, every call finishing on `stop` far from its cap.
+
+### The gate
+
+| | value |
+|---|---|
+| **both-arms-fail** | **12/32 = 37.5%**, CI [22.9%, 54.8%] |
+| solve WITH / WITHOUT | 53.1% / 46.9% |
+| apply-failure WITH / WITHOUT | 4/32 vs 3/32, **gap +0.031** |
+| `no_block` in the WITH arm | **absent across 32 cells** |
+| apply-failures scored as a reward | **0** (verified; 21 cells carry `reward: None`) |
+
+**Below the 50% threshold. SWE-bench can host the experiment.**
+
+### 🔴 Two things NOT claimed
+
+1. **ΔU is not significant.** The bootstrap CI excludes zero but the exact test gives
+   **p = 0.125**, and with 4 discordant pairs all pointing one way a resample can only go
+   non-positive by drawing none of those donors (p = 0.0105) — **the interval is bounded
+   away from zero almost by construction.** SA-SWE flagged this against its own result.
+2. **All 55 cells are django** (verified: `repos = {django/django}`; the first eligible
+   sympy cell is at manifest position 118). **37.5% is a django number**, not a SWE-bench
+   number.
+
+### The scorer control found four more defects
+
+The inherited 10/10 was **django-only**. Run on the pytest runner it scored **0/5 — every
+correct gold patch read as 0.0** — through bare sympy test ids read as file paths, Python
+3.13 vs `distutils`, `py` 1.11 dropping `py.test`, and a fan-out naming a file that does
+not define the function. Now **django 12/12, sympy 8/8, both directions**.
+
+One "failure" was the scorer being right: sympy-20801 is a pure line *move*, so a
+corruption that only undid insertions left a passing program. A corruption that restores a
+deleted line was added.
+
+### A process error SA-SWE recorded against itself
+
+It planted audit defects into the floor artifact **while the job owning it was running**.
+No plant survived, but it could not prove no intermediate state was written, so it
+**discarded and regenerated the run** rather than reason about it. That is the right call.
+
 ## Rejected alternatives
 
 | candidate | verdict |
