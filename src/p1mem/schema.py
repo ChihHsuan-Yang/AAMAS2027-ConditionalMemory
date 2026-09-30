@@ -886,6 +886,52 @@ REDISTRIBUTABLE_TEXT_FIELDS: tuple[str, ...] = (
     "source_episode_metadata",
 )
 
+#: Benchmarks whose CONTENT may not be redistributed, mapped to why.
+#:
+#: This is a data structure and not a paragraph because a paragraph cannot stop
+#: an export. ``docs/BENCHMARK_LICENSES.md`` explains each ruling; this decides
+#: it. An absent licence is NOT a permissive licence, and ``gated: false`` on a
+#: hub means fetchable, not redistributable.
+CONTENT_EMBARGOED_BENCHMARKS: dict[str, str] = {
+    "swebench_verified": (
+        "princeton-nlp/SWE-bench_Verified declares NO licence (HF API "
+        "cardData.license is None, no license:* tag). The MIT grant covers the "
+        "harness code, not the corpus, and the underlying issue text and "
+        "patches belong to the upstream OSS projects. Metrics and instance ids "
+        "only. See docs/BENCHMARK_LICENSES.md section 5."),
+    "beam": (
+        "BEAM data is CC BY-SA 4.0; ShareAlike is infectious and would "
+        "relicense the rest of the release. Ships separately, if at all."),
+}
+
+
+def assert_content_redistributable(rows) -> None:
+    """Raise if any row carries text content from an embargoed benchmark.
+
+    Called by the exporter BEFORE an upload is assembled. The check is on the
+    emitted rows, not on an intention recorded elsewhere: a policy that lives
+    only in a document cannot fail a release.
+    """
+    bad: list[str] = []
+    for i, r in enumerate(rows):
+        b = (r.get("benchmark") or "").strip().lower()
+        if b not in CONTENT_EMBARGOED_BENCHMARKS:
+            continue
+        carried = [f for f in REDISTRIBUTABLE_TEXT_FIELDS
+                   if r.get(f) not in (None, "", [], {})]
+        if carried:
+            bad.append(f"row {i} ({r.get('cell_id') or r.get('task_id')}): "
+                       f"benchmark={b!r} carries {carried}")
+    if bad:
+        raise ValueError(
+            "content-embargoed benchmark rows carry redistributable text:\n  "
+            + "\n  ".join(bad[:10])
+            + f"\n({len(bad)} rows total)\nReason: "
+            + CONTENT_EMBARGOED_BENCHMARKS[
+                (rows[0].get("benchmark") or "").strip().lower()
+                if rows and (rows[0].get("benchmark") or "").strip().lower()
+                in CONTENT_EMBARGOED_BENCHMARKS else "swebench_verified"])
+
 
 # ============================================================  DETERMINISTIC IDS
 # Identity of a MEMORY: what it says + where it came from + how it was written.
@@ -1322,6 +1368,7 @@ __all__ = [
     "FIELD_SPEC", "FIELD_ORDER", "REQUIRED_FIELDS", "BRIEF_REQUIRED_FIELDS",
     "ADDED_FIELDS", "GROUPS", "P3_RESERVED_FIELDS", "NON_NULLABLE_IDENTITY",
     "IMPLICIT_CONDITION_KEYS", "REDISTRIBUTABLE_TEXT_FIELDS", "ENUMS",
+    "CONTENT_EMBARGOED_BENCHMARKS", "assert_content_redistributable",
     "MEMORY_REPRESENTATIONS", "MEMORY_SEMANTIC_TYPES", "SEMANTIC_DISTANCE_BANDS",
     "RETRIEVAL_METHODS", "UTILITY_LABELS", "BEARING_LABELS", "MEMORY_TYPES_COARSE",
     "MEMORY_TYPE_COARSE_OF", "BEARING_SCREEN_CAVEAT",

@@ -14,6 +14,7 @@ date on it.
 | LongMemEval-**V2** | Apache-2.0 | Apache-2.0 | no | **Yes**, with attribution + NOTICE | screenshots are a separate large bundle |
 | LongMemEval-**V1** | MIT | MIT | no | **Yes for the benchmark's own layer** | ~51% of sessions derive from ShareGPT/UltraChat, which carry their OWN upstream terms MIT does not override |
 | BEAM | MIT | **CC BY-SA 4.0** | no | **Yes, but ShareAlike infects** — any derived dataset must itself be CC BY-SA 4.0 | the only licence here that constrains OUR release terms |
+| SWE-bench Verified | MIT (harness) | 🔴 **none declared** | no | ❌ **No content.** Metrics + IDs only — see §5 |
 | SciCode | Apache-2.0 | Apache-2.0 | no | **Yes** for problems/tests | the 1.0 GB `test_data.h5` of numeric targets is on Google Drive with **no licence stated** |
 
 **Consequence for a combined release.** BEAM's CC BY-SA 4.0 is incompatible with releasing one merged
@@ -138,6 +139,39 @@ distributed through **Google Drive** (folder `1W5GZW6_bdiDAiipuFMqdUhvUaHIj6-pR`
   citation obligation, not a redistribution restriction.
 
 ---
+
+## 5. SWE-bench Verified — BENCHMARK C
+
+**Checked 2026-09-30. This section did not exist when SWE-bench was adopted as
+Benchmark C, which is itself the finding: the benchmark was measured before its
+redistribution terms were written down.**
+
+| item | state |
+|---|---|
+| harness code, `github.com/SWE-bench/SWE-bench` | **MIT** (GitHub licence API, `LICENSE`) |
+| dataset `princeton-nlp/SWE-bench_Verified` | 🔴 **NO licence declared.** The HF API returns `cardData.license: None`, the tag list carries no `license:*` entry, and the card text states none. `gated: false` |
+| underlying content | issue text and patches from the upstream OSS repos (django, sympy, …), each under **its own** licence — not Princeton's to relicense, and not ours |
+
+### Ruling for the HF release
+
+🔴 **No SWE-bench issue text, problem statement, patch, or model output derived
+from them may be redistributed in our dataset.** An absent licence is not a
+permissive licence. `gated: false` means *fetchable*, not *redistributable*, and
+the MIT grant on the harness covers the code, not the corpus.
+
+What **may** ship, because it is ours or is a pointer:
+
+- `instance_id` values (identifiers, not content),
+- our derived measurements: ΔU, reward, edit status, both-arms-fail, contagion
+  diagnostics, token counts, representation label,
+- the code that reconstructs every cell from the upstream dataset.
+
+This is the same shape as the BEAM ruling, reached for a different reason: BEAM
+is excluded by an *infectious* licence, SWE-bench by an *absent* one.
+
+⚠️ Consequence for HF versioning: a SWE-bench release can carry **metrics
+only**. `REDISTRIBUTABLE_TEXT_FIELDS` must be emptied for SWE-bench rows, and
+the exporter must enforce that rather than the data card describing it.
 
 ## What must be excluded from any HuggingFace release — checklist
 
