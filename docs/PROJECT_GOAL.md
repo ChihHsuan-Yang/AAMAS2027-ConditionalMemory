@@ -18,6 +18,21 @@ Agent Memory*
 
 > **What is this memory useful for?**
 
+### The frozen story (2026-09-30)
+
+> Past experience can be represented as memory in different ways. We ask **what future
+> tasks each memory is actually useful for**, when it is neutral or harmful, and **how much
+> storage, retrieval, exposure, latency, and compute cost** is required to obtain that
+> benefit.
+
+The paper is jointly about **Memory × Task × Representation × Cost**.
+
+⚠️ **Do not reduce the paper to sparsity alone, or to sign flips, or to variance, or to a
+single benchmark artifact.** The bearing-scarcity result is important *evidence inside*
+this story, not the story. As of 2026-09-30 the representation and cost axes are
+under-measured relative to the task axis, and that imbalance is the thing to fix — not to
+rationalize by narrowing the claim.
+
 Past agent experience can be stored in different forms. A memory is valuable only insofar
 as it changes future behavior. So we evaluate: which future tasks a memory helps, which it
 leaves unaffected, which it harms, how stable those effects are, and what storage,
