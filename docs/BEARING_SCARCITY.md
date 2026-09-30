@@ -18,11 +18,19 @@ Across 295 deterministic LongMemEval-V2 tasks and 1,889 naturally occurring memo
 | tasks firing on **>100** of the ~865–1,024 same-domain memory pool | **152** |
 | tasks firing on **0** memories | 15 |
 | memories with **≥1** bearing task | **165 of 1,889** |
-| total bearing (memory, task) edges | **267** |
+| total bearing (memory, task) edges | **266** (75-task basis; 267 on the 76-task basis) |
 | 🔴 **memories with ≥2 bearing tasks** | **46** |
 
-Bearing-tasks-per-memory: **119 memories have exactly 1**, 18 have 2, 17 have 3, 5 have 4,
-2 have 5, 1 has 6, 2 have 8, 1 has 9.
+Bearing-tasks-per-memory (**75-task basis**): **119 memories have exactly 1**, 18 have 2,
+**18 have 3**, 5 have 4, 2 have 5, 1 has 6, 2 have 8, 1 has 9.
+
+> ⚠️ **State the basis whenever these are quoted.** Two bases exist and they differ:
+> **76 discriminative tasks** (including one LLM-judged) → **267 edges**, 17 memories with
+> exactly 3; **75 deterministic tasks** → **266 edges**, 18 with exactly 3. The executed
+> design (`results/ledgers/k1_screened_design.json`) and `scripts/audit_claims.py` both use
+> the **75-task basis**, so that is canonical. An earlier version of this file mixed the two
+> in one sentence — quoting 76/75 tasks alongside the 76-basis edge count. Found by SA-FIG;
+> the error was the Master Agent's.
 
 > **In this corpus, a naturally occurring memory bears on a median of ONE future task out
 > of hundreds.**
