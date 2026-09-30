@@ -7,6 +7,14 @@ shipped.
 Repository: `AgentsSci/AAMAS2027-ConditionalMemory` (dataset, **private**).
 Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.md`.
 
+> **On the "release commit" rows.** v0.1's is transcribed because that release is
+> already published and frozen, so the hash is a fact about another object. v0.2's is
+> **not transcribed**: a commit cannot contain its own hash, so writing one here means
+> either naming an earlier tree than the one that shipped or starting an endless
+> correction chain — this file went through three before saying so. The exporter
+> computes it at build time into `MANIFEST.json`, which travels *with* the data. Read
+> it there.
+
 ---
 
 ## Snapshots
@@ -54,7 +62,7 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
 | **source memories** | 117 locators (234 distinct `memory_id` — a content hash, so one span yields a different id per representation) |
 | **future tasks** | 275 |
 | **schema version** | `p1mem_conditional_memory_utility_v3`, **98 fields** |
-| **release commit** | `f1f16158c557c055284128c05e065608602ceb45` |
+| **release commit** | recorded at build time in the snapshot's own `MANIFEST.json` → `release_commit` (with `release_tree_dirty`) |
 | **validation** | **0 errors**, 1,129 warnings, verified **on the downloaded snapshot** |
 | **licence** | Apache-2.0 throughout; nothing withheld (5,643/5,643 redistributable) |
 
