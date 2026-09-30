@@ -100,3 +100,67 @@ are reported separately and deliberately excluded from `any_leak`.
 
 **Keep as a case study with N stated.** 45 new tests, mutation-checked 4/4. Suite 593
 passing; `audit_claims.py` green.
+
+---
+
+# SCALE-UP (2026-09-30) — the pre-committed completion of this arm
+
+`results/scicode/scaleup_all3.json` · analysis
+`results/scicode/analysis/scaleup_analysis.json` · design frozen in advance in
+[`SCICODE_SCALEUP_PRECOMMITMENT.md`](SCICODE_SCALEUP_PRECOMMITMENT.md).
+
+**154 pairs — the entire candidate pool** (34 memories, 40 tasks, 0.0% diagonal,
+median 4 tasks/memory, max 17) × 3 representations × 2 arms = **924 arm-runs**, 189 s.
+The 68 pilot pairs are a verified strict **subset**: this run *added* cells, it did not
+resample them.
+
+## The denominators differ, so the comparison uses a matched set
+
+Interpretable cells per representation are **127 raw / 134 summary / 130 structured** —
+they differ because the *harness* errors on different cells. Comparing means across those
+three sets would compare different cells. Everything below therefore uses the **122 cells
+interpretable under all three representations**.
+
+## A free execution-noise floor, available only on this design
+
+The WITHOUT arm contains no memory, so for one (memory, task) the prompt is
+**byte-identical across all three representations**. Any disagreement is pure
+execution/scoring noise. Measured: **5/135 = 0.0370**.
+
+🔴 **This floor is the size of the effects.** The largest matched point estimate
+(structured, +0.0246) sits *below* F_exec = 0.0370.
+
+## Matched-set result (n=122, task-clustered bootstrap)
+
+| representation | ΔU | CI95 | helped / hurt / tied |
+|---|---|---|---|
+| raw | **−0.0082** | [−0.0496, +0.0227] | 2 / 3 / 117 |
+| summary | **+0.0164** | [−0.0370, +0.0833] | 7 / 5 / 110 |
+| structured | **+0.0246** | [−0.0165, +0.0794] | 4 / 1 / 117 |
+
+## The ordering question, asked directly
+
+Paired contrasts on the *same* 122 cells:
+
+| contrast | Δ | CI95 | verdict |
+|---|---|---|---|
+| structured − raw | +0.0328 | [−0.0342, +0.1200] | **crosses 0** |
+| summary − raw | +0.0246 | [−0.0342, +0.0991] | **crosses 0** |
+| structured − summary | +0.0082 | [−0.0811, +0.0820] | **crosses 0** |
+
+## Verdict — stated against the pre-commitment, not after it
+
+`ORDERING_VERDICT: NOT_ESTABLISHED` · `INVERSION_LANGUAGE_PERMITTED: false`
+
+The pre-commitment said the stronger claim would be licensed only if the scaled intervals
+separated. **They do not.** More than doubling the cell count did not separate any
+contrast, and the pre-registered uninformativeness condition partly obtains: both-arms-fail
+stayed at 0.28–0.32, so 117–122 of 122 cells are **tied** and cannot express a delta in
+either direction. The added N bought less power than the cell count suggests — a property
+of SciCode's difficulty under this reader, which is the honest thing to report.
+
+**The wording stays exactly as it was.** The point-estimate ordering differs across
+benchmarks: LongMemEval's Raw-dominant ordering is **not reproduced** in SciCode, where raw
+is the only negative point estimate. That is a difference in point estimates and nothing
+more. Scaling did not upgrade it, and this section exists to record that scaling was
+*tried* and the claim was *not* upgraded.
