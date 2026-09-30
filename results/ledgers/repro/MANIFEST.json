@@ -18,5 +18,17 @@
   "slim_artifact": "results/ledgers/repro/pilot_cells_slim.jsonl",
   "slim_bytes": 430716,
   "slim_sha256": "aefa92f794238966e432725a9473892598affe08db06da041e0dda3039654ae4"
+ },
+ "scicode_scaleup": {
+  "full_artifact_path": "results/scicode/scaleup_all3.json",
+  "full_artifact_sha256": "529bccaec59b4d30486331049792272f6e3aeb6c23e2dbd266f1eba5109a8b60",
+  "full_artifact_bytes": 520139,
+  "full_artifact_tracked": false,
+  "why_untracked": "repo convention: raw endpoint outputs stay untracked (.gitignore results/**); the slim slice carries every field the reported numbers are computed from, and the sha256 above lets a reviewer verify any copy they are given is the one used.",
+  "slim_slice": "results/ledgers/repro/scicode/scaleup_all3_slim.json",
+  "slim_slice_sha256": "cf5cc85645249dc1f554eec6b8e0edcfaf267a53fffb64c3173953342c9f717b",
+  "analysis": "results/ledgers/repro/scicode/scaleup_analysis.json",
+  "precommitment": "docs/SCICODE_SCALEUP_PRECOMMITMENT.md",
+  "dropped_fields": "per-arm raw model text and stderr_tail (size); NOT digested-away elsewhere -- the full artifact retains them on disk so later re-scoring stays possible"
  }
 }

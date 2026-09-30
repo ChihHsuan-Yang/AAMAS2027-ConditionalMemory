@@ -1,0 +1,85 @@
+{
+ "analysis_version": "scicode_scaleup_v1",
+ "source_artifact": "results/scicode/scaleup_all3.json",
+ "precommitment": "docs/SCICODE_SCALEUP_PRECOMMITMENT.md",
+ "n_pairs_design": 154,
+ "n_arm_runs": 924,
+ "GOVERNING": "task_clustered",
+ "F_exec_scicode": {
+  "definition": "WITHOUT arm carries no memory, so for one (memory,task) the prompt is byte-identical across all three representations; any disagreement is execution/scoring noise, not an effect",
+  "disagreeing": 5,
+  "denominator": 135,
+  "rate": 0.037
+ },
+ "per_representation_interpretable": {
+  "raw": 127,
+  "summary": 134,
+  "structured": 130
+ },
+ "MATCHED_CELL_SET_N": 122,
+ "matched_note": "all reported deltaU and every contrast use THIS identical 122-cell set; the unmatched per-rep denominators (127/134/130) are NOT used for any comparison",
+ "delta_u_matched": {
+  "raw": {
+   "mean": -0.0082,
+   "ci95_task_clustered": [
+    -0.0496,
+    0.0227
+   ],
+   "helped": 2,
+   "hurt": 3,
+   "tied": 117,
+   "n": 122
+  },
+  "summary": {
+   "mean": 0.0164,
+   "ci95_task_clustered": [
+    -0.037,
+    0.0833
+   ],
+   "helped": 7,
+   "hurt": 5,
+   "tied": 110,
+   "n": 122
+  },
+  "structured": {
+   "mean": 0.0246,
+   "ci95_task_clustered": [
+    -0.0165,
+    0.0794
+   ],
+   "helped": 4,
+   "hurt": 1,
+   "tied": 117,
+   "n": 122
+  }
+ },
+ "paired_contrasts": {
+  "structured_minus_raw": {
+   "mean": 0.0328,
+   "ci95_task_clustered": [
+    -0.0342,
+    0.12
+   ],
+   "separates_from_zero": false
+  },
+  "summary_minus_raw": {
+   "mean": 0.0246,
+   "ci95_task_clustered": [
+    -0.0342,
+    0.0991
+   ],
+   "separates_from_zero": false
+  },
+  "structured_minus_summary": {
+   "mean": 0.0082,
+   "ci95_task_clustered": [
+    -0.0811,
+    0.082
+   ],
+   "separates_from_zero": false
+  }
+ },
+ "ORDERING_VERDICT": "NOT_ESTABLISHED",
+ "INVERSION_LANGUAGE_PERMITTED": false,
+ "permitted_wording": "the point-estimate ordering differs across benchmarks; LongMemEval's Raw-dominant ordering is not reproduced in the SciCode scale-up"
+}
