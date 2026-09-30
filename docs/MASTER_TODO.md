@@ -2,6 +2,66 @@
 
 ---
 
+## ⏩ PHASE 3 (opened 2026-09-30) — finish the paper, autonomous execution
+
+**Contract change:** the Master Agent no longer pauses at milestones for authorization.
+Execution continues until the active list reaches a terminal state. Author list, reciprocal
+reviewer, OpenReview logistics and submission administration are **user-owned and off the
+scientific critical path** — they are not blockers and are not reported as such.
+
+Overleaf stays in standard double-blind form: `Anonymous Author(s)`, no affiliations, no
+acknowledgements, no identifying paths.
+
+### Level 1 — submission-critical
+
+| ID | Task | Owner | Status |
+|---|---|---|---|
+| P1-C01 | Abstract / story reframe (drop sign-flip + decomposition emphasis) | SA-WRITE | **RUNNING** |
+| P1-C02 | Overleaf figure audit | SA-FIG | **DONE** |
+| P1-C03 | **Utility–Efficiency Frontier** | SA-FIG2 | **RUNNING** |
+| P1-C04 | HF v0.2 representation release | SA-HF2 | **RUNNING** |
+| P1-C05 | SWE-bench harness parity fix | SA-SWE | **RUNNING** |
+| P1-C06 | SWE-bench valid pilot | SA-SWE | BLOCKED on C05 |
+| P1-C07 | SWE-bench main run *if* pilot passes | SA-SWE | BLOCKED on C06 |
+| P1-C08 | SciCode adapter | SA-SCI | **RUNNING** |
+| P1-C09 | SciCode pilot | SA-SCI | BLOCKED on C08 |
+| P1-C10 | SciCode procedural-memory evaluation | SA-SCI | BLOCKED on C09 |
+| P1-C11 | Cross-benchmark synthesis | Master | BLOCKED on C07/C10 |
+| P1-C12 | Final representation comparison | Master | **DONE** — `docs/REPRESENTATION_RESULT.md` |
+| P1-C13 | Main figures/tables | SA-FIG2 | RUNNING (3 figures + 2 tables in) |
+| P1-C14 | GitHub handoff documentation | SA-ARCHIVE | **RUNNING** |
+| P1-C15 | HF data card update | SA-HF2 | RUNNING |
+| P1-C16 | Claim/evidence audit | Master | ongoing — `audit_claims.py`, 38 claims, proven able to fail |
+| P1-C17 | Final manuscript sync | Master | ongoing |
+
+### Level 2 — important if feasible
+
+P1-I01 top-k retrieval baseline · P1-I02 keep-all baseline · P1-I03 position-effect
+expansion (currently n=12) · P1-I04 cross-benchmark representation ranking ·
+P1-I05 representation-induced harmfulness · P1-I06 domain utility/cost comparison ·
+P1-I07 extra retrieval-budget points for the frontier · P1-I08 benchmark-native memory
+baseline · P1-I09 dataset example notebook · P1-I10 public reproduction script.
+**All TODO.** None blocks submission.
+
+### Level 3 — HOLD / post-submission
+
+P1-H01 Jev decision baseline · P1-H02 learned conditional memory gate · P1-H03 LLM memory
+manager comparison · P1-H04 cross-model replication · P1-H05 vector DB / production store ·
+P1-H06 more benchmarks · P1-H07 semantic-type taxonomy redesign · P1-H08 harmful-memory
+prevalence study · P1-H09 full P3 receiver integration · P1-H10 training a retention policy.
+**All HOLD.** Recorded so they are not lost.
+
+### Demoted this phase, with evidence
+
+| item | verdict |
+|---|---|
+| **Variance decomposition** | **DEMOTED from headline** — unidentifiable: `F_exec = 0` on a deterministic reader leaves no residual scale. Methodology to supplement; **no share quoted**. No further compute |
+| **Sign-flip story** | **DEMOTED from paper identity** — 0/35 in bearing cells, and the excess over the additive null is *negative* in every stratum. Retained as analysis: unrelated pairings manufacture apparent reversals (17/60 in RANDOM) |
+
+---
+
+---
+
 ## ⏩ PHASE 2 (opened 2026-09-30) — complete the four axes
 
 Story frozen as **Memory × Task × Representation × Cost**. The task axis is measured; the
