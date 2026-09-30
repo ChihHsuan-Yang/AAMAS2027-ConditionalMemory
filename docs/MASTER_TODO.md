@@ -27,20 +27,20 @@ TODO 21 · DEFERRED 22 · KILLED 13 — **188 distinct IDs**.
 
 | ID | Task | Owner | Status | Evidence / blocker |
 |---|---|---|---|---|
-| **P1-C01** | Abstract / story reframe — lead with conditional utility + sparsity, drop the sign-flip framing | SA-WRITE | **DONE** | Overleaf `3c06d3a`, 2026-09-30 16:16 CDT |
+| **P1-C01** | Abstract / story reframe — lead with conditional utility + sparsity, drop the sign-flip framing | SA-WRITE | **DONE** | abstract v5, 299 words, in the manuscript; sign-flip and decomposition framing removed |
 | **P1-C02** | Overleaf figure audit — ranked plan, 3 in / 4 rejected / 1 blocked | SA-FIG | **DONE** | `docs/FIGURE_PLAN.md`; repo `eb4deb3` |
 | **P1-C03** | **Utility–efficiency frontier figure** | SA-FIG2 | **RUNNING** | unblocked by the representation scale-up; inputs in `results/repr_scaleup/`. Was blocked because `memory_representation` was `{'raw'}` on all 2,599 screened rows |
-| **P1-C04** | HF **v0.2** — add Summary/Structured rows | SA-HF2 | **RUNNING** | v0.1 shipped (4,519 rows, tag `v0.1-lmev2-derived`); v0.2 needs the repr rows exported |
-| **P1-C05** | **SWE-bench harness parity fix** — make the prompt arm-symmetric so the memory's own diff cannot be mistaken for the editable region | SA-SWE | **RUNNING** | WITH arm fails to emit an applicable edit 3/7; WITHOUT 0/7. Prompt length **tested and rejected** as the cause (4,051 vs 3,728 tokens) |
-| **P1-C06** | SWE-bench valid pilot at 30–40 cells | SA-SWE | **BLOCKED** on C05 | binding rule: no re-measure of the floor until WITH-arm apply failure reaches parity |
+| **P1-C04** | HF **v0.2** — add Summary/Structured rows | SA-HF2 | **DONE** | tag `v0.2-repr-derived`, **5,643 rows** (raw 4,519 / summary 570 / structured 554), schema v3, verified by downloading the tag |
+| **P1-C05** | **SWE-bench harness parity fix** — make the prompt arm-symmetric so the memory's own diff cannot be mistaken for the editable region | SA-SWE | **DONE** | apply-gap **0.375 → 0.000**; cause was the reader imitating the memory's diff fence, not the editable region |
+| **P1-C06** | SWE-bench valid pilot at 30–40 cells | SA-SWE | **DONE** | both-arms-fail **37.5%** [22.9, 54.8], below threshold; 0 apply-failures scored as rewards. **django-only** |
 | **P1-C07** | SWE-bench main run *if* the pilot passes | SA-SWE | **BLOCKED** on C06 | **no SWE-bench number enters any table before this** |
-| **P1-C08** | SciCode adapter | SA-SCI | **RUNNING** | absorbs legacy P1-025/026 |
-| **P1-C09** | SciCode pilot | SA-SCI | **BLOCKED** on C08 | absorbs legacy P1-056 |
-| **P1-C10** | SciCode procedural-memory evaluation (a **case study**, N ≈ 8–12, never a main table) | SA-SCI | **BLOCKED** on C09 | absorbs legacy P1-057 |
-| **P1-C11** | Cross-benchmark synthesis | Master | **BLOCKED** on C07 **and** C10 | both feeders are blocked; may terminate as KILLED if neither clears |
+| **P1-C08** | SciCode adapter | SA-SCI | **DONE** | adapter + 45 tests, mutation-checked 4/4 |
+| **P1-C09** | SciCode pilot | SA-SCI | **DONE** | both-arms-fail 0.370–0.456 across three representations, all below threshold; errors symmetric across arms |
+| **P1-C10** | SciCode procedural-memory evaluation (a **case study**, N ≈ 8–12, never a main table) | SA-SCI | **DONE** | all three representations run; **ranking inverts vs LongMemEval** (raw +0.0000 here); every CI touches zero |
+| **P1-C11** | Cross-benchmark synthesis | Master | **TODO** | **UNBLOCKED** — all three benchmarks are past their gate |
 | **P1-C12** | Final representation comparison (Contribution B) | Master | **DONE** | `docs/REPRESENTATION_RESULT.md`; 9 audit checks re-derive both cost columns |
 | **P1-C13** | Main figures and tables | SA-FIG2 | **RUNNING** | 3 figures + 2 tables in `main.tex` at `3c06d3a`; Figure 4 pending C03. ⚠️ only **~50–80 pt** of float slack remains |
-| **P1-C14** | GitHub handoff documentation — result index, figure index, README hub, handoff, terminal TODO | SA-ARCHIVE | **DONE** | `docs/RESULT_INDEX.md`, `docs/FIGURE_INDEX.md`, `README.md` §Current Project State, `docs/HANDOFF_CURRENT.md`, this file |
+| **P1-C14** | GitHub handoff documentation — result index, figure index, README hub, handoff, terminal TODO | SA-ARCHIVE | **DONE** | RESULT_INDEX, FIGURE_INDEX, README hub, HANDOFF_CURRENT |
 | **P1-C15** | HF data card update for v0.2 | SA-HF2 | **RUNNING** | v0.1 card is live and byte-identical to `docs/hf_card/README.md` |
 | **P1-C16** | Claim/evidence audit | Master | **RUNNING** (standing) | `scripts/audit_claims.py`, **58 checks**, proven able to fail. ⚠️ previously recorded as "38 claims" — stale |
 | **P1-C17** | Final manuscript sync + compile + anonymity + citation check | Master | **TODO** | absorbs legacy P1-095 |

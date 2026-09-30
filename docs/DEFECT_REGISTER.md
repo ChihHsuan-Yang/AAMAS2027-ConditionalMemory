@@ -171,6 +171,38 @@ paper, because I amortised formation **per cell** while the audit amortises **pe
 Two defensible bases, one of which made a wrong sentence look verified. Same shape as the
 76/75-task basis error.
 
+## A single table column built on two different bases (mine)
+
+I handed SA-FIG2 a three-column efficiency table. It verified the numbers before drawing
+and **two of the three columns did not hold up.**
+
+**The exposed column mixed bases.** Verified by the Master Agent:
+
+| | all BEARING (n=139) | common-277 join (n=135) |
+|---|---:|---:|
+| raw | **+0.0380** | +0.0368 |
+| summary | +0.1987 | **+0.2054** |
+| structured | +0.0622 | +0.0622 |
+
+My table took Raw's **+0.038** from the 139-cell basis and Structured's **+0.062** from the
+135-cell join. Both correct; **they do not describe the same objects**, and they sat in one
+column as if they did.
+
+**The charged column silently changed amortization.** My figures charged the whole ~7.9k
+writer call to *every read* (reuse = 1); the audited accounting amortizes over the measured
+**4.86** reuse. That is the same per-cell vs per-memory split that made my "roughly 5×"
+claim look verified.
+
+> **A column is a claim that its entries are comparable.** Mine was not, and nothing in the
+> audit checked *comparability* — only individual values. The generator now refuses a
+> mixed-basis substitution, verified by planting exactly that defect.
+
+### SA-FIG2's own tell, worth keeping
+
+A naive string replace hit **Figure 3's** geometry instead of Figure 4's — both used
+`xshift=124pt`. It caught this because **the overfull box stayed at 10.87727pt after an edit
+that should have moved it.** *An unchanged measurement after a change is the tell.*
+
 ## A named pattern: the pooled number hides the structure that matters
 
 Three times in one day, a correctly-computed pooled figure led to a wrong reading, and each
