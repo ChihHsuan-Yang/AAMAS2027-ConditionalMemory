@@ -1,5 +1,41 @@
 # P1 Master TODO — authoritative
 
+---
+
+## ⏩ PHASE 2 (opened 2026-09-30) — complete the four axes
+
+Story frozen as **Memory × Task × Representation × Cost**. The task axis is measured; the
+representation and cost axes are not. That imbalance is this phase's target.
+
+| ID | Pri | Task | Owner | Status | Unblocks |
+|---|---|---|---|---|---|
+| **P2-01** | **P0** | **Summary + Structured at scale on BEARING/control** | SA-R | **RUNNING** | Contribution B **and** the frontier figure |
+| **P2-02** | **P0** | **HF v0.1 + schema audit vs the required field list** | SA-HF | **RUNNING** | the dataset contribution |
+| **P2-03** | **P0** | **Pipeline figure + ranked figure plan** | SA-FIG | **RUNNING** | the paper has 0 figures at the page limit |
+| **P2-04** | **P0** | Freeze the four-axis story | Master | **DONE** | `docs/PROJECT_GOAL.md` |
+| **P2-05** | **P0** | README current-state + `HANDOFF_CURRENT.md` | Master | **DONE** | `a80ba7a` |
+| P2-06 | P1 | BEAM replacement: bounded selection, then implement | SA-N | **RUNNING** | benchmark diversity |
+| P2-07 | P1 | Utility–Efficiency Frontier | SA-EFF | BLOCKED on P2-01 | only 1 point exists today |
+| P2-08 | P1 | Bearing-breadth figure | SA-FIG | TODO — **data exists now** | — |
+| P2-09 | P1 | Similarity-vs-utility figure | SA-FIG | TODO — **data exists now** | — |
+| P2-10 | P1 | **Abstract v5** — drop the obsolete sign-flip framing | Master | TODO | — |
+| P2-11 | P2 | SciCode: scoped → built | SA-S | TODO | procedural memory; N≈8–12, a case study |
+| P2-12 | P2 | HF v0.2 (add Summary/Structured) | SA-HF | BLOCKED on P2-01 | — |
+| P2-13 | P3 | Cross-benchmark synthesis | — | BLOCKED | — |
+| P2-14 | P3 | Final figure selection + page management | Master | BLOCKED | — |
+| P2-15 | P3 | Claim/evidence audit at freeze | Master | TODO | `audit_claims.py` is at 38 claims |
+
+### Killed / deferred this phase, with measured reasons
+
+| item | verdict |
+|---|---|
+| **BEAM as a core benchmark** | ❌ **KILLED** — 92.6% of cited turns cited by exactly one question, so it cannot supply the multi-task axis. Also CC BY-SA 4.0 |
+| **Semantic-type axis** | ❌ **KILLED** — κ = 0.000; the native pass labelled everything `episodic` |
+| **Variance decomposition as a headline** | ❌ **KILLED** — unidentifiable; `F_exec = 0` leaves no residual scale. **No share may be quoted** |
+| **Jev** | ⏸ DEFERRED — explicitly not required for the core paper |
+
+---
+
 **AAMAS 2027 main track. Abstract 1 Oct AoE · Paper 8 Oct AoE.**
 Statuses: `TODO` `RUNNING` `BLOCKED` `REVIEW` `DONE` `DEFERRED` `KILLED`.
 Tasks are never silently removed. Last updated 2026-09-29.
