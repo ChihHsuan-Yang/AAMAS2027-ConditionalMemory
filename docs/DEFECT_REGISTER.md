@@ -198,6 +198,34 @@ keeping: those *answered a well-posed question badly*, whereas this one **assert
 corroboration that did not exist** — the kind of sentence that makes a reviewer trust a
 table they should check.
 
+## A measurement insensitive to the thing it was measuring (mine)
+
+I reported the manuscript had "roughly zero slack" for further figures, from the **total
+page count**: 8 pages before Figure 1, 9 after.
+
+**Total page count cannot answer that question here.** References are uncapped and absorb
+the change, so the count stays at 9 across a wide range of added float height. SA-FIG
+measured the right observable — **where the body ends** — by inserting dummy floats of
+known height and bisecting:
+
+| added float height | body still ends p8? |
+|---|---|
+| +100pt / +250pt / +290pt / +310pt | ✅ yes |
+| +330pt / +400pt | ❌ spills to p9 |
+
+**≈310pt of single-column float height remains free** — about another figure's worth.
+Figure 2 went in at ~171pt and the body still ends on page 8, which I confirmed
+independently.
+
+> I used the *right criterion in words* — "where does the body end" — and then read the
+> **wrong instrument** for it. Page count is a proxy that is flat in the region of
+> interest. The same shape as measuring throughput at the wrong prompt length, or reading
+> a rate off the wrong denominator.
+
+**Rule: when a quantity must guide a decision, check that the instrument actually moves
+when the quantity does.** A bisection against the real observable takes minutes and
+replaces an estimate with a bound.
+
 ## Make the ruling mechanical where you can
 
 A ruling a human must remember at reporting time is a ruling that will eventually be
