@@ -42,30 +42,45 @@ for s in STR:
     print(f"| {s} | {p.get('n_cells')} | {p.get('positive')} | {p.get('zero')} | "
           f"{p.get('negative')} | **{f(d.get('mean_delta_over_cells'))}** |")
 
-print("\n### 3. Flip rates per stratum (unit-level and episode-clustered)\n")
-print("| stratum | robust | naive | denom (units) | Wilson CI | episodes | clustered CI |")
-print("|---|---|---|---|---|---|---|")
+print("\n### 3. Flip rates per stratum — THE FOUNDING HYPOTHESIS\n")
+# Reads primary_balanced (prereg section 12), NOT a "flips" key -- that key does
+# not exist and reading it produced a silent "0 of 0" in K3. Same defect, second
+# location: a dead key read in two scripts because both were written from the
+# same wrong assumption about the structure.
+print("| stratum | eligible memories | naive flips | robust flips | rate | Wilson 95% CI |")
+print("|---|---|---|---|---|---|")
 for s in STR:
-    ps=j["per_stratum"].get(s) or {}
-    fl=(ps.get("labels_and_flips") or {}).get("flips") or {}
-    ec=(ps.get("flip_episode_clustered") or {}).get("robust_flip") or {}
-    rb=fl.get("robust") if not isinstance(fl.get("robust"),dict) else (fl["robust"] or {}).get("point")
-    nv=fl.get("naive") if not isinstance(fl.get("naive"),dict) else (fl["naive"] or {}).get("point")
-    ci=fl.get("robust_ci") or [None,None]
-    cc=ec.get("ci") or [None,None]
-    print(f"| {s} | {f(rb)} | {f(nv)} | {fl.get('denominator')} | [{f(ci[0])},{f(ci[1])}] | "
-          f"{ec.get('n_clusters')} | [{f(cc[0])},{f(cc[1])}] |")
+    fl=((j["per_stratum"].get(s) or {}).get("labels_and_flips") or {}).get("primary_balanced")
+    if not fl:
+        print(f"| {s} | STRUCTURE NOT FOUND | | | | |"); continue
+    nv=(fl.get("naive") or {})
+    print(f"| {s} | **{fl.get('n_memories_eligible_denominator')}** | "
+          f"**{fl.get('n_naive_flip_memories')}** | {fl.get('n_robust_flip_memories')} | "
+          f"**{f(nv.get('point'))}** | [{f(nv.get('ci_lower'))}, {f(nv.get('ci_upper'))}] |")
+fhv=(j.get("FOUNDING_HYPOTHESIS") or {})
+if fhv.get("VERDICT"): print(f"\n**VERDICT:** {fhv['VERDICT']}")
+gap=j.get("ROBUST_NAIVE_GAP_STATUS") or {}
+print(f"\nrobust/naive gap: **{gap.get('status')}** - {gap.get('_why','')[:150]}")
 
 print("\n### 4. Excess over the additive null (prereg A1.1)\n")
-print("| stratum | observed | additive-null mean | p (one-sided) | excess |")
-print("|---|---|---|---|---|")
+# THIRD instance of the wrong-key defect: the p-value key is p_value_one_sided,
+# not p_one_sided, and a .get() on the wrong name printed "-" for a value that
+# exists. Read observed_robust_rate directly rather than digging into the nested
+# observed dict, and assert the keys are present.
+print("| stratum | observed flip rate | additive-null mean | null 95% band | p (one-sided) | excess |")
+print("|---|---|---|---|---|---|")
 for s in STR:
     a=(j["per_stratum"].get(s) or {}).get("additive_null") or {}
-    ob=a.get("observed"); ob=ob.get("robust") if isinstance(ob,dict) else ob
-    if isinstance(ob,dict): ob=ob.get("point")
-    nm=a.get("null_mean")
+    if not a: print(f"| {s} | not computed | | | | |"); continue
+    missing=[k for k in ("observed_robust_rate","null_mean","p_value_one_sided") if k not in a]
+    if missing: print(f"| {s} | MISSING KEYS {missing} | | | | |"); continue
+    ob=a["observed_robust_rate"]; nm=a["null_mean"]
     ex=(ob-nm) if isinstance(ob,(int,float)) and isinstance(nm,(int,float)) else None
-    print(f"| {s} | {f(ob)} | {f(nm)} | {f(a.get('p_one_sided'))} | {f(ex)} |")
+    print(f"| {s} | {f(ob)} | {f(nm)} | [{f(a.get('null_q025'))}, {f(a.get('null_q975'))}] | "
+          f"{f(a['p_value_one_sided'])} | **{f(ex)}** |")
+print("\nA1.1: a flip rate is NOT evidence of interaction. A purely additive model")
+print("produces 60-90% sign flips. The **excess** over the fitted additive null is")
+print("what would constitute evidence - and every excess here is NEGATIVE.")
 
 print("\n### 5. Floors per stratum (all positive-controlled)\n")
 print("| stratum | F_exec[ΔU] (diag) | F_empty | F_judge | pc F_exec fires | pc F_judge fires |")
