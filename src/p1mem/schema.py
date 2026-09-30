@@ -737,6 +737,26 @@ _SPEC: tuple[tuple[str, str, str, bool, bool, str], ...] = (
      "P1 is single-agent — there is no second agent for a memory to propagate to — so a "
      "non-null value here could only be fabricated. The field exists now so a P3 row and "
      "a P1 row share one schema instead of forking it."),
+    # ============================================== EXPORT PROVENANCE (2026-09-30)
+    # Written by scripts/export_hf.py, NOT by the runner, so they are null in a local
+    # result ledger and non-null in a published row. They were previously added to the
+    # exported row WITHOUT being in the spec, which made every published row fail the
+    # validator shipped alongside it -- found by downloading the release and running its
+    # own documented command, not by any local check. The seam between two components
+    # that each worked is where this broke.
+    ("license_policy", "export", "str", True, False,
+     "ADDED (populator: export_hf.redact_row). Which license policy the exporter applied "
+     "to this row, keyed from license_source_reference. Null in an unexported ledger."),
+    ("text_fields_withheld", "export", "any", True, False,
+     "ADDED (populator: export_hf.redact_row). Sorted list of text fields replaced by "
+     "__WITHHELD_SEE_LICENSE__ under that policy. An EMPTY LIST means 'the policy was "
+     "applied and withheld nothing', which is a different fact from null ('no policy has "
+     "been applied to this row yet'). Keeping them distinct is the point."),
+    ("reconstruction_required", "export", "bool", True, False,
+     "ADDED (populator: export_hf.redact_row). True when at least one text field was "
+     "withheld, so a consumer must reconstruct from their own copy of the benchmark. "
+     "Redundant with text_fields_withheld by construction and stored anyway: a consumer "
+     "filtering rows should not have to parse a list to learn a boolean."),
     # ---------------------------------------------------------------- P3 reserved
     ("receiver_id", "p3_reserved", "any", True, True,
      "P3 RESERVED. Must be null in P1."),

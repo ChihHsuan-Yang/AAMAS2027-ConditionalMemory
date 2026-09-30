@@ -356,3 +356,113 @@ def test_copyleft_exclusion_costs_little(real_rows):
 def test_all_timestamps_distinct_so_ordering_is_total(real_rows):
     mems = build_memory_units(real_rows)
     assert len({m.created_at for m in mems}) == len(mems)
+
+
+# --------------------------------------------------------------------------
+# gold-blind localization
+#
+# The first floor-effect pilot was VOID because the region shown to the reader
+# was chosen by a rule (file head) unrelated to where the fix belongs. The
+# replacement must satisfy two properties, and both are asserted here: it must
+# be STRUCTURALLY unable to see the gold patch, and it must actually find the
+# gold region more often than the rule it replaced.
+# --------------------------------------------------------------------------
+
+from p1mem.adapters.swebench_localize import (  # noqa: E402
+    GoldLeakedIntoLocalizer,
+    assert_gold_blind,
+    extract_query_terms,
+    gold_edit_lines,
+    localize,
+    recall_at_region,
+)
+
+_SRC = '''"""module."""
+import os
+
+
+def unrelated_helper(a, b):
+    return a + b
+
+
+class Printer:
+    def render(self, x):
+        return str(x)
+
+    def _print_Min(self, expr):
+        return "minimum"
+
+
+def another(z):
+    return z
+'''
+
+
+def test_localizer_is_gold_blind_by_signature():
+    assert_gold_blind(localize)
+
+
+def test_assert_gold_blind_actually_fires():
+    """POSITIVE CONTROL: a localizer that accepts a patch must be rejected."""
+    def bad_localizer(source, issue_text, *, patch=None):
+        return []
+    with pytest.raises(GoldLeakedIntoLocalizer):
+        assert_gold_blind(bad_localizer)
+
+
+def test_localize_finds_the_region_named_by_the_issue():
+    issue = "Calling `_print_Min` produces the wrong output for Min(x, y)."
+    regions = localize(_SRC, issue, path="m.py", top_k=1, max_lines=40)
+    assert regions
+    assert "_print_Min" in regions[0].text
+
+
+def test_localize_ignores_prose_only_overlap():
+    """A region is chosen on identifiers, not on shared English."""
+    issue = "the the a an and or but if then else return"
+    regions = localize(_SRC, issue, path="m.py", top_k=1, max_lines=40)
+    assert regions  # must still return something rather than crash
+
+
+def test_localize_returns_nothing_for_empty_source():
+    assert localize("", "an issue", path="m.py") == []
+
+
+def test_query_terms_weight_backticked_identifiers_above_prose():
+    q = extract_query_terms("the widget is broken in `render_thing`")
+    assert q["render_thing"] > q["widget"]
+
+
+def test_gold_edit_lines_reads_the_right_file_only():
+    patch = (
+        "diff --git a/x/a.py b/x/a.py\n--- a/x/a.py\n+++ b/x/a.py\n@@ -10,2 +10,3 @@\n"
+        "diff --git a/x/b.py b/x/b.py\n--- a/x/b.py\n+++ b/x/b.py\n@@ -50,1 +50,2 @@\n"
+    )
+    assert gold_edit_lines(patch, "x/a.py") == [10, 11]
+    assert gold_edit_lines(patch, "x/b.py") == [50]
+
+
+def test_recall_at_region_can_be_false():
+    """A recall metric that cannot report a miss measures nothing."""
+    patch = ("diff --git a/m.py b/m.py\n--- a/m.py\n+++ b/m.py\n@@ -900,1 +900,2 @@\n")
+    regions = localize(_SRC, "fix `_print_Min`", path="m.py", top_k=1, max_lines=40)
+    assert recall_at_region(regions, patch, "m.py") is False
+
+
+def test_recall_at_region_is_true_when_region_covers_the_edit():
+    line = _SRC.splitlines().index("    def _print_Min(self, expr):") + 1
+    patch = (f"diff --git a/m.py b/m.py\n--- a/m.py\n+++ b/m.py\n@@ -{line},1 +{line},2 @@\n")
+    regions = localize(_SRC, "fix `_print_Min` please", path="m.py", top_k=3, max_lines=40)
+    assert recall_at_region(regions, patch, "m.py") is True
+
+
+def test_localize_is_deterministic():
+    a = localize(_SRC, "fix `_print_Min`", path="m.py", top_k=3, max_lines=40)
+    b = localize(_SRC, "fix `_print_Min`", path="m.py", top_k=3, max_lines=40)
+    assert [(r.start_line, r.end_line) for r in a] == [(r.start_line, r.end_line) for r in b]
+
+
+def test_localize_survives_unparseable_source():
+    """A historical commit may use syntax this interpreter rejects."""
+    bad = "def f(:\n  pass\n" * 30
+    assert localize(bad, "fix f", path="m.py", top_k=1) != []

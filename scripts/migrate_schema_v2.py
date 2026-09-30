@@ -172,6 +172,14 @@ def migrate_rows(
         n["propagation_metadata"] = None
         stats["reserved_null"]["propagation_metadata"] += 1
 
+        # ---- export provenance: written by scripts/export_hf.py, not here. NULL means
+        #      "no licence policy has been applied to this row yet", which is a
+        #      different fact from an empty withheld list ("a policy ran and withheld
+        #      nothing"). A local ledger is pre-export, so null is the correct value.
+        n["license_policy"] = None
+        n["text_fields_withheld"] = None
+        n["reconstruction_required"] = None
+
         n["schema_version"] = S.SCHEMA_VERSION
 
         # Field order, and a hard check that we produced exactly the contract.

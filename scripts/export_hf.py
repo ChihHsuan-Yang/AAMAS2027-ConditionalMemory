@@ -297,6 +297,38 @@ def gate_license_exclusion(exported: Sequence[dict[str, Any]]) -> dict[str, int]
     return dict(counts)
 
 
+def gate_exported_file_revalidates(path: Path, expected_rows: int) -> None:
+    """GATE 4: re-read the file we are about to ship and validate IT.
+
+    🔴 Added 2026-09-30 after this exact defect shipped. Gate 1 validates the rows we
+    hold in memory BEFORE redaction; ``redact_row`` then ADDS three export-provenance
+    fields. Those fields were not in ``FIELD_SPEC``, so every published row failed the
+    validator published beside it -- 13,557 ``unknown_field`` errors on 4,519 rows.
+
+    Both components were individually correct. The defect lived in the SEAM, and no
+    local check could see it because no local check ever read the emitted artifact back.
+    It was found by downloading the release and running its own documented command.
+
+    So this gate validates the FILE, after writing, exactly as a consumer would: load it
+    from disk, run the shipped validator, and require zero errors. A release whose own
+    documented verification fails is not a release.
+    """
+    if not path.exists():
+        return                                     # structure-only build, no data
+    rows = S.load_jsonl(path, strict=True)
+    if len(rows) != expected_rows:
+        raise GateFailure(
+            f"GATE 4 (re-validation) FAILED: wrote {expected_rows} rows but the file on "
+            f"disk holds {len(rows)}.")
+    rep = V.validate_dataset(rows)
+    if not rep.ok:
+        raise GateFailure(
+            "GATE 4 (re-validation of the WRITTEN file) FAILED. The exported artifact "
+            "does not pass the validator shipped beside it, so the release would fail "
+            "its own documented check.\n" + rep.summary()
+            + "\n" + "\n".join("  " + str(i) for i in rep.errors[:20]))
+
+
 def gate_license_doc_present() -> str:
     if not LICENSE_DOC.exists():
         raise GateFailure(
@@ -510,6 +542,7 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
 
     S.write_json_atomic(staging / "MANIFEST.json", manifest)
     gate_secret_scan_tree(staging)     # final sweep over what will actually ship
+    gate_exported_file_revalidates(staging / "data" / "cells.jsonl", len(exported))
     return manifest
 
 

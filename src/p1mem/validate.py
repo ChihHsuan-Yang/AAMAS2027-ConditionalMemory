@@ -487,6 +487,26 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
             f"({ex2}), so no truncation ever occurred. Recording a cap that never bound "
             f"states a control the run did not have", "context_budget", sev=SEVERITY_WARN)
 
+    # --- export provenance must be internally consistent (schema v2) ---
+    tfw, rr = row.get("text_fields_withheld"), row.get("reconstruction_required")
+    if tfw is not None and not isinstance(tfw, list):
+        add("withheld_list_wrong_type",
+            f"text_fields_withheld must be a list, got {type(tfw).__name__}",
+            "text_fields_withheld")
+    elif isinstance(tfw, list) and rr is not None and bool(tfw) != bool(rr):
+        add("reconstruction_flag_mismatch",
+            f"reconstruction_required={rr!r} but text_fields_withheld={tfw!r}. The flag "
+            f"must be True exactly when something was withheld, or a consumer filtering "
+            f"on it silently gets the wrong rows", "reconstruction_required")
+    # A field the policy says to withhold must not survive with its text intact.
+    if isinstance(tfw, list):
+        for f in tfw:
+            v = row.get(f)
+            if isinstance(v, str) and v and v != "__WITHHELD_SEE_LICENSE__":
+                add("declared_withheld_but_present",
+                    f"{f!r} is listed in text_fields_withheld but still holds "
+                    f"{len(v)} characters of text", f)
+
     # --- a successful row must not be missing its provenance ---
     prov = row.get("provenance")
     if isinstance(prov, dict):

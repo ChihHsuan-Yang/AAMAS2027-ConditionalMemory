@@ -1,0 +1,461 @@
+{
+  "summary": {
+    "n_cells": 10,
+    "eligibility": "single-file gold fix only (multi-file is unsolvable by this harness)",
+    "localizer_recall": 7,
+    "localizer_recall_pct": 70.0,
+    "n_interpretable": 7,
+    "both_arms_fail": 4,
+    "both_arms_fail_pct": 57.142857142857146,
+    "solve_WITH": 2,
+    "solve_WITHOUT": 3,
+    "apply_fail_WITH": 3,
+    "apply_fail_WITHOUT": 0,
+    "apply_fail_denominator": 7,
+    "edit_status_WITH": {
+      "ok": 4,
+      "no_block": 2,
+      "search_miss": 1
+    },
+    "edit_status_WITHOUT": {
+      "ok": 7
+    },
+    "n_scored_cells": 7,
+    "model_calls": 20,
+    "max_tokens": 1024
+  },
+  "cells": [
+    {
+      "memory_id": "django__django-10097",
+      "task_id": "django__django-14349",
+      "repo": "django/django",
+      "path": "django/core/validators.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          101,
+          142
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          65,
+          142
+        ],
+        [
+          61,
+          180
+        ],
+        [
+          300,
+          312
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "----------------------------------------------------------------------\nRan 6 tests in 0.036s\n\nFAILED (failures=9, skipped=5)"
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "----------------------------------------------------------------------\nRan 6 tests in 0.036s\n\nFAILED (failures=8, skipped=5)"
+        }
+      },
+      "interpretable": true
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-11265",
+      "repo": "django/django",
+      "path": "django/db/models/sql/query.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          1304,
+          1305
+        ],
+        [
+          1324,
+          1325
+        ],
+        [
+          1201,
+          1320
+        ],
+        [
+          264,
+          269
+        ],
+        [
+          1141,
+          1260
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "Ran 31 tests in 0.019s\n\nFAILED (errors=1, skipped=1)\nDestroying test database for alias 'default'..."
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "search_miss",
+          "reward": null,
+          "test_detail": ""
+        }
+      },
+      "interpretable": false
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-11555",
+      "repo": "django/django",
+      "path": "django/db/models/sql/compiler.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          541,
+          660
+        ],
+        [
+          700,
+          729
+        ],
+        [
+          181,
+          300
+        ],
+        [
+          481,
+          600
+        ],
+        [
+          241,
+          360
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "Ran 27 tests in 0.030s\n\nFAILED (errors=1)\nDestroying test database for alias 'default'..."
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "no_block",
+          "reward": null,
+          "test_detail": ""
+        }
+      },
+      "interpretable": true
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-13028",
+      "repo": "django/django",
+      "path": "django/db/models/sql/query.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          1983,
+          1997
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          2079,
+          2096
+        ],
+        [
+          1364,
+          1384
+        ],
+        [
+          1125,
+          1134
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 1.0,
+          "test_detail": "Ran 76 tests in 0.156s\n\nOK\nDestroying test database for alias 'default'..."
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "Ran 76 tests in 0.155s\n\nFAILED (errors=2)\nDestroying test database for alias 'default'..."
+        }
+      },
+      "interpretable": true
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-13158",
+      "repo": "django/django",
+      "path": "django/db/models/sql/query.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          1105,
+          1123
+        ],
+        [
+          1021,
+          1140
+        ],
+        [
+          1081,
+          1200
+        ],
+        [
+          421,
+          540
+        ],
+        [
+          1993,
+          2007
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "    self.check_related_objects(join_info.final_field, value, join_info.opts)\n  File \"/private/tmp/swebench/django/django/db/models/sql/query.py\", line 1114, in check_related_objects\n    not getattr(value, 'query', None) or not getattr(value.query, 'is_empty', False) and\nAttributeError: 'set' object has no attribute 'query'"
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "search_miss",
+          "reward": null,
+          "test_detail": ""
+        }
+      },
+      "interpretable": false
+    },
+    {
+      "memory_id": "django__django-10880",
+      "task_id": "django__django-11603",
+      "repo": "django/django",
+      "path": "django/db/models/aggregates.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          142,
+          144
+        ],
+        [
+          99,
+          101
+        ],
+        [
+          61,
+          155
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          121,
+          123
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 1.0,
+          "test_detail": "Ran 60 tests in 0.057s\n\nOK\nDestroying test database for alias 'default'..."
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": 1.0,
+          "test_detail": "Ran 60 tests in 0.062s\n\nOK\nDestroying test database for alias 'default'..."
+        }
+      },
+      "interpretable": true
+    },
+    {
+      "memory_id": "django__django-10880",
+      "task_id": "django__django-15375",
+      "repo": "django/django",
+      "path": "django/db/models/aggregates.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          1,
+          120
+        ],
+        [
+          151,
+          154
+        ],
+        [
+          50,
+          68
+        ],
+        [
+          61,
+          165
+        ],
+        [
+          115,
+          127
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "Ran 96 tests in 0.096s\n\nFAILED (errors=1)\nDestroying test database for alias 'default'..."
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "no_block",
+          "reward": null,
+          "test_detail": ""
+        }
+      },
+      "interpretable": true
+    },
+    {
+      "memory_id": "django__django-10973",
+      "task_id": "django__django-11239",
+      "repo": "django/django",
+      "path": "django/db/backends/postgresql/client.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          1,
+          42
+        ],
+        [
+          12,
+          39
+        ],
+        [
+          8,
+          42
+        ],
+        [
+          41,
+          42
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "----------------------------------------------------------------------\nRan 6 tests in 0.007s\n\nFAILED (failures=1)"
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "search_miss",
+          "reward": null,
+          "test_detail": ""
+        }
+      },
+      "interpretable": true
+    },
+    {
+      "memory_id": "django__django-10973",
+      "task_id": "django__django-15851",
+      "repo": "django/django",
+      "path": "django/db/backends/postgresql/client.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          6,
+          64
+        ],
+        [
+          1,
+          64
+        ],
+        [
+          10,
+          54
+        ],
+        [
+          56,
+          64
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": 1.0,
+          "test_detail": "----------------------------------------------------------------------\nRan 10 tests in 0.049s\n\nOK (skipped=1)"
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": 1.0,
+          "test_detail": "----------------------------------------------------------------------\nRan 10 tests in 0.051s\n\nOK (skipped=1)"
+        }
+      },
+      "interpretable": true
+    },
+    {
+      "memory_id": "django__django-11087",
+      "task_id": "django__django-11179",
+      "repo": "django/django",
+      "path": "django/db/models/deletion.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          64,
+          78
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          31,
+          39
+        ],
+        [
+          244,
+          260
+        ],
+        [
+          61,
+          180
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "no_block",
+          "reward": null,
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": 0.0,
+          "test_detail": "Ran 9 tests in 0.043s\n\nFAILED (failures=1)\nDestroying test database for alias 'default'..."
+        }
+      },
+      "interpretable": false
+    }
+  ]
+}
