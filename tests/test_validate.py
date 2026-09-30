@@ -422,6 +422,41 @@ def test_dataset_03_verifier_drift_inside_one_condition():
     assert "verifier_drift_in_condition" in rep.codes()
 
 
+def test_dataset_03b_one_task_scored_two_ways_is_caught():
+    """EXPERIMENT_PLAN 8.4's actual prohibition: a scorer that is not the question's.
+
+    One question has one correct-answer criterion. Two scorers on one task means the
+    criterion depended on something other than the question -- which is the shape an
+    arm-dependent verifier would take.
+    """
+    a = _good_row()
+    b = _good_row(replicate_id=1, verifier_id="mc_choice_match")
+    rep = V.validate_dataset([a, b])
+    assert "verifier_varies_within_task" in rep.codes()
+
+
+def test_dataset_03c_benchmark_assigned_scorers_do_NOT_fire():
+    """NEGATIVE CONTROL for the 2026-09-30 repair. Two DIFFERENT questions legitimately
+    carry different scorers, because LongMemEval-V2 assigns ``eval_function`` per
+    question (verified: verifier_id == the question's eval_function head, 275/275).
+
+    Before the repair, the condition-level check fired on exactly this arrangement and
+    reported it as VERSION drift while only the scorer ID differed and the version was
+    constant. A check that cannot stay quiet on the legitimate case is unusable, and one
+    whose message names the wrong field is worse than a wrong verdict.
+    """
+    a = _good_row()
+    b = _good_row(future_task_id="q_other_question", verifier_id="mc_choice_match")
+    b["cell_id"] = S.compute_cell_id(b)
+    b["row_id"] = S.compute_row_id(b)
+    rep = V.validate_dataset([a, b])
+    assert "verifier_drift_in_condition" not in rep.codes()
+    assert "verifier_varies_within_task" not in rep.codes()
+    # and the repair must not have silenced the real defect it replaced
+    c = _good_row(replicate_id=1, verifier_version="OTHER@9.9.9")
+    assert "verifier_drift_in_condition" in V.validate_dataset([a, c]).codes()
+
+
 def test_dataset_04_duplicate_row_id():
     a = _good_row()
     rep = V.validate_dataset([a, copy.deepcopy(a)])
@@ -546,3 +581,178 @@ def test_writer_quarantines_instead_of_dying_when_not_strict():
         assert len(S.load_jsonl(p)) == 1
         q = S.load_jsonl(w.rejected_path)
         assert len(q) == 1 and q[0]["issues"][0]["code"] == "identity_field_empty"
+
+
+# ============================================ SCHEMA v2 USER FIELDS (2026-09-30)
+# Sub-agent HF added 17 fields from the user's required list. A field added because
+# someone asked for it is exactly the field most likely to be filled with a plausible
+# value nobody measured, so each one that CANNOT be populated is tested to be null and
+# each one that CAN is tested to be recomputable from the row it sits on.
+
+def _v2_row(**over):
+    """A good RAW row with the v2 fields populated the way the migration populates them.
+
+    Raw on purpose: every row in the v0.1 release is raw, and the raw path is where the
+    interesting traps live (the faithfulness tautology, the compression-is-1.0 control,
+    and the no-call zeros that must not be merged).
+    """
+    raw = dict(
+        memory_representation="raw",
+        memory_writer_model="none:deterministic_span",
+        memory_writer_cluster="none:deterministic_span",
+        memory_writer_prompt_version="page_visit_segmentation_v1",
+        memory_extraction_latency=None,
+        memory_extraction_input_tokens=None,
+        memory_extraction_output_tokens=None,
+        write_latency=None,
+    )
+    raw.update(over)
+    r = _good_row(**raw)
+    r["source_span_tokens"] = r["memory_tokens"]
+    r["compression_ratio"] = 1.0
+    r["extraction_cost_proxy"] = 0.0 if r["memory_writer_model"].startswith("none:") else None
+    r["faithfulness_check"] = None
+    r["faithfulness_notes"] = S.FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE
+    r["storage_bytes"] = len(r["memory_text"].encode("utf-8"))
+    r["bearing_label"] = "BEARING"
+    r["bearing_evidence"] = {
+        "detector_fires": True, "task_pool_hits": 6, "task_pool_size": 1024,
+        "discriminativeness": 6 / 1024, "n_bearing_tasks_for_this_memory": 2,
+        "why_stratum": "detector fires; task fires on 6 of 1024 same-domain memories",
+        "screen_is_content_only": True, "leakage_flag": False,
+        "caveat": S.BEARING_SCREEN_CAVEAT,
+    }
+    r["candidate_pool_size"] = 1024
+    r["memory_type_coarse"], r["memory_type_fine"] = S.classify_memory_type(r)
+    return r
+
+
+def test_v2_control_a_populated_row_is_clean():
+    """Control: if this fails, every 'caught' below could be background noise."""
+    errs = [i for i in V.validate_row(_v2_row()) if i.severity == V.SEVERITY_ERROR]
+    assert not errs, [str(i) for i in errs]
+
+
+def test_v2_faithfulness_score_on_raw_is_rejected():
+    """The tautology trap. raw IS the source, so any source-grounded proxy returns 1.0
+    by construction; storing it asserts a check that measured nothing."""
+    r = _v2_row(memory_representation="raw")
+    r["faithfulness_check"] = 1.0
+    assert "faithfulness_scored_on_raw" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_faithfulness_null_needs_a_stated_reason():
+    r = _v2_row(); r["faithfulness_notes"] = ""
+    assert "faithfulness_null_without_reason" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_raw_compression_must_be_unity():
+    r = _v2_row(memory_representation="raw"); r["compression_ratio"] = 0.25
+    assert "raw_compression_not_unity" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_compression_ratio_must_be_recomputable():
+    r = _v2_row(); r["source_span_tokens"] = r["memory_tokens"] * 3
+    assert "compression_ratio_mismatch" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_storage_bytes_must_be_the_real_byte_length():
+    r = _v2_row(); r["storage_bytes"] = 1
+    assert "storage_bytes_mismatch" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_bearing_evidence_must_carry_its_caveat():
+    """The screen's known weakness has to travel WITH the evidence. A caveat in a doc
+    the consumer never opens is a caveat that does not travel."""
+    r = _v2_row(); r["bearing_evidence"]["caveat"] = ""
+    assert "bearing_evidence_without_caveat" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_bearing_screen_must_be_content_only():
+    """If a reward ever entered the screen the BEARING/CONTROL contrast is circular."""
+    r = _v2_row(); r["bearing_evidence"]["screen_is_content_only"] = False
+    assert "bearing_screen_not_content_only" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_discriminativeness_must_equal_hits_over_size():
+    r = _v2_row(); r["bearing_evidence"]["discriminativeness"] = 0.999
+    assert "discriminativeness_mismatch" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_bearing_label_must_not_contradict_its_evidence():
+    r = _v2_row(); r["bearing_evidence"]["detector_fires"] = False
+    assert "bearing_label_contradicts_evidence" in {i.code for i in V.validate_row(r)}
+    c = _v2_row(); c["bearing_label"] = "MATCHED_CONTROL"
+    assert "control_label_contradicts_evidence" in {i.code for i in V.validate_row(c)}
+
+
+def test_v2_candidate_pool_size_must_match_the_evidence():
+    r = _v2_row(); r["candidate_pool_size"] = 7
+    assert "candidate_pool_size_mismatch" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_propagation_metadata_is_p3_reserved_and_rejected_in_p1():
+    r = _v2_row(); r["propagation_metadata"] = {"hop": 1, "receiver": "b"}
+    assert "p3_field_populated" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_no_call_latency_written_as_zero_is_rejected():
+    """metrics.py's three-zeros rule: a call that never happened has no duration."""
+    r = _v2_row(); r["memory_extraction_latency"] = 0.0
+    assert "absent_latency_reported_as_zero" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_raw_extraction_cost_is_a_measured_zero_not_a_null():
+    """Raw's 0.0 COST is real and must survive into the efficiency frontier, even
+    though its LATENCY must stay null. The two zeros are not the same zero."""
+    r = _v2_row()
+    assert r["extraction_cost_proxy"] == 0.0
+    assert r["memory_extraction_latency"] is None
+    bad = _v2_row(); bad["extraction_cost_proxy"] = 5.0
+    assert "raw_extraction_cost_nonzero" in {i.code for i in V.validate_row(bad)}
+
+
+def test_v2_context_budget_that_never_bound_is_flagged():
+    """A cap recorded where none was enforced states a control the run did not have."""
+    r = _v2_row()
+    r["memory_tokens_exposed"] = r["memory_tokens_retrieved"]
+    r["context_budget"] = 20000
+    assert "context_budget_never_bound" in {i.code for i in V.validate_row(r)}
+
+
+def test_v2_num_replicates_must_be_measured_not_planned():
+    a, b = _v2_row(), _v2_row(replicate_id=1)
+    for r in (a, b):
+        r["num_replicates"] = 9          # the cell has 2 rows, not 9
+    assert "num_replicates_mismatch" in V.validate_dataset([a, b]).codes()
+    for r in (a, b):
+        r["num_replicates"] = 2
+    assert "num_replicates_mismatch" not in V.validate_dataset([a, b]).codes()
+
+
+def test_v2_stability_must_match_the_replicates_it_summarises():
+    a, b = _v2_row(), _v2_row(replicate_id=1)
+    for r in (a, b):
+        r["num_replicates"] = 2
+        r["confidence_or_stability"] = 0.5   # they agree exactly, so it is 1.0
+    assert "stability_mismatch" in V.validate_dataset([a, b]).codes()
+
+
+def test_v2_zero_execution_noise_is_surfaced_not_hidden():
+    """F_exec = 0 is why the variance decomposition is unidentifiable. A consumer who
+    read stability 1.0 as 'confidence' would conclude the opposite of the truth."""
+    rows = []
+    for i in range(20):
+        r = _v2_row(replicate_id=i)
+        r["num_replicates"] = 20
+        r["confidence_or_stability"] = 1.0
+        rows.append(r)
+    assert "zero_execution_noise" in V.validate_dataset(rows).codes()
+
+
+def test_v2_reserved_fields_have_no_value_anyone_could_have_measured():
+    """The four fields we refused to populate stay null on a migrated row."""
+    r = _v2_row()
+    for f in ("source_episode_completion_timestamp", "parent_memory_id",
+              "faithfulness_check", "context_budget", "propagation_metadata"):
+        assert r.get(f) is None, f

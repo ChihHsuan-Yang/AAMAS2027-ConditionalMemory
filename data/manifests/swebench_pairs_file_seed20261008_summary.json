@@ -6,5 +6,10 @@
   "memories_with_ge3_tasks": 83,
   "pct_diagonal": 0.0,
   "max_tasks_per_memory": 4,
-  "beam_reference_pct_diagonal": 92.6
+  "beam_reference_pct_diagonal": 92.6,
+  "relatedness": "file",
+  "note": "Every row in this manifest is relatedness='file' (the tightest, most defensible level). The four-level comparison (repo/package/directory/file) lives in subagent_N_report.md and docs/SWEBENCH_FEASIBILITY.md, NOT here. Do not read this manifest as containing all four levels.",
+  "exclude_copyleft": true,
+  "seed": 20261008,
+  "tasks_per_memory_cap": 4
 }
