@@ -15,6 +15,13 @@ results/**
 !results/README.md
 !results/ledgers/
 !results/ledgers/**
+# SWE-bench pilot + control artifacts ARE tracked: they are small (<100KB each)
+# and every number in docs/BENCHMARK_C_DECISION.md is re-derived from them by a
+# reviewer. floor_pilot.json was already tracked for that reason; its successors
+# and the scorer positive controls must be too, or the parity claim and the
+# 20/20 control rest on files nobody else can open.
+!results/swebench/
+!results/swebench/*.json
 
 # caches
 cache/

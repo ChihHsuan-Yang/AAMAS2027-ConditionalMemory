@@ -1,0 +1,1109 @@
+{
+  "summary": {
+    "mode": "parity",
+    "prompt_version": "swebench_v1",
+    "prompt_variant": "v1_legacy",
+    "patch_format": "raw_diff",
+    "max_tokens": 2048,
+    "model": "gpt-oss-120b",
+    "cluster": "metis",
+    "temperature": 0.0,
+    "reasoning_effort": "low",
+    "n_cells": 14,
+    "localizer_recall": 8,
+    "n_interpretable": 8,
+    "n_arms": 8,
+    "all_cells_arm_symmetric": false,
+    "apply_fail_WITH": 3,
+    "apply_fail_WITHOUT": 0,
+    "apply_fail_rate_WITH": 0.375,
+    "apply_fail_rate_WITHOUT": 0.0,
+    "apply_fail_gap": 0.375,
+    "apply_fail_denominator": 8,
+    "truncated_WITH": 0,
+    "truncated_WITHOUT": 0,
+    "apply_fail_ci95_WITH": [
+      0.1368,
+      0.6943
+    ],
+    "apply_fail_ci95_WITHOUT": [
+      0.0,
+      0.3244
+    ],
+    "edit_status_WITH": {
+      "ok": 5,
+      "no_block": 2,
+      "search_miss": 1
+    },
+    "edit_status_WITHOUT": {
+      "ok": 8
+    },
+    "diff_contagion_WITH": {
+      "responses_with_diff_marker_lines": 2,
+      "total_diff_marker_lines": 5,
+      "missing_separator": 2,
+      "missing_replace_marker": 1
+    },
+    "diff_contagion_WITHOUT": {
+      "responses_with_diff_marker_lines": 0,
+      "total_diff_marker_lines": 0,
+      "missing_separator": 0,
+      "missing_replace_marker": 0
+    },
+    "model_calls": 28
+  },
+  "cells": [
+    {
+      "memory_id": "django__django-10097",
+      "task_id": "django__django-14349",
+      "repo": "django/django",
+      "path": "django/core/validators.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          101,
+          142
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          65,
+          142
+        ],
+        [
+          61,
+          180
+        ],
+        [
+          300,
+          312
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        if not isinstance(value, str):\n            raise ValidationError(self.message, code=self.code, params={'value': value})\n        # Check if the scheme is valid.\n        scheme = value.split('://')[0].lower()\n=======\n        if not isinstance(value, str):\n            raise ValidationError(self.message, code=self.code, params={'value': value})\n        # Strip surrounding whitespace and control characters.\n        value = value.strip()\n        # Check if the scheme is valid.\n        scheme = value.split('://')[0].lower()\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "9d3661040f74947ab5dcc39133989d3ff8af439573cd1587bb10129993537163",
+          "input_tokens": 4728,
+          "output_tokens": 147,
+          "reasoning_tokens": 25,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        r'(?:[/?#][^\\s]*)?'  # resource path\n        r'\\Z', re.IGNORECASE)\n=======\n        r'(?:[/?#][^\\s]*)?'  # resource path\n        r'$', re.IGNORECASE)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "f5ecc1b497870b4f0bbea67ad99d20e09c6a9d353d5c362bfff3957c46edd2ab",
+          "input_tokens": 5515,
+          "output_tokens": 689,
+          "reasoning_tokens": 621,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-11265",
+      "repo": "django/django",
+      "path": "django/db/models/sql/query.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          1304,
+          1305
+        ],
+        [
+          1324,
+          1325
+        ],
+        [
+          1201,
+          1320
+        ],
+        [
+          264,
+          269
+        ],
+        [
+          1141,
+          1260
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def add_filter(self, filter_clause):\n        self.add_q(Q(**{filter_clause[0]: filter_clause[1]}))\n=======\n    def add_filter(self, filter_clause):\n        \"\"\"\n        Add a simple filter clause to the query. This method is used for\n        keyword arguments passed to ``filter()`` and ``exclude()``.  The\n        original implementation called ``add_q()`` with a ``Q`` object\n        built from the clause, but it did not propagate the ``negate``\n        flag that ``exclude()`` supplies via ``_filter_or_exclude``.\n        As a result, lookups that refer to annotations (e.g. a\n        ``FilteredRelation``) raised a ``FieldError`` when used with\n        ``exclude()`` because the negation was lost.\n\n        The fix is to forward the ``negate`` flag to ``add_q()`` by\n        constructing the appropriate ``Q`` object.  ``filter_clause`` is a\n        two\u2011tuple ``(lookup, value)``; we build a ``Q`` and let the caller\n        handle negation via ``add_q()``.\n        \"\"\"\n        lookup, value = filter_clause\n        self.add_q(Q(**{lookup: value}))\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "8cce0ec0fb711051a795719608019e9ce0badb8b38bc1fff28270690fc58358d",
+          "input_tokens": 3134,
+          "output_tokens": 771,
+          "reasoning_tokens": 497,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "search_miss",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [
+            "absent:'    def clear_select_fields(self):\\n        self.select = ()\\n'"
+          ],
+          "response": "<<<<<<< SEARCH\n    def clear_select_fields(self):\n        self.select = ()\n        self.values_select = ()\n=======\n    def clear_select_fields(self):\n        self.select = ()\n        self.values_select = ()\n\n    def add_select_col(self, col):\n        # Append the column to the select list and track its output field name.\n        self.select += (col,)\n        # Ensure values_select stays in sync for proper value handling.\n        self.values_select += (col.output_field.name,)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "078973734662c160ea871f3e2cf51a124dd3c6ccda360538d7ab827777ac4984",
+          "input_tokens": 4320,
+          "output_tokens": 128,
+          "reasoning_tokens": 21,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": false,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-11555",
+      "repo": "django/django",
+      "path": "django/db/models/sql/compiler.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          541,
+          660
+        ],
+        [
+          700,
+          729
+        ],
+        [
+          181,
+          300
+        ],
+        [
+          481,
+          600
+        ],
+        [
+          241,
+          360
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        for field in ordering:\n            if hasattr(field, 'resolve_expression'):\n                if isinstance(field, Value):\n                    # output_field must be resolved for constants.\n                    field = Cast(field, field.output_field)\n                if not isinstance(field, OrderBy):\n                    field = field.asc()\n                if not self.query.standard_ordering:\n                    field = field.copy()\n                    field.reverse_ordering()\n                order_by.append((field, False))\n                continue\n            if field == '?':  # random\n                order_by.append((OrderBy(Random()), False))\n                continue\n\n            col, order = get_order_dir(field, asc)\n=======\n        for field in ordering:\n            if hasattr(field, 'resolve_expression'):\n                if isinstance(field, Value):\n                    # output_field must be resolved for constants.\n                    field = Cast(field, field.output_field)\n                if not isinstance(field, OrderBy):\n                    field = field.asc()\n                if not self.query.standard_ordering:\n                    field = field.copy()\n                    field.reverse_ordering()\n                order_by.append((field, False))\n                continue\n            if isinstance(field, OrderBy):\n                # Ordering field from Meta.ordering may already be an OrderBy\n                # expression; use it directly.\n                order_by.append((field, False))\n                continue\n            if field == '?':  # random\n                order_by.append((OrderBy(Random()), False))\n                continue\n\n            col, order = get_order_dir(field, asc)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "64e21ee52f6cc1692b73b512febefd77b582fbea51957efbca2f2fa427a6bf2e",
+          "input_tokens": 4799,
+          "output_tokens": 433,
+          "reasoning_tokens": 123,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "no_block",
+          "reward": null,
+          "n_blocks": 0,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def clear_select_fields(self):\n        self.select = ()\n        self.values_select = ()\n \n+    def add_select_col(self, col):\n+        self.select += col,\n+        self.values_select += col.output_field.name,\n \n     def set_select(self, cols):\n         self.default_cols = False\n         self.select = tuple(cols)",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": false,
+            "has_replace_marker": false,
+            "n_diff_marker_lines": 3,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "7caeb6b13530fc7c279f9a2e1b678ac02ae99386fe1aa6dd7cde7b4cb2eae8c6",
+          "input_tokens": 5985,
+          "output_tokens": 103,
+          "reasoning_tokens": 22,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-13028",
+      "repo": "django/django",
+      "path": "django/db/models/sql/query.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          1983,
+          1997
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          2079,
+          2096
+        ],
+        [
+          1364,
+          1384
+        ],
+        [
+          1125,
+          1134
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        if not getattr(expression, 'filterable', True):\n=======\n        if isinstance(expression, BaseExpression) and not getattr(expression, 'filterable', True):\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "96dd538da26d892be1b006e13ba65c628464870141ae5e43bf4ef0c55940639c",
+          "input_tokens": 2025,
+          "output_tokens": 272,
+          "reasoning_tokens": 226,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def check_filterable(self, expression):\n        \"\"\"Raise an error if expression cannot be used in a WHERE clause.\"\"\"\n        if not getattr(expression, 'filterable', True):\n            raise NotSupportedError(\n                expression.__class__.__name__ + ' is disallowed in the filter '\n                'clause.'\n            )\n        if hasattr(expression, 'get_source_expressions'):\n            for expr in expression.get_source_expressions():\n                self.check_filterable(expr)\n=======\n    def check_filterable(self, expression):\n        \"\"\"Raise an error if expression cannot be used in a WHERE clause.\"\"\"\n        # The attribute ``filterable`` is used internally by Django to mark\n        # expressions that are not allowed in a WHERE clause.  A model field\n        # named ``filterable`` (e.g. ``BooleanField``) would also expose a\n        # ``filterable`` attribute on the model instance, which could cause a\n        # false positive here.  We therefore only honour the ``filterable``\n        # flag on expression objects that explicitly define it (i.e. have the\n        # attribute set on the class, not on a model instance).\n        if (\n            hasattr(expression, 'filterable')\n            and not isinstance(expression, type)\n            and getattr(expression, 'filterable', True) is False\n        ):\n            raise NotSupportedError(\n                expression.__class__.__name__ + ' is disallowed in the filter '\n                'clause.'\n            )\n        if hasattr(expression, 'get_source_expressions'):\n            for expr in expression.get_source_expressions():\n                self.check_filterable(expr)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "2f6d231ad7d4f67df15da52afca882ac9d663ea7f82a50035ca572503997f302",
+          "input_tokens": 3211,
+          "output_tokens": 874,
+          "reasoning_tokens": 531,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10554",
+      "task_id": "django__django-13158",
+      "repo": "django/django",
+      "path": "django/db/models/sql/query.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          1105,
+          1123
+        ],
+        [
+          1021,
+          1140
+        ],
+        [
+          1081,
+          1200
+        ],
+        [
+          421,
+          540
+        ],
+        [
+          1993,
+          2007
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n            if (isinstance(value, Query) and not value.has_select_fields and\n                    not check_rel_lookup_compatibility(value.model, opts, field)):\n=======\n            if (isinstance(value, Query) and not value.has_select_fields and\n                    not getattr(value, 'query', None) or not getattr(value.query, 'is_empty', False) and\n                    not check_rel_lookup_compatibility(value.model, opts, field)):\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "28d0b64e9539c15cd9373f2ad802129ef1a58a26e678692ef2df880a62fecb9d",
+          "input_tokens": 4260,
+          "output_tokens": 523,
+          "reasoning_tokens": 420,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "search_miss",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [
+            "absent:'     def clear_select_fields(self):\\n         self.select = ('"
+          ],
+          "response": "<<<<<<< SEARCH\n     def clear_select_fields(self):\n         self.select = ()\n         self.values_select = ()\n \n+    def add_select_col(self, col):\n+        \"\"\"\n+        Add a column to the SELECT clause.\n+        This is used when an ORDER BY column is not already selected,\n+        ensuring the column is included in the result set.\n+        \"\"\"\n+        self.select += (col,)\n+        # Preserve the output field name for values() queries.\n+        self.values_select += (col.output_field.name,)\n=======\n     def clear_select_fields(self):\n         self.select = ()\n         self.values_select = ()\n \n+    def add_select_col(self, col):\n+        \"\"\"\n+        Add a column to the SELECT clause.\n+        This is used when an ORDER BY column is not already selected,\n+        ensuring the column is included in the result set.\n+        \"\"\"\n+        self.select += (col,)\n+        # Preserve the output field name for values() queries.\n+        self.values_select += (col.output_field.name,)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 18,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "5025dd22b68942d34bccd331ecc6ab20a191c83ddd03e61f1b040addc5bf001a",
+          "input_tokens": 5446,
+          "output_tokens": 258,
+          "reasoning_tokens": 33,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": false,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10880",
+      "task_id": "django__django-11603",
+      "repo": "django/django",
+      "path": "django/db/models/aggregates.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          142,
+          144
+        ],
+        [
+          99,
+          101
+        ],
+        [
+          61,
+          155
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          121,
+          123
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 2,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\nclass Avg(FixDurationInputMixin, NumericOutputFieldMixin, Aggregate):\n    function = 'AVG'\n    name = 'Avg'\n=======\nclass Avg(FixDurationInputMixin, NumericOutputFieldMixin, Aggregate):\n    function = 'AVG'\n    name = 'Avg'\n    allow_distinct = True\n>>>>>>> REPLACE\n\n<<<<<<< SEARCH\nclass Sum(FixDurationInputMixin, Aggregate):\n    function = 'SUM'\n    name = 'Sum'\n=======\nclass Sum(FixDurationInputMixin, Aggregate):\n    function = 'SUM'\n    name = 'Sum'\n    allow_distinct = True\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "f8b6e07fae5d5dbb90489ab792e54ddff72cd49faf3987c369af237424032a65",
+          "input_tokens": 2159,
+          "output_tokens": 305,
+          "reasoning_tokens": 170,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 2,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\nclass Avg(FixDurationInputMixin, NumericOutputFieldMixin, Aggregate):\n    function = 'AVG'\n    name = 'Avg'\n=======\nclass Avg(FixDurationInputMixin, NumericOutputFieldMixin, Aggregate):\n    function = 'AVG'\n    name = 'Avg'\n    allow_distinct = True\n>>>>>>> REPLACE\n=======\n<<<<<<< SEARCH\nclass Sum(FixDurationInputMixin, Aggregate):\n    function = 'SUM'\n    name = 'Sum'\n=======\nclass Sum(FixDurationInputMixin, Aggregate):\n    function = 'SUM'\n    name = 'Sum'\n    allow_distinct = True\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "1338826571c2b8de082aef88cb2a11d1a9f0ed70349b3cd9dd85a1eb58ec971d",
+          "input_tokens": 2389,
+          "output_tokens": 401,
+          "reasoning_tokens": 265,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10880",
+      "task_id": "django__django-15375",
+      "repo": "django/django",
+      "path": "django/db/models/aggregates.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          1,
+          120
+        ],
+        [
+          151,
+          154
+        ],
+        [
+          50,
+          68
+        ],
+        [
+          61,
+          165
+        ],
+        [
+          115,
+          127
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        c.default = None  # Reset the default argument before wrapping.\n        return Coalesce(c, default, output_field=c._output_field_or_none)\n=======\n        c.default = None  # Reset the default argument before wrapping.\n        # Ensure the resulting Coalesce expression retains the original aggregate's name\n        # so that it can be correctly aliased in the final SQL.\n        wrapped = Coalesce(c, default, output_field=c._output_field_or_none)\n        wrapped.name = self.name\n        return wrapped\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "2792d6e10844c5159a72f32848a15b4040141deb2181cca08a84c6d0aa449e21",
+          "input_tokens": 3031,
+          "output_tokens": 632,
+          "reasoning_tokens": 513,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "no_block",
+          "reward": null,
+          "n_blocks": 0,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def as_sql(self, compiler, connection, **extra_context):\n-        extra_context['distinct'] = 'DISTINCT' if self.distinct else ''\n+        extra_context['distinct'] = 'DISTINCT ' if self.distinct else ''\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": false,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 2,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "505fbf723981a59587e12341331d913c0bfe5eb76e6562d0d1b3d9b18d545bae",
+          "input_tokens": 3261,
+          "output_tokens": 646,
+          "reasoning_tokens": 582,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10973",
+      "task_id": "django__django-11239",
+      "repo": "django/django",
+      "path": "django/db/backends/postgresql/client.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          1,
+          42
+        ],
+        [
+          12,
+          39
+        ],
+        [
+          8,
+          42
+        ],
+        [
+          41,
+          42
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        subprocess_env = os.environ.copy()\n        if passwd:\n            subprocess_env['PGPASSWORD'] = str(passwd)\n        try:\n=======\n        subprocess_env = os.environ.copy()\n        if passwd:\n            subprocess_env['PGPASSWORD'] = str(passwd)\n        # Add SSL options for client certificates if provided in the connection options.\n        # Django's PostgreSQL backend passes these via the 'options' dict in the connection\n        # parameters. psql reads them from the corresponding environment variables.\n        ssl_options = conn_params.get('options', {})\n        if ssl_options.get('sslmode'):\n            subprocess_env['PGSSLMODE'] = str(ssl_options['sslmode'])\n        if ssl_options.get('sslrootcert'):\n            subprocess_env['PGSSLROOTCERT'] = str(ssl_options['sslrootcert'])\n        if ssl_options.get('sslcert'):\n            subprocess_env['PGSSLCERT'] = str(ssl_options['sslcert'])\n        if ssl_options.get('sslkey'):\n            subprocess_env['PGSSLKEY'] = str(ssl_options['sslkey'])\n        try:\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "6ad733c0cd46a0b9bdc3b2fea1dba85f6529475f83d5fe858e5c9f9d8dcfbea4",
+          "input_tokens": 1270,
+          "output_tokens": 344,
+          "reasoning_tokens": 107,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "search_miss",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [
+            "absent:'         subprocess_env = os.environ.copy()\\n         if pass'"
+          ],
+          "response": "<<<<<<< SEARCH\n         subprocess_env = os.environ.copy()\n         if passwd:\n             subprocess_env['PGPASSWORD'] = str(passwd)\n         try:\n             # Allow SIGINT to pass to psql to abort queries.\n             signal.signal(signal.SIGINT, signal.SIG_IGN)\n             subprocess.run(args, check=True, env=subprocess_env)\n=======\n         subprocess_env = os.environ.copy()\n         if passwd:\n             subprocess_env['PGPASSWORD'] = str(passwd)\n         # Add SSL options if provided in the connection OPTIONS.\n         options = conn_params.get('OPTIONS', {})\n         if options:\n             # Map Django OPTIONS keys to libpq environment variables.\n             sslmode = options.get('sslmode')\n             if sslmode:\n                 subprocess_env['PGSSLMODE'] = str(sslmode)\n             sslrootcert = options.get('sslrootcert')\n             if sslrootcert:\n                 subprocess_env['PGSSLROOTCERT'] = str(sslrootcert)\n             sslcert = options.get('sslcert')\n             if sslcert:\n                 subprocess_env['PGSSLCERT'] = str(sslcert)\n             sslkey = options.get('sslkey')\n             if sslkey:\n                 subprocess_env['PGSSLKEY'] = str(sslkey)\n         try:\n             # Allow SIGINT to pass to psql to abort queries.\n             signal.signal(signal.SIGINT, signal.SIG_IGN)\n             subprocess.run(args, check=True, env=subprocess_env)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "e1f75ffd85eb65d2449c3a686d98f3696496197db4433a44b93c1a1fa5ec9363",
+          "input_tokens": 1901,
+          "output_tokens": 374,
+          "reasoning_tokens": 64,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-10973",
+      "task_id": "django__django-15851",
+      "repo": "django/django",
+      "path": "django/db/backends/postgresql/client.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          6,
+          64
+        ],
+        [
+          1,
+          64
+        ],
+        [
+          10,
+          54
+        ],
+        [
+          56,
+          64
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        if user:\n            args += [\"-U\", user]\n        if host:\n            args += [\"-h\", host]\n        if port:\n            args += [\"-p\", str(port)]\n        if dbname:\n            args += [dbname]\n        args.extend(parameters)\n=======\n        if user:\n            args += [\"-U\", user]\n        if host:\n            args += [\"-h\", host]\n        if port:\n            args += [\"-p\", str(port)]\n        args.extend(parameters)\n        if dbname:\n            args += [dbname]\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "2dbba0f227493c3ce572ccf8bf3b7c45c83784b51d7b8d2996da61201f1d5399",
+          "input_tokens": 1749,
+          "output_tokens": 213,
+          "reasoning_tokens": 85,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        if host:\n            args += [\"-h\", host]\n        if port:\n            args += [\"-p\", str(port)]\n        if dbname:\n            args += [dbname]\n        args.extend(parameters)\n=======\n        if host:\n            args += [\"-h\", host]\n        if port:\n            args += [\"-p\", str(port)]\n        args.extend(parameters)\n        if dbname:\n            args += [dbname]\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "a55591285be3b59cce6f058a7f19ae8ee517cd74964b10fb761b26802dcfbd1c",
+          "input_tokens": 2380,
+          "output_tokens": 192,
+          "reasoning_tokens": 91,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-11087",
+      "task_id": "django__django-11179",
+      "repo": "django/django",
+      "path": "django/db/models/deletion.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          64,
+          78
+        ],
+        [
+          1,
+          120
+        ],
+        [
+          31,
+          39
+        ],
+        [
+          244,
+          260
+        ],
+        [
+          61,
+          180
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "no_block",
+          "reward": null,
+          "n_blocks": 0,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        for obj in objs:\n            obj.delete(using=self.using)\n>>>>>>> REPLACE\n        for obj in objs:\n            obj.delete(using=self.using)\n            # Ensure the instance reflects that it has been removed from the database.\n            obj.pk = None\n            obj._state.adding = True\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": false,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "90ca20440d344419069c8201ffc97b0aff624f5e8c95a722751fedb470a7afab",
+          "input_tokens": 2702,
+          "output_tokens": 242,
+          "reasoning_tokens": 146,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def collect(self, objs, source=None, nullable=False, collect_related=True,\n                source_attr=None, reverse_dependency=False, keep_parents=False):\n        \"\"\"\n        Add 'objs' to the collection of objects to be deleted as well as all\n        parent instances.  'objs' must be a homogeneous iterable collection of\n        model instances (e.g. a QuerySet).  If 'collect_related' is True,\n        related objects will be handled by their respective on_delete handler.\n\n        If the call is the result of a cascade, 'source' should be the model\n        that caused it and 'nullable' should be set to True, if the relation\n        can be null.\n=======\n    def collect(self, objs, source=None, nullable=False, collect_related=True,\n                source_attr=None, reverse_dependency=False, keep_parents=False):\n        \"\"\"\n        Add 'objs' to the collection of objects to be deleted as well as all\n        parent instances.  'objs' must be a homogeneous iterable collection of\n        model instances (e.g. a QuerySet).  If 'collect_related' is True,\n        related objects will be handled by their respective on_delete handler.\n\n        If the call is the result of a cascade, 'source' should be the model\n        that caused it and 'nullable' should be set to True, if the relation\n        can be null.\n>>>>>>> REPLACE\n        # existing implementation unchanged\n        # ...\n\n    def delete(self):\n        \"\"\"\n        Perform the actual deletions and clear primary keys on the deleted\n        objects.\n        \"\"\"\n        # Fast deletes\n        for qs in self.fast_deletes:\n            qs._raw_delete(using=self.using)\n        # Regular deletes\n        for model, instances in self.data.items():\n            pks = [obj.pk for obj in instances]\n            if pks:\n                model._base_manager.filter(pk__in=pks).delete()\n            # Clear primary keys on the in\u2011memory instances\n            for obj in instances:\n                obj._state.adding = True\n                obj.pk = None\n        # Apply any field updates (e.g., SET_NULL)\n        for model, updates in self.field_updates.items():\n            for (field, value), objs in updates.items():\n                for obj in objs:\n                    setattr(obj, field.attname, value)\n        # Reset collections\n        self.data.clear()\n        self.fast_deletes.clear()\n        self.field_updates.clear()\n        self.dependencies.clear()\n        return {\n            'deleted_objects': sum(len(v) for v in self.data.values()),\n            'fast_deleted_objects': sum(len(qs) for qs in self.fast_deletes),\n        }",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "7f36365dc4981655e9f5bb7951e7ef786a5f0a478957781b748a715db7e4d602",
+          "input_tokens": 5803,
+          "output_tokens": 781,
+          "reasoning_tokens": 223,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": false,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-11095",
+      "task_id": "django__django-11149",
+      "repo": "django/django",
+      "path": "django/contrib/admin/options.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          2161,
+          2162
+        ],
+        [
+          418,
+          461
+        ],
+        [
+          1481,
+          1494
+        ],
+        [
+          60,
+          64
+        ],
+        [
+          793,
+          807
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "search_miss",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [
+            "absent:'class InlineModelAdmin:\\n    \"\"\"\\n    Base class for inline ad'"
+          ],
+          "response": "<<<<<<< SEARCH\nclass InlineModelAdmin:\n    \"\"\"\n    Base class for inline admin options.\n    \"\"\"\n    # ... existing code ...\n=======\nclass InlineModelAdmin:\n    \"\"\"\n    Base class for inline admin options.\n    \"\"\"\n    # ... existing code ...\n\n    def has_add_permission(self, request, obj=None):\n        \"\"\"\n        Return ``True`` if the given request has permission to add an object\n        to this inline.  For auto\u2011created many\u2011to\u2011many through models we must\n        also require the user to have change permission on the parent model,\n        otherwise a user with only view permission could add or remove related\n        objects.\n        \"\"\"\n        # If the user does not have change permission on the parent model,\n        # they should not be able to add objects via the inline.\n        if not self.has_change_permission(request, obj):\n            return False\n        # Defer to the default implementation for the remaining checks.\n        return super().has_add_permission(request, obj)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "3adc646e7a677324f10ce35c8148229538ddcbcd943b5d42db7d600c873f171c",
+          "input_tokens": 1053,
+          "output_tokens": 469,
+          "reasoning_tokens": 257,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "no_block",
+          "reward": null,
+          "n_blocks": 0,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n-        for inline_class in self.get_inlines(request, obj):\n-            inline = inline_class(self.model, self.admin_site)\n-            if request:\n-                if not (inline.has_view_or_change_permission(request, obj) or\n-                        inline.has_add_permission(request, obj)):\n-                    continue\n-            inline_instances.append(inline)\n+        for inline_class in self.get_inlines(request, obj):\n+            inline = inline_class(self.model, self.admin_site)\n+            if request:\n+                # For automatically created ManyToMany through models, only allow\n+                # users with change permission to edit the inline. View\u2011only users\n+                # should not be able to add, change or delete related objects.\n+                if inline.model._meta.auto_created:\n+                    if not inline.has_change_permission(request, obj):\n+                        continue\n+                else:\n+                    if not (inline.has_view_or_change_permission(request, obj) or\n+                            inline.has_add_permission(request, obj)):\n+                        continue\n+            inline_instances.append(inline)\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": false,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 21,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "393ecdfd148c402c07f2b23d7ee2983df13181a59eca26659ccce35eb83761e8",
+          "input_tokens": 1389,
+          "output_tokens": 350,
+          "reasoning_tokens": 116,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": false,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-11095",
+      "task_id": "django__django-12713",
+      "repo": "django/django",
+      "path": "django/contrib/admin/options.py",
+      "localizer_recall": true,
+      "region_lines": [
+        [
+          242,
+          274
+        ],
+        [
+          218,
+          240
+        ],
+        [
+          843,
+          847
+        ],
+        [
+          130,
+          185
+        ],
+        [
+          276,
+          281
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        autocomplete_fields = self.get_autocomplete_fields(request)\n        if db_field.name in autocomplete_fields:\n            kwargs['widget'] = AutocompleteSelectMultiple(db_field.remote_field, self.admin_site, using=db)\n        elif db_field.name in self.raw_id_fields:\n            kwargs['widget'] = widgets.ManyToManyRawIdWidget(db_field.remote_field, self.admin_site, using=db)\n        elif db_field.name in [*self.filter_vertical, *self.filter_horizontal]:\n            kwargs['widget'] = widgets.FilteredSelectMultiple(\n                db_field.verbose_name,\n                db_field.name in self.filter_vertical\n            )\n=======\n        # Only set a default widget if the caller hasn't provided one.\n        if 'widget' not in kwargs:\n            autocomplete_fields = self.get_autocomplete_fields(request)\n            if db_field.name in autocomplete_fields:\n                kwargs['widget'] = AutocompleteSelectMultiple(db_field.remote_field, self.admin_site, using=db)\n            elif db_field.name in self.raw_id_fields:\n                kwargs['widget'] = widgets.ManyToManyRawIdWidget(db_field.remote_field, self.admin_site, using=db)\n            elif db_field.name in [*self.filter_vertical, *self.filter_horizontal]:\n                kwargs['widget'] = widgets.FilteredSelectMultiple(\n                    db_field.verbose_name,\n                    db_field.name in self.filter_vertical\n                )\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "911387da1890bffb3ba51af15dd3af38c9f789074c51cb9f6f501976d6613996",
+          "input_tokens": 1539,
+          "output_tokens": 357,
+          "reasoning_tokens": 71,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    def formfield_for_manytomany(self, db_field, request, **kwargs):\n        \"\"\"\n        Get a form Field for a ManyToManyField.\n        \"\"\"\n        # If it uses an intermediary model that isn't auto created, don't show\n        # a field in admin.\n        if not db_field.remote_field.through._meta.auto_created:\n            return None\n        db = kwargs.get('using')\n\n        autocomplete_fields = self.get_autocomplete_fields(request)\n        if db_field.name in autocomplete_fields:\n            kwargs['widget'] = AutocompleteSelectMultiple(db_field.remote_field, self.admin_site, using=db)\n        elif db_field.name in self.raw_id_fields:\n            kwargs['widget'] = widgets.ManyToManyRawIdWidget(db_field.remote_field, self.admin_site, using=db)\n        elif db_field.name in [*self.filter_vertical, *self.filter_horizontal]:\n            kwargs['widget'] = widgets.FilteredSelectMultiple(\n                db_field.verbose_name,\n                db_field.name in self.filter_vertical\n            )\n=======\n    def formfield_for_manytomany(self, db_field, request, **kwargs):\n        \"\"\"\n        Get a form Field for a ManyToManyField.\n        \"\"\"\n        # If it uses an intermediary model that isn't auto created, don't show\n        # a field in admin.\n        if not db_field.remote_field.through._meta.auto_created:\n            return None\n        db = kwargs.get('using')\n\n        # Respect a custom widget passed in kwargs, otherwise determine the widget.\n        if 'widget' not in kwargs:\n            autocomplete_fields = self.get_autocomplete_fields(request)\n            if db_field.name in autocomplete_fields:\n                kwargs['widget'] = AutocompleteSelectMultiple(db_field.remote_field, self.admin_site, using=db)\n            elif db_field.name in self.raw_id_fields:\n                kwargs['widget'] = widgets.ManyToManyRawIdWidget(db_field.remote_field, self.admin_site, using=db)\n            elif db_field.name in [*self.filter_vertical, *self.filter_horizontal]:\n                kwargs['widget'] = widgets.FilteredSelectMultiple(\n                    db_field.verbose_name,\n                    db_field.name in self.filter_vertical\n                )\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "ba5ca2e2ef0ca271b0388c691172b03e1047c29e8ce796858d1c77bcfeaf3064",
+          "input_tokens": 1875,
+          "output_tokens": 551,
+          "reasoning_tokens": 98,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": true,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-11095",
+      "task_id": "django__django-16100",
+      "repo": "django/django",
+      "path": "django/contrib/admin/options.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          2101,
+          2103
+        ],
+        [
+          1744,
+          1746
+        ],
+        [
+          1861,
+          1980
+        ],
+        [
+          1801,
+          1920
+        ],
+        [
+          816,
+          822
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        app_label = self.opts.app_label\n        if not self.has_view_or_change_permission(request):\n=======\n        with transaction.atomic(using=router.db_for_write(self.model)):\n            app_label = self.opts.app_label\n            if not self.has_view_or_change_permission(request):\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "ad7140b4ff55f97eade8031516818d57ea5ef5b6aae5874e52ac7fc953a3efe9",
+          "input_tokens": 2321,
+          "output_tokens": 293,
+          "reasoning_tokens": 225,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n    @csrf_protect_m\n    def changelist_view(self, request, extra_context=None):\n        \"\"\"\n        The 'change list' admin view for this model.\n        \"\"\"\n        from django.contrib.admin.views.main import ERROR_FLAG\n\n        app_label = self.opts.app_label\n        if not self.has_view_or_change_permission(request):\n            raise PermissionDenied\n\n        try:\n            cl = self.get_changelist_instance(request)\n        except IncorrectLookupParameters:\n            # Wacky lookup parameters were given, so redirect to the main\n            # changelist page, without parameters, and pass an 'invalid=1'\n            # parameter via the query string. If wacky parameters were given\n            # and the 'invalid=1' parameter was already in the query string,\n            # something is screwed up with the database, so display an error\n            # page.\n            if ERROR_FLAG in request.GET:\n                return SimpleTemplateResponse(\n                    \"admin/invalid_setup.html\",\n                    {\n                        \"title\": _(\"Database error\"),\n                    },\n                )\n            return HttpResponseRedirect(request.path + \"?\" + ERROR_FLAG + \"=1\")\n\n        # If the request was POSTed, this might be a bulk action or a bulk\n        # edit. Try to look up an action or confirmation first, but if this\n        # isn't an action the POST will fall through to the bulk edit check,\n        # below.\n        action_failed = False\n        selected = request.POST.getlist(helpers.ACTION_CHECKBOX_NAME)\n\n        actions = self.get_actions(request)\n        # Actions with no confirmation\n        if (\n            actions\n            and request.method == \"POST\"\n            and \"index\" in request.POST\n            and \"_save\" not in request.POST\n        ):\n            if selected:\n                response = self.response_action(\n                    request, queryset=cl.get_queryset(request)\n                )\n                if response:\n                    return response\n                else:\n                    action_failed = True\n            else:\n                msg = _(\n                    \"Items must be selected in order to perform \"\n                    \"actions on them. No items have been changed.\"\n                )\n                self.message_user(request, msg, messages.WARNING)\n                action_failed = True\n\n        # Actions with confirmation\n        if (\n            actions\n            and request.method == \"POST\"\n            and helpers.ACTION_CHECKBOX_NAME in request.POST\n            and \"index\" not in request.POST\n            and \"_save\" not in request.POST\n        ):\n=======\n    @csrf_protect_m\n    def changelist_view(self, request, extra_context=None):\n        \"\"\"\n        The 'change list' admin view for this model.\n        \"\"\"\n        from django.contrib.admin.views.main import ERROR_FLAG\n        from django.db import transaction\n        from django.db import router\n\n        with transaction.atomic(using=router.db_for_write(self.model)):\n            app_label = self.opts.app_label\n            if not self.has_view_or_change_permission(request):\n                raise PermissionDenied\n\n            try:\n                cl = self.get_changelist_instance(request)\n            except IncorrectLookupParameters:\n                # Wacky lookup parameters were given, so redirect to the main\n                # changelist page, without parameters, and pass an 'invalid=1'\n                # parameter via the query string. If wacky parameters were given\n                # and the 'invalid=1' parameter was already in the query string,\n                # something is screwed up with the database, so display an error\n                # page.\n                if ERROR_FLAG in request.GET:\n                    return SimpleTemplateResponse(\n                        \"admin/invalid_setup.html\",\n                        {\n                            \"title\": _(\"Database error\"),\n                        },\n                    )\n                return HttpResponseRedirect(request.path + \"?\" + ERROR_FLAG + \"=1\")\n\n            # If the request was POSTed, this might be a bulk action or a bulk\n            # edit. Try to look up an action or confirmation first, but if this\n            # isn't an action the POST will fall through to the bulk edit check,\n            # below.\n            action_failed = False\n            selected = request.POST.getlist(helpers.ACTION_CHECKBOX_NAME)\n\n            actions = self.get_actions(request)\n            # Actions with no confirmation\n            if (\n                actions\n                and request.method == \"POST\"\n                and \"index\" in request.POST\n                and \"_save\" not in request.POST\n            ):\n                if selected:\n                    response = self.response_action(\n                        request, queryset=cl.get_queryset(request)\n                    )\n                    if response:\n                        return response\n                    else:\n                        action_failed = True\n                else:\n                    msg = _(\n                        \"Items must be selected in order to perform \"\n                        \"actions on them. No items have been changed.\"\n                    )\n                    self.message_user(request, msg, messages.WARNING)\n                    action_failed = True\n\n            # Actions with confirmation\n            if (\n                actions\n                and request.method == \"POST\"\n                and helpers.ACTION_CHECKBOX_NAME in request.POST\n                and \"index\" not in request.POST\n                and \"_save\" not in request.POST\n            ):\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "7cf7f035d0d507003cbe6e372a42499a2e9cdbb4f532dc6c57335d61eb29f919",
+          "input_tokens": 2657,
+          "output_tokens": 1197,
+          "reasoning_tokens": 159,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": false,
+      "arm_symmetric": false
+    },
+    {
+      "memory_id": "django__django-11095",
+      "task_id": "django__django-16661",
+      "repo": "django/django",
+      "path": "django/contrib/admin/options.py",
+      "localizer_recall": false,
+      "region_lines": [
+        [
+          84,
+          89
+        ],
+        [
+          2479,
+          2486
+        ],
+        [
+          499,
+          543
+        ],
+        [
+          61,
+          180
+        ],
+        [
+          156,
+          222
+        ]
+      ],
+      "arms": {
+        "WITHOUT": {
+          "arm": "WITHOUT",
+          "edit_status": "ok",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [],
+          "response": "<<<<<<< SEARCH\n        related_objects = (\n            f\n            for f in self.opts.get_fields(include_hidden=True)\n            if (f.auto_created and not f.concrete)\n        )\n        for related_object in related_objects:\n            related_model = related_object.related_model\n            remote_field = related_object.field.remote_field\n            if (\n                any(issubclass(model, related_model) for model in registered_models)\n                and hasattr(remote_field, \"get_related_field\")\n                and remote_field.get_related_field() == field\n            ):\n                return True\n=======\n        # Exclude auto-created reverse relations that point to a primary\u2011key\n        # foreign key (i.e. OneToOneField with primary_key=True). These should\n        # not be considered when determining if a lookup is allowed, because\n        # they do not represent a concrete inheritance relationship.\n        related_objects = (\n            f\n            for f in self.opts.get_fields(include_hidden=True)\n            if (f.auto_created and not f.concrete)\n        )\n        for related_object in related_objects:\n            # Skip reverse relations that are created for a OneToOneField that\n            # is also the primary key of the related model.\n            if getattr(related_object.field, \"primary_key\", False):\n                continue\n            related_model = related_object.related_model\n            remote_field = related_object.field.remote_field\n            if (\n                any(issubclass(model, related_model) for model in registered_models)\n                and hasattr(remote_field, \"get_related_field\")\n                and remote_field.get_related_field() == field\n            ):\n                return True\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "e1003aef74f40daf89f6ea9566ae3b9e25904d0c58a989f57f05f3bd048234b2",
+          "input_tokens": 2569,
+          "output_tokens": 378,
+          "reasoning_tokens": 33,
+          "finish_reason": "stop",
+          "test_detail": ""
+        },
+        "WITH": {
+          "arm": "WITH",
+          "edit_status": "search_miss",
+          "reward": null,
+          "n_blocks": 1,
+          "misses": [
+            "absent:'    def lookup_allowed(self, lookup_path, value):\\n        \"\"'"
+          ],
+          "response": "<<<<<<< SEARCH\n    def lookup_allowed(self, lookup_path, value):\n        \"\"\"\n        Return True if the lookup is allowed, False otherwise.\n        \"\"\"\n        # Split the lookup path into its component parts.\n        parts = lookup_path.split(LOOKUP_SEP)\n        # Walk the parts, checking each one.\n        model = self.model\n        for i, part in enumerate(parts):\n            # Resolve the field name.\n            try:\n                field = model._meta.get_field(part)\n            except FieldDoesNotExist:\n                # If the field doesn't exist, the lookup is not allowed.\n                return False\n            # If this is the last part, we are done.\n            if i == len(parts) - 1:\n                break\n            # If the field is a relation, continue walking.\n            if isinstance(field, (models.ForeignKey, models.OneToOneField)):\n                model = field.remote_field.model\n                continue\n            # If the field is a many-to-many, we can't follow it.\n            if isinstance(field, models.ManyToManyField):\n                return False\n            # Otherwise, the lookup is not allowed.\n            return False\n        # If we get here, the lookup is allowed.\n        return True\n=======\n    def lookup_allowed(self, lookup_path, value):\n        \"\"\"\n        Return True if the lookup is allowed, False otherwise.\n        \"\"\"\n        # Split the lookup path into its component parts.\n        parts = lookup_path.split(LOOKUP_SEP)\n        # Walk the parts, checking each one.\n        model = self.model\n        for i, part in enumerate(parts):\n            # Resolve the field name.\n            try:\n                field = model._meta.get_field(part)\n            except FieldDoesNotExist:\n                # If the field doesn't exist, the lookup is not allowed.\n                return False\n            # If this is the last part, we are done.\n            if i == len(parts) - 1:\n                break\n            # If the field is a relation, continue walking.\n            # Skip foreign keys that are also primary keys \u2013 they are not\n            # inheritance links and should not be treated as concrete parents.\n            if isinstance(field, (models.ForeignKey, models.OneToOneField)):\n                if getattr(field, \"primary_key\", False):\n                    # Treat this as a normal field; cannot follow further.\n                    return False\n                model = field.remote_field.model\n                continue\n            # If the field is a many-to-many, we can't follow it.\n            if isinstance(field, models.ManyToManyField):\n                return False\n            # Otherwise, the lookup is not allowed.\n            return False\n        # If we get here, the lookup is allowed.\n        return True\n>>>>>>> REPLACE",
+          "contagion": {
+            "has_search_marker": true,
+            "has_separator": true,
+            "has_replace_marker": true,
+            "n_diff_marker_lines": 0,
+            "n_hunk_headers": 0
+          },
+          "prompt_sha256": "c3c6f51c742dbabb319cb1e6e4ff9f816b5f92c690e6504a78612745b8b7db4d",
+          "input_tokens": 2905,
+          "output_tokens": 706,
+          "reasoning_tokens": 101,
+          "finish_reason": "stop",
+          "test_detail": ""
+        }
+      },
+      "interpretable": false,
+      "arm_symmetric": false
+    }
+  ]
+}
