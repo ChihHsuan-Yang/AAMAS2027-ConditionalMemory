@@ -580,8 +580,33 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
 
     S.write_json_atomic(staging / "MANIFEST.json", manifest)
     gate_secret_scan_tree(staging)     # final sweep over what will actually ship
+
+    # Post-write gates: these read the ARTIFACT, not the rows in memory.
     gate_exported_file_revalidates(staging / "data" / "cells.jsonl", len(exported))
+    manifest["gates"]["written_file_revalidates"] = "PASS"
     gate_card_command_actually_runs(staging)
+    manifest["gates"]["data_card_command_runs"] = "PASS"
+
+    # Rewrite the manifest now that gates 4-5 have genuinely run, then re-hash it.
+    # MANIFEST.json's own entry is dropped rather than self-referentially hashed: a
+    # file cannot contain its own digest, and a stale one is worse than an absent one.
+    manifest["files"].pop("MANIFEST.json", None)
+    S.write_json_atomic(staging / "MANIFEST.json", manifest)
+
+    # FINAL sweep, after everything that touches the tree. The first tree scan ran
+    # before gates 4-5, so anything THEY deposited would have escaped it -- gate 5
+    # imports the shipped package and did, briefly, leave __pycache__ behind. A check
+    # placed before the last writer is not a check on what ships.
+    gate_secret_scan_tree(staging)
+
+    # Belt and braces: the manifest must name exactly the files present, or a consumer
+    # verifying hashes finds files nobody vouched for.
+    on_disk = {str(p.relative_to(staging)) for p in staging.rglob("*") if p.is_file()}
+    unlisted = sorted(on_disk - set(manifest["files"]) - {"MANIFEST.json"})
+    if unlisted:
+        raise GateFailure(
+            f"files present in staging but absent from MANIFEST.json: {unlisted}. "
+            f"Something wrote into the tree after the manifest was built.")
     return manifest
 
 
@@ -613,8 +638,13 @@ def gate_card_command_actually_runs(staging: Path) -> None:
         "print(rep.summary())\n"
         "raise SystemExit(0 if rep.ok else 3)\n"
     )
+    # -B / PYTHONDONTWRITEBYTECODE: importing the shipped package would otherwise leave
+    # code/p1mem/__pycache__/*.pyc INSIDE the staging tree -- and this gate runs AFTER
+    # gate_secret_scan_tree, the one check that rejects __pycache__. A verification step
+    # must not deposit artifacts into the thing it is verifying.
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
-    proc = subprocess.run([sys.executable, "-c", script], cwd=str(staging), env=env,
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    proc = subprocess.run([sys.executable, "-B", "-c", script], cwd=str(staging), env=env,
                           capture_output=True, text=True, timeout=600)
     if proc.returncode != 0:
         raise GateFailure(
