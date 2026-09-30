@@ -8,7 +8,7 @@ Run: /Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py
 Exit 1 if any claim fails to reproduce.
 """
 from __future__ import annotations
-import collections, json, statistics, sys
+import collections, json, re, statistics, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -258,11 +258,61 @@ check("truncated summaries admitted as ok=True",
           and m["truncated"] and m["ok"]), 7)
 
 print("== No variance share is quoted as a result ==")
+# P1-I13: this check was VOID. The exemption ("not identif" in body) was tested
+# over the WHOLE BODY, so a single occurrence anywhere -- there are two, both in
+# comments -- disarmed it for every banned term. Verified by planting
+# "a variance share of 0.41 (95% CI [0.33, 0.49])" in body prose: the old check
+# returned PASS. The defect class is a guard whose exemption is not scoped to
+# the thing it exempts.
+#
+# What actually matters is not the PHRASE but a NUMBER attached to it. The paper
+# must be able to say "we quote no variance share"; it must not be able to say
+# "the interaction's variance share is 0.41". So: strip comments, then flag a
+# banned phrase only when a numeral sits within 60 characters of it.
 tex = (REPO.parent / "overleaf" / "main.tex").read_text()
 body = tex[tex.index("\\begin{document}"):]
-banned = ["variance share", "interaction share", "share of variance"]
-hits = [b for b in banned if b in body.lower() and "not identif" not in body.lower()]
-check("no variance share quoted in the manuscript", hits, [])
+body = "\n".join(l for l in body.split("\n") if not l.lstrip().startswith("%"))
+banned = ["variance share", "interaction share", "share of variance",
+          "variance shares", "interaction shares"]
+hits = []
+for b in banned:
+    for m in re.finditer(re.escape(b), body.lower()):
+        near = body[max(0, m.start() - 60): m.end() + 60]
+        if re.search(r"\d*\.\d+|\b\d+\s*%|\b0\.\d", near):
+            hits.append(f"{b}: ...{' '.join(near.split())}...")
+check("no variance share quoted as a number in the manuscript", hits, [])
+
+print("== Efficiency ratios stated in the manuscript ==")
+# P1-I13: the paper said the charged reversal is "roughly 5x". True of
+# Structured (4.84x); for SUMMARY it is 1.08x -- indistinguishable -- and the
+# sentence is about Summary. Formation is amortised per MEMORY, not per cell.
+_rr = {"raw": (0.0368, 0.0368), "summary": (0.2054, 0.0342),
+       "structured": (0.0622, 0.0076)}
+check("uncharged Summary/Raw ratio", round(_rr["summary"][0] / _rr["raw"][0], 2), 5.58)
+check("charged Raw/Summary ratio is ~1, NOT ~5",
+      round(_rr["raw"][1] / _rr["summary"][1], 2), 1.08)
+check("charged Raw/Structured ratio", round(_rr["raw"][1] / _rr["structured"][1], 2), 4.84)
+_tex2 = REPO.parent / "overleaf" / "main.tex"
+if _tex2.is_file():
+    _b2 = _tex2.read_text()
+    check("manuscript does NOT claim a ~5x charged reversal for Summary",
+          ("more efficient representation by roughly $5" not in _b2), True)
+
+print("== CIs printed in the manuscript must match the artifact ==")
+# P1-I12: the paper once printed an episode-clustered CI no artifact contained,
+# because the audit checked the point estimate and never the interval.
+_k3 = REPO / "results/deltau_screened/analysis/k3_screened_analysis.json"
+_tex = REPO.parent / "overleaf" / "main.tex"
+if _k3.is_file() and _tex.is_file():
+    _p = json.loads(_k3.read_text())["paired_within_memory"]["BEARING_vs_MATCHED_CONTROL"]
+    _body = _tex.read_text()
+    for _name, _key in [("episode-clustered", "episode_clustered_ci"),
+                        ("memory bootstrap", "memory_bootstrap_ci")]:
+        lo, hi = _p[_key]
+        want = f"[+{lo:.4f}, +{hi:.4f}]"
+        check(f"manuscript prints the artifact's {_name} CI {want}", want in _body, True)
+else:
+    print("  SKIP  artifact or manuscript not present")
 
 print()
 if FAIL:

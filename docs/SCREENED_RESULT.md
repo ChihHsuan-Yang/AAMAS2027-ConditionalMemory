@@ -62,8 +62,8 @@ BEARING − MATCHED_CONTROL, per memory
 | source episodes | 35 |
 | **all-memories mean** (pre-registered; significance comes from this) | **+0.3349** |
 | contributors-only mean (conditional; conditions on an outcome) | +0.5740 |
-| memory bootstrap 95% CI | [+0.2138, +0.4622] |
-| **episode-clustered 95% CI — GOVERNS** | **[+0.1989, +0.4758]** |
+| memory bootstrap 95% CI | [+0.2085, +0.4606] |
+| **episode-clustered 95% CI — GOVERNS** | **[+0.1974, +0.4736]** |
 
 > **The governing interval excludes zero.** A memory that bears on a task raises task
 > reward by ≈ **0.33** on the population measure, and by ≈ **0.57** among the memories
