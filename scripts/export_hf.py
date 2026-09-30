@@ -559,8 +559,15 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
         "text_fields_withheld_counts": dict(withheld_counter),
         "validation": {"errors": len(report.errors), "warnings": len(report.warnings),
                        "codes": sorted(report.codes())},
+        # Gates 4 and 5 run AFTER this dict is built (they need the written file), so
+        # they are recorded as PENDING here and stamped PASS by build() once they have
+        # actually run. A manifest that claimed PASS before the check ran would be a
+        # provenance field nobody measured -- and the build raises rather than reaching
+        # the stamp if either fails, so PENDING can never survive into a shipped file.
         "gates": {"schema_validation": "PASS", "secret_scan": "PASS",
-                  "license_exclusion": "PASS"},
+                  "license_exclusion": "PASS",
+                  "written_file_revalidates": "PENDING",
+                  "data_card_command_runs": "PENDING"},
         "self_test": ("SKIPPED -- gates are not known to fire for this build"
                       if skip_self_test else selftest_log),
         "files": {},

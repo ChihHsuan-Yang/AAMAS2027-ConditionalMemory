@@ -341,6 +341,59 @@ def main() -> int:
                  "so a reader can see whether truncation drives the result.",
         "n_truncated_memories": {k: len(v) for k, v in trunc_locs.items()},
         "by_group": tsplit}
+    # --- SAME-SESSION sensitivity check (DEFECT R-2) -----------------------
+    # The Raw arm was measured 2026-09-29 and the new arms 2026-09-30, and the
+    # endpoint is deterministic within a session but not across them
+    # (cross_session_probe.json: 6/6 same-minute repeats identical, 6/6
+    # reproduce 09-30, 2/6 reproduce 09-29). r2b re-measured Raw's WITH arm on
+    # 100 cells TODAY with the cache disabled. Pairing that against the
+    # WITHOUT arm THIS run recorded -- whose context bytes are identical across
+    # representations, verified 554/554 -- gives a Raw dU measured entirely
+    # within one session, at zero extra endpoint cost.
+    rs_path = args.new_cells.parent / "raw_resample.json"
+    if rs_path.exists():
+        rs = json.loads(rs_path.read_text())
+        same: dict[str, float] = {}
+        for c in rs["cells"]:
+            k = f"{c['memory_unit_locator']}|{c['future_task_id']}"
+            if k not in common:
+                continue
+            # WITHOUT from THIS session. Byte-identical across summary and
+            # structured (554/554), so either is the same measurement.
+            wo = [float(r["reward_without_memory"])
+                  for r in cells_by_rep["summary"].get(k, [])
+                  if r.get("reward_without_memory") is not None]
+            if not wo:
+                continue
+            same[k] = float(c["now_reward"]) - float(np.mean(wo))
+        ks = sorted(same)
+        cross = {k: means["raw"][k] for k in ks if k in means["raw"]}
+        ss = {
+            "_what": "Raw dU computed ENTIRELY within the 2026-09-30 session: "
+                     "WITH from r2b's cache-disabled re-measurement, WITHOUT from "
+                     "this run. Compared against the cross-session Raw dU on the "
+                     "SAME cells, so the two numbers describe the same objects.",
+            "n_cells": len(ks),
+            "same_session_raw_mean_dU": (float(np.mean([same[k] for k in ks]))
+                                         if ks else None),
+            "cross_session_raw_mean_dU_same_cells": (
+                float(np.mean([cross[k] for k in sorted(cross)]))
+                if cross else None),
+            "n_cells_where_they_differ": sum(
+                1 for k in ks if k in cross and same[k] != cross[k]),
+        }
+        for rep in ("summary", "structured"):
+            kk = sorted(k for k in ks if k in means[rep])
+            d_same = [means[rep][k] - same[k] for k in kk]
+            d_cross = [means[rep][k] - cross[k] for k in kk if k in cross]
+            ss[f"{rep}_minus_raw"] = {
+                "n_paired_cells": len(d_same),
+                "same_session": bootstrap_paired(d_same, n_boot=args.n_boot),
+                "cross_session_same_cells": bootstrap_paired(
+                    d_cross, n_boot=args.n_boot),
+            }
+        q1["same_session_sensitivity"] = ss
+
     out["Q1_paired_delta_utility"] = q1
 
     # ======================================= Q3: harm, as COUNTS not rates
