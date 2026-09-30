@@ -311,6 +311,31 @@ def migrate_rows(
         n["text_fields_withheld"] = None
         n["reconstruction_required"] = None
 
+        # ---- provenance: record WHY config_sha256 is absent, where it is.
+        #
+        # scripts/k2_run_representations stamped configs/endpoint_primary.json's hash;
+        # scripts/r2_run_representations.py NEVER READS THAT FILE, so back-filling its
+        # current hash would be a provenance field nobody measured -- the run cannot
+        # be said to have used a config it never opened. The reader configuration is
+        # not lost: it is on every row (reader_model, reader_cluster,
+        # reader_reasoning_effort, seed_or_sampling_config, reader_endpoint_sha256)
+        # and is byte-identical to v0.1's. An explicit note is the honest record.
+        prov = n.get("provenance")
+        if isinstance(prov, dict) and not prov.get("config_sha256"):
+            prov = dict(prov)
+            prov["config_sha256"] = None
+            prov["config_sha256_absent_reason"] = (
+                "NOT RECORDED BY THE RUN. The writer for this arm "
+                f"({prov.get('run_id', 'unknown run')}) does not read "
+                "configs/endpoint_primary.json, so no hash of it was measured and "
+                "stamping one now would assert a provenance nobody took. The reader "
+                "configuration itself is fully present on the row -- reader_model, "
+                "reader_cluster, reader_reasoning_effort, seed_or_sampling_config and "
+                "reader_endpoint_sha256 -- and is identical to the v0.1 arms'.")
+            n["provenance"] = prov
+            stats.setdefault("provenance_config_sha_absent", 0)
+            stats["provenance_config_sha_absent"] += 1
+
         n["schema_version"] = S.SCHEMA_VERSION
 
         # Field order, and a hard check that we produced exactly the contract.

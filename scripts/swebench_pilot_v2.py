@@ -56,6 +56,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from p1mem.client import TruncatedResponseError  # noqa: E402
 from p1mem.adapters.swebench import (  # noqa: E402
     apply_edits,
     build_future_tasks,
@@ -208,7 +209,11 @@ def main() -> int:
     ap.add_argument("--repo", default="")
     ap.add_argument("--top-k", type=int, default=5)
     ap.add_argument("--max-lines", type=int, default=120)
-    ap.add_argument("--max-tokens", type=int, default=1024)
+    ap.add_argument("--max-tokens", type=int, default=2048,
+                    help="2048, not 1024: the v2 scaffold is longer and 1024 was "
+                         "consumed entirely by reasoning on at least one cell "
+                         "(reasoning_tokens=1022, empty content), which the client "
+                         "correctly refuses to score. BOTH arms share this value.")
     ap.add_argument("--variant", default=PromptVariant.V2_SYMMETRIC.value,
                     choices=[v.value for v in PromptVariant])
     ap.add_argument("--patch-format", default=PatchFormat.DEFANGED.value,
@@ -291,10 +296,25 @@ def main() -> int:
 
         arms: dict[str, Any] = {}
         for arm, bp in (("WITHOUT", p_without), ("WITH", p_with)):
-            content, rec = client.chat(
-                [{"role": "system", "content": bp.system},
-                 {"role": "user", "content": bp.user}],
-                max_tokens=args.max_tokens, temperature=0.0, reasoning_effort="low")
+            try:
+                content, rec = client.chat(
+                    [{"role": "system", "content": bp.system},
+                     {"role": "user", "content": bp.user}],
+                    max_tokens=args.max_tokens, temperature=0.0,
+                    reasoning_effort="low")
+            except TruncatedResponseError as e:
+                # The whole budget went to reasoning and the content is empty.
+                # The client is right to refuse to score it. Record it as its
+                # OWN status: folding it into `no_block` would attribute a
+                # budget exhaustion to the edit format, and folding it into
+                # `ok` is unthinkable. reward stays None either way.
+                calls += 1
+                arms[arm] = asdict(ArmResult(
+                    arm=arm, edit_status="truncated", reward=None,
+                    response="", contagion={},
+                    prompt_sha256=sha256_text(bp.system + "\n" + bp.user),
+                    test_detail=str(e)[:300]))
+                continue
             calls += 1
             er = apply_edits(src, content)
             ar = ArmResult(
@@ -409,6 +429,8 @@ def summarize(results: list[CellResult], calls: int, args, variant, pfmt) -> dic
         "apply_fail_rate_WITHOUT": round(af_without / n, 4) if n else None,
         "apply_fail_gap": round((af_with - af_without) / n, 4) if n else None,
         "apply_fail_denominator": n,
+        "truncated_WITH": sum(1 for r in interp if st(r, "WITH") == "truncated"),
+        "truncated_WITHOUT": sum(1 for r in interp if st(r, "WITHOUT") == "truncated"),
         "apply_fail_ci95_WITH": _wilson(af_with, n),
         "apply_fail_ci95_WITHOUT": _wilson(af_without, n),
         "edit_status_WITH": _counts(interp, "WITH"),
