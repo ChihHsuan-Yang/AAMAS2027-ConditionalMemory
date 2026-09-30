@@ -278,3 +278,59 @@ counts as dirty). v2 re-runs with the corrected screen.
 2. HF **v0.3** (SciCode, Apache-2.0, content OK) and **v0.4** (SWE-bench,
    **metrics + ids only** — the embargo guard must run in the exporter).
 3. Standing claim/evidence audit before any manuscript freeze.
+
+
+### Addendum 2 — 2026-09-30 ~18:45 CDT
+
+**Nothing is running.** All dispatched work has landed.
+
+| what | artifact | verdict |
+|---|---|---|
+| **SWE-bench representation arm v2** | `results/swebench/representations_v2.json`; slim + analysis tracked at `results/ledgers/repro/swebench/` | 128 calls, **0 dirty memories**, matched **n=13** (django only). summary−raw −0.1538 [−0.3846, 0.0] · structured−raw −0.0769 [−0.2308, 0.0]. **Both cross zero → NOT_ESTABLISHED** |
+| **Figure 5 complete** | Overleaf `4c2832a` | All three benchmark rows are real data |
+| **Cross-benchmark floor artifact** | `results/ledgers/repro/cross_benchmark_without_arm_floor.json` | LongMemEval 7/285=0.0246 · SciCode 5/135=0.0370 · SWE-bench **not measurable by design** |
+
+#### 🔴 A correction future readers must not undo
+
+An earlier Figure 5 caption said the benchmarks have "different execution
+floors (0 and 0.037)". **Those were two different quantities.** LongMemEval's
+`F_exec` is paired re-execution of the *same* prompt within one run; SciCode's
+0.037 was the WITHOUT arm compared *across representations*. And LongMemEval's
+**`F_empty` is UNMEASURED, not zero** — `k3_screened_analysis.json` records
+`WITHOUT_ARM_REUSED` for 108 groups because the cache served that arm. A cached
+zero is not a measured zero.
+
+The caption now quotes one construction for both, emitted as macros from
+`cross_benchmark_without_arm_floor.json`.
+
+#### Two join traps now recorded, both of which produced a confident zero
+
+1. **`condition_id` embeds the representation name** (`lmev2_summary_..._v1`),
+   so including it in a join key returns **zero rows**. My first attempt read
+   that empty join as "not measurable". Correct key:
+   `(memory_unit_locator, future_task_id)` → 285/285.
+2. `memory_id` is a per-representation content hash (the pre-existing trap,
+   hit three times). Use `memory_unit_locator`.
+
+**Always positive-control a join before believing its null.**
+
+#### SWE-bench has no WITHOUT-arm floor, by design and on purpose
+
+The runner issues the WITHOUT call **once per cell** and shares it across
+representations, so the term cancels exactly in every paired contrast. A `0`
+there would be an artefact of the design, not a measurement.
+`make_figures.py` **fails the build** if that number is ever emitted beside the
+two measured floors.
+
+#### Guard inventory — every one verified by planting its defect
+
+`audit_claims.py`: SciCode "inversion" wording. `make_figures.py`: SciCode
+verdict, SciCode intervals, SWE-bench verdict, SWE-bench intervals, SWE-bench
+acquiring a floor. `schema.py`: content-embargoed benchmarks.
+
+#### Next
+
+1. HF **v0.3** (SciCode — Apache-2.0, content redistributable).
+2. HF **v0.4** (SWE-bench — 🔴 **metrics + instance ids ONLY**; the exporter
+   must call `assert_content_redistributable`).
+3. Standing claim/evidence audit before any manuscript freeze.
