@@ -431,8 +431,21 @@ def memory_contagion_risk(body: str) -> dict[str, Any]:
     back. Measuring this on every memory before the run means a
     representation arm cannot silently reintroduce the defect that voided v1.
     """
-    lines = [ln for ln in body.splitlines()
-             if ln.startswith(("+", "-")) and not ln.startswith(("+++", "---"))]
+    # A bare leading +/- is not evidence of diff notation. Measured on the
+    # real corpus: django__django-11138's ISSUE TEXT draws an ASCII table
+    # whose borders are `+---+`, which a naive prefix test flags as six diff
+    # lines in a memory whose patch was defanged perfectly. Excluding
+    # table-drawing runs keeps the screen pointed at the thing it is for --
+    # a content line carried over from a unified diff.
+    def _is_diff_line(ln: str) -> bool:
+        if not ln.startswith(("+", "-")) or ln.startswith(("+++", "---")):
+            return False
+        rest = ln[1:]
+        if rest and set(rest.strip()) <= set("+-| "):
+            return False          # ASCII table rule / separator, not a diff
+        return True
+
+    lines = [ln for ln in body.splitlines() if _is_diff_line(ln)]
     return {
         "n_diff_marker_lines": len(lines),
         "n_hunk_headers": len(_DIFF_HEADER.findall(body)),
