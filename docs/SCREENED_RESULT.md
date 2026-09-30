@@ -73,6 +73,28 @@ Per the standing rule, all three numbers are reported together: the all-memories
 understates the mechanism, the contributors-only mean overstates the confidence, and the
 contributor count (35 of 60) is stated beside the nominal denominator.
 
+## 4b. 🔴 A scorer-composition confound in the headline — found by SA-HF, verified
+
+BEARING and MATCHED_CONTROL are disjoint in tasks by construction, and different tasks
+carry **different `eval_function` scorers**. So for some memories the *mix of scorers*
+differs between the two strata, and the paired contrast then differences two scorer mixes
+as well as two strata.
+
+Master Agent's independent split:
+
+| memories | paired B−MC |
+|---|---:|
+| scorer mix **constant** across strata (35) | **+0.3786** |
+| scorer mix **changes** (25) | **+0.2737** |
+| pooled (60) | **+0.3349** |
+
+> **The effect survives in both subsets**, so the confound does not overturn it — but the
+> pooled number is not purely a bearing contrast.
+
+**Reporting rule:** quote the pooled **+0.3349** as the headline and the constant-mix
+**+0.3786** beside it as the confound-free subset. The constant-mix figure is *larger*, so
+the confound works **against** us and correcting for it strengthens the result.
+
 ## 5. Sign structure
 
 | stratum | positive cells | zero | negative |
