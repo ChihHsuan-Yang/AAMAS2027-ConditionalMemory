@@ -397,6 +397,52 @@ if _tex3.is_file():
                 _bad.append(f"{_w!r} @char {_m.start()}: ...{_ctx}...")
     check("manuscript does not call the SciCode difference an inversion", _bad, [])
 
+# The benchmarks must stay asymmetric: LongMemEval is the primary positive
+# result; SciCode and SWE-bench are boundary evidence whose contrasts cross
+# zero. Language implying all three establish the same effect is forbidden.
+if _tex3.is_file():
+    _b4 = "\n".join(l for l in _tex3.read_text().split("\n")
+                    if not l.lstrip().startswith("%"))
+    _l4 = _b4.lower()
+    _sym = []
+    for _p in ("all three benchmarks show", "all three benchmarks confirm",
+               "all three benchmarks establish", "replicated across all three",
+               "consistent across all three benchmarks",
+               "confirmed on all three", "holds on all three"):
+        if _p in _l4:
+            _sym.append(_p)
+    check("manuscript does not claim all three benchmarks show the same effect",
+          _sym, [])
+    # The limits sentence must actually be present: a caveat that is deleted
+    # is not detectable by a ban-list, so require the positive statement too.
+    _has_limit = ("does not generalize" in _l4 or "not reproduced" in _l4
+                  or "do not generalize" in _l4)
+    check("manuscript states the cross-benchmark ordering does NOT generalize",
+          _has_limit, True)
+    # SWE-bench redistribution. TWO independent markers are required, because
+    # a single licence-absence phrase is satisfiable incidentally: a first
+    # version of this check passed a planted document where the ruling had
+    # been reversed to "declares a permissive licence", because the unrelated
+    # clause "no license field in its hub metadata" still matched.
+    # Match against whitespace-normalised text with LaTeX markup stripped:
+    # the sentence wraps across lines and contains \emph{...}, so a regex
+    # written against the on-screen wording fails on the file as stored.
+    _flat = re.sub(r"\\emph\{([^}]*)\}", r"\1", _l4)
+    _flat = re.sub(r"\\texttt\{([^}]*)\}", r"\1", _flat)
+    _flat = re.sub(r"[\s\\]+", " ", _flat)
+    _m1 = bool(re.search(
+        r"corpus declares no licen[cs]e|licen[cs]e is undeclared",
+        _flat))
+    _m2 = bool(re.search(
+        r"absent licen[cs]e is not a permissive", _flat))
+    _m3 = bool(re.search(
+        r"(instance identifiers|instance ids)[^.]{0,140}"
+        r"(derived measurements|measurements only)", _flat))
+    check("manuscript states the SWE-bench corpus licence is undeclared "
+          f"(markers declares-no={_m1} absent-not-permissive={_m2} ids-only={_m3}; "
+          "2 of 3 required)",
+          sum((_m1, _m2, _m3)) >= 2, True)
+
 print("== Efficiency ratios stated in the manuscript ==")
 # P1-I13: the paper said the charged reversal is "roughly 5x". True of
 # Structured (4.84x); for SUMMARY it is 1.08x -- indistinguishable -- and the
