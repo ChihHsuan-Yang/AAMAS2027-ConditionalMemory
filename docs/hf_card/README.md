@@ -26,16 +26,22 @@ configs:
     is "pending".
   - `license: apache-2.0` is correct for THIS release because every row derives from
     LongMemEval-V2 only (verified: 4,519/4,519 rows carry
-    license_source_reference='longmemeval_v2:Apache-2.0'). If a BEAM-derived row is ever
-    added, this file is WRONG and the row belongs in a separate CC BY-SA 4.0 dataset.
+    license_source_reference='longmemeval_v2:Apache-2.0' -- re-verified at v0.2 on
+    5,643/5,643). If a BEAM-derived row is ever added, this file is WRONG and the row
+    belongs in a separate CC BY-SA 4.0 dataset.
 -->
 
 # Conditional Memory Utility Dataset
 
-> **v0.1 — `lmev2-derived`. 4,519 real evaluated cells, 0 fabricated rows.**
-> This release contains the LongMemEval-V2 arms only. The headline result is a
-> **negative result on the project's own founding hypothesis** (§12), and the
-> limitations in §18–19 are measured constraints, not boilerplate.
+> **v0.2 — `repr-derived`. 5,643 real evaluated rows, 0 fabricated rows.**
+> LongMemEval-V2 only, now in **three matched memory representations**: the 4,519 Raw
+> rows of v0.1 plus **1,124 Summary and Structured rows** over the same memories, tasks
+> and reader. The headline is a **negative result on the project's own founding
+> hypothesis** (§12); v0.2 adds a **second negative result** — compressing the same
+> experience with the same writer and reader **destroys the measured benefit** (§12.1),
+> and the cost advantage that appears to compensate **disappears once the compression is
+> charged for its own formation** (§14.1). The limitations in §18–19 are measured
+> constraints, not boilerplate.
 
 ---
 
@@ -79,9 +85,10 @@ effect over overwhelmingly many inert pairs**, not because the sign varies.
 | BEAM | **excluded by license** | must ship as a separate CC BY-SA 4.0 dataset |
 | SciCode | not run | — |
 
-Measured, not assumed: **4,519 / 4,519** rows carry
+Measured, not assumed: **5,643 / 5,643** rows carry
 `license_source_reference = 'longmemeval_v2:Apache-2.0'`. Pinned benchmark revision
-`2cc8c540bdb87fe6761629b585e727e1c4704520`.
+`2cc8c540bdb87fe6761629b585e727e1c4704520` — the same revision for both the v0.1 and the
+v0.2 arms.
 
 ## 4. Source episodes and the memory unit
 
@@ -92,24 +99,48 @@ fitted to any question.
 
 Measured over the released rows:
 
-| quantity | value |
-|---|---|
-| rows | **4,519** |
-| cells (memory × task × condition) | **2,117** |
-| distinct memories | **117** |
-| distinct future tasks | **275** |
-| distinct source trajectories | **77** |
-| errored cells (no outcome, no reward) | **2** |
+| quantity | value | of which v0.2's new arms |
+|---|---|---|
+| rows | **5,643** | 1,124 |
+| cells (memory × task × condition) | **2,679** | 562 |
+| distinct `memory_id` | **234** | 117 |
+| distinct **source memories** (`memory_unit_locator`) | **117** | 60 |
+| distinct future tasks | **275** | 126 |
+| distinct source trajectories | **77** | — |
+| errored rows (no outcome, no reward) | **2** (1 cell) | 0 |
+
+⚠️ **`memory_id` doubles but the number of source memories does not.** `memory_id` is a
+**content hash**, so the same span compressed three ways yields three different ids by
+design — 234 ids over 117 source spans. **To join representations, use
+`memory_unit_locator` (in `source_episode_metadata`), never `memory_id`.** A `memory_id`
+join across representations returns **zero rows**, which reads as "no data" rather than
+"wrong key"; this project hit that silent zero three times before writing it down.
 
 ## 5. Memory representations
 
-**This release contains `raw` only** — 4,519/4,519 rows. Raw is the verbatim source span:
-deterministic, no writer model, no extraction call. Summary and structured representations
-are defined in the schema but **not present here**, and several fields are null *because*
-of that (§7).
+**v0.2 ships all three.** Measured on the released file:
+
+| representation | rows | writer | what it is |
+|---|---:|---|---|
+| `raw` | **4,519** | none (`none:deterministic_span`) | the verbatim source span. No model call. |
+| `summary` | **570** | `gpt-oss-120b` on metis | free-prose compression of that same span |
+| `structured` | **554** | `gpt-oss-120b` on metis | JSON-schema'd compression of that same span |
+
+The three arms are **matched**: same 60 source memories, same 126 future tasks, same
+reader model, cluster, prompt version, reasoning effort and sampling config
+(`reader_endpoint_sha256 = 7e6b0a4f53fd08e0` on every row of both releases). 277 design
+cells are present in all three representations, over 57 memories.
 
 Raw selection uses no future task and there is deliberately **no "pick the most informative
 span" rule** — that would smuggle in the value judgment the dataset exists to measure.
+Summary and Structured compress that same span; their `parent_memory_id` points at the raw
+memory they were written from (§7).
+
+⚠️ **Structured has 554 rows, not 570.** 8 design cells were dropped because the write
+failed: 3 of 60 structured writes hit the 512-token cap and returned JSON cut off
+mid-value. The exclusion is recorded per cell, not silently dropped, and the denominators
+below say which. **All 3 failures are `finish_reason == 'length'`** — a budget failure,
+not a formatting one.
 
 ## 6. Memory acquisition and writer blindness
 
@@ -122,15 +153,83 @@ task-directed writing is impossible by construction.
 
 ## 7. Fields that are null, and exactly why
 
-**A null here is a documented fact, never an oversight.** Five fields are null on every row:
+**A null here is a documented fact, never an oversight.** **Three** fields are null on
+every row. **Two more were null in v0.1 and are now populated** — because their reasons
+were contingent on every row being `raw`, and v0.2 ends that.
 
 | field | why it is null |
 |---|---|
-| `source_episode_completion_timestamp` | **No wall-clock field exists anywhere in LongMemEval-V2.** An exhaustive key scan of all 1,870 trajectories returns only `{domain, environment, goal, id, outcome, start_url, states}`, and states carry only `{accessibility_tree, action, screenshot, state_index, step, thought, url}`. `state_index` is an *order*, not a timestamp. (LongMemEval **V1** does ship real dates, so the field is defined for a future V1 arm.) |
-| `parent_memory_id` | Every row is `raw`. A raw span has no parent *memory*; its parent is the episode, already in `source_episode_id`. |
-| `faithfulness_check` | **There is no valid automatic score for raw.** Raw *is* the source text, so a source-grounded proxy compares the text with itself and returns 1.0 by construction. A column of 1.0s would assert that every memory was checked and passed. See `faithfulness_notes` on each row. |
-| `context_budget` | **No truncation budget was ever enforced.** `memory_tokens_exposed == memory_tokens_retrieved` on 2,599/2,599 screened rows and the runner has no context cap. (The 20,000-token cap in our design docs is a memory-*selection* rule, not an exposure cap.) |
-| `propagation_metadata` | P3-reserved. P1 is single-agent; a value could only be fabricated. The validator rejects a non-null value. |
+| `source_episode_completion_timestamp` | **No wall-clock field exists anywhere in LongMemEval-V2.** An exhaustive key scan of all 1,870 trajectories returns only `{domain, environment, goal, id, outcome, start_url, states}`, and states carry only `{accessibility_tree, action, screenshot, state_index, step, thought, url}`. `state_index` is an *order*, not a timestamp. Re-checked at v0.2: same benchmark revision `2cc8c540`. (LongMemEval **V1** does ship real dates, so the field is defined for a future V1 arm.) |
+| `context_budget` | **No truncation budget was ever enforced.** `memory_tokens_exposed == memory_tokens_retrieved` on **5,643/5,643** rows. Re-checked for the new arm specifically: the representation runner's `truncate_to_tokens` is called **only on the embedding path**, never on the reader's context. (The 20,000-token cap in our design docs is a memory-*selection* rule, not an exposure cap.) |
+| `propagation_metadata` | P3-reserved. P1 is single-agent; a value could only be fabricated. The validator rejects a non-null value. Re-checked: `receiver_id`, `receiver_role`, `visibility_mask` and `team_reward` are null on all 1,124 new rows. |
+
+### 7.1 🔴 Two nulls that v0.2 had to fix, because their REASONS were about to become false
+
+This is worth stating plainly, because the failure would have been invisible.
+
+**`faithfulness_check`.** v0.1's reason — "raw *is* the source text, so the proxy returns
+1.0 by construction" — is still true for raw, and raw rows still carry null. But the
+exporter's other branch wrote, on any non-raw row:
+*"NOT SCORED. No faithfulness proxy was run for this representation."*
+No non-raw row existed, so that sentence was never false. **It is false for v0.2's 1,124
+rows**: the proxy runs at write time and every one of them carries a real score.
+A null beside a stated reason that is untrue is worse than a null with no reason, because
+the reader has no cue to check it. The validator now rejects that combination outright.
+
+| representation | memories | scored | mean number_support | mean entity_support |
+|---|---:|---:|---:|---:|
+| summary | 60 | **60** | **0.9968** | **0.9372** |
+| structured | 60 | **57** | **1.0000** | **0.8322** |
+| raw | 60 | 0 — correctly, it is a tautology | — | — |
+
+**`parent_memory_id`.** "A raw span has no parent memory" is still true, and raw rows
+still carry null. Summary and Structured were compressed *from* the raw span at the same
+locator, and that raw memory is already a published row — so the parent is a **verified
+join, not an invention**. Joined on `memory_unit_locator`, never on `memory_id` (a content
+hash that differs across representations *by design*; joining on it returns zero rows and
+reads as "no data"). **117 locators, 0 ambiguous; 1,124 joined, 0 unjoined**, and the
+exporter refuses to write on a partial join. Positive control: recomputing each raw
+`memory_id` from its write-time record reproduces the **published v0.1 id on 60/60**.
+
+### 7.2 One axis is not the score — why `faithfulness_detail` exists
+
+`faithfulness_check` is a single float (`number_support`: numeric literals in the memory
+that appear in the source). Shipping only it would have been a **second tautology,
+reached by a different route**:
+
+| | `number_support == 1.0` **and** `entity_support < 1.0` |
+|---|---|
+| structured | **55 of 57 memories** |
+| summary | **37 of 60 memories** |
+
+Structured averages number_support **1.0000** against entity_support **0.8322** — a
+single-float column would report it as a flat, perfect score. So the **full multi-axis
+result ships in `faithfulness_detail`** (schema v3's one added field). Both axes ship or
+neither does.
+
+**Read it asymmetrically.** The proxies are blind to recombination, omission, unsupported
+inference and negation, so a **high score is weak evidence** of faithfulness while a **low
+score is strong evidence** of a problem. `entity_support` is a **lower bound**:
+sentence-initial capitalised verbs ("Clicked", "Performed") and the structured renderer's
+own key names ("memory_type") are counted as unsupported without being model-invented.
+
+**24 rows carry a null `faithfulness_check` with a non-null `faithfulness_detail`.** Those
+memories contain **no numeric literal**, so `number_support` has an empty denominator;
+the scorer returns null rather than a perfect 1.0, precisely so a number-free memory
+cannot lift the corpus mean. The other axes were measured normally. Their
+`faithfulness_notes` says exactly this.
+
+### 7.3 A provenance key the new run never recorded
+
+The 1,124 new rows carry `provenance.config_sha256 = null`, and the validator emits
+**1,124 `provenance_incomplete` warnings**. We did **not** back-fill the current hash of
+`configs/endpoint_primary.json`: **the representation runner never reads that file**, so a
+run cannot be said to have used a config it never opened, and stamping one would be a
+provenance field nobody measured. Each affected row instead carries
+`provenance.config_sha256_absent_reason`. The configuration itself is not lost — it is on
+every row as `reader_model`, `reader_cluster`, `reader_reasoning_effort`,
+`seed_or_sampling_config` and `reader_endpoint_sha256`, and that last value is
+**`7e6b0a4f53fd08e0` on both v0.1 and v0.2**: the reader arm is identical.
 
 `utility_label` is `undetermined` and `utility_label_threshold` is null on every row — see §11.
 
@@ -245,6 +344,34 @@ nothing to do with is not evidence that memory utility is task-conditional — i
 that both outcomes were noise. **The flip rate is largely an artifact of the pairing,
 including in our own earlier arms.**
 
+### 12.1 🔴 v0.2: compression destroys the effect
+
+The three representations are **matched** — same 60 source memories, same tasks, same
+writer/reader configuration — so this is a clean within-memory comparison. Paired
+BEARING − MATCHED_CONTROL, on the **277 design cells present in all three
+representations**, **57 memories**, 10,000-sample percentile bootstrap over memories:
+
+| representation | paired B−MC | 95% CI | non-zero contributors |
+|---|---:|---|---:|
+| **Raw** | **+0.3174** | **[+0.1924, +0.4474]** | 33 / 57 |
+| Summary | +0.0613 | [−0.0417, +0.1631] | 26 / 57 |
+| Structured | −0.0498 | [−0.1418, +0.0385] | 20 / 57 |
+
+> **Only Raw's interval excludes zero.** Summarizing or structuring the *same* source
+> experience, with the same writer, reader and tasks, **removes the measured benefit.**
+> Structured's point estimate is negative, but its CI spans zero, so **no harm is
+> claimable either** — the honest reading is "the effect is gone", not "it reversed".
+
+This is a **second negative result**, and it is on a mechanism the field assumes: that a
+good summary preserves what matters. At these compression ratios (0.063 summary, 0.037
+structured) it does not. We tested two points, both ≤ 0.063; **whether a gentler
+compression preserves the effect is untested.**
+
+⚠️ **Read this alongside §19.13.** The Raw arm was run on 2026-09-29 and the two new arms
+on 2026-09-30, and the serving endpoint moved between those days. The conclusion does not
+rest on that join — a same-session re-measurement reproduces it — but every Raw-vs-new
+contrast carries a per-cell noise term a same-session comparison would not.
+
 ## 13. Harmfulness — what cannot be claimed
 
 🔴 **No harmful-memory rate is claimable from this dataset.** There are 2 negative BEARING
@@ -267,10 +394,42 @@ Storage (`memory_tokens`, `storage_bytes`), retrieval (`retrieval_latency`,
 | `memory_extraction_latency = null` | **no call was made.** Excluded from a mean latency, never averaged in as 0.0. |
 | `reasoning_tokens = null` | **not reported by this cluster.** Metis reports it; Sophia omits it. Must be excluded from a denominator, not summed as zero. |
 
-`compression_ratio = 1.0` on every row: raw **is** the source span, verified by joining all
-2,599 screened rows to the unit manifest (`memory_tokens == n_tokens`, 2,599/2,599). It is
-stored anyway because raw's 1.0 is the control that makes a future summary arm's 0.2
-interpretable.
+`compression_ratio = 1.0` on every raw row: raw **is** the source span, verified by
+joining all 5,643 rows to the unit manifest (100% join, 0 misses). Raw's 1.0 is the
+control that makes the new arms' ratios interpretable: **median 0.0162 (summary)** and
+**0.0151 (structured)** — roughly 60× compression.
+
+### 14.1 🔴 v0.2: the cost ranking REVERSES once formation is charged
+
+This is the part most likely to be quoted wrongly, so both columns ship. BEARING cells
+common to all three representations (135 cells, 57 memories), ΔU per 1,000 tokens as a
+ratio of totals:
+
+| representation | median exposed tok | ΔU / 1k, **exposure only** | ΔU / 1k, **formation charged** |
+|---|---:|---:|---:|
+| Raw | 8,344 | +0.0368 | **+0.0368** |
+| **Summary** | 282 | **+0.2054** | **+0.0340** |
+| Structured | 216 | +0.0622 | +0.0077 |
+
+> **Charge nothing for writing the memory, and Summary looks 5.6× more token-efficient
+> than Raw. Charge each representation for its own formation cost — which our protocol
+> requires — and Summary drops to 0.92× Raw, i.e. no better, while Structured becomes
+> 4.8× WORSE.** The ranking does not survive the accounting.
+
+Amortized formation cost is **1,637 tokens/cell (summary)** and **1,676 (structured)**:
+the writer read the whole ~7.6k-token source segment to produce a 282-token memory, and
+that read is billed. **Raw's figure is identical in both columns** (+0.0368 either way),
+which is the correctness test for the attribution — raw makes zero extraction calls, so
+if it had moved at all the cost would have been mis-assigned.
+
+⚠️ **Neither Summary column is a superior operating point**, because both rest on a mean
+whose CI includes zero (§12.1). The honest statement is that **at this compression ratio
+there is no operating point where compression wins**, once its own cost is paid.
+
+⚠️ **Amortization is a design parameter, not a property of the representation.** Each
+memory here is reused across **4.86 cells**. A deployment reusing one memory hundreds of
+times would drive the formation term toward zero and recover the exposure-only column.
+That is exactly why both are reported and neither is called "the" number.
 
 ## 15. Retrieval
 
@@ -293,7 +452,7 @@ id was minted, is caught.
 **Authoritative document: `docs/BENCHMARK_LICENSES.md`, shipped in this release with its
 sha256 in `MANIFEST.json`.** That document governs; this section summarizes.
 
-Every row here derives from **LongMemEval-V2, Apache-2.0** (verified on 4,519/4,519 rows),
+Every row here derives from **LongMemEval-V2, Apache-2.0** (verified on 5,643/5,643 rows),
 so source text **is** redistributed, with attribution and a NOTICE of modifications.
 
 **Withheld by policy, and absent from this release:**
@@ -328,14 +487,18 @@ model is `gpt-oss-120b` on Metis and `openai/gpt-oss-120b` on Sophia. Group by
 
 Each of these is a **measured** constraint with a command behind it.
 
-1. **Raw representation only, at scale.** 4,519/4,519 rows are `raw`. Nothing here supports
-   a claim about summary or structured memories, and the representation comparison the
-   schema is built for is **not in this release**.
+1. **The three arms are not balanced.** 4,519 of 5,643 rows are `raw`; Summary and
+   Structured contribute 570 and 554. The representation comparison (§12.1, §14.1) is
+   therefore run on the **277 design cells present in all three**, over **57 memories** —
+   not on the full corpus — and that is the denominator every representation claim
+   should be read against. A Raw-only statistic computed over all 5,643 rows is *not*
+   comparable to the matched subset.
 2. **93.6% of memories are embedded from a TRUNCATED PREFIX.** The embedding server's real
    ceiling cannot be counted locally (the budget is enforced in Qwen tokens; the server
    tokenizes with Mistral), so a conservative 2,000-Qwen-token budget is used. At that
    budget only **29 of 1,889** units fit whole. In this release, **2,512 of 2,599** screened
-   rows have `input_truncated = true`. So `semantic_similarity` describes a **prefix**, not
+   rows have `input_truncated = true` (**4,336 of 5,643** across the whole v0.2 release).
+   So `semantic_similarity` describes a **prefix**, not
    the memory the reader saw. Direction of the bias is predictable: truncation **attenuates**
    any similarity–utility relationship toward zero — which **cuts against our own
    convenience**, since "similarity predicts utility poorly" is a claim adjacent to ours.
@@ -359,28 +522,99 @@ Each of these is a **measured** constraint with a command behind it.
    **23 distinct trajectories** — six page visits from one browsing episode are six views of
    one episode, not six independent memories — so a Wilson interval treating them as
    independent is **too narrow**. Report the episode-clustered reading as the governing one.
-8. **`leakage_flag` is the same instrument as the bearing detector** (2,599/2,599), so the
-   two are not independent signals here (§9).
-9. **A scorer-composition confound in the paired contrast.** Each task keeps the benchmark's
-   own `eval_function`, so this is *not* arm-dependence — but **25 of 60** memories draw on a
-   different set of scorers in BEARING than in MATCHED_CONTROL. Split: **+0.3786** on the 35
-   memories whose scorer mix is constant, **+0.2737** on the 25 where it changes, **+0.3349**
-   pooled. The effect survives in both, but the pooled number differences two scorer mixes
-   as well as two strata.
+8. **`leakage_flag` and the bearing detector are the same instrument on `raw`, and
+   v0.2 shows they come apart on the compressed arms.** On the **1,979 screened rows**
+   (the only rows where both are populated):
+
+   | arm | `leakage_flag == detector_fires` |
+   |---|---|
+   | raw | **855 / 855** — identical, as in v0.1 |
+   | summary | 334 / 570 |
+   | structured | 318 / 554 |
+
+   On raw they are **not independent signals**, so a "leakage-controlled bearing effect"
+   cannot be computed from these two columns (§9). On the compressed arms they diverge
+   in a specific direction: in **466 of the 472** disagreements the detector fires while
+   `leakage_flag` does not — i.e. the screen singled the *source span* out for this task,
+   but the compressed memory no longer contains the leaking string. **That is a
+   consequence of compression, not a second opinion about bearing**, and it is measured
+   here rather than interpreted: we do not claim it explains §12.1.
+9. 🔴 **A scorer-composition confound in the paired contrast — and it acts AGAINST the
+   effect.** Each task keeps the benchmark's own `eval_function`, so this is *not*
+   arm-dependence (which the protocol forbids) — but **25 of 60** memories draw on a
+   different set of scorers in BEARING than in MATCHED_CONTROL, so the pooled contrast
+   differences two scorer mixes as well as two strata. Re-derived from the v0.2 file:
+
+   | subset | memories | paired B−MC |
+   |---|---:|---:|
+   | scorer mix **constant** | 35 | **+0.3786** |
+   | scorer mix **changed** | 25 | **+0.2737** |
+   | pooled | 60 | **+0.3349** |
+
+   **The direction matters and is easy to get backwards.** The clean subset — the 35
+   memories where the confound cannot operate — shows the **LARGER** effect. So the
+   confound is *diluting* the pooled estimate, not manufacturing it: correcting for it
+   would move the headline **up**, not down. That makes it a caveat on the precision of
+   +0.3349, not a threat to the finding. It is still reported, because a confound that
+   happens to work in your favour is still a confound, and the reader should not have to
+   take our word for which way it points.
 10. **Single reader model, single cluster, one corpus.** Cross-model generality is untested.
 11. **Constructed filler contexts** (K = 4 memories) are smaller than a realistic agent store.
 12. **English only**, web/enterprise GUI trajectories only.
+13. 🔴 **v0.2: the Raw arm and the two new arms were run on DIFFERENT DAYS, and the
+    serving endpoint moved between them.** Raw was collected 2026-09-29, Summary and
+    Structured on 2026-09-30. Found by a control that had no reason to fail: the WITHOUT
+    arm renders byte-identical context in all three representations, so its answers must
+    agree. **Within** the 09-30 run they do exactly — summary-WITHOUT vs
+    structured-WITHOUT identical on **554/554**, and replicate-to-replicate identical on
+    **285/285** and **277/277**. Against the 09-29 Raw run, on prompts re-derived and
+    hash-matched byte-identical, they do not: **text differs on 302 of 570 rows (53.0%)**
+    and **reward on 14 (2.46%)**.
+
+    A cache-disabled probe settles which side moved: same-minute repeats **6/6**
+    identical, reproduces the 09-30 answer **6/6**, reproduces the 09-29 answer **2/6**.
+    So this is a **serving change between the two days**, not temperature-0 sampling
+    noise.
+
+    **Sized, not assumed.** Raw's WITH arm was re-measured on 100 cells on 09-30 with the
+    cache disabled and the target position asserted to reproduce the original on 100/100:
+    reward identical on **86/100**, changed on 14 (**7 up, 7 down**), **mean reward
+    0.3100 → 0.3100, difference +0.0000**. The drift is symmetric and mean-preserving on
+    that sample, and a fully same-session Raw ΔU reproduces the contrast (summary−raw
+    −0.1515 same-session vs −0.1616 cross-session, n=99).
+
+    **The §12.1 conclusion does not rest on the cross-session join.** But every
+    Raw-vs-new comparison in this release carries a per-cell noise term a same-session
+    comparison would not, and a user computing a per-cell Raw-vs-Summary difference
+    should know that before treating it as signal.
+14. **`faithfulness_detail` is a proxy, not a judgment** (§7.2). High scores are weak
+    evidence; only low scores are informative. `entity_support` is a lower bound with a
+    measured false-alarm floor. No LLM judge was run, deliberately — a judge score
+    silently entering a table labelled "deterministic proxy" is the failure being
+    avoided.
 
 ## 20. Version history
 
 | version | date | contents |
 |---|---|---|
-| **v0.1 `lmev2-derived`** | 2026-09-30 | First upload. 4,519 rows / 2,117 cells from three LongMemEval-V2 arms (screened, pilot, official-prompt). Schema v2, 97 fields. |
+| **v0.1 `lmev2-derived`** | 2026-09-30 | First upload. 4,519 rows / 2,117 cells from three LongMemEval-V2 arms (screened, pilot, official-prompt). All `raw`. Schema v2, 97 fields. |
+| **v0.2 `repr-derived`** | 2026-09-30 | **+1,124 rows**: the matched Summary (570) and Structured (554) arms over the same memories, tasks and reader. **5,643 rows total.** Schema **v3**, **98 fields** (`faithfulness_detail` added). `faithfulness_check` and `parent_memory_id` are now populated on the new rows (§7.1). Adds §12.1 (compression destroys the effect), §14.1 (the cost ranking reverses once formation is charged) and §19.13 (cross-session drift between the arms). |
+| v0.3 *(planned)* | — | SciCode-derived rows. Run in flight at v0.2; **not** included, and no claim is made about it here. |
+| v0.4 *(planned)* | — | SWE-bench Verified rows. Run in flight at v0.2; a localized pilot found an arm asymmetry that must be resolved first. |
 
-Schema `p1mem_conditional_memory_utility_v2`, **97 fields**. v2 added 20 fields over v1:
-17 from the required field list (chronology, lineage, quality, bearing, efficiency, P3
-groups), of which 5 are null by design with the reasons in §7; plus 3 **export-provenance**
-fields (`license_policy`, `text_fields_withheld`, `reconstruction_required`) written by the
+**Every v0.1 row is re-shipped under v3**, not left at v2: presence is the contract, so a
+v2 row lacks `faithfulness_detail` and would fail the validator published beside it. The
+re-migration was checked to reproduce v0.1's 4,519 rows **field-for-field**, with the sole
+intended exception of `faithfulness_notes` — the sentence being corrected. The `v0.1`
+tag keeps its own pinned copy of the v2 data and the v2 validator, so v0.1 remains
+verifiable on its own terms.
+
+Schema `p1mem_conditional_memory_utility_v3`, **98 fields**. **v3 added exactly one
+field over v2**, `faithfulness_detail` (§7.2) — a bump rather than a cosmetic change,
+because presence is the contract and a v2 row lacking the key fails v3 validation. v2 had
+added 20 fields over v1: 17 from the required field list (chronology, lineage, quality,
+bearing, efficiency, P3 groups), of which **3 remain null by design** with the reasons in
+§7; plus 3 **export-provenance** fields (`license_policy`, `text_fields_withheld`, `reconstruction_required`) written by the
 exporter rather than the runner. Those three were previously added to published rows
 *without* being in the schema, which made every published row fail the validator published
 beside it — caught by downloading the release and running its own documented command, and
@@ -397,13 +631,27 @@ reason is harder to catch than a wrong verdict.
 import sys; sys.path.insert(0, "code")          # the shipped schema.py + validate.py
 from p1mem import schema as S, validate as V
 rows = S.load_jsonl("data/cells.jsonl", strict=True)
-print(V.validate_dataset(rows).summary())        # expect: 4519 rows | 0 errors
+print(V.validate_dataset(rows).summary())        # expect: 5643 rows | 0 errors
 ```
 
-The warnings it prints are **intended** and each is documented above:
-`zero_execution_noise` (§11), `all_labels_undetermined` (§11),
-`scorer_composition_differs_across_strata` (§19.9), and two `unknown_error_code` rows
-(§4 — 2 errored cells carrying no reward).
+Expected output, exactly — **0 errors and 1,129 warnings**, every warning intended and
+documented:
+
+```
+5643 rows | 0 errors | 1129 warnings
+  all_labels_undetermined: 1                          §11 — the noise floor is unmeasured
+  provenance_incomplete: 1124                         §7.3 — a config hash the run never took
+  scorer_composition_differs_across_strata: 1         §19.9 — and it acts AGAINST the effect
+  unknown_error_code: 2                               §4  — 2 errored rows carrying no reward
+  zero_execution_noise: 1                             §11 — temperature-0 determinism
+```
+
+**A warning here is a finding, not lint.** None of them is suppressed, and none should be
+"fixed" by loosening the check that raises it.
+
+`unknown_error_code` fires on 2 rows whose cell hit an `endpoint_error`: an operational
+code outside the enum. Those rows correctly carry **no reward**, so no result was
+fabricated to fill the gap.
 
 ## 21. Relation to P3
 
