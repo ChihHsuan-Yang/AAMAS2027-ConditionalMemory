@@ -217,3 +217,64 @@ disclosure — AAMAS requires it and the section is still empty)**.
    silently ship, but a *missing* regeneration can leave you editing the wrong number.
 5. **Never quote a number you have not re-derived from an artifact.**
 6. **Never `git add -A`.** Stage explicit paths and verify with `git show --stat`.
+
+---
+
+## Live addendum — 2026-09-30 ~18:20 CDT (Master Agent, mid-session)
+
+Appended rather than rewritten so the section above keeps its structure. Where
+the two disagree, **this addendum is newer**.
+
+### Finished since the block above
+
+| what | artifact | verdict |
+|---|---|---|
+| **SciCode representation scale-up** | `results/scicode/scaleup_all3.json` (untracked, sha256 in MANIFEST) · slim slice + analysis tracked at `results/ledgers/repro/scicode/` | 154 pairs / 924 arm-runs. Matched n=122. **All contrasts cross zero → `ORDERING_VERDICT: NOT_ESTABLISHED`.** F_exec = 0.0370 is **larger** than the biggest point estimate |
+| **Figure 5, populated** | `main.tex` + `figdata.tex` at Overleaf `5bba778` | Paired per-cell representation contrast, task-clustered — the one quantity both benchmarks define identically. LongMemEval + SciCode rows real; SWE-bench row **visibly empty and labelled** |
+| **SWE-bench representation arm, v1** | `results/swebench/representations_v1.json` + `representations_analysis.json` | 126 calls, 96 rep-cells. Matched n=12, all contrasts cross zero. ⚠️ **superseded by v2** (see below) |
+| **SWE-bench content embargo** | `docs/BENCHMARK_LICENSES.md` §5 · `p1mem.schema.CONTENT_EMBARGOED_BENCHMARKS` | 🔴 **SWE-bench declares NO licence.** Metrics + ids only. Enforced in code, 4 tests |
+
+### Running right now
+
+| what | how to check | state |
+|---|---|---|
+| **SWE-bench representation arm, v2** | `results/swebench/representations_v2.json`; log `logs/swebench_repr2.log` (**block-buffered — empty ≠ stalled**) | pid **75561**, launched ~18:06 CDT |
+
+```bash
+/Users/bellayang/miniconda3/bin/python3 scripts/swebench_representations.py \
+  --cells 32 --out results/swebench/representations_v2.json
+# then:
+/Users/bellayang/miniconda3/bin/python3 scripts/swebench_analyze_representations.py \
+  --src results/swebench/representations_v2.json \
+  --out results/swebench/representations_v2_analysis.json
+```
+
+**Why v2 exists:** v1's contagion screen flagged one *raw* memory as dirty.
+Investigated instead of reported — the defanged patch contributed **zero** diff
+lines; the six offending lines were `+---+` **ASCII table borders in the issue
+text**. The screen was wrong, not the defanging. `_is_diff_line` now excludes
+table rules while still failing closed on ambiguous cases (`- item one` still
+counts as dirty). v2 re-runs with the corrected screen.
+
+### Known limits a new agent must not overstate
+
+- **SWE-bench is django-only and small.** v1 matched **12** cells of 32 selected.
+  The dominant loss is the **localizer** (11/32 miss the region), then
+  unapplicable edits. Its both-arms-fail is re-derived on the matched set, never
+  inherited from the presence pilot's 37.5% — a different cell set is a
+  different gate.
+- **"Inversion" is forbidden** for the SciCode/LongMemEval difference. Two
+  independent guards enforce it (`audit_claims.py`, `make_figures.py`), **both
+  verified by planting the defect**. Permitted: *"the point-estimate ordering
+  differs across benchmarks."*
+- **Figure 5 plots contrasts, not per-representation ΔU.** The benchmarks have
+  different execution floors (0 vs 0.0370); the contrast differences them out.
+  Do not add a bar chart of raw ΔU across benchmarks.
+
+### Next, in order
+
+1. Analyse SWE-bench v2 on the matched basis; fill or keep-empty the Figure 5 row
+   **by what the analysis says**, not by the fact that the run finished.
+2. HF **v0.3** (SciCode, Apache-2.0, content OK) and **v0.4** (SWE-bench,
+   **metrics + ids only** — the embargo guard must run in the exporter).
+3. Standing claim/evidence audit before any manuscript freeze.
