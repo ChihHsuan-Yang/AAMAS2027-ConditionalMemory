@@ -1,0 +1,399 @@
+{
+  "scorer_controls_passed": 32,
+  "scorer_controls_total": 32,
+  "leakage_controls_passed": 5,
+  "leakage_controls_total": 5,
+  "all_passed": true,
+  "scorer_controls": [
+    {
+      "control": "POS gold->1.0",
+      "step": "10.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "1.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "3.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "4.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "6.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "7.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "19.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "78.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "29.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "38.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "44.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "47.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "49.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "51.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "POS gold->1.0",
+      "step": "70.1",
+      "expect_reward": 1.0,
+      "expect_error": false,
+      "observed_reward": 1.0,
+      "observed_kind": "pass",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "NEG perturbed-output->0.0",
+      "step": "10.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_10_1.py\", line 43, in <module>\n    assert np.allclose(get_alpha(np.linalg.inv(EX1['latvec']).T), target)\n           ~~~~~~~~~"
+    },
+    {
+      "control": "NEG constant-0->0.0",
+      "step": "10.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_10_1.py\", line 26, in <module>\n    assert np.allclose(get_alpha(np.linalg.inv(EX1['latvec']).T), target)\n           ~~~~~~~~~"
+    },
+    {
+      "control": "NEG perturbed-output->0.0",
+      "step": "1.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_1_1.py\", line 57, in <module>\n    assert np.allclose(cg(A, b, x0,tol), target)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "control": "NEG constant-0->0.0",
+      "step": "1.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_1_1.py\", line 19, in <module>\n    assert np.allclose(cg(A, b, x0,tol), target)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "control": "NEG perturbed-output->0.0",
+      "step": "3.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_3_1.py\", line 62, in <module>\n    assert np.allclose(GS(A, b, eps, x_true, x0), target)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^"
+    },
+    {
+      "control": "NEG constant-0->0.0",
+      "step": "3.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_3_1.py\", line 26, in <module>\n    assert np.allclose(GS(A, b, eps, x_true, x0), target)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^"
+    },
+    {
+      "control": "NEG perturbed-output->0.0",
+      "step": "4.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_4_1.py\", line 43, in <module>\n    assert np.allclose(ichol(A), target)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionErro"
+    },
+    {
+      "control": "NEG constant-0->0.0",
+      "step": "4.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_4_1.py\", line 16, in <module>\n    assert np.allclose(ichol(A), target)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionErro"
+    },
+    {
+      "control": "NEG perturbed-output->0.0",
+      "step": "6.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_6_1.py\", line 47, in <module>\n    assert np.allclose(apply_low_pass_filter(image_array, frequency_threshold), target)\n       "
+    },
+    {
+      "control": "NEG constant-0->0.0",
+      "step": "6.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_6_1.py\", line 14, in <module>\n    assert np.allclose(apply_low_pass_filter(image_array, frequency_threshold), target)\n       "
+    },
+    {
+      "control": "NEG perturbed-output->0.0",
+      "step": "7.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_7_1.py\", line 48, in <module>\n    assert np.allclose(apply_band_pass_filter(image_array, bandmin,bandmax), target)\n          "
+    },
+    {
+      "control": "NEG constant-0->0.0",
+      "step": "7.1",
+      "expect_reward": 0.0,
+      "expect_error": false,
+      "observed_reward": 0.0,
+      "observed_kind": "wrong_answer",
+      "observed_is_error": false,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_7_1.py\", line 14, in <module>\n    assert np.allclose(apply_band_pass_filter(image_array, bandmin,bandmax), target)\n          "
+    },
+    {
+      "control": "ERR empty-response->None",
+      "step": "10.1",
+      "expect_reward": null,
+      "expect_error": true,
+      "observed_reward": null,
+      "observed_kind": "no_code_block",
+      "observed_is_error": true,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "ERR prose-refusal->None",
+      "step": "10.1",
+      "expect_reward": null,
+      "expect_error": true,
+      "observed_reward": null,
+      "observed_kind": "no_code_block",
+      "observed_is_error": true,
+      "passed": true,
+      "stderr_tail": ""
+    },
+    {
+      "control": "ERR syntax-error->None",
+      "step": "10.1",
+      "expect_reward": null,
+      "expect_error": true,
+      "observed_reward": null,
+      "observed_kind": "syntax_error",
+      "observed_is_error": true,
+      "passed": true,
+      "stderr_tail": "File \"/tmp/sci_harness/controls/score_10_1.py\", line 4\n    def get_alpha(:\n                  ^\nSyntaxError: invalid syntax"
+    },
+    {
+      "control": "ERR wrong-function-name->None",
+      "step": "10.1",
+      "expect_reward": null,
+      "expect_error": true,
+      "observed_reward": null,
+      "observed_kind": "function_not_defined",
+      "observed_is_error": true,
+      "passed": true,
+      "stderr_tail": "get_alpha not defined in the response"
+    },
+    {
+      "control": "ERR runtime-error->None",
+      "step": "10.1",
+      "expect_reward": null,
+      "expect_error": true,
+      "observed_reward": null,
+      "observed_kind": "runtime_error",
+      "observed_is_error": true,
+      "passed": true,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/tmp/sci_harness/controls/score_10_1.py\", line 26, in <module>\n    assert np.allclose(get_alpha(np.linalg.inv(EX1['latvec']).T), target)\n                    "
+    }
+  ],
+  "leakage_controls": [
+    {
+      "control": "LEAK planted-signature-must-fire",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "control": "LEAK clean-must-be-silent",
+      "expected": false,
+      "observed": false,
+      "passed": true,
+      "detectors": {
+        "exact": false,
+        "normalized": false,
+        "numeric": null
+      }
+    },
+    {
+      "control": "LEAK real-positive 19.1->65.1 (tensor)",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "control": "LEAK real-negative 1.1->65.1",
+      "expected": false,
+      "observed": false,
+      "passed": true
+    },
+    {
+      "control": "LEAK leakage.py own controls",
+      "expected": true,
+      "observed": true,
+      "n_controls": 17,
+      "passed": true
+    }
+  ]
+}
