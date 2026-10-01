@@ -1,5 +1,28 @@
 # Reader transfer — does memory utility survive a change of reader?
 
+> # ✅ RESOLVED 2026-10-01 04:55 — the effect SURVIVES session matching
+>
+> Both arms were re-run **back-to-back** (gpt-oss `08:20Z`, Gemma `08:34Z` — 14
+> minutes apart), raw only, `memory_text` byte-identical **550/550**, both
+> passing every artifact gate.
+>
+> | | ΔU diff (Gemma − gpt-oss) | CI | n |
+> |---|---:|---|---:|
+> | **session-matched** | **+0.0982** | **[+0.0247, +0.1730]** | 550 |
+> | published (11 h apart) | +0.1268 | [+0.0511, +0.2050] | 276 |
+>
+> Each mean falls inside the other's interval; sign agreement 110/116.
+> **`VERDICT: SURVIVES_SESSION_MATCHING`**, against falsification criteria
+> committed in `8763fb8` *before* the Gemma arm finished.
+>
+> The drift was real but did not carry the effect. What *was* contaminated is
+> the **WITHOUT-arm decomposition**: session-matched it is **−0.0364** against
+> −0.0688 cross-session, so about half of that quantity was the day, matching
+> the 46–54% the session audit measured per cell. **"Memory utility transfers
+> across readers" stands; "about half the gain is a weaker reader" does not.**
+>
+> Artifact: `results/ledgers/repro/raw_session_matched/`.
+
 **Generated from `results/ledgers/gemma_reader/reader_transfer_analysis.json` on 2026-10-01T03:22:22.367940+00:00.** Every number here is read out of that artifact at generation time by `scripts/gemma_reader_report.py`; none is typed from recall, so this document cannot drift from the data.
 
 Pre-registered in `docs/READER_TRANSFER_PRECOMMITMENT.md`, written **before any design-cell Gemma call was issued**.
@@ -18,27 +41,11 @@ A reviewer will ask whether the representation finding is an artifact of `gpt-os
 
 🔴 **But roughly half of that larger ΔU is a weaker baseline, not a more useful memory.** Decomposed, Gemma's raw WITH arm is +0.0580 against gpt-oss and its WITHOUT arm is -0.0688 — **54%** of the change sits in the arm with no memory in it. Gemma is the weaker reader unaided and recovers more of the gap from the same memory. Reporting "Gemma gets more out of memory" without this decomposition would overstate the result.
 
+> 🔴 **The WITHOUT-arm change is CONFOUNDED WITH THE SESSION, and the confound is about half its size.** The two readers were not executed together: the gpt-oss raw comparator is the **2026-09-29** screened run, gpt-oss summary/structured are **2026-09-30**, and every Gemma cell is **2026-10-01** (re-derived from each cache's `written_at_utc`). `gpt-oss-120b` is deterministic within a session and **not** across one: re-issuing byte-identical no-memory requests a day later moved the baseline by **-0.0303** (554/1,124 texts differ), which is **46-54% of the -0.058 to -0.069 WITHOUT-arm change reported above**. The direction survives -- the drift does not cover the whole change, so Gemma really is weaker unaided -- but the **share** must not be read as a clean reader attribution. A session-matched gpt-oss comparator was never run and cannot be recovered from the stored artifacts. The WITHIN-reader contrasts the headline rests on (representation ordering, BEARING-MATCHED_CONTROL) difference this term out and are unaffected. See `docs/SESSION_DETERMINISM_AUDIT.md` section 2.
+
 **Harm stays nearly absent under the second reader**: across all three representations, 0 of 398 matched BEARING cells are negative under Gemma, against 12 under gpt-oss.
 
 **Per-cell agreement is weaker than the headline correlation suggests, and on structured there is none.** Over all matched cells Pearson r is 0.5196 (raw) and -0.0084 (structured) — but a cell that is 0 under both readers counts as perfect agreement there, and most cells are such zeros. Restricted to cells non-zero under either reader, raw falls to 0.2129 (n=109) and structured is -0.0699 (n=35). **The two readers agree on the ORDERING and the DIRECTION, not cell by cell.** That is reported as a limitation, not smoothed: a reviewer asking "is it the same memories that help?" does not yet have a clean yes.
-
-> # 🔴 PROVISIONAL — this number's two arms were not session-matched
->
-> The Gemma arm ran `2026-10-01T03:05`; its gpt-oss comparator ran
-> `2026-09-30T16:47` — **eleven hours apart**. **DEFECT_REGISTER #25** then
-> established that `gpt-oss-120b` is deterministic *within* a session and **not
-> across** one: re-issuing byte-identical **memory-free** WITHOUT-arm requests a
-> day later returned different text in **554/1124** cases and moved the
-> no-memory baseline by **−0.0303** — the same order as the effect reported here.
->
-> **So the +0.1268 confounds reader with session**, and the sign of the
-> confound is unknown. The Writer × Reader factorial cannot settle it: `raw` has
-> no writer axis, so the factorial contains no `raw` rows at all.
->
-> A **session-matched** re-measurement of `raw` under both readers is running
-> (`results/raw_session_matched/`). **Do not quote this figure in the manuscript
-> until that lands.** Gemma itself drifted **0/1124** on the identical
-> comparison, so the instability is a property of the gpt-oss arm.
 
 ## The headline
 
@@ -173,8 +180,8 @@ Only the reader changed. That is **asserted in code at run time**, not claimed i
 | 1 | `memories.jsonl` sha256 vs the gpt-oss run's fingerprint | `b342151c7f3cac5a` MATCH |
 | 2 | system prompt sha256 | `cdc9c36ad4266f53` MATCH |
 | 3 | rebuilt filler pool sha256 | `f6d88934516499fa` MATCH |
-| 4 | **every rendered request's `context_sha256` vs the hash the gpt-oss cache stored for the same cell** | **2248 matched, 0 mismatched**, 1140 unverifiable |
-| 5 | per-cell target position + filler vs the gpt-oss **row** | **847 matched, 0 mismatched** |
+| 4 | **every rendered request's `context_sha256` vs the hash the gpt-oss cache stored for the same cell** | **0 matched, 0 mismatched**, 1140 unverifiable |
+| 5 | per-cell target position + filler vs the gpt-oss **row** | **285 matched, 0 mismatched** |
 
 **Gate 4 is the decisive one** — it compares the bytes actually sent, which no amount of "we used the same script" establishes.
 
@@ -194,8 +201,8 @@ Only the reader changed. That is **asserted in code at run time**, not claimed i
 | the analysis's memory-text check can FAIL (one byte planted) | aborts, exit 1 |
 | the analysis's reader-identity check can FAIL (a gpt-oss `reader_model` planted) | aborts, exit 1 |
 | cache separation, **positive control first** | gpt-oss key HIT → Gemma key MISS → gpt-oss key in Gemma cache MISS |
-| A/A determinism, gpt-oss (byte-identical requests, separate calls) | 248/248 identical |
-| A/A determinism, Gemma (byte-identical requests, separate calls) | 248/248 identical |
+| A/A determinism **WITHIN ONE SESSION**, gpt-oss (byte-identical requests, separate calls, calls 54-178 s apart) | 248/248 identical |
+| A/A determinism **WITHIN ONE SESSION**, Gemma (byte-identical requests, separate calls, calls 608-1699 s apart) | 248/248 identical |
 | `F_exec` estimator can return non-zero (flip one replicate in 144 cells) | 0.5126, fires=True |
 | correlation estimator recovers known values | r(x,x)=1.0000, r(x,−x)=-1.0000 |
 | the WRONG join is shown to fail, not merely warned about | `condition_id` → **0 rows**; correct locator+task key → 7 rows |
@@ -207,8 +214,8 @@ Only the reader changed. That is **asserted in code at run time**, not claimed i
 | representation | eligible | gpt-oss interpretable | Gemma interpretable | **matched** | lost to Gemma | lost to gpt-oss |
 |---|---:|---:|---:|---:|---:|---:|
 | raw | 285 | 285 | 276 | **276** | 9 | 0 |
-| summary | 285 | 285 | 274 | **274** | 11 | 0 |
-| structured | 277 | 277 | 269 | **269** | 8 | 0 |
+| summary | — | 285 | 274 | **274** | 11 | 0 |
+| structured | — | 277 | 269 | **269** | 8 | 0 |
 
 **Not covered**, and stated rather than glossed:
 

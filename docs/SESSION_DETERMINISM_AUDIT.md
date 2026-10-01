@@ -223,6 +223,47 @@ missing and are now fixed:
 
 ---
 
+## 4b. A second defect found while fixing the first (not a determinism claim)
+
+Making `w4_factorial_controls.py` record *which row file* its drift figure came
+from wrote `str(args.oss_rows)` into the artifact — an **absolute
+`/Users/<name>/` path**, straight into `results/ledgers/`, which is
+**git-tracked** and which `README.md` advertises as the reviewer-facing repro
+slice. That is **defect #23 reproduced by the fix for defect #25**.
+
+Scanning the tree then found it was **not** mine alone: **9 tracked ledger
+files** already carried **15** absolute home paths, including
+`results/ledgers/repro/k3_screened_analysis.json` — inside the directory the
+README points reviewers at.
+
+> **GATE 2b's pattern was right; its SUBJECT was too narrow.** Verified by
+> running the real `scan_text_for_identity` over the real pre-fix strings: it
+> **FIRES** on both, and is **SILENT** on the sanitised forms. The gate simply
+> never ran over `results/ledgers/` — `gate_identity_scan_tree` is only called
+> on the HF staging tree. *A scanner aimed at one tree certifies nothing about
+> another.*
+
+Fixed in three places, source first:
+
+| | |
+|---|---|
+| emitters | 7 scripts now write **repo-relative** paths via `_rel_to_repo`; `tokenizer_provenance` redacts the home prefix to `~/` |
+| existing artifacts | all 9 sanitised — **and every numeric value re-read before and after** (9,504 in the largest file) to prove a path rewrite moved no measurement |
+| the gate | `audit_claims.py` now scans `results/ledgers`, `docs/hf_card`, `docs/submission` **and the manuscript** |
+
+**The new gate is proven able to fail, both ways.** Planting the exact string
+that shipped into `k3_screened_analysis.json` makes the audit exit **1** naming
+the file; restoring it returns exit **0**. And because a clean scan over zero
+files looks identical to a clean scan over many, the gate asserts
+`_scanned > 20` — mutating `_SCAN_ROOTS` to a nonexistent tree fails on
+*"identity scan actually opened files (not a vacuous glob)"* rather than
+passing with an empty `[]`.
+
+⚠️ Note on that mutation test: the first attempt wrote the mutant to `/tmp`,
+which also moved `REPO` (derived from `__file__`) and made the script exit 1
+for an unrelated missing artifact. **A control must hold one variable** — the
+mutant was re-run from inside `scripts/` so only `_SCAN_ROOTS` changed.
+
 ## 5. What a future agent must do
 
 1. **Never compare arms executed in different sessions** without either
@@ -243,7 +284,7 @@ missing and are now fixed:
 
 ```bash
 cd <repo>
-PY=/Users/<user>/miniconda3/bin/python3   # system python3 is 3.9 and breaks pytest
+PY="$(conda info --base)/bin/python3"   # system python3 is 3.9 and breaks pytest
 
 # A/A counts AND the intra-pair time gaps that make them within-session
 $PY - <<'PY'

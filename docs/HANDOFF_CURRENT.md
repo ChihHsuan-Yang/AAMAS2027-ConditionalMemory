@@ -342,16 +342,18 @@ acquiring a floor. `schema.py`: content-embargoed benchmarks.
 
 Newest section wins where it conflicts with anything above.
 
-### 🟡 The headline result of this phase: memory utility TRANSFERS across readers — **PROVISIONAL**
+### ✅ The headline result of this phase: memory utility TRANSFERS across readers — **CONFIRMED session-matched**
 
-> 🔴 **Updated 2026-10-01 03:50.** The two arms below were **not session-matched**
-> (Gemma `10-01T03:05`, gpt-oss comparator `09-30T16:47`). **Defect 25** then
-> showed `gpt-oss-120b` drifts across sessions by −0.0303 on a **memory-free**
-> prompt — the same order as this effect. **The +0.1268 therefore confounds
-> reader with session.** A session-matched `raw` re-measurement is running
-> (`results/raw_session_matched/`). Gemma drifted 0/1124, so the instability is
-> the gpt-oss arm's. **Do not put this figure in the manuscript until the
-> re-measurement lands.**
+> ✅ **Resolved 2026-10-01 04:55.** The arms below were 11 h apart and defect 25
+> made that a real confound, so both were **re-run 14 minutes apart**: raw,
+> 550 matched cells, `memory_text` byte-identical 550/550.
+> **Session-matched: +0.0982 [+0.0247, +0.1730], excludes zero.** Each mean
+> lies inside the other's CI; sign agreement 110/116.
+> `VERDICT: SURVIVES_SESSION_MATCHING` against criteria committed before the
+> data existed.
+> **What did not survive** is the WITHOUT-arm decomposition: −0.0364
+> session-matched vs −0.0688 cross-session. Quote the transfer result; do
+> **not** quote "about half the gain is a weaker reader".
 
 `docs/READER_TRANSFER_RESULT.md` · artifacts `results/gemma_reader/` · slim slice
 and analysis tracked under `results/ledgers/repro/gemma_reader/`

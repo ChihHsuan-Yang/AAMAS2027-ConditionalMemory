@@ -1,22 +1,27 @@
 # Writer × Reader — does it matter which model wrote the memory?
 
-> # 🔴 PROVISIONAL — this number's two arms were not session-matched
+> # ✅ RESOLVED 2026-10-01 04:55 — the effect SURVIVES session matching
 >
-> The Gemma arm ran `2026-10-01T03:05`; its gpt-oss comparator ran
-> `2026-09-30T16:47` — **eleven hours apart**. **DEFECT_REGISTER #25** then
-> established that `gpt-oss-120b` is deterministic *within* a session and **not
-> across** one: re-issuing byte-identical **memory-free** WITHOUT-arm requests a
-> day later returned different text in **554/1124** cases and moved the
-> no-memory baseline by **−0.0303** — the same order as the effect reported here.
+> Both arms were re-run **back-to-back** (gpt-oss `08:20Z`, Gemma `08:34Z` — 14
+> minutes apart), raw only, `memory_text` byte-identical **550/550**, both
+> passing every artifact gate.
 >
-> **So the +0.1268 confounds reader with session**, and the sign of the
-> confound is unknown. The Writer × Reader factorial cannot settle it: `raw` has
-> no writer axis, so the factorial contains no `raw` rows at all.
+> | | ΔU diff (Gemma − gpt-oss) | CI | n |
+> |---|---:|---|---:|
+> | **session-matched** | **+0.0982** | **[+0.0247, +0.1730]** | 550 |
+> | published (11 h apart) | +0.1268 | [+0.0511, +0.2050] | 276 |
 >
-> A **session-matched** re-measurement of `raw` under both readers is running
-> (`results/raw_session_matched/`). **Do not quote this figure in the manuscript
-> until that lands.** Gemma itself drifted **0/1124** on the identical
-> comparison, so the instability is a property of the gpt-oss arm.
+> Each mean falls inside the other's interval; sign agreement 110/116.
+> **`VERDICT: SURVIVES_SESSION_MATCHING`**, against falsification criteria
+> committed in `8763fb8` *before* the Gemma arm finished.
+>
+> The drift was real but did not carry the effect. What *was* contaminated is
+> the **WITHOUT-arm decomposition**: session-matched it is **−0.0364** against
+> −0.0688 cross-session, so about half of that quantity was the day, matching
+> the 46–54% the session audit measured per cell. **"Memory utility transfers
+> across readers" stands; "about half the gain is a weaker reader" does not.**
+>
+> Artifact: `results/ledgers/repro/raw_session_matched/`.
 
 **Generated from `results/ledgers/writer_factorial/writer_factorial_analysis.json` on 2026-10-01T06:22:16.518455+00:00.** Every number here is read out of that artifact at generation time by `scripts/w5_factorial_report.py`; none is typed from recall, so this document cannot drift from the data.
 
@@ -329,8 +334,8 @@ Loss balance across strata — a loss falling mainly on BEARING would bias the B
 | the WRONG joins are RUN and shown to fail | `condition_id` → **0 rows**; `memory_id` → **0 rows**; correct locator+task key → 2 rows |
 | the four contrast estimators recover KNOWN values | fires=True (writer/oss 0.0, writer/gem 0.5, interaction 0.5, same-family 0.25) |
 | `F_exec` estimator can return non-zero (flip one replicate in 144 cells) | 0.5098, fires=True |
-| A/A determinism, gemma_4_31B_it (byte-identical requests, separate calls) | 244/244 identical |
-| A/A determinism, gpt_oss_120b (byte-identical requests, separate calls) | 248/248 identical |
+| A/A determinism **WITHIN ONE SESSION**, gemma_4_31B_it (byte-identical requests, separate calls, calls 176-583 s apart) | 244/244 identical |
+| A/A determinism **WITHIN ONE SESSION**, gpt_oss_120b (byte-identical requests, separate calls, calls 57-191 s apart) | 248/248 identical |
 | cache separation across writers, **positive control first** | published key HIT → writer-Gemma-shaped key MISS → published key in the factorial cache MISS; VERDICT=True |
 | truncations REFUSED by the three-observable guard | 72 rows |
 | no truncated response was ever scored | 0 rows carry an error code AND a non-null delta (must be 0) |
