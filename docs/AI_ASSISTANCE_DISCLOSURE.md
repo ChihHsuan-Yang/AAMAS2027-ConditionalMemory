@@ -10,6 +10,24 @@ Policy text, verified from the official site 2026-09-29:
 > design, detailed information should be provided in the paper or in the supplementary
 > material, including the prompt used, as well as the AI tool and its version.**"*
 
+> ### 🔴 Re-verification attempted 2026-10-01 (SA-PAGE) and NOT achieved
+>
+> The page-budget work needed to know whether the "paper **or** supplementary"
+> clause above is quoted correctly, because moving this section to supplementary
+> turns on it. **I could not re-verify it from a live source.** `aamas2027.org`
+> does **not resolve** (DNS failure, three hosts tried), the Wayback Machine holds
+> **no snapshot** of it, `ifaamas.org` is up but links only AAMAS 2026 and has no
+> 2027 page, and web search is unavailable in this environment. The quote above is
+> therefore still a **single-source claim** resting on the 2026-09-29 fetch, with
+> no second reading of the original.
+>
+> **Consequence for the page budget:** the disclosure was NOT moved to
+> supplementary. The 8-page body is closed by other means, or not at all. A move
+> would have been a format decision resting on an unre-verifiable permission, and
+> the standing instruction is that it must be permitted **and** documented. It is
+> documented here; it is not currently re-verified. Anyone with site access should
+> re-read the clause and record the date before relying on it.
+
 Two facts that bind us:
 1. AI was used in **experimental design**, not only in code and polishing. The heavier
    disclosure clause therefore applies.
