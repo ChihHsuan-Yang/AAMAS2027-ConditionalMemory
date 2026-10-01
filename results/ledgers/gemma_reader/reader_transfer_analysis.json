@@ -1,0 +1,1291 @@
+{
+  "_what": "READER-TRANSFER: gpt-oss-120b vs gemma-4-31B-it reading the IDENTICAL memory artifacts. Only the reader differs.",
+  "_matched_set_rule": "every comparison is computed on pair keys interpretable under BOTH readers for that representation; denominators are printed beside every number; means over different cell sets are never compared.",
+  "generated_at_utc": "2026-10-01T03:15:15.544544+00:00",
+  "replicate_policy": {
+    "n_replicates_used": 2,
+    "_why": "prereg 12 makes the balanced minimum-replicate subset primary. gpt-oss ran 3 replicates on raw BEARING+MC and 2 everywhere else; both readers are read at the first N."
+  },
+  "reader_identity": {
+    "_what": "task 3: re-confirm on THIS run that the cache cannot have served a gpt-oss response to a Gemma request.",
+    "gemma_run_reader_model_counts": {
+      "gemma-4-31B-it": 1694
+    },
+    "gptoss_comparator_reader_model_counts": {
+      "gpt-oss-120b": 1979
+    },
+    "gemma_rows_all_gemma": true,
+    "gptoss_rows_all_gptoss": true,
+    "readers_are_disjoint": true,
+    "gemma_reader_cluster": [
+      "metis"
+    ],
+    "gptoss_reader_cluster": [
+      "metis"
+    ],
+    "same_cluster_so_not_a_cluster_comparison": true,
+    "gemma_condition_ids": [
+      "lmev2_raw_metis_gemma4_31B_readertransfer_v1",
+      "lmev2_structured_metis_gemma4_31B_readertransfer_v1",
+      "lmev2_summary_metis_gemma4_31B_readertransfer_v1"
+    ],
+    "gptoss_condition_ids": [
+      "lmev2_raw_metis_gptoss120b_screened_v1",
+      "lmev2_structured_metis_gptoss120b_screened_v1",
+      "lmev2_summary_metis_gptoss120b_screened_v1"
+    ],
+    "condition_ids_disjoint": true,
+    "gemma_reasoning_tokens_all_null": true
+  },
+  "memory_text_byte_identity": {
+    "compared": 1694,
+    "identical": 1694,
+    "differ": 0,
+    "examples": [],
+    "_positive_control": {
+      "_what": "the same comparison against text with one byte appended MUST report differ; otherwise 'identical' proves only that the comparison never looks at the bytes",
+      "detects_one_byte_change": true
+    }
+  },
+  "join_traps_demonstrated": {
+    "_what": "run the WRONG joins and show what they return, so the rule is evidence rather than a quoted warning.",
+    "probe_pair_key": "013696c4:28-28|38726e61",
+    "rows_matched_by_memory_unit_locator_and_task": 7,
+    "rows_matched_by_condition_id": 0,
+    "rows_matched_by_memory_id": 0,
+    "condition_id_join_returns_zero": true,
+    "_note": "condition_id embeds BOTH the representation and the reader, so it can never match across readers. memory_id is a content hash shared by the same source unit across representations, so it over-matches. Only the locator+task key is correct."
+  },
+  "known_label_drift_raw_writer_prompt_version": {
+    "_what": "memory_writer_prompt_version differs between the screened raw ledger and memories.jsonl; memory_id digests it, so raw memory_ids differ across the two readers while the memory TEXT is byte-identical.",
+    "screened_raw_label": [
+      "page_visit_segmentation_v1"
+    ],
+    "gemma_raw_label": [
+      "raw_whole_segment@1.0.0"
+    ],
+    "writer_model_matches": true,
+    "memory_text_byte_identical": true,
+    "affects_any_number_here": false,
+    "_why_not": "the join key is (memory_unit_locator, future_task_id); memory_id is never used to join."
+  },
+  "unscoreable_ledger": {
+    "_rule": "reward/delta None means COULD NOT BE SCORED. Excluded from means and counted here. NEVER coerced to 0.0.",
+    "_not_missing_at_random": "Gemma losses are truncations: the response hit max_tokens=512. That is non-outcome-based (it does not depend on correctness) but it is NOT random -- cells whose answer needs more tokens are systematically likelier to be lost. The matched-set rule removes the resulting bias from the PAIRED comparison, because a cell lost under either reader is dropped from BOTH.",
+    "gemma_errors_by_representation": {
+      "raw": {
+        "n_rows": 570,
+        "error_codes": {
+          "empty_output_finish_length": 18
+        },
+        "n_rows_with_error": 18
+      },
+      "summary": {
+        "n_rows": 570,
+        "error_codes": {
+          "empty_output_finish_length": 22
+        },
+        "n_rows_with_error": 22
+      },
+      "structured": {
+        "n_rows": 554,
+        "error_codes": {
+          "empty_output_finish_length": 16
+        },
+        "n_rows_with_error": 16
+      }
+    },
+    "_loss_mechanism": "Gemma's losses are TRUNCATIONS: the answer reached max_tokens=512. An early reading that they concentrate on the long-context representation was NOT borne out -- the per-representation loss counts are in 'gemma_cells_lost_vs_gptoss' below and are comparable across representations, so the driver is the QUESTION (how much the reader wants to say) rather than the memory length. Either way the loss is identical in kind for both readers and cannot bias the PAIRED contrast: a cell lost under either reader leaves both sides of the pair.",
+    "gemma_cells_lost_vs_gptoss": {
+      "raw": 9,
+      "summary": 11,
+      "structured": 8
+    },
+    "lost_tasks_by_representation": {
+      "raw": [
+        "3c0c1b19",
+        "40758d8b",
+        "679111c6"
+      ],
+      "summary": [
+        "3269a3c5",
+        "3c0c1b19",
+        "40758d8b",
+        "99ae54d1",
+        "c0593d69"
+      ],
+      "structured": [
+        "3c0c1b19",
+        "40758d8b"
+      ]
+    },
+    "lost_tasks_shared_by_all_representations": [
+      "3c0c1b19",
+      "40758d8b"
+    ],
+    "gemma": {
+      "raw": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 9,
+        "cells_all_null": 9,
+        "null_replicate_rows": 18,
+        "cells_short_of_requested_replicates": 0
+      },
+      "summary": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 11,
+        "cells_all_null": 11,
+        "null_replicate_rows": 22,
+        "cells_short_of_requested_replicates": 0
+      },
+      "structured": {
+        "cells": 277,
+        "cells_with_a_null_replicate": 8,
+        "cells_all_null": 8,
+        "null_replicate_rows": 16,
+        "cells_short_of_requested_replicates": 0
+      }
+    },
+    "gptoss": {
+      "raw": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 0,
+        "cells_all_null": 0,
+        "null_replicate_rows": 0,
+        "cells_short_of_requested_replicates": 0
+      },
+      "summary": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 0,
+        "cells_all_null": 0,
+        "null_replicate_rows": 0,
+        "cells_short_of_requested_replicates": 0
+      },
+      "structured": {
+        "cells": 277,
+        "cells_with_a_null_replicate": 0,
+        "cells_all_null": 0,
+        "null_replicate_rows": 0,
+        "cells_short_of_requested_replicates": 0
+      }
+    }
+  },
+  "matched_set_coverage": {
+    "raw": {
+      "gemma_interpretable_cells": 276,
+      "gptoss_interpretable_cells": 285,
+      "MATCHED_both_readers": 276,
+      "gemma_only": 0,
+      "gptoss_only": 9,
+      "gemma_only_examples": [],
+      "gptoss_only_examples": [
+        "028ee25f:4-4|40758d8b",
+        "1ad1af4b:2-6|3c0c1b19",
+        "1e58cea9:8-8|3c0c1b19",
+        "1e58cea9:8-8|40758d8b",
+        "2d00b63d:0-1|40758d8b"
+      ]
+    },
+    "summary": {
+      "gemma_interpretable_cells": 274,
+      "gptoss_interpretable_cells": 285,
+      "MATCHED_both_readers": 274,
+      "gemma_only": 0,
+      "gptoss_only": 11,
+      "gemma_only_examples": [],
+      "gptoss_only_examples": [
+        "028ee25f:4-4|40758d8b",
+        "1ad1af4b:2-6|3c0c1b19",
+        "1e58cea9:8-8|3c0c1b19",
+        "1e58cea9:8-8|40758d8b",
+        "2af3e2bb:7-21|3269a3c5"
+      ]
+    },
+    "structured": {
+      "gemma_interpretable_cells": 269,
+      "gptoss_interpretable_cells": 277,
+      "MATCHED_both_readers": 269,
+      "gemma_only": 0,
+      "gptoss_only": 8,
+      "gemma_only_examples": [],
+      "gptoss_only_examples": [
+        "028ee25f:4-4|40758d8b",
+        "1ad1af4b:2-6|3c0c1b19",
+        "1e58cea9:8-8|3c0c1b19",
+        "1e58cea9:8-8|40758d8b",
+        "2d00b63d:0-1|40758d8b"
+      ]
+    },
+    "common_to_all_three_representations": 265,
+    "loss_balance_across_strata": {
+      "raw": {
+        "n_lost_under_gemma": 9,
+        "by_stratum": {
+          "BEARING": 4,
+          "MATCHED_CONTROL": 5
+        },
+        "by_task_top5": [
+          [
+            "40758d8b",
+            6
+          ],
+          [
+            "3c0c1b19",
+            2
+          ],
+          [
+            "679111c6",
+            1
+          ]
+        ],
+        "kept_by_stratum": {
+          "BEARING": 135,
+          "MATCHED_CONTROL": 141
+        }
+      },
+      "summary": {
+        "n_lost_under_gemma": 11,
+        "by_stratum": {
+          "BEARING": 7,
+          "MATCHED_CONTROL": 4
+        },
+        "by_task_top5": [
+          [
+            "40758d8b",
+            6
+          ],
+          [
+            "3c0c1b19",
+            2
+          ],
+          [
+            "3269a3c5",
+            1
+          ],
+          [
+            "99ae54d1",
+            1
+          ],
+          [
+            "c0593d69",
+            1
+          ]
+        ],
+        "kept_by_stratum": {
+          "BEARING": 132,
+          "MATCHED_CONTROL": 142
+        }
+      },
+      "structured": {
+        "n_lost_under_gemma": 8,
+        "by_stratum": {
+          "BEARING": 4,
+          "MATCHED_CONTROL": 4
+        },
+        "by_task_top5": [
+          [
+            "40758d8b",
+            6
+          ],
+          [
+            "3c0c1b19",
+            2
+          ]
+        ],
+        "kept_by_stratum": {
+          "BEARING": 131,
+          "MATCHED_CONTROL": 138
+        }
+      }
+    }
+  },
+  "per_representation_matched": {
+    "raw": {
+      "_cell_set": "pair keys interpretable under BOTH readers for this representation",
+      "n_matched_cells": 276,
+      "n_tasks": 124,
+      "n_episodes": 35,
+      "deltaU_gptoss": {
+        "n": 276,
+        "mean": 0.18840579710144928,
+        "ci_lower": 0.13405797101449277,
+        "ci_upper": 0.2427536231884058,
+        "p_two_sided": 0.0,
+        "excludes_zero": true
+      },
+      "deltaU_gemma": {
+        "n": 276,
+        "mean": 0.31521739130434784,
+        "ci_lower": 0.2608695652173913,
+        "ci_upper": 0.37318840579710144,
+        "p_two_sided": 0.0,
+        "excludes_zero": true
+      },
+      "paired_difference_gemma_minus_gptoss": {
+        "n": 276,
+        "mean": 0.12681159420289856,
+        "ci_lower": 0.07246376811594203,
+        "ci_upper": 0.18115942028985507,
+        "p_two_sided": 0.0,
+        "excludes_zero": true
+      },
+      "paired_difference_task_clustered": {
+        "n_clusters": 124,
+        "n_obs": 276,
+        "mean": 0.12681159420289856,
+        "ci_lower": 0.04958284888288345,
+        "ci_upper": 0.2049515266829754,
+        "excludes_zero": true
+      },
+      "paired_difference_episode_clustered": {
+        "n_clusters": 35,
+        "n_obs": 276,
+        "mean": 0.12681159420289856,
+        "ci_lower": 0.06293706293706294,
+        "ci_upper": 0.185303793650439,
+        "excludes_zero": true
+      },
+      "contributors": {
+        "_rule": "docs/ZERO_CONTRIBUTORS.md: print the non-zero contributor count beside the nominal denominator, and give both the diluted and the conditional magnitude.",
+        "n_nominal": 276,
+        "n_nonzero": 60,
+        "diluted_mean": 0.12681159420289856,
+        "conditional_mean_on_nonzero": 0.5833333333333334
+      },
+      "BEARING": {
+        "n_cells": 135,
+        "deltaU_gptoss": {
+          "n": 135,
+          "mean": 0.35555555555555557,
+          "ci_lower": 0.26666666666666666,
+          "ci_upper": 0.4444444444444444,
+          "p_two_sided": 0.0,
+          "excludes_zero": true
+        },
+        "deltaU_gemma": {
+          "n": 135,
+          "mean": 0.6148148148148148,
+          "ci_lower": 0.5333333333333333,
+          "ci_upper": 0.6962962962962963,
+          "p_two_sided": 0.0,
+          "excludes_zero": true
+        },
+        "paired_difference": {
+          "n": 135,
+          "mean": 0.25925925925925924,
+          "ci_lower": 0.17777777777777778,
+          "ci_upper": 0.34074074074074073,
+          "p_two_sided": 0.0,
+          "excludes_zero": true
+        }
+      },
+      "MATCHED_CONTROL": {
+        "n_cells": 141,
+        "deltaU_gptoss": {
+          "n": 141,
+          "mean": 0.028368794326241134,
+          "ci_lower": -0.028368794326241134,
+          "ci_upper": 0.0851063829787234,
+          "p_two_sided": 0.3834,
+          "excludes_zero": false
+        },
+        "deltaU_gemma": {
+          "n": 141,
+          "mean": 0.028368794326241134,
+          "ci_lower": -0.0070921985815602835,
+          "ci_upper": 0.07092198581560284,
+          "p_two_sided": 0.2148,
+          "excludes_zero": false
+        },
+        "paired_difference": {
+          "n": 141,
+          "mean": 0.0,
+          "ci_lower": -0.06382978723404255,
+          "ci_upper": 0.06382978723404255,
+          "p_two_sided": 1.0,
+          "excludes_zero": false
+        }
+      },
+      "within_memory_bearing_minus_control_gptoss": {
+        "_definition": "per memory: mean dU over its BEARING cells minus mean dU over its MATCHED_CONTROL cells, on the matched cell set",
+        "n_memories": 59,
+        "n_nonzero_contributors": 36,
+        "n": 59,
+        "mean": 0.3461864406779661,
+        "ci_lower": 0.22099693973634651,
+        "ci_upper": 0.4760840395480226,
+        "p_two_sided": 0.0,
+        "excludes_zero": true
+      },
+      "within_memory_bearing_minus_control_gemma": {
+        "_definition": "per memory: mean dU over its BEARING cells minus mean dU over its MATCHED_CONTROL cells, on the matched cell set",
+        "n_memories": 59,
+        "n_nonzero_contributors": 45,
+        "n": 59,
+        "mean": 0.6001883239171375,
+        "ci_lower": 0.47871586629001883,
+        "ci_upper": 0.7143596986817325,
+        "p_two_sided": 0.0,
+        "excludes_zero": true
+      }
+    },
+    "summary": {
+      "_cell_set": "pair keys interpretable under BOTH readers for this representation",
+      "n_matched_cells": 274,
+      "n_tasks": 124,
+      "n_episodes": 35,
+      "deltaU_gptoss": {
+        "n": 274,
+        "mean": 0.051094890510948905,
+        "ci_lower": 0.014598540145985401,
+        "ci_upper": 0.09124087591240876,
+        "p_two_sided": 0.007,
+        "excludes_zero": true
+      },
+      "deltaU_gemma": {
+        "n": 274,
+        "mean": 0.05474452554744526,
+        "ci_lower": 0.025547445255474453,
+        "ci_upper": 0.08759124087591241,
+        "p_two_sided": 0.0002,
+        "excludes_zero": true
+      },
+      "paired_difference_gemma_minus_gptoss": {
+        "n": 274,
+        "mean": 0.0036496350364963502,
+        "ci_lower": -0.032846715328467155,
+        "ci_upper": 0.043795620437956206,
+        "p_two_sided": 0.9256,
+        "excludes_zero": false
+      },
+      "paired_difference_task_clustered": {
+        "n_clusters": 124,
+        "n_obs": 274,
+        "mean": 0.0036496350364963502,
+        "ci_lower": -0.04844452047719878,
+        "ci_upper": 0.061224489795918366,
+        "excludes_zero": false
+      },
+      "paired_difference_episode_clustered": {
+        "n_clusters": 35,
+        "n_obs": 274,
+        "mean": 0.0036496350364963502,
+        "ci_lower": -0.033899612889725886,
+        "ci_upper": 0.04018143315018311,
+        "excludes_zero": false
+      },
+      "contributors": {
+        "_rule": "docs/ZERO_CONTRIBUTORS.md: print the non-zero contributor count beside the nominal denominator, and give both the diluted and the conditional magnitude.",
+        "n_nominal": 274,
+        "n_nonzero": 26,
+        "diluted_mean": 0.0036496350364963502,
+        "conditional_mean_on_nonzero": 0.038461538461538464
+      },
+      "BEARING": {
+        "n_cells": 132,
+        "deltaU_gptoss": {
+          "n": 132,
+          "mean": 0.08333333333333333,
+          "ci_lower": 0.030303030303030304,
+          "ci_upper": 0.14393939393939395,
+          "p_two_sided": 0.006,
+          "excludes_zero": true
+        },
+        "deltaU_gemma": {
+          "n": 132,
+          "mean": 0.09090909090909091,
+          "ci_lower": 0.045454545454545456,
+          "ci_upper": 0.14393939393939395,
+          "p_two_sided": 0.0,
+          "excludes_zero": true
+        },
+        "paired_difference": {
+          "n": 132,
+          "mean": 0.007575757575757576,
+          "ci_lower": -0.045454545454545456,
+          "ci_upper": 0.06818181818181818,
+          "p_two_sided": 0.895,
+          "excludes_zero": false
+        }
+      },
+      "MATCHED_CONTROL": {
+        "n_cells": 142,
+        "deltaU_gptoss": {
+          "n": 142,
+          "mean": 0.02112676056338028,
+          "ci_lower": -0.02112676056338028,
+          "ci_upper": 0.07042253521126761,
+          "p_two_sided": 0.4486,
+          "excludes_zero": false
+        },
+        "deltaU_gemma": {
+          "n": 142,
+          "mean": 0.02112676056338028,
+          "ci_lower": -0.014084507042253521,
+          "ci_upper": 0.056338028169014086,
+          "p_two_sided": 0.3278,
+          "excludes_zero": false
+        },
+        "paired_difference": {
+          "n": 142,
+          "mean": 0.0,
+          "ci_lower": -0.04929577464788732,
+          "ci_upper": 0.04929577464788732,
+          "p_two_sided": 1.0,
+          "excludes_zero": false
+        }
+      },
+      "within_memory_bearing_minus_control_gptoss": {
+        "_definition": "per memory: mean dU over its BEARING cells minus mean dU over its MATCHED_CONTROL cells, on the matched cell set",
+        "n_memories": 59,
+        "n_nonzero_contributors": 25,
+        "n": 59,
+        "mean": 0.064030131826742,
+        "ci_lower": -0.03719397363465161,
+        "ci_upper": 0.1643126177024482,
+        "p_two_sided": 0.217,
+        "excludes_zero": false
+      },
+      "within_memory_bearing_minus_control_gemma": {
+        "_definition": "per memory: mean dU over its BEARING cells minus mean dU over its MATCHED_CONTROL cells, on the matched cell set",
+        "n_memories": 59,
+        "n_nonzero_contributors": 17,
+        "n": 59,
+        "mean": 0.09557438794726932,
+        "ci_lower": 0.01647834274952919,
+        "ci_upper": 0.18126177024482107,
+        "p_two_sided": 0.0212,
+        "excludes_zero": true
+      }
+    },
+    "structured": {
+      "_cell_set": "pair keys interpretable under BOTH readers for this representation",
+      "n_matched_cells": 269,
+      "n_tasks": 122,
+      "n_episodes": 35,
+      "deltaU_gptoss": {
+        "n": 269,
+        "mean": 0.01858736059479554,
+        "ci_lower": -0.01858736059479554,
+        "ci_upper": 0.055762081784386616,
+        "p_two_sided": 0.3954,
+        "excludes_zero": false
+      },
+      "deltaU_gemma": {
+        "n": 269,
+        "mean": 0.02973977695167286,
+        "ci_lower": 0.007434944237918215,
+        "ci_upper": 0.055762081784386616,
+        "p_two_sided": 0.02,
+        "excludes_zero": true
+      },
+      "paired_difference_gemma_minus_gptoss": {
+        "n": 269,
+        "mean": 0.011152416356877323,
+        "ci_lower": -0.03345724907063197,
+        "ci_upper": 0.05947955390334572,
+        "p_two_sided": 0.6804,
+        "excludes_zero": false
+      },
+      "paired_difference_task_clustered": {
+        "n_clusters": 122,
+        "n_obs": 269,
+        "mean": 0.011152416356877323,
+        "ci_lower": -0.053573139025725226,
+        "ci_upper": 0.08333333333333333,
+        "excludes_zero": false
+      },
+      "paired_difference_episode_clustered": {
+        "n_clusters": 35,
+        "n_obs": 269,
+        "mean": 0.011152416356877323,
+        "ci_lower": -0.038795007310832214,
+        "ci_upper": 0.0594059405940594,
+        "excludes_zero": false
+      },
+      "contributors": {
+        "_rule": "docs/ZERO_CONTRIBUTORS.md: print the non-zero contributor count beside the nominal denominator, and give both the diluted and the conditional magnitude.",
+        "n_nominal": 269,
+        "n_nonzero": 33,
+        "diluted_mean": 0.011152416356877323,
+        "conditional_mean_on_nonzero": 0.09090909090909091
+      },
+      "BEARING": {
+        "n_cells": 131,
+        "deltaU_gptoss": {
+          "n": 131,
+          "mean": 0.015267175572519083,
+          "ci_lower": -0.04580152671755725,
+          "ci_upper": 0.07633587786259542,
+          "p_two_sided": 0.7042,
+          "excludes_zero": false
+        },
+        "deltaU_gemma": {
+          "n": 131,
+          "mean": 0.04580152671755725,
+          "ci_lower": 0.015267175572519083,
+          "ci_upper": 0.08396946564885496,
+          "p_two_sided": 0.0042,
+          "excludes_zero": true
+        },
+        "paired_difference": {
+          "n": 131,
+          "mean": 0.030534351145038167,
+          "ci_lower": -0.03816793893129771,
+          "ci_upper": 0.09923664122137404,
+          "p_two_sided": 0.462,
+          "excludes_zero": false
+        }
+      },
+      "MATCHED_CONTROL": {
+        "n_cells": 138,
+        "deltaU_gptoss": {
+          "n": 138,
+          "mean": 0.021739130434782608,
+          "ci_lower": -0.021739130434782608,
+          "ci_upper": 0.07246376811594203,
+          "p_two_sided": 0.4408,
+          "excludes_zero": false
+        },
+        "deltaU_gemma": {
+          "n": 138,
+          "mean": 0.014492753623188406,
+          "ci_lower": -0.021739130434782608,
+          "ci_upper": 0.050724637681159424,
+          "p_two_sided": 0.5504,
+          "excludes_zero": false
+        },
+        "paired_difference": {
+          "n": 138,
+          "mean": -0.007246376811594203,
+          "ci_lower": -0.06521739130434782,
+          "ci_upper": 0.050724637681159424,
+          "p_two_sided": 0.8878,
+          "excludes_zero": false
+        }
+      },
+      "within_memory_bearing_minus_control_gptoss": {
+        "_definition": "per memory: mean dU over its BEARING cells minus mean dU over its MATCHED_CONTROL cells, on the matched cell set",
+        "n_memories": 56,
+        "n_nonzero_contributors": 20,
+        "n": 56,
+        "mean": -0.04623015873015874,
+        "ci_lower": -0.14384920634920637,
+        "ci_upper": 0.045148809523809376,
+        "p_two_sided": 0.3236,
+        "excludes_zero": false
+      },
+      "within_memory_bearing_minus_control_gemma": {
+        "_definition": "per memory: mean dU over its BEARING cells minus mean dU over its MATCHED_CONTROL cells, on the matched cell set",
+        "n_memories": 56,
+        "n_nonzero_contributors": 12,
+        "n": 56,
+        "mean": 0.03888888888888888,
+        "ci_lower": -0.025595238095238095,
+        "ci_upper": 0.10376984126984126,
+        "p_two_sided": 0.2206,
+        "excludes_zero": false
+      }
+    }
+  },
+  "cross_representation_common_cells": {
+    "_cell_set": "pair keys matched under BOTH readers AND present in all three representations -- the only basis on which the three representations may be compared to each other",
+    "n_cells": 265,
+    "raw": {
+      "deltaU_gptoss": {
+        "n": 265,
+        "mean": 0.18490566037735848,
+        "ci_lower": 0.12830188679245283,
+        "ci_upper": 0.24150943396226415,
+        "p_two_sided": 0.0,
+        "excludes_zero": true
+      },
+      "deltaU_gemma": {
+        "n": 265,
+        "mean": 0.30943396226415093,
+        "ci_lower": 0.2528301886792453,
+        "ci_upper": 0.36981132075471695,
+        "p_two_sided": 0.0,
+        "excludes_zero": true
+      },
+      "paired_difference": {
+        "n": 265,
+        "mean": 0.12452830188679245,
+        "ci_lower": 0.06792452830188679,
+        "ci_upper": 0.1811320754716981,
+        "p_two_sided": 0.0002,
+        "excludes_zero": true
+      }
+    },
+    "summary": {
+      "deltaU_gptoss": {
+        "n": 265,
+        "mean": 0.052830188679245285,
+        "ci_lower": 0.01509433962264151,
+        "ci_upper": 0.09056603773584905,
+        "p_two_sided": 0.0066,
+        "excludes_zero": true
+      },
+      "deltaU_gemma": {
+        "n": 265,
+        "mean": 0.05660377358490566,
+        "ci_lower": 0.026415094339622643,
+        "ci_upper": 0.09056603773584905,
+        "p_two_sided": 0.0002,
+        "excludes_zero": true
+      },
+      "paired_difference": {
+        "n": 265,
+        "mean": 0.0037735849056603774,
+        "ci_lower": -0.033962264150943396,
+        "ci_upper": 0.04150943396226415,
+        "p_two_sided": 0.9392,
+        "excludes_zero": false
+      }
+    },
+    "structured": {
+      "deltaU_gptoss": {
+        "n": 265,
+        "mean": 0.018867924528301886,
+        "ci_lower": -0.018867924528301886,
+        "ci_upper": 0.05660377358490566,
+        "p_two_sided": 0.3836,
+        "excludes_zero": false
+      },
+      "deltaU_gemma": {
+        "n": 265,
+        "mean": 0.026415094339622643,
+        "ci_lower": 0.0037735849056603774,
+        "ci_upper": 0.052830188679245285,
+        "p_two_sided": 0.0394,
+        "excludes_zero": true
+      },
+      "paired_difference": {
+        "n": 265,
+        "mean": 0.007547169811320755,
+        "ci_lower": -0.03773584905660377,
+        "ci_upper": 0.052830188679245285,
+        "p_two_sided": 0.8234,
+        "excludes_zero": false
+      }
+    },
+    "representation_ordering_gptoss": [
+      "raw",
+      "summary",
+      "structured"
+    ],
+    "representation_ordering_gemma": [
+      "raw",
+      "summary",
+      "structured"
+    ],
+    "orderings_agree": true
+  },
+  "negative_cells_by_stratum": {
+    "_what": "stratum of every cell with a negative mean dU, per reader. On gpt-oss harm concentrates away from BEARING; this asks whether that survives the reader change.",
+    "counts": {
+      "gptoss:raw": {
+        "MATCHED_CONTROL": 6,
+        "BEARING": 2
+      },
+      "gemma:raw": {
+        "MATCHED_CONTROL": 2
+      },
+      "gptoss:summary": {
+        "MATCHED_CONTROL": 4,
+        "BEARING": 3
+      },
+      "gemma:summary": {
+        "MATCHED_CONTROL": 2
+      },
+      "gptoss:structured": {
+        "MATCHED_CONTROL": 4,
+        "BEARING": 7
+      },
+      "gemma:structured": {
+        "MATCHED_CONTROL": 2
+      }
+    }
+  },
+  "harm_on_bearing_cells": {
+    "_what": "docs/THE_HONEST_HEADLINE.md reports that where a memory bears on a task it HELPS, and harm is nearly absent. This is that claim re-asked of a second reader, on the matched cells.",
+    "per_representation": {
+      "raw": {
+        "n_bearing_cells_matched": 135,
+        "gptoss": {
+          "n_negative": 2,
+          "rate": 0.014814814814814815,
+          "wilson_lower": 0.004072203419334865,
+          "wilson_upper": 0.05240558705693005,
+          "most_negative": -1.0
+        },
+        "gemma": {
+          "n_negative": 0,
+          "rate": 0.0,
+          "wilson_lower": 0.0,
+          "wilson_upper": 0.02766795201752491,
+          "most_negative": 0.0
+        },
+        "both_readers_negative": 0,
+        "gemma_negative_where_gptoss_was_not": 0
+      },
+      "summary": {
+        "n_bearing_cells_matched": 132,
+        "gptoss": {
+          "n_negative": 3,
+          "rate": 0.022727272727272728,
+          "wilson_lower": 0.007758984185518892,
+          "wilson_upper": 0.06468913957678919,
+          "most_negative": -1.0
+        },
+        "gemma": {
+          "n_negative": 0,
+          "rate": 0.0,
+          "wilson_lower": 0.0,
+          "wilson_upper": 0.02827898679860847,
+          "most_negative": 0.0
+        },
+        "both_readers_negative": 0,
+        "gemma_negative_where_gptoss_was_not": 0
+      },
+      "structured": {
+        "n_bearing_cells_matched": 131,
+        "gptoss": {
+          "n_negative": 7,
+          "rate": 0.05343511450381679,
+          "wilson_lower": 0.026122137223314273,
+          "wilson_upper": 0.10619220420203965,
+          "most_negative": -1.0
+        },
+        "gemma": {
+          "n_negative": 0,
+          "rate": 0.0,
+          "wilson_lower": 0.0,
+          "wilson_upper": 0.028488707065994576,
+          "most_negative": 0.0
+        },
+        "both_readers_negative": 0,
+        "gemma_negative_where_gptoss_was_not": 0
+      }
+    }
+  },
+  "sign_and_correlation": {
+    "raw": {
+      "n_cells": 276,
+      "sign_agreement_including_zeros": {
+        "k": 216,
+        "n": 276,
+        "rate": 0.782608695652174,
+        "wilson_lower": 0.7302472722246321,
+        "wilson_upper": 0.8272112282327843,
+        "_caveat": "zeros dominate this set; a cell that is 0 under both readers counts as agreement and is not evidence of transfer. The non-zero row below is the informative one."
+      },
+      "sign_agreement_both_nonzero": {
+        "k": 49,
+        "n": 50,
+        "rate": 0.98,
+        "wilson_lower": 0.8950455641036219,
+        "wilson_upper": 0.9964607407283539
+      },
+      "n_zero_under_both": 167,
+      "n_nonzero_gptoss": 68,
+      "n_nonzero_gemma": 91,
+      "correlation": {
+        "n": 276,
+        "pearson": 0.5196218097355034,
+        "spearman": 0.534611431007383,
+        "ci_lower": 0.4136385864212907,
+        "ci_upper": 0.6185767345819241
+      },
+      "correlation_on_cells_nonzero_under_either": {
+        "n": 109,
+        "pearson": 0.21285364884273333,
+        "spearman": 0.12181227539395464,
+        "ci_lower": -0.024699702649221448,
+        "ci_upper": 0.40856170126982005
+      },
+      "correlation_on_cells_nonzero_under_both": {
+        "n": 50,
+        "pearson": null,
+        "spearman": null,
+        "ci_lower": null,
+        "ci_upper": null
+      },
+      "_correlation_caveat": "r over ALL matched cells counts a cell that is 0 under both readers as perfect agreement. Most cells are such zeros (docs/BEARING_SCARCITY.md), so the all-cells r is inflated by agreement on cells that could not move. The EITHER-subset r is the one to quote; the BOTH-subset r is usually None because one reader has zero variance there, which is itself the finding -- every cell non-zero under Gemma is +1.",
+      "contingency_sign": {
+        "oss-1_gem-1": 0,
+        "oss-1_gem0": 7,
+        "oss-1_gem1": 1,
+        "oss0_gem-1": 2,
+        "oss0_gem0": 167,
+        "oss0_gem1": 39,
+        "oss1_gem-1": 0,
+        "oss1_gem0": 11,
+        "oss1_gem1": 49
+      }
+    },
+    "summary": {
+      "n_cells": 274,
+      "sign_agreement_including_zeros": {
+        "k": 248,
+        "n": 274,
+        "rate": 0.9051094890510949,
+        "wilson_lower": 0.8645964781430006,
+        "wilson_upper": 0.9344203458482255,
+        "_caveat": "zeros dominate this set; a cell that is 0 under both readers counts as agreement and is not evidence of transfer. The non-zero row below is the informative one."
+      },
+      "sign_agreement_both_nonzero": {
+        "k": 10,
+        "n": 11,
+        "rate": 0.9090909090909091,
+        "wilson_lower": 0.6226415635484043,
+        "wilson_upper": 0.9837678271141151
+      },
+      "n_zero_under_both": 238,
+      "n_nonzero_gptoss": 28,
+      "n_nonzero_gemma": 19,
+      "correlation": {
+        "n": 274,
+        "pearson": 0.3696972142593042,
+        "spearman": 0.37848141400489815,
+        "ci_lower": 0.14031921003243905,
+        "ci_upper": 0.5725993487169714
+      },
+      "correlation_on_cells_nonzero_under_either": {
+        "n": 36,
+        "pearson": 0.18673275037287335,
+        "spearman": 0.14639839900518356,
+        "ci_lower": -0.10398295399906884,
+        "ci_upper": 0.4160376354787672
+      },
+      "correlation_on_cells_nonzero_under_both": {
+        "n": 11,
+        "pearson": null,
+        "spearman": null,
+        "ci_lower": null,
+        "ci_upper": null
+      },
+      "_correlation_caveat": "r over ALL matched cells counts a cell that is 0 under both readers as perfect agreement. Most cells are such zeros (docs/BEARING_SCARCITY.md), so the all-cells r is inflated by agreement on cells that could not move. The EITHER-subset r is the one to quote; the BOTH-subset r is usually None because one reader has zero variance there, which is itself the finding -- every cell non-zero under Gemma is +1.",
+      "contingency_sign": {
+        "oss-1_gem-1": 0,
+        "oss-1_gem0": 6,
+        "oss-1_gem1": 1,
+        "oss0_gem-1": 2,
+        "oss0_gem0": 238,
+        "oss0_gem1": 6,
+        "oss1_gem-1": 0,
+        "oss1_gem0": 11,
+        "oss1_gem1": 10
+      }
+    },
+    "structured": {
+      "n_cells": 269,
+      "sign_agreement_including_zeros": {
+        "k": 236,
+        "n": 269,
+        "rate": 0.8773234200743495,
+        "wilson_lower": 0.8327228393746312,
+        "wilson_upper": 0.9112989851583021,
+        "_caveat": "zeros dominate this set; a cell that is 0 under both readers counts as agreement and is not evidence of transfer. The non-zero row below is the informative one."
+      },
+      "sign_agreement_both_nonzero": {
+        "k": 2,
+        "n": 4,
+        "rate": 0.5,
+        "wilson_lower": 0.15003898915214947,
+        "wilson_upper": 0.8499610108478506
+      },
+      "n_zero_under_both": 234,
+      "n_nonzero_gptoss": 27,
+      "n_nonzero_gemma": 12,
+      "correlation": {
+        "n": 269,
+        "pearson": -0.008358579250907544,
+        "spearman": -0.006689603696967544,
+        "ci_lower": -0.22344085120967144,
+        "ci_upper": 0.20804739763496546
+      },
+      "correlation_on_cells_nonzero_under_either": {
+        "n": 35,
+        "pearson": -0.06989419039171245,
+        "spearman": -0.09691742726067311,
+        "ci_lower": -0.3254717734529098,
+        "ci_upper": 0.1611373584397044
+      },
+      "correlation_on_cells_nonzero_under_both": {
+        "n": 4,
+        "pearson": null,
+        "spearman": null,
+        "ci_lower": null,
+        "ci_upper": null
+      },
+      "_correlation_caveat": "r over ALL matched cells counts a cell that is 0 under both readers as perfect agreement. Most cells are such zeros (docs/BEARING_SCARCITY.md), so the all-cells r is inflated by agreement on cells that could not move. The EITHER-subset r is the one to quote; the BOTH-subset r is usually None because one reader has zero variance there, which is itself the finding -- every cell non-zero under Gemma is +1.",
+      "contingency_sign": {
+        "oss-1_gem-1": 0,
+        "oss-1_gem0": 9,
+        "oss-1_gem1": 2,
+        "oss0_gem-1": 2,
+        "oss0_gem0": 234,
+        "oss0_gem1": 6,
+        "oss1_gem-1": 0,
+        "oss1_gem0": 14,
+        "oss1_gem1": 2
+      }
+    },
+    "_positive_control_correlation_estimator": {
+      "_what": "the estimator must recover r=+1, r=-1 and r~0 on constructed input; otherwise an observed r is uninterpretable.",
+      "identity_r": 1.0,
+      "negated_r": -1.0,
+      "independent_r_abs_below_0.25": true,
+      "spearman_monotone_nonlinear_r": 1.0,
+      "fires": true
+    }
+  },
+  "noise_floors_delta_scale": {
+    "gptoss:raw": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 60,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gptoss:summary": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 60,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gptoss:structured": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 57,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gemma:raw": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 60,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gemma:summary": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 60,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gemma:structured": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 57,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "_positive_control_gemma_summary": {
+      "_what": "F_exec after flipping one replicate in 144 Gemma summary cells. MUST be > 0, or a 0.000 floor proves nothing.",
+      "n_cells_perturbed": 144,
+      "point": 0.5126145946300565,
+      "fires": true
+    }
+  },
+  "label_agreement": {
+    "raw": {
+      "_rule": "prereg section 4, each reader against ITS OWN measured F_exec. Using one reader's floor on the other would be a different experiment.",
+      "n_cells": 276,
+      "gptoss_label_counts": {
+        "neutral": 208,
+        "robust_useful": 60,
+        "robust_harmful": 8
+      },
+      "gemma_label_counts": {
+        "robust_useful": 89,
+        "neutral": 185,
+        "robust_harmful": 2
+      },
+      "contingency": {
+        "neutral->neutral": 167,
+        "neutral->robust_harmful": 2,
+        "neutral->robust_useful": 39,
+        "robust_harmful->neutral": 7,
+        "robust_harmful->robust_useful": 1,
+        "robust_useful->neutral": 11,
+        "robust_useful->robust_useful": 49
+      },
+      "agreement": {
+        "k": 216,
+        "n": 276,
+        "rate": 0.782608695652174,
+        "wilson_lower": 0.7302472722246321,
+        "wilson_upper": 0.8272112282327843
+      }
+    },
+    "summary": {
+      "_rule": "prereg section 4, each reader against ITS OWN measured F_exec. Using one reader's floor on the other would be a different experiment.",
+      "n_cells": 274,
+      "gptoss_label_counts": {
+        "neutral": 246,
+        "robust_harmful": 7,
+        "robust_useful": 21
+      },
+      "gemma_label_counts": {
+        "neutral": 255,
+        "robust_useful": 17,
+        "robust_harmful": 2
+      },
+      "contingency": {
+        "neutral->neutral": 238,
+        "neutral->robust_harmful": 2,
+        "neutral->robust_useful": 6,
+        "robust_harmful->neutral": 6,
+        "robust_harmful->robust_useful": 1,
+        "robust_useful->neutral": 11,
+        "robust_useful->robust_useful": 10
+      },
+      "agreement": {
+        "k": 248,
+        "n": 274,
+        "rate": 0.9051094890510949,
+        "wilson_lower": 0.8645964781430006,
+        "wilson_upper": 0.9344203458482255
+      }
+    },
+    "structured": {
+      "_rule": "prereg section 4, each reader against ITS OWN measured F_exec. Using one reader's floor on the other would be a different experiment.",
+      "n_cells": 269,
+      "gptoss_label_counts": {
+        "neutral": 242,
+        "robust_useful": 16,
+        "robust_harmful": 11
+      },
+      "gemma_label_counts": {
+        "neutral": 257,
+        "robust_harmful": 2,
+        "robust_useful": 10
+      },
+      "contingency": {
+        "neutral->neutral": 234,
+        "neutral->robust_harmful": 2,
+        "neutral->robust_useful": 6,
+        "robust_harmful->neutral": 9,
+        "robust_harmful->robust_useful": 2,
+        "robust_useful->neutral": 14,
+        "robust_useful->robust_useful": 2
+      },
+      "agreement": {
+        "k": 236,
+        "n": 269,
+        "rate": 0.8773234200743495,
+        "wilson_lower": 0.8327228393746312,
+        "wilson_upper": 0.9112989851583021
+      }
+    }
+  },
+  "reader_accuracy_levels": {
+    "raw": {
+      "gptoss": {
+        "n_rows": 552,
+        "mean_reward_with_memory": 0.2971014492753623,
+        "mean_reward_without_memory": 0.10869565217391304,
+        "abstention_rate_with_memory": 0.0
+      },
+      "gemma": {
+        "n_rows": 552,
+        "mean_reward_with_memory": 0.35507246376811596,
+        "mean_reward_without_memory": 0.03985507246376811,
+        "abstention_rate_with_memory": 0.0036231884057971015
+      }
+    },
+    "summary": {
+      "gptoss": {
+        "n_rows": 548,
+        "mean_reward_with_memory": 0.14963503649635038,
+        "mean_reward_without_memory": 0.09854014598540146,
+        "abstention_rate_with_memory": 0.0
+      },
+      "gemma": {
+        "n_rows": 548,
+        "mean_reward_with_memory": 0.0948905109489051,
+        "mean_reward_without_memory": 0.040145985401459854,
+        "abstention_rate_with_memory": 0.0072992700729927005
+      }
+    },
+    "structured": {
+      "gptoss": {
+        "n_rows": 538,
+        "mean_reward_with_memory": 0.11895910780669144,
+        "mean_reward_without_memory": 0.10037174721189591,
+        "abstention_rate_with_memory": 0.0
+      },
+      "gemma": {
+        "n_rows": 538,
+        "mean_reward_with_memory": 0.06691449814126393,
+        "mean_reward_without_memory": 0.03717472118959108,
+        "abstention_rate_with_memory": 0.0037174721189591076
+      }
+    }
+  },
+  "deltaU_decomposed_by_arm": {
+    "raw": {
+      "n_cells": 276,
+      "gptoss_with": 0.2971014492753623,
+      "gptoss_without": 0.10869565217391304,
+      "gptoss_deltaU": 0.18840579710144928,
+      "gemma_with": 0.35507246376811596,
+      "gemma_without": 0.03985507246376811,
+      "gemma_deltaU": 0.31521739130434784,
+      "change_in_WITH_arm": 0.05797101449275366,
+      "change_in_WITHOUT_arm": -0.06884057971014493,
+      "share_of_deltaU_change_from_the_WITHOUT_arm": 0.5428571428571427,
+      "share_is_undefined_because": null,
+      "_reading": "A larger dU under the second reader can mean the memory helps MORE, or that the reader is WORSE without it. The two arms separate those. Where most of the change sits in the WITHOUT arm, the larger dU is substantially a lower no-memory baseline, NOT a more useful memory."
+    },
+    "summary": {
+      "n_cells": 274,
+      "gptoss_with": 0.14963503649635038,
+      "gptoss_without": 0.09854014598540146,
+      "gptoss_deltaU": 0.05109489051094891,
+      "gemma_with": 0.0948905109489051,
+      "gemma_without": 0.040145985401459854,
+      "gemma_deltaU": 0.05474452554744525,
+      "change_in_WITH_arm": -0.05474452554744527,
+      "change_in_WITHOUT_arm": -0.05839416058394161,
+      "share_of_deltaU_change_from_the_WITHOUT_arm": null,
+      "share_is_undefined_because": "both arms moved in the SAME direction, so the paired difference is their small residual and a 'share of' it is not a fraction of anything -- read the two arm changes directly instead",
+      "_reading": "A larger dU under the second reader can mean the memory helps MORE, or that the reader is WORSE without it. The two arms separate those. Where most of the change sits in the WITHOUT arm, the larger dU is substantially a lower no-memory baseline, NOT a more useful memory."
+    },
+    "structured": {
+      "n_cells": 269,
+      "gptoss_with": 0.11895910780669144,
+      "gptoss_without": 0.10037174721189591,
+      "gptoss_deltaU": 0.01858736059479553,
+      "gemma_with": 0.06691449814126393,
+      "gemma_without": 0.03717472118959108,
+      "gemma_deltaU": 0.029739776951672854,
+      "change_in_WITH_arm": -0.05204460966542751,
+      "change_in_WITHOUT_arm": -0.06319702602230484,
+      "share_of_deltaU_change_from_the_WITHOUT_arm": null,
+      "share_is_undefined_because": "both arms moved in the SAME direction, so the paired difference is their small residual and a 'share of' it is not a fraction of anything -- read the two arm changes directly instead",
+      "_reading": "A larger dU under the second reader can mean the memory helps MORE, or that the reader is WORSE without it. The two arms separate those. Where most of the change sits in the WITHOUT arm, the larger dU is substantially a lower no-memory baseline, NOT a more useful memory."
+    }
+  },
+  "VERDICT_WITH_DENOMINATORS": [
+    "raw: n=276 matched cells over 124 tasks | dU_oss=0.1884 dU_gem=0.3152 | paired diff 0.1268 [0.0496, 0.2050] task-clustered, excludes_zero=True | sign agreement (both non-zero) 49/50 | pearson r=0.5196",
+    "summary: n=274 matched cells over 124 tasks | dU_oss=0.0511 dU_gem=0.0547 | paired diff 0.0036 [-0.0484, 0.0612] task-clustered, excludes_zero=False | sign agreement (both non-zero) 10/11 | pearson r=0.3697",
+    "structured: n=269 matched cells over 122 tasks | dU_oss=0.0186 dU_gem=0.0297 | paired diff 0.0112 [-0.0536, 0.0833] task-clustered, excludes_zero=False | sign agreement (both non-zero) 2/4 | pearson r=-0.0084"
+  ]
+}

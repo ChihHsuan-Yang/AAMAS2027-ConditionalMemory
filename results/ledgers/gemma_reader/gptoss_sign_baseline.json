@@ -1,0 +1,23 @@
+{
+  "_what": "gpt-oss sign distribution at 2 replicates, fixed before the Gemma deltas were inspected",
+  "signs": {
+    "raw": {
+      "n": 285,
+      "neg": 8,
+      "zero": 217,
+      "pos": 60
+    },
+    "summary": {
+      "n": 285,
+      "neg": 10,
+      "zero": 254,
+      "pos": 21
+    },
+    "structured": {
+      "n": 277,
+      "neg": 11,
+      "zero": 250,
+      "pos": 16
+    }
+  }
+}

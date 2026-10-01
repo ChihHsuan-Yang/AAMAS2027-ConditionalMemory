@@ -179,8 +179,13 @@ def main() -> int:
             f"scored-despite-error={len(scored_with_error)}")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(out, indent=2, default=str))
+    payload = json.dumps(out, indent=2, default=str)
+    args.out.write_text(payload)
     log(f"wrote {args.out}")
+    led = REPO / "results/ledgers/gemma_reader" / args.out.name
+    led.parent.mkdir(parents=True, exist_ok=True)
+    led.write_text(payload)
+    log(f"wrote tracked copy {led}")
     return 0
 
 

@@ -613,6 +613,26 @@ def main() -> int:
             "n_nonzero_gptoss": int((sa != 0).sum()),
             "n_nonzero_gemma": int((sb != 0).sum()),
             "correlation": boot_corr(a, b, n_boot=args.n_boot),
+            # 🔴 A correlation over cells that are TIED AT ZERO under both
+            # readers is substantially a measurement of bearing scarcity. The
+            # same r restricted to cells non-zero under EITHER reader is the
+            # informative one; on BOTH it is usually undefined here, because
+            # dU in {-1,0,+1} and the surviving cells have zero variance in
+            # one reader. Reported so the headline r cannot be read as
+            # per-cell agreement on the cells that moved.
+            "correlation_on_cells_nonzero_under_either": boot_corr(
+                a[(sa != 0) | (sb != 0)], b[(sa != 0) | (sb != 0)],
+                n_boot=args.n_boot),
+            "correlation_on_cells_nonzero_under_both": boot_corr(
+                a[both_nz], b[both_nz], n_boot=args.n_boot),
+            "_correlation_caveat": (
+                "r over ALL matched cells counts a cell that is 0 under both "
+                "readers as perfect agreement. Most cells are such zeros "
+                "(docs/BEARING_SCARCITY.md), so the all-cells r is inflated by "
+                "agreement on cells that could not move. The EITHER-subset r is "
+                "the one to quote; the BOTH-subset r is usually None because "
+                "one reader has zero variance there, which is itself the "
+                "finding -- every cell non-zero under Gemma is +1."),
             "contingency_sign": {
                 f"oss{int(i)}_gem{int(j)}": int(((sa == i) & (sb == j)).sum())
                 for i in (-1, 0, 1) for j in (-1, 0, 1)},
@@ -651,6 +671,21 @@ def main() -> int:
         h["gemma_negative_where_gptoss_was_not"] = len(
             [k for k in keys if gem_means[rep][k] < 0 and oss_means[rep][k] >= 0])
         harm[rep] = h
+    # Where do the second reader's NEGATIVE cells fall? On gpt-oss, harm
+    # concentrates away from BEARING; whether that pattern survives the reader
+    # change is a sharper question than the BEARING count alone.
+    negstrat = {}
+    for rep in REPS:
+        for name, mm in (("gptoss", oss_means[rep]), ("gemma", gem_means[rep])):
+            negstrat[f"{name}:{rep}"] = dict(collections.Counter(
+                strat_of.get(k) for k in matched[rep] if mm[k] < 0))
+    out["negative_cells_by_stratum"] = {
+        "_what": "stratum of every cell with a negative mean dU, per reader. "
+                 "On gpt-oss harm concentrates away from BEARING; this asks "
+                 "whether that survives the reader change.",
+        "counts": negstrat}
+    log(f"negative cells by stratum: {negstrat}")
+
     out["harm_on_bearing_cells"] = {
         "_what": "docs/THE_HONEST_HEADLINE.md reports that where a memory bears "
                  "on a task it HELPS, and harm is nearly absent. This is that "
@@ -751,6 +786,75 @@ def main() -> int:
         acc[rep] = a
     out["reader_accuracy_levels"] = acc
 
+    # ---- DECOMPOSE the paired difference into its two arms --------------
+    # dU = reward_WITH - reward_WITHOUT. A larger dU under a second reader can
+    # come from the memory helping MORE, or from the reader being WORSE
+    # without it. Those are different claims and the means above cannot tell
+    # them apart; this split can, and it is computed on the matched cells so
+    # both readers are described on the same objects.
+    decomp = {}
+    for rep in REPS:
+        keys = set(matched[rep])
+
+        def armmean(rows, field):
+            d = collections.defaultdict(list)
+            for r in rows:
+                if (int(r["replicate_id"]) < args.replicates
+                        and pair_key(r) in keys and r[field] is not None):
+                    d[pair_key(r)].append(float(r[field]))
+            return {k: float(np.mean(v)) for k, v in d.items()}
+
+        gw = armmean(gem_by_rep.get(rep, []), "reward_with_memory")
+        go = armmean(gem_by_rep.get(rep, []), "reward_without_memory")
+        ow = armmean(oss_by_rep.get(rep, []), "reward_with_memory")
+        oo = armmean(oss_by_rep.get(rep, []), "reward_without_memory")
+        k2 = sorted(set(gw) & set(ow) & set(go) & set(oo))
+        if not k2:
+            decomp[rep] = {"n": 0}
+            continue
+        GW = float(np.mean([gw[k] for k in k2]))
+        GO = float(np.mean([go[k] for k in k2]))
+        OW = float(np.mean([ow[k] for k in k2]))
+        OO = float(np.mean([oo[k] for k in k2]))
+        dwith, dwithout = GW - OW, GO - OO
+        decomp[rep] = {
+            "n_cells": len(k2),
+            "gptoss_with": OW, "gptoss_without": OO, "gptoss_deltaU": OW - OO,
+            "gemma_with": GW, "gemma_without": GO, "gemma_deltaU": GW - GO,
+            "change_in_WITH_arm": dwith,
+            "change_in_WITHOUT_arm": dwithout,
+            # 🔴 A "share" is only a share when the parts have OPPOSITE signs
+            # and the total is not near zero. When both arms move the same way
+            # the total is their small difference and the ratio explodes --
+            # measured here: 16.0 for summary and 5.7 for structured, neither
+            # of which is a fraction of anything. Reporting those as shares
+            # would be a ratio with a near-zero denominator dressed as a
+            # proportion, so the field REFUSES rather than printing a number.
+            "share_of_deltaU_change_from_the_WITHOUT_arm": (
+                float(-dwithout / (dwith - dwithout))
+                if (dwith * dwithout < 0
+                    and abs(dwith - dwithout) > 0.02
+                    and 0.0 <= -dwithout / (dwith - dwithout) <= 1.0)
+                else None),
+            "share_is_undefined_because": (
+                None if (dwith * dwithout < 0
+                         and abs(dwith - dwithout) > 0.02
+                         and 0.0 <= -dwithout / (dwith - dwithout) <= 1.0)
+                else ("both arms moved in the SAME direction, so the paired "
+                      "difference is their small residual and a 'share of' it "
+                      "is not a fraction of anything -- read the two arm "
+                      "changes directly instead")),
+            "_reading": (
+                "A larger dU under the second reader can mean the memory helps "
+                "MORE, or that the reader is WORSE without it. The two arms "
+                "separate those. Where most of the change sits in the WITHOUT "
+                "arm, the larger dU is substantially a lower no-memory "
+                "baseline, NOT a more useful memory."),
+        }
+    out["deltaU_decomposed_by_arm"] = decomp
+    log("dU decomposition (change in WITH / WITHOUT arm): "
+        f"{ {r: (round(decomp[r].get('change_in_WITH_arm', 0), 4), round(decomp[r].get('change_in_WITHOUT_arm', 0), 4)) for r in REPS} }")
+
     # --------------------------- the verdict, WITH its denominators -----------
     verdict_lines = []
     for rep in REPS:
@@ -771,8 +875,17 @@ def main() -> int:
         log("VERDICT " + v)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(out, indent=2, default=str))
+    payload = json.dumps(out, indent=2, default=str)
+    args.out.write_text(payload)
     log(f"wrote {args.out}")
+    # results/** is gitignored. The analysis is small and every number in
+    # docs/READER_TRANSFER_RESULT.md is read from it, so a tracked copy goes
+    # in results/ledgers/ -- otherwise the document cites a file no reader
+    # can open, which this project has already been burned by.
+    led = REPO / "results/ledgers/gemma_reader" / args.out.name
+    led.parent.mkdir(parents=True, exist_ok=True)
+    led.write_text(payload)
+    log(f"wrote tracked copy {led}")
     return 0
 
 

@@ -1,0 +1,35 @@
+{
+  "_what": "gpt-oss comparator at 2 replicates, re-derived independently before the Gemma analysis existed",
+  "anchor": {
+    "raw": {
+      "n": 285,
+      "mean": 0.1824561403508772,
+      "n_bearing": 139,
+      "mean_bearing": 0.34532374100719426,
+      "n_mc": 146,
+      "mean_mc": 0.0273972602739726,
+      "n_tasks": 126,
+      "nonzero": 68
+    },
+    "summary": {
+      "n": 285,
+      "mean": 0.03859649122807018,
+      "n_bearing": 139,
+      "mean_bearing": 0.06474820143884892,
+      "n_mc": 146,
+      "mean_mc": 0.0136986301369863,
+      "n_tasks": 126,
+      "nonzero": 31
+    },
+    "structured": {
+      "n": 277,
+      "mean": 0.018050541516245487,
+      "n_bearing": 135,
+      "mean_bearing": 0.014814814814814815,
+      "n_mc": 142,
+      "mean_mc": 0.02112676056338028,
+      "n_tasks": 124,
+      "nonzero": 27
+    }
+  }
+}

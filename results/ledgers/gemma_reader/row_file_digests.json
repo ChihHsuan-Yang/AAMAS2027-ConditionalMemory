@@ -1,0 +1,14 @@
+{
+  "_what": "sha256 of the UNTRACKED row and cache files for the reader-transfer arm. results/** is gitignored (raw endpoint outputs are large); the small summaries are tracked under results/ledgers/gemma_reader/. These digests let a reader verify the local files are the ones the analysis read.",
+  "transfer_cells.jsonl": {
+    "sha256": "eebdea055ad6d788a108b3b4d28e67e5d525ab374e3560b285895145841f052f",
+    "bytes": 30574572,
+    "rows": 1694
+  },
+  "transfer_cache.jsonl": {
+    "sha256": "171f1be40c62fb60abd4c390c08f8741b08757a6138480186e6330dec482f966",
+    "bytes": 7029095,
+    "rows": 3294
+  },
+  "_caveat": "A hash VERIFIES a file; it does not RECOVER one. The rows themselves are not redistributed here, so an outside reader can check integrity but cannot re-derive the numbers without the run."
+}

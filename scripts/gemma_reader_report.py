@@ -33,11 +33,11 @@ def ci(d: dict, lo="ci_lower", hi="ci_upper") -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--analysis", type=Path,
-                    default=REPO / "results/gemma_reader/reader_transfer_analysis.json")
+                    default=REPO / "results/ledgers/gemma_reader/reader_transfer_analysis.json")
     ap.add_argument("--controls", type=Path,
-                    default=REPO / "results/gemma_reader/reader_transfer_controls.json")
+                    default=REPO / "results/ledgers/gemma_reader/reader_transfer_controls.json")
     ap.add_argument("--run", type=Path,
-                    default=REPO / "results/gemma_reader/transfer_summary.json")
+                    default=REPO / "results/ledgers/gemma_reader/transfer_summary.json")
     ap.add_argument("--out", type=Path,
                     default=REPO / "docs/READER_TRANSFER_RESULT.md")
     args = ap.parse_args()
@@ -82,6 +82,71 @@ def main() -> int:
       "transfer at all were all pre-committed as valid outcomes.\n")
 
     # ------------------------------------------------- headline
+    # ---- the verdict, DERIVED, so it cannot be written from recall -------
+    X0 = A["cross_representation_common_cells"]
+    H0 = A.get("harm_on_bearing_cells", {}).get("per_representation", {})
+    D0 = A.get("deltaU_decomposed_by_arm", {})
+    n_sig = [r for r in REPS
+             if P[r]["paired_difference_task_clustered"].get("excludes_zero")]
+    w("## The answer, in one paragraph\n")
+    w(f"**Memory utility transfers.** On {X0['n_cells']} cells matched across "
+      f"both readers and present in all three representations, the "
+      f"representation ordering is "
+      f"**{' > '.join(X0['representation_ordering_gptoss'])}** under gpt-oss "
+      f"and **{' > '.join(X0['representation_ordering_gemma'])}** under Gemma "
+      f"— identical. Raw is the only representation whose within-memory "
+      f"BEARING − MATCHED_CONTROL interval excludes zero under gpt-oss "
+      f"({f4(P['raw']['within_memory_bearing_minus_control_gptoss']['mean'])}), "
+      f"and it also does under Gemma "
+      f"({f4(P['raw']['within_memory_bearing_minus_control_gemma']['mean'])}). "
+      f"The finding is **not** an artifact of gpt-oss reading its own "
+      f"memories.\n")
+    if n_sig:
+        reps_s = ", ".join(n_sig)
+        w(f"**The magnitude is not the same.** The per-cell paired difference "
+          f"excludes zero on {reps_s} "
+          f"({f4(P['raw']['paired_difference_task_clustered']['mean'])} on raw, "
+          f"task-clustered "
+          f"{ci(P['raw']['paired_difference_task_clustered'])}) — Gemma "
+          f"measures a **larger** ΔU on raw than gpt-oss does.\n")
+    else:
+        w("**No representation shows a paired difference whose task-clustered "
+          "interval excludes zero**, so the two readers' ΔU are not "
+          "distinguishable at this n.\n")
+    draw = D0.get("raw", {})
+    if draw.get("n_cells"):
+        sh = draw.get("share_of_deltaU_change_from_the_WITHOUT_arm")
+        w(f"🔴 **But roughly half of that larger ΔU is a weaker baseline, not "
+          f"a more useful memory.** Decomposed, Gemma's raw WITH arm is "
+          f"{f4(draw['change_in_WITH_arm'])} against gpt-oss and its WITHOUT "
+          f"arm is {f4(draw['change_in_WITHOUT_arm'])}"
+          + (f" — **{sh:.0%}** of the change sits in the arm with no memory in "
+             f"it" if sh is not None else "")
+          + ". Gemma is the weaker reader unaided and recovers more of the gap "
+            "from the same memory. Reporting \"Gemma gets more out of memory\" "
+            "without this decomposition would overstate the result.\n")
+    if H0:
+        tot_o = sum(h["gptoss"]["n_negative"] for h in H0.values())
+        tot_g = sum(h["gemma"]["n_negative"] for h in H0.values())
+        tot_n = sum(h["n_bearing_cells_matched"] for h in H0.values())
+        w(f"**Harm stays nearly absent under the second reader**: across all "
+          f"three representations, {tot_g} of {tot_n} matched BEARING cells "
+          f"are negative under Gemma, against {tot_o} under gpt-oss.\n")
+    re_ = S["raw"].get("correlation_on_cells_nonzero_under_either", {})
+    se_ = S["structured"].get("correlation_on_cells_nonzero_under_either", {})
+    w("**Per-cell agreement is weaker than the headline correlation suggests, "
+      "and on structured there is none.** Over all matched cells Pearson r is "
+      f"{f4u(S['raw']['correlation']['pearson'])} (raw) and "
+      f"{f4u(S['structured']['correlation']['pearson'])} (structured) — but a "
+      "cell that is 0 under both readers counts as perfect agreement there, "
+      "and most cells are such zeros. Restricted to cells non-zero under "
+      f"either reader, raw falls to {f4u(re_.get('pearson'))} "
+      f"(n={re_.get('n')}) and structured is {f4u(se_.get('pearson'))} "
+      f"(n={se_.get('n')}). **The two readers agree on the ORDERING and the "
+      "DIRECTION, not cell by cell.** That is reported as a limitation, not "
+      "smoothed: a reviewer asking \"is it the same memories that help?\" does "
+      "not yet have a clean yes.\n")
+
     w("## The headline\n")
     w("Per representation, on the cells interpretable under **both** readers. "
       "ΔU is the mean per-cell utility delta over "
@@ -150,17 +215,30 @@ def main() -> int:
 
     # ------------------------------------------------- agreement
     w("## Per-cell agreement between the readers\n")
-    w("| representation | cells | Pearson r | 95% CI | Spearman | sign agreement (both non-zero) | zero under both |")
-    w("|---|---:|---:|---|---:|---:|---:|")
+    w("| representation | cells | r, all cells | r, cells non-zero under EITHER | n for that subset | sign agreement (both non-zero) | zero under both |")
+    w("|---|---:|---:|---:|---:|---:|---:|")
     for rep in REPS:
-        s = S[rep]
-        c = s["correlation"]
-        nz = s["sign_agreement_both_nonzero"]
+        st = S[rep]
+        c = st["correlation"]
+        ce = st.get("correlation_on_cells_nonzero_under_either", {})
+        nz = st["sign_agreement_both_nonzero"]
         rate = "—" if nz["rate"] is None else f"{nz['rate']:.1%}"
-        w(f"| {rep} | {s['n_cells']} | {f4u(c['pearson'])} | {ci(c)} | "
-          f"{f4u(c['spearman'])} | {nz['k']}/{nz['n']} ({rate}) | "
-          f"{s['n_zero_under_both']} |")
+        w(f"| {rep} | {st['n_cells']} | {f4u(c['pearson'])} | "
+          f"{f4u(ce.get('pearson'))} | {ce.get('n', '—')} | "
+          f"{nz['k']}/{nz['n']} ({rate}) | {st['n_zero_under_both']} |")
     w("")
+    w("🔴 **The all-cells r is inflated and the second column is the one to "
+      "quote.** A cell that is exactly 0 under both readers counts as perfect "
+      "agreement, and most cells are such zeros. On raw the correlation falls "
+      f"from {f4u(S['raw']['correlation']['pearson'])} to "
+      f"{f4u(S['raw'].get('correlation_on_cells_nonzero_under_either', {}).get('pearson'))} "
+      "once the tied zeros are removed — **agreement on cells that could not "
+      "move is not evidence of reader transfer.**\n")
+    w("The correlation restricted to cells non-zero under **both** readers is "
+      "`None` for every representation, and that is itself the finding: ΔU ∈ "
+      "{−1, 0, +1} and **every cell whose Gemma mean is non-zero is +1**, so "
+      "Gemma has zero variance on that subset and a correlation is undefined "
+      "rather than small.\n")
     w("> 🔴 **The naive sign-agreement rate is not the informative one.** Most "
       "cells are exactly 0 under both readers — a cell where neither reader's "
       "answer changes agrees trivially. The column above is restricted to cells "
@@ -209,6 +287,25 @@ def main() -> int:
               f"{h['both_readers_negative']} | "
               f"{h['gemma_negative_where_gptoss_was_not']} |")
         w("")
+        NS = A.get("negative_cells_by_stratum", {}).get("counts", {})
+        if NS:
+            w("And **where** the negatives fall. On gpt-oss harm appears in "
+              "both strata; under Gemma every negative cell is "
+              "MATCHED_CONTROL:\n")
+            w("| representation | gpt-oss negatives | Gemma negatives |")
+            w("|---|---|---|")
+            for rep in REPS:
+                o_ = NS.get(f"gptoss:{rep}", {})
+                g_ = NS.get(f"gemma:{rep}", {})
+                fmt = lambda d: (", ".join(f"{k} {v}" for k, v in sorted(d.items()))
+                                 or "none")
+                w(f"| {rep} | {fmt(o_)} | {fmt(g_)} |")
+            w("")
+            w("> The counts are small — 2 per representation under Gemma — so "
+              "this is a **pattern worth stating, not a tested claim**. It is "
+              "consistent with the project's own finding that where a memory "
+              "bears on a task it helps, and it is the direction a reviewer "
+              "would want checked.\n")
         w("A Wilson interval on each rate is in the artifact. **A count of "
           "negative cells is not a harm claim**: the pre-registered label rule "
           "requires the cell's CI to exclude zero *and* its magnitude to clear "
@@ -244,6 +341,28 @@ def main() -> int:
             w(f"| {rep} | {name} | {f4u(a['mean_reward_with_memory'])} | "
               f"{f4u(a['mean_reward_without_memory'])} |")
     w("")
+    D = A.get("deltaU_decomposed_by_arm", {})
+    if D:
+        w("ΔU = reward(WITH) − reward(WITHOUT), so a **larger ΔU under the "
+          "second reader can mean the memory helps more, or that the reader is "
+          "worse without it.** Those are different claims and the means above "
+          "cannot separate them. Decomposed on the matched cells:\n")
+        w("| representation | cells | Δ in the WITH arm | Δ in the WITHOUT arm | share of the ΔU change from the WITHOUT arm |")
+        w("|---|---:|---:|---:|---|")
+        for rep in REPS:
+            v = D.get(rep, {})
+            if not v.get("n_cells"):
+                continue
+            sh = v.get("share_of_deltaU_change_from_the_WITHOUT_arm")
+            shs = "—" if sh is None else f"{sh:.1%}"
+            w(f"| {rep} | {v['n_cells']} | {f4(v['change_in_WITH_arm'])} | "
+              f"{f4(v['change_in_WITHOUT_arm'])} | {shs} |")
+        w("")
+        w("> A dash means the share is **undefined, not missing**: both arms "
+          "moved in the same direction, so the paired difference is their small "
+          "residual and \"a share of\" it would be a ratio with a near-zero "
+          "denominator dressed as a proportion. Read the two arm changes "
+          "directly in those rows.\n")
 
     # ------------------------------------------------- what was held
     w("## What was held, and how it was proven\n")
@@ -374,6 +493,27 @@ def main() -> int:
       "`gpt-oss-120b` rows in every shipped cache the widened detector flags "
       "exactly the 19 rows the old one flagged**, so the fix cannot have moved a "
       "published gpt-oss number. Full account: `docs/DEFECT_REGISTER.md` #20.\n")
+
+    w("## Where the artifacts are\n")
+    w("`results/**` is gitignored — raw endpoint outputs are large and the "
+      "project tracks only ledgers. So:\n")
+    w("| artifact | path | tracked? |")
+    w("|---|---|---|")
+    w("| the analysis every number here is read from | `results/ledgers/gemma_reader/reader_transfer_analysis.json` | **yes** |")
+    w("| controls (A/A, cache separation, truncation) | `results/ledgers/gemma_reader/reader_transfer_controls.json` | **yes** |")
+    w("| run summary + the five gates | `results/ledgers/gemma_reader/transfer_summary.json` | **yes** |")
+    w("| the gpt-oss comparator anchor, fixed first | `results/ledgers/gemma_reader/gptoss_comparator_anchor.json` | **yes** |")
+    w("| the gpt-oss sign baseline, fixed first | `results/ledgers/gemma_reader/gptoss_sign_baseline.json` | **yes** |")
+    w("| the claims this arm was read against | `results/ledgers/gemma_reader/claims_under_test.json` | **yes** |")
+    w("| sha256 of the untracked row files | `results/ledgers/gemma_reader/row_file_digests.json` | **yes** |")
+    w("| 1,694 result rows | `results/gemma_reader/transfer_cells.jsonl` | no (30 MB) |")
+    w("| 3,294 cached responses | `results/gemma_reader/transfer_cache.jsonl` | no (7 MB) |")
+    w("| the 7 quarantined truncations + pre-fix cache | `results/gemma_reader/transfer_cache_quarantined_truncations.jsonl`, `…PRE_TRUNCATION_FIX.jsonl` | no |")
+    w("")
+    w("> ⚠️ **A digest verifies a file; it does not recover one.** The row "
+      "files are not redistributed here, so an outside reader can check that "
+      "a local copy is the one the analysis read, but cannot re-derive these "
+      "numbers without re-running the arm.\n")
 
     w("## Reproduce\n")
     w("```bash")

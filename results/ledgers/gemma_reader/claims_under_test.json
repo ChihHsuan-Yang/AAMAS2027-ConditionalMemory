@@ -1,0 +1,21 @@
+{
+  "_what": "the REPRESENTATION_RESULT claims the Gemma arm will be read against, listed BEFORE the Gemma numbers existed",
+  "claims": [
+    {
+      "claim": "Only Raw's interval excludes zero (B-MC paired, 277 cells, 57 memories)",
+      "gptoss_values": "raw +0.3174 [+0.1912,+0.4457]; summary +0.0613 [-0.0430,+0.1635]; structured -0.0498 [-0.1441,+0.0379]"
+    },
+    {
+      "claim": "Compression destroys the effect: summarising or structuring removes the measured benefit",
+      "gptoss_values": ""
+    },
+    {
+      "claim": "Ordering by B-MC: raw > summary > structured",
+      "gptoss_values": ""
+    },
+    {
+      "claim": "No representation shows robust harm; structured's point estimate is negative but its CI spans zero",
+      "gptoss_values": ""
+    }
+  ]
+}

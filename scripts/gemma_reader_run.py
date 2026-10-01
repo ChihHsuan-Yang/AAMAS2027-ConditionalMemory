@@ -550,8 +550,17 @@ def main() -> int:
                     # reward stays None. NEVER 0.0.
                     reward_w = reward_o = delta = None
                     joined = " | ".join(errs)
-                    code = (S.ERROR_EMPTY_OUTPUT_FINISH_LENGTH
-                            if "TruncatedResponseError" in joined else "http_error")
+                    # Name what ACTUALLY happened. "empty_output_finish_length"
+                    # is false on both halves for the metis/Gemma truncation --
+                    # the output is a FRAGMENT and the server reported no
+                    # finish reason at all (DEFECT_REGISTER #20). The client
+                    # distinguishes the two in its message; use it.
+                    if "TruncatedResponseError" not in joined:
+                        code = "http_error"
+                    elif "FRAGMENT" in joined:
+                        code = S.ERROR_TRUNCATED_FRAGMENT
+                    else:
+                        code = S.ERROR_EMPTY_OUTPUT_FINISH_LENGTH
                     unk_w = unk_o = None
                 else:
                     pw, po = extract_boxed_answer(ow), extract_boxed_answer(oo)
@@ -777,7 +786,12 @@ def main() -> int:
         "artifact_checks": checks,
         "VERDICT": "RUN_PASSED" if all(checks.values()) else "RUN_FAILED",
     }
-    (args.out / args.summary_name).write_text(json.dumps(summary, indent=2))
+    payload = json.dumps(summary, indent=2)
+    (args.out / args.summary_name).write_text(payload)
+    led = REPO / "results/ledgers/gemma_reader" / args.summary_name
+    led.parent.mkdir(parents=True, exist_ok=True)
+    led.write_text(payload)
+    log(f"wrote tracked copy {led}")
     log(f"VERDICT: {summary['VERDICT']}")
     return 0 if all(checks.values()) else 1
 

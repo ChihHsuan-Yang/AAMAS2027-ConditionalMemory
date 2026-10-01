@@ -92,8 +92,21 @@ UTILITY_LABEL_RULE_VERSION = "prereg_v1_ci_and_floor"
 # ERROR, never a scored outcome: scoring it would read as a wrong answer, drive
 # delta_utility negative, and MANUFACTURE a harmful memory. See docs/CLUSTER_DECISION.md.
 ERROR_EMPTY_OUTPUT_FINISH_LENGTH = "empty_output_finish_length"
+
+# 2026-09-30: a truncation whose content is NOT empty. On gpt-oss the budget is
+# eaten by reasoning and the answer comes back null, which the code above names
+# correctly. A model with no separate reasoning stream spends the budget on the
+# ANSWER and returns a grammatical FRAGMENT, and metis/gemma-4-31B-it under load
+# reports it with finish_reason "" rather than "length" (DEFECT_REGISTER #20).
+# Labelling that "empty_output_finish_length" would be FALSE on both halves of
+# the name -- the output was not empty and the finish reason did not say length
+# -- and a wrong-but-plausible error code is how the next reader is misled about
+# what actually happened.
+ERROR_TRUNCATED_FRAGMENT = "truncated_nonempty_at_token_budget"
+
 ERROR_CODES: tuple[str, ...] = (
     ERROR_EMPTY_OUTPUT_FINISH_LENGTH,
+    ERROR_TRUNCATED_FRAGMENT,
     "empty_output_other",
     "http_error",
     "timeout",
@@ -1219,6 +1232,45 @@ BENCHMARK_NULLABLE_EXEMPTIONS: dict[str, dict[str, str]] = {
 }
 
 
+#: Benchmarks whose WRITE PATH actually invokes the faithfulness proxy.
+#:
+#: ``validate.py`` rejects a "NOT SCORED" note on a model-written memory,
+#: because on LongMemEval that sentence is FALSE: the proxy runs at write time
+#: in ``r1_write_representations.py`` and its output is persisted. The check's
+#: premise is a property of the RUNNER, not of the representation, and on
+#: SWE-bench the premise does not hold -- measured, not assumed:
+#:
+#:   * ``grep -n faithfulness scripts/swebench_representations.py`` -> 0 hits;
+#:     the only callers of ``score_record`` are r1_write_representations.py
+#:     and pilot_representations.py, neither of which touches SWE-bench;
+#:   * the SWE-bench runner holds memory bodies in a local ``bodies`` dict and
+#:     never writes them, so the proxy cannot be run retroactively either
+#:     (zero 'django__django' hits across every results/*.jsonl cache).
+#:
+#: Without this table the only way past the check is to REWORD the note until
+#: the substring 'NOT SCORED' disappears -- satisfying a guard by editing a
+#: string rather than by changing the fact, which is the defect shape this
+#: repo's register calls "a guard a comment can satisfy". A benchmark absent
+#: from this table is treated as scoring (fail closed: the check still fires).
+FAITHFULNESS_PROXY_RUNS_AT_WRITE: dict[str, bool] = {
+    "longmemeval_v1": True,
+    "longmemeval_v2": True,
+    "scicode": True,
+    "swebench_verified": False,
+}
+
+
+def faithfulness_proxy_runs_at_write(benchmark: Any) -> bool:
+    """Does this benchmark's write path invoke the faithfulness proxy?
+
+    Fails CLOSED: an unknown benchmark is assumed to score, so the validator's
+    false-reason check keeps firing rather than being silently disarmed by a
+    name nobody added to the table.
+    """
+    b = (benchmark or "").strip().lower() if isinstance(benchmark, str) else ""
+    return FAITHFULNESS_PROXY_RUNS_AT_WRITE.get(b, True)
+
+
 def field_may_be_null(benchmark: Any, field: str) -> bool:
     """True when `field` may be null on a row from `benchmark`.
 
@@ -1735,6 +1787,7 @@ __all__ = [
     "IMPLICIT_CONDITION_KEYS", "REDISTRIBUTABLE_TEXT_FIELDS", "ENUMS",
     "CONTENT_EMBARGOED_BENCHMARKS", "assert_content_redistributable",
     "BENCHMARK_NULLABLE_EXEMPTIONS", "field_may_be_null",
+    "FAITHFULNESS_PROXY_RUNS_AT_WRITE", "faithfulness_proxy_runs_at_write",
     "WITHHELD_SENTINEL", "OUTPUT_NOT_RETAINED_SENTINEL",
     "WITHHELD_SENTINEL",
     "MEMORY_REPRESENTATIONS", "MEMORY_SEMANTIC_TYPES", "SEMANTIC_DISTANCE_BANDS",
@@ -1748,6 +1801,7 @@ __all__ = [
     "canonical_json", "sha256_text", "file_sha256", "sanitized_base_url_hash",
     "utc_now", "write_json_atomic", "write_jsonl_atomic", "append_jsonl_atomic",
     "load_jsonl",
+    "ERROR_TRUNCATED_FRAGMENT",
     "compute_memory_id", "compute_cell_id", "compute_row_id",
     "derive_utility_label", "derive_utility_label_from_row", "compute_delta_utility",
     "ERROR_CODES", "ERROR_EMPTY_OUTPUT_FINISH_LENGTH", "CLUSTER_MODEL_NAMING",
