@@ -65,9 +65,29 @@ def _boot_diff(A, B, tasks, n=20000, seed=11):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--src", default="results/swebench/representations_v1.json")
+    # 🔴 NO DEFAULT. This used to default to representations_v1.json, which is
+    # VOIDED (its contagion screen misfired on ASCII table borders in the issue
+    # text). Running the script bare therefore analysed voided data and printed
+    # a clean-looking result. A superseded artifact must never be the path of
+    # least resistance -- see CANONICAL_INPUTS below.
+    ap.add_argument("--src", required=True,
+                    help="representation artifact to analyse. The CANONICAL "
+                         "SWE-bench set is representations_v2.json + "
+                         "representations_v3_django_a.json + "
+                         "representations_v3_django_b.json + "
+                         "representations_sympy.json (use "
+                         "swebench_multirepo_analysis.py to pool them). "
+                         "representations_v1.json is VOIDED -- never analyse "
+                         "or pool it.")
     ap.add_argument("--out", default="results/swebench/representations_analysis.json")
     a = ap.parse_args()
+
+    if Path(a.src).name == "representations_v1.json":
+        raise SystemExit(
+            "ABORT: results/swebench/representations_v1.json is VOIDED -- its "
+            "contagion screen misfired on ASCII table borders in the issue "
+            "text, so it over-excluded memory bodies. It is kept on disk as a "
+            "record, NOT as an input. Use representations_v2.json.")
 
     d = json.loads(Path(a.src).read_text())
     cells = d["cells"]

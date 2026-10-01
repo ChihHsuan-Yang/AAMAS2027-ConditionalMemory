@@ -689,6 +689,18 @@ estimate **with its own interval** (`+0.0982`, task-clustered
 
 ## Added 2026-10-01 (SA-SWE-FINAL, completing SWE-bench coverage)
 
+🔴 **NUMBERING COLLISION — read this before citing #30, #31 or #32.** Two
+agents appended to this register within hours of each other and both took the
+numbers 30–32: **SA-SWE-FINAL** (this block, commit `bd25ad4`, SWE-bench
+coverage) and **SA-HF** (the next block, commit `51b6268`, the v0.3/v0.4
+releases). Neither set is renumbered, because both numbers are already cited
+in commit messages and in the documents each agent updated, and silently
+renumbering would break those citations while leaving them looking valid.
+**Cite these as `SWE-30/31/32` and the release ones as `HF-30/31/32`.** The
+collision is itself an instance of this register's standing shape: two
+processes each verified their own work in isolation and neither could see the
+shared resource they were both writing to.
+
 | # | defect | found by | consequence |
 |---|---|---|---|
 | 30 | **The negative control was partly passing on the defect it exists to catch.** `swebench_scorer_control.py` corrupts a gold patch and requires the corruption to score **0.0**. Before DEFECT #21 was fixed, a corrupted patch whose suite printed **no verdict** (`status_lines=0`) *also* returned 0.0 — so "the corruption was detected" and "the tests never ran" were the same observation. Re-running the identical 20 shipped control instances under the fixed scorer flips **6** of them from `corrupt→0.0` to `corrupt→None` (django-11555, -13028, -12713; sympy-24562, -18763, -14531). The shipped artifacts' "negative control 20/20" was **12/20 measured and 6/20 unmeasured**, with 2 escalated | me, by re-running the control rather than reading its stored verdict | the scorer's *discrimination* was never affected — gold/base reproduced **20/20 exactly** — so no reported number moves. But the register's most-repeated shape is here in its sharpest form: **the instrument that proves a check can fail was itself returning an error value as a pass.** A control is not validated by its own stored output; it has to be re-run after any change to the thing it calls |
@@ -712,6 +724,9 @@ classifier, and the two are kept apart on purpose.
 
 
 ## Added 2026-10-01 (SA-HF, the v0.3 and v0.4 releases) — three documents that lied beside correct data
+
+🔴 **These are `HF-30`, `HF-31`, `HF-32`.** The numbers 30–32 are also used by
+the SA-SWE-FINAL block above (`SWE-30/31/32`) — see the collision note there.
 
 | # | Defect | Caught by | Would have cost |
 |---|---|---|---|
@@ -765,3 +780,21 @@ Three of the first six needles I chose (`diff --git`, `Traceback`, `def test_`) 
 **vacuous**: they do not occur in the source artifacts at all. Recorded rather than
 quietly dropped, because "I searched for six things and found none" reads identically
 whether the needles were well chosen or not.
+
+---
+
+## Added 2026-10-01 (SA-SWE-FINAL, follow-up after review) — `SWE-33` and `SWE-34`
+
+| # | defect | found by | consequence |
+|---|---|---|---|
+| SWE-33 | **A VOIDED artifact was the DEFAULT input of a live script.** `swebench_analyze_representations.py` carried `--src` default `results/swebench/representations_v1.json` — the artifact voided because its contagion screen misfired on ASCII table borders (`+---+`) in issue text. Running the script bare analysed voided data and printed an ordinary-looking result, with nothing in the output naming the artifact as dead. The same file also sits beside the live ones, so a glob of `representations_*.json` sweeps it in | the Master Agent review, whose first re-derivation globbed it in and saw the demoted-zero count move (19 vs 12) while the contrasts stayed put | **no published number was affected** — every reported run named its sources explicitly. But a wrong number that moves for a reason the reader cannot see is worse than one that is simply wrong, and the bare invocation is exactly the one a successor reaches for. Fixed closed: the default is **removed** (`--src` required), and all three analysis scripts now **refuse `representations_v1.json` by name** with the reason it was voided. Each refusal was controlled to fire, then checked not to block the canonical inputs, which still reproduce the pooled artifact byte-for-byte. *Keeping a voided artifact on disk as a record is right; leaving it reachable as an input is not.* |
+| SWE-34 | **A correction that was itself wrong, nearly entered as fact.** The review recorded that my summary "listed the pooled contrasts as −0.0541 / −0.1622 / −0.0541 — those are the django per-arm ΔU, two adjacent tables transposed". Re-checked against both the summary and the artifact: the figures sat in the summary's **django** row under a **per-arm ΔU** heading, where they are correct; the pooled row read −0.0500 / −0.1500 / −0.1000, also correct per-arm ΔU. Neither row was presented as a paired contrast | me, by re-deriving the disputed numbers from the artifact instead of accepting a correction aimed at my own work | the correction is **withdrawn, and kept visible** rather than deleted. Two reasons it is worth a row: a retracted correction that silently vanishes is indistinguishable from one never made; and the slip runs in the *reviewing* direction — three numbers read off the wrong axis of a two-row table because they looked like the contrast triple sitting next to them. **A review is not exempt from the register's own shapes, and "the reviewer said so" is not evidence.** |
+
+### What the pair has in common with the collision note above
+
+All three — the numbering collision, `SWE-33` and `SWE-34` — are failures at a
+**seam between agents** rather than inside any one agent's work: a shared file
+two processes appended to blind, a dead artifact one agent left reachable for
+the next, and a correction written by a reader of someone else's summary. Each
+agent's own work verified clean in isolation. *Checking your own output does
+not check the thing you handed to, or inherited from, someone else.*

@@ -164,8 +164,25 @@ def demote_manufactured_zeros(cells: list[dict]) -> dict[str, Any]:
             "by_repo": dict(sorted(by_repo.items()))}
 
 
+# 🔴 Artifacts that are on disk as a RECORD and must never be an INPUT.
+# representations_v1.json was voided: its contagion screen misfired on ASCII
+# table borders (`+---+`) in the issue text, so it over-excluded memory bodies.
+# It sits beside the live artifacts and a glob of representations_*.json sweeps
+# it in -- which happened during review, changing the demoted-zero count while
+# the contrasts stayed put. A number that moves for a reason the reader cannot
+# see is worse than one that is wrong, so this fails closed by NAME.
+VOIDED_ARTIFACTS = {
+    "representations_v1.json":
+        "voided: the contagion screen misfired on ASCII table borders in the "
+        "issue text, over-excluding memory bodies. Use representations_v2.json.",
+}
+
+
 def load_source(path: str) -> dict[str, Any]:
     f = Path(path)
+    if f.name in VOIDED_ARTIFACTS:
+        raise SystemExit(f"ABORT: {path} is VOIDED and must never be pooled -- "
+                         f"{VOIDED_ARTIFACTS[f.name]}")
     if not f.exists():
         raise SystemExit(f"ABORT: source artifact missing: {path}")
     d = json.loads(f.read_text())

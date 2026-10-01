@@ -564,15 +564,46 @@ MATCHED n=40 | per-repo {'django/django': 37, 'sympy/sympy': 3}
 **These reproduce `representations_multirepo_final.json` exactly**, and the
 coverage identity closes per repo and overall (107 = 37 + 70).
 
-⚠️ **One thing a reader of the agent's own summary should know.** Its prose
-report listed the *pooled contrasts* as −0.0541 / −0.1622 / −0.0541. Those are
-the **django per-arm ΔU values**, not contrasts — the summary transposed two
-adjacent tables. **The tables in this document and the artifact are correct**
-and were not affected. Recorded because the distinction between a per-arm mean
-and a paired contrast is exactly the kind of slip that survives into a paper.
+⚠️ **A note on the agent's own summary — and a correction to this note.**
+The review recorded that SA-SWE-FINAL's prose "listed the *pooled contrasts*
+as −0.0541 / −0.1622 / −0.0541", transposing two adjacent tables. **Re-checked
+against the summary and the artifact: that is not what happened, and the
+correction is withdrawn.** Those three figures appeared in the summary's
+**django row**, where they are the correct django **per-arm ΔU** values
+(artifact: raw −0.0541, summary −0.1622, structured −0.0541). The summary's
+**pooled row** read −0.0500 / −0.1500 / −0.1000, which is likewise the correct
+pooled **per-arm ΔU** (artifact: −0.05 / −0.15 / −0.10). Both rows were
+per-arm ΔU under a per-arm heading; neither was presented as a paired
+contrast. The pooled *contrasts* are −0.0500 / −0.1000 / +0.0500 and are
+tabulated separately in §0d above.
+
+**The withdrawn note is kept rather than deleted**, because the distinction it
+names — a per-arm mean reported as a paired contrast — is a real hazard worth
+keeping in front of a reader, and because a retracted correction that silently
+vanishes is indistinguishable from one that was never made. What the episode
+actually shows is the hazard in the *reviewing* direction: three numbers that
+look like a contrast triple because they sit next to one, read off the wrong
+axis of a two-row table.
 
 ⚠️ **The superseded `representations_v1.json` is still on disk.** My first
 re-derivation globbed `representations_*.json` and swept it in, which changes
 the demoted-zero count (19 vs 12) while leaving n=40 and all three contrasts
 unchanged. The canonical input set is **v2 + sympy + v3_django_a + v3_django_b**;
 v1 was voided for a contagion-screen false positive and must never be pooled.
+
+🔴 **This was worse than a glob hazard, and it is now fixed closed.**
+`swebench_analyze_representations.py` had `representations_v1.json` as its
+**default `--src`**, so running it bare analysed the voided artifact and
+printed a clean-looking result with nothing to warn the reader. Three changes,
+each positively controlled to fire and then checked not to block the canonical
+inputs:
+
+* the default is **removed** — `--src` is now required;
+* `swebench_analyze_representations.py`, `swebench_multirepo_analysis.py` and
+  `swebench_coverage_table.py` all **refuse v1 by name** and abort with the
+  reason it was voided;
+* the canonical four-artifact pooled run still reproduces
+  `representations_multirepo_final.json` byte-for-byte.
+
+A voided artifact must never be the path of least resistance. Keeping it on
+disk as a record is right; leaving it reachable as an input was not.

@@ -236,6 +236,11 @@ def main() -> int:
 
     cells: list[dict] = []
     for p in a.src:
+        # fail closed on a voided artifact -- see swebench_multirepo_analysis
+        if Path(p).name == "representations_v1.json":
+            raise SystemExit(f"ABORT: {p} is VOIDED (its contagion screen "
+                             f"misfired on ASCII table borders) and must "
+                             f"never be an input. Use representations_v2.json.")
         cells += json.loads(Path(p).read_text())["cells"]
     cls = classify(cells, valid)
 
