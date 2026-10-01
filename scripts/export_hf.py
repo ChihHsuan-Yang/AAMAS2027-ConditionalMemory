@@ -1360,6 +1360,66 @@ def gate_card_command_actually_runs(staging: Path) -> None:
             f"  exit={proc.returncode}\n"
             f"  stdout: {proc.stdout.strip()[:800]}\n"
             f"  stderr: {proc.stderr.strip()[:800]}")
+    gate_card_expected_output_is_true(staging, proc.stdout.strip())
+
+
+#: The card prints the output a consumer should SEE. v0.2's card said
+#: ``5643 rows | 0 errors | 1129 warnings``; the v0.3 artifact prints
+#: ``5797 rows | 0 errors | 1437 warnings``. Both sentences are in the same file.
+_CARD_SUMMARY_RE = re.compile(r"(\d[\d,]*)\s+rows\s*\|\s*(\d[\d,]*)\s+errors"
+                              r"(?:\s*\|\s*(\d[\d,]*)\s+warnings)?")
+
+
+def gate_card_expected_output_is_true(staging: Path, actual_summary: str) -> None:
+    """GATE 5b: the card's PRINTED EXPECTED OUTPUT must match what actually prints.
+
+    🔴 GATE 5 ran the command and checked only that it EXITED 0. It never compared
+    the command's output to the output the card tells the reader to expect. So a
+    card carrying v0.2's "expect: 5643 rows | 0 errors | 1129 warnings" sailed
+    through a v0.3 release that prints 5797/0/1437 -- a FALSE STATEMENT shipped
+    inside the artifact, in the one place a consumer checks to see whether their
+    download is intact. They would read 5,643, see 5,797, and conclude the file is
+    corrupt.
+
+    This is the release-note defect class the project already named: *a documented
+    reason decays when the data it describes changes*. The number is part of the
+    record, exactly like a null's stated reason, and must be re-checked at every
+    release rather than inherited.
+
+    Exit code is not output. A gate that runs a command and ignores what it said
+    verifies the plumbing and not the claim.
+    """
+    card = staging / "README.md"
+    if not card.exists():
+        return
+    m_actual = _CARD_SUMMARY_RE.search(actual_summary)
+    if not m_actual:
+        raise GateFailure(
+            f"GATE 5b: could not parse the validator summary {actual_summary[:200]!r}; "
+            f"refusing to declare the card's expected output true against nothing.")
+    text = card.read_text()
+    claims = _CARD_SUMMARY_RE.findall(text)
+    if not claims:
+        raise GateFailure(
+            "GATE 5b: the data card states NO expected validator output. A consumer "
+            "then has nothing to check their download against. Add the line.")
+    norm = lambda x: int(str(x).replace(",", "")) if x else None       # noqa: E731
+    want = (norm(m_actual.group(1)), norm(m_actual.group(2)), norm(m_actual.group(3)))
+    bad = []
+    for c in claims:
+        got = (norm(c[0]), norm(c[1]), norm(c[2]))
+        # warnings may be omitted in a prose mention; rows+errors must always match
+        if got[0] != want[0] or got[1] != want[1] or (got[2] is not None and got[2] != want[2]):
+            bad.append(f"card says {got[0]} rows/{got[1]} errors/{got[2]} warnings")
+    if bad:
+        raise GateFailure(
+            "GATE 5b (the card's expected output is FALSE) FAILED -- nothing was "
+            "written.\n"
+            f"  the shipped file actually prints: {want[0]} rows | {want[1]} errors | "
+            f"{want[2]} warnings\n"
+            + "".join(f"  {b}\n" for b in bad)
+            + "  A consumer following the README would read a number that does not "
+              "match their download and conclude it is corrupt. Update the card.")
 
 
 def main(argv: Sequence[str] | None = None) -> int:

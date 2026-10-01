@@ -33,7 +33,15 @@ configs:
 
 # Conditional Memory Utility Dataset
 
-> **v0.2 — `repr-derived`. 5,643 real evaluated rows, 0 fabricated rows.**
+> **v0.3 — `scicode-derived`. 5,797 real evaluated rows, 0 fabricated rows.**
+>
+> Adds **154 SciCode rows** (Apache-2.0, content permitted) to v0.2's 5,643
+> LongMemEval-V2 rows. 🔴 **SciCode ships `raw` ONLY — 154 of its 462 cells.**
+> The 308 Summary and Structured cells are **withheld because their memory text
+> was never persisted and is NOT recoverable**; see §SciCode below. A partial
+> export that looks complete is the defect, so the gap is stated here first.
+>
+> *(v0.2 was: 5,643 rows, LongMemEval-V2 only, three representations.)*
 > LongMemEval-V2 only, now in **three matched memory representations**: the 4,519 Raw
 > rows of v0.1 plus **1,124 Summary and Structured rows** over the same memories, tasks
 > and reader. The headline is a **negative result on the project's own founding
@@ -460,7 +468,9 @@ id was minted, is caught.
 **Authoritative document: `docs/BENCHMARK_LICENSES.md`, shipped in this release with its
 sha256 in `MANIFEST.json`.** That document governs; this section summarizes.
 
-Every row here derives from **LongMemEval-V2, Apache-2.0** (verified on 5,643/5,643 rows),
+Every row here derives from a source whose licence permits redistribution:
+**LongMemEval-V2, Apache-2.0** on 5,643 rows and **SciCode, Apache-2.0** on 154
+(verified on 5,797/5,797 rows by `license_source_reference`),
 so source text **is** redistributed, with attribution and a NOTICE of modifications.
 
 **Withheld by policy, and absent from this release:**
@@ -601,11 +611,92 @@ Each of these is a **measured** constraint with a command behind it.
     silently entering a table labelled "deterministic proxy" is the failure being
     avoided.
 
+## 19.14 🔴 SciCode ships 154 of 462 cells — the other 308 are NOT recoverable
+
+**v0.3 adds SciCode, and it adds only its `raw` arm. State this before using the
+benchmark comparison: the SciCode rows are not representation-matched, and the
+LongMemEval rows are.**
+
+| SciCode | cells | shipped |
+|---|---:|---|
+| `raw` | 154 | ✅ all 154 |
+| `summary` | 154 | ❌ none |
+| `structured` | 154 | ❌ none |
+| **total** | **462** | **154 (33.3%)** |
+
+**This is not a licence withholding.** SciCode is Apache-2.0 on both code and
+data and its content may ship — which is why these rows carry their real
+`memory_text` rather than a `__WITHHELD_SEE_LICENSE__` sentinel. It is a
+**persistence gap**: `scripts/scicode_pilot.py` held the written memories in
+process memory, passed no cache to the client, and recorded `len(content)` while
+discarding the text. There is no write cache (verified by reading the
+`benchmark` field of all 16,016 cache rows across 16 files: 16,014
+`longmemeval_v2`, 2 `cache_separation_proof`, **0 `scicode`**).
+
+### Why the text was not simply regenerated
+
+The writers run at temperature 0, so regenerating them and proving identity
+looked straightforward. It was attempted, with an independent proof available:
+every WITH arm-run recorded the server's `prompt_tokens`, which is a function of
+the exact prompt bytes and therefore of the memory text inside them.
+
+**The proof ran, and it refused the text.**
+
+| representation | cells whose recomputed `prompt_tokens` matched the recorded value |
+|---|---|
+| `raw` | **154 / 154** ✅ |
+| `summary` | 5 / 154 ❌ |
+| `structured` | 0 / 154 ❌ |
+
+`raw` matches because it involves **no model call at all**: the raw memory *is*
+the source segment, verbatim, so it is re-derived deterministically from the
+benchmark corpus.
+
+The reason the other two fail is that **the endpoint is not reproducible across
+sessions**, which was measured directly rather than inferred:
+`results/repr_scaleup/memories.jsonl` stores 60 Summary memories written by the
+same writers, on the same model, *with their text*. Re-running them reproduces
+**0 of 12 byte-identically**, while the writer's own `prompt_tokens` matches
+**12 of 12** — the same prompt was sent and a different answer came back. Within
+a single session the same segment gives the same bytes (4/4 draws). So
+*within-session determinism is real and is not the property recovery needs.*
+
+The 5 matching Summary cells are **chance, not partial recovery**: two
+independent regenerations of the same segment differ in text, and their token
+counts coincide anyway ~5–8% of the time, which predicts ~2–3 spurious
+per-memory matches over 34 memories. That is what was observed.
+
+### What this means for a reader
+
+* **Do not compare SciCode across representations.** Only one exists here.
+* **Do not treat SciCode's 154 as 462 with some rows missing.** The 308 absent
+  cells were executed and scored — their rewards exist — but the memory whose
+  utility they measure cannot be shown to anyone, so no row can honestly carry
+  it.
+* A regenerated memory would have been fluent, correct about the right segment,
+  and **wrong**. Nothing downstream would have objected. The `prompt_tokens`
+  check is the only reason this is a documented gap rather than 308 plausible
+  rows.
+
+Evidence: `results/scicode/memory_recovery_report.json` (per-cell verdicts, the
+positive control, and both nulls).
+
+### Honest limit of the identity check
+
+A token count is not a hash. On the real subject, **0 of 4 one-character
+perturbations** moved the count (appending a period, appending a space, deleting
+the last character, changing a digit) — BPE re-tokenises the neighbourhood to the
+same length. Two larger edits (one word, one sentence) were detected. So "matched"
+means *same token count under every one of that memory's prompts*, which is strong
+evidence and not proof of byte identity. The opposite null is clean: substituting a
+**different** memory matched **0 of 3,003** times.
+
 ## 20. Version history
 
 | version | date | contents |
 |---|---|---|
 | **v0.1 `lmev2-derived`** | 2026-09-30 | First upload. 4,519 rows / 2,117 cells from three LongMemEval-V2 arms (screened, pilot, official-prompt). All `raw`. Schema v2, 97 fields. |
+| **v0.3 `scicode-derived`** | 2026-09-30 | **+154 rows**: SciCode `raw` only (Apache-2.0, content ships). **5,797 rows total**, 98 fields, two benchmarks. 🔴 SciCode's Summary and Structured arms (308 cells) are **withheld as unrecoverable** — the memory text was never persisted and regeneration is NOT byte-reproducible across sessions (measured: 0/12 against ground truth on disk). Adds §19.14 and GATE 5b. |
 | **v0.2 `repr-derived`** | 2026-09-30 | **+1,124 rows**: the matched Summary (570) and Structured (554) arms over the same memories, tasks and reader. **5,643 rows total.** Schema **v3**, **98 fields** (`faithfulness_detail` added). `faithfulness_check` and `parent_memory_id` are now populated on the new rows (§7.1). Adds §12.1 (compression destroys the effect), §14.1 (the cost ranking reverses once formation is charged) and §19.13 (cross-session drift between the arms). |
 | v0.3 *(planned)* | — | SciCode-derived rows. Run in flight at v0.2; **not** included, and no claim is made about it here. |
 | v0.4 *(planned)* | — | SWE-bench Verified rows. Run in flight at v0.2; a localized pilot found an arm asymmetry that must be resolved first. |
@@ -639,19 +730,20 @@ reason is harder to catch than a wrong verdict.
 import sys; sys.path.insert(0, "code")          # the shipped schema.py + validate.py
 from p1mem import schema as S, validate as V
 rows = S.load_jsonl("data/cells.jsonl", strict=True)
-print(V.validate_dataset(rows).summary())        # expect: 5643 rows | 0 errors
+print(V.validate_dataset(rows).summary())        # expect: 5797 rows | 0 errors
 ```
 
-Expected output, exactly — **0 errors and 1,129 warnings**, every warning intended and
+Expected output, exactly — **0 errors and 1,437 warnings**, every warning intended and
 documented:
 
 ```
-5643 rows | 0 errors | 1129 warnings
-  all_labels_undetermined: 1                          §11 — the noise floor is unmeasured
-  provenance_incomplete: 1124                         §7.3 — a config hash the run never took
-  scorer_composition_differs_across_strata: 1         §19.9 — and it acts AGAINST the effect
-  unknown_error_code: 2                               §4  — 2 errored rows carrying no reward
-  zero_execution_noise: 1                             §11 — temperature-0 determinism
+5797 rows | 0 errors | 1437 warnings
+  all_labels_undetermined: 1
+  provenance_incomplete: 1278
+  reasoning_tokens_missing: 154
+  scorer_composition_differs_across_strata: 1
+  unknown_error_code: 2
+  zero_execution_noise: 1
 ```
 
 **A warning here is a finding, not lint.** None of them is suppressed, and none should be
