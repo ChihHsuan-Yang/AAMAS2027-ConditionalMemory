@@ -650,6 +650,28 @@ def gate_license_doc_present() -> str:
 
 
 # ============================================================ SELF-TEST
+def _pick_isolation_safe_sample(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
+    """A row that can legitimately be validated on its own.
+
+    ``validate_dataset`` carries per-cell checks (``num_replicates_mismatch``,
+    ``confidence_or_stability``), so validating a slice of one row is only sound
+    when that row really is its cell's only replicate. Returns the first row with
+    ``num_replicates`` in (None, 1); falls back to the synthetic row rather than
+    silently using a multi-replicate one and blaming redaction for the failure.
+    """
+    if not rows:
+        return _synthetic_row()
+    for r in rows:
+        if r.get("num_replicates") in (None, 1):
+            return dict(r)
+    # No single-replicate row exists: say so rather than returning a row that
+    # will fail in isolation for a reason that has nothing to do with the gates.
+    raise AssertionError(
+        "SELF-TEST CANNOT RUN: every input row belongs to a multi-replicate cell, "
+        "so no row can be validated in isolation and the per-cell checks would "
+        "fire for a reason unrelated to any gate. Pass a single-replicate row.")
+
+
 def self_test(rows: Sequence[dict[str, Any]]) -> list[str]:
     """Prove each gate can FAIL, by planting the defect it exists to catch.
 
@@ -657,7 +679,23 @@ def self_test(rows: Sequence[dict[str, Any]]) -> list[str]:
     human-readable PASS lines; raises if any gate failed to fire.
     """
     log: list[str] = []
-    sample = dict(rows[0]) if rows else _synthetic_row()
+    # 🔴 THE FIXTURE MUST BE VALIDATABLE IN ISOLATION. Several checks below run
+    #    `validate_dataset([one_row])`, and `num_replicates_mismatch` is a
+    #    PER-CELL check: it compares the row's declared num_replicates against
+    #    the number of rows PRESENT for that cell. A row from a 2-replicate cell
+    #    therefore fails by construction when validated alone -- which is a
+    #    property of the fixture, not of the data or of redaction.
+    #
+    #    Measured 2026-09-30: rows[0] of the v0.2 input declares
+    #    num_replicates=2 and its cell has exactly 2 rows in the full dataset
+    #    (validate_dataset over that cell: 0 errors). Picking it made the
+    #    redaction regression test fail with `num_replicates_mismatch` and read
+    #    as "a redacted row cannot ship".
+    #
+    #    So: prefer a genuinely single-replicate row. The gate is NOT weakened --
+    #    num_replicates_mismatch still runs, on a row where 1 declared == 1
+    #    present is the TRUE value rather than an artefact of slicing.
+    sample = _pick_isolation_safe_sample(rows)
 
     # -- GATE 2 positive: a token planted inside a MODEL OUTPUT, not in a filename.
     #    A path-based scan would miss this entirely.
