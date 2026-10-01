@@ -195,7 +195,11 @@ effect.** `results/gemma_probe/params_probe.txt`, content SHA-256 (first 12 hex)
 **Two controls, because "all identical" is otherwise uninterpretable:**
 
 1. *Determinism control* — 3 byte-identical requests at temp 0 gave the same hash
-   `9b26000fcd9c` 3/3. So this endpoint is deterministic and "identical" is meaningful.
+   `9b26000fcd9c` 3/3, **within one probe session**. So this endpoint is deterministic
+   inside a session and "identical" is meaningful here. (Gemma was *separately* measured
+   at **0/1,124** drift across a day — a stronger result, but a **different measurement**
+   than this 3/3, and not something this control establishes.
+   See `docs/SESSION_DETERMINISM_AUDIT.md`.)
 2. *Positive control* — the **same probe** on `gpt-oss-120b` **does** see an effect:
 
 | effort | content sha | `reasoning_tokens` | finish |

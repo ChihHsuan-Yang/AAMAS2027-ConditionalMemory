@@ -17,8 +17,13 @@ artifact.** All reproduce exactly.
 | **F_empty** | **0.000** | 774 distinct cache keys, 774 distinct latencies → 774 independent real calls returning identical text | independence proven by call count |
 | **F_judge** | **0.000** | 0 disagreements over 1,916 re-scorings | **fires** (0.3175 on a planted defect) |
 
-The reader is genuinely deterministic at temperature 0 (separately confirmed: 6/6
-byte-identical on real 23k–27k-token prompts, cache disabled, concurrency 16).
+The reader is genuinely deterministic at temperature 0 **within a session**
+(separately confirmed: 6/6 byte-identical on real 23k–27k-token prompts, cache
+disabled, concurrency 16 — all 24 calls inside one run). 🔴 This does **not**
+extend across sessions: the identical comparison a day later moved 554/1,124 on
+`gpt-oss-120b`. The floors below are **within-session floors**, which is the
+scope the conclusions drawn from them need. See
+`docs/SESSION_DETERMINISM_AUDIT.md`.
 
 > **Consequence: the PREREG §4 floor clause is vacuous.** Everything now rests on the CI
 > clause — and with 2 always-agreeing replicates the CI is degenerate. `robust` and `naive`

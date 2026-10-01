@@ -28077,7 +28077,7 @@
     "point": 0.0,
     "scale": "delta"
   },
-  "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_screened/cells.jsonl",
+  "rows_artifact": "results/deltau_screened/cells.jsonl",
   "shared_grid_decomposition": {
     "enterprise": {
       "F_exec_delta": 0.0,

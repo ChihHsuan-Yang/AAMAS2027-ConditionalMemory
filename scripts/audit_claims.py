@@ -596,6 +596,45 @@ if _k3.is_file() and _tex.is_file():
 else:
     print("  SKIP  artifact or manuscript not present")
 
+print("== no tracked artifact or doc may de-anonymise the submission ==")
+# DEFECT_REGISTER #23 recurring: GATE 2b's pattern was right but its SUBJECT
+# was the HF staging tree only. results/ledgers/ is git-tracked and the README
+# advertises results/ledgers/repro/ as the reviewer-facing slice; nine of those
+# files carried an absolute /Users/<name>/ path and no gate looked. A scanner
+# aimed at one tree certifies nothing about another.
+_ID_RX = [(re.compile(r"/Users/[A-Za-z0-9._-]+/"), "absolute macOS home path"),
+          (re.compile(r"/home/[A-Za-z0-9._-]+/"), "absolute Linux home path")]
+#: Paths a reviewer is pointed at, or that ship. Docs are included because the
+#: manuscript's sources live beside them and a copied path travels.
+_SCAN_ROOTS = ["results/ledgers", "docs/hf_card", "docs/submission"]
+_leaks, _scanned = [], 0
+for _root in _SCAN_ROOTS:
+    _rp = REPO / _root
+    if not _rp.is_dir():
+        continue
+    for _f in sorted(_rp.rglob("*")):
+        if not _f.is_file() or _f.suffix in {".png", ".pdf", ".npy"}:
+            continue
+        _scanned += 1
+        try:
+            _t = _f.read_text(errors="replace")
+        except Exception:
+            continue
+        for _rx, _why in _ID_RX:
+            for _m in _rx.finditer(_t):
+                _leaks.append(f"{_f.relative_to(REPO)}: {_why} {_m.group(0)!r}")
+# A clean scan over zero files is not a pass -- it is a dead glob.
+check("identity scan actually opened files (not a vacuous glob)",
+      _scanned > 20, True)
+check("no absolute home path in any tracked/reviewer-facing artifact",
+      _leaks[:5], [])
+# The manuscript itself.
+_mt = REPO.parent / "overleaf" / "main.tex"
+if _mt.is_file():
+    _mb = _mt.read_text()
+    check("manuscript carries no absolute home path",
+          [m.group(0) for rx, _ in _ID_RX for m in rx.finditer(_mb)][:5], [])
+
 print()
 if FAIL:
     print(f"AUDIT FAILED: {len(FAIL)} claim(s) did not reproduce: {FAIL}")

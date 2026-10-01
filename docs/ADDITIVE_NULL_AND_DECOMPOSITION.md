@@ -46,8 +46,17 @@ went to **0 by construction**, and mean tasks per memory rose 8 → **19.3**.
 ### The real cause: `F_exec = 0`
 
 Verified: **0 of 1,157 cells have replicates that disagree.** The reader is deterministic
-at temperature 0, so the residual variance is exactly zero — and **with no residual scale
-there is nothing to identify variance components against.**
+at temperature 0 **within a session**, so the residual variance is exactly zero — and
+**with no residual scale there is nothing to identify variance components against.**
+
+> **The scope does not weaken this conclusion, and is stated so the number is
+> not over-read.** The replicates being compared were issued **0.0–15.7 s apart**
+> (median 0.0 s) inside one 0.81 h run, re-derived from
+> `results/deltau_screened/cache.jsonl`. That is exactly the right scope for an
+> *execution*-noise floor, and unidentifiability follows from it. What it does
+> not license is "a re-run tomorrow scores the same": across one day the same
+> WITHOUT requests moved 554/1,124 on this model. There is no measured
+> F_session. See `docs/SESSION_DETERMINISM_AUDIT.md`.
 
 > The crossing defect was real and the fix succeeded. **The conclusion did not follow from
 > it.** A successful repair that does not produce the expected result is evidence the

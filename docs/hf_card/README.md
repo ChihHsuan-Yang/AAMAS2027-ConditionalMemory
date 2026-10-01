@@ -293,11 +293,22 @@ endpoint, decoding, seed, prompt scaffold, and **the same scoring function and v
 2 or 3 replicates per cell (872 cells × 2, 285 cells × 3 in the screened arm), differing
 **only** in sampling.
 
-🔴 **`F_exec = 0`, measured.** All 1,157 screened cells produced **byte-identical output in
-both arms across every replicate** (`confidence_or_stability = 1.0` everywhere). This is
-real temperature-0 determinism, **not cache reuse**: the cache holds 5,198 distinct keys
-(`replicate_id` is a key field) spread 2,314/2,314/570 over replicate ids 0/1/2, so each
-replicate was a separate real endpoint call.
+🔴 **`F_exec = 0`, measured — and it is a WITHIN-SESSION floor.** All 1,157 screened
+cells produced **byte-identical output in both arms across every replicate**
+(`confidence_or_stability = 1.0` everywhere). This is real temperature-0 determinism,
+**not cache reuse**: the cache holds 5,198 distinct keys (`replicate_id` is a key field)
+spread 2,314/2,314/570 over replicate ids 0/1/2, so each replicate was a separate real
+endpoint call.
+
+🔴 **Scope, and a consumer must not miss it.** The replicate calls being compared were
+issued **0.0–15.7 s apart** (median 0.0 s) inside one 0.81 h run. `F_exec = 0` therefore
+means *re-issuing an identical request moments later in the same run returns the same
+reward*. It does **NOT** mean a re-run on another day reproduces these rows: on this same
+model, byte-identical no-memory requests re-issued 24 h later returned **different text in
+554 of 1,124 cases** and different reward in 82–84, moving the no-memory baseline by
+≈**−0.03**. A second reader (`gemma-4-31B-it`) drifted **0/1,124** on the identical
+comparison, so cross-session stability is a property of the **model**. There is no
+measured F_session for any arm in this release.
 
 **Consequences a consumer must not miss:**
 - `confidence_or_stability = 1.0` means *re-sampling reveals no variation*. It is **NOT**

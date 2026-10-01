@@ -57,11 +57,22 @@ exactly 0.000, and it measured nothing.
 So the greedy judge really is re-run each time, and really is deterministic.
 
 > **`F_judge = 0` is a property of (this judge model) × (greedy decoding) ×
-> (this reasoning_effort) × (this gateway). It is NOT a property of the
-> rubric.** It does not transfer to a sampled judge, a different judge model,
-> or a different `reasoning_effort` — each of those is a **new scorer arm**
-> whose floor must be re-measured, exactly as `docs/MODEL_ARMS.md` requires for
-> readers.
+> (this reasoning_effort) × (this gateway) × (ONE SESSION). It is NOT a
+> property of the rubric.** It does not transfer to a sampled judge, a
+> different judge model, or a different `reasoning_effort` — each of those is a
+> **new scorer arm** whose floor must be re-measured, exactly as
+> `docs/MODEL_ARMS.md` requires for readers.
+
+> 🔴 **The fifth conditioning factor was missing until 2026-10-01: the
+> session.** All 408 judge calls were issued in one run. This is a
+> **within-session** floor, which is the right scope for the claim it supports
+> ("re-scoring a stored output six times in one run agrees"). It says nothing
+> about re-scoring next week — and the judge here is `gpt-oss-120b`, the model
+> measured drifting **554/1,124** on byte-identical requests across a single
+> day. **The cross-session judge floor should be presumed non-zero until
+> measured**, and the 156-question stratum's re-scoring plan needs it, because
+> a re-score run on a different day from the generation run is exactly the
+> cross-session case. See `docs/SESSION_DETERMINISM_AUDIT.md`.
 
 ### The margin behind the zero
 
@@ -182,7 +193,7 @@ is for that reason and not for difficulty or outcome. It is now measured:
 ### What this does NOT license
 
 - It does **not** say the LLM judge is reliable in general — only that it is
-  **byte-deterministic at this exact configuration**.
+  **byte-deterministic at this exact configuration, within one session**.
 - It does **not** make `F_judge = 0` usable as the reference floor. Prereg §2
   sets `F = F_exec`; and `F_exec` for the LLM-judged stratum is **still
   unmeasured** — the 48 outputs here are 1 replicate per (task, arm).

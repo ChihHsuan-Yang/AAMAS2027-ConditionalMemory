@@ -56,8 +56,9 @@ fields into the row, so a script cannot populate four and leave the fifth null.
 **`reasoning_effort` on R1–R3: the field is OMITTED, and recorded as
 `none:not_applicable`.** Not "low", and not `"none"` (metis 400s on that). It
 is accepted by the API but **verifiably inert**: content sha identical across
-omitted/low/medium/high, against a determinism control (3/3 identical) and a
-positive control on gpt-oss that *does* move (reasoning_tokens 58/118/473).
+omitted/low/medium/high, against a within-session determinism control (3/3
+identical, one probe run) and a positive control on gpt-oss that *does* move
+(reasoning_tokens 58/118/473).
 `P1Client.chat` still **defaults to `"low"`**, so every Gemma call must pass
 `reasoning_effort=None` explicitly; `READER_ARMS` carries that value so no
 caller has to remember.
@@ -242,9 +243,18 @@ contains no memory and whose request bytes were verified byte-identical
 | `gemma-4-31B-it` | 1,124 | **0** | 0 | 0.0000 |
 
 **This does not contradict the 248/248 A/A result** — that measurement is
-within one session (paired calls minutes apart) and remains correct. It is a
+within one session and remains correct. Re-derived from the caches'
+`written_at_utc`, the two calls in each A/A pair sit **54–178 s** apart
+(gpt-oss) and **608–1,699 s** apart (Gemma), all inside one run. It is a
 *different quantity*, and the distinction has to be stated every time either
-number is quoted.
+number is quoted. Full sweep: `docs/SESSION_DETERMINISM_AUDIT.md`.
+
+⚠️ **The two figures quoted for this drift are both correct and describe
+different row files**, not a discrepancy: the WITHOUT rows of the writer-Gemma
+arm (`factorial_cells_gemma.jsonl`, n=1,124) give **84** reward differences and
+**−0.0320**; those of the writer-gpt-oss arm (`factorial_cells_gptoss.jsonl`,
+1,122 non-null) give **82** and **−0.0303**. Text differs on **554** in both.
+The table below is the writer-Gemma file.
 
 Two consequences, both binding:
 

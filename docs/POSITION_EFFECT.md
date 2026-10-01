@@ -9,8 +9,17 @@ mistake was mine; the finding underneath it is real.
 
 I reported that the ALCF endpoint is nondeterministic at temperature 0, on the basis of
 4.3% disagreement across replicates. Sub-agent G challenged it. The endpoint **is**
-deterministic — G's probe in the target regime (23k–27k tokens, cache disabled,
-concurrency 16) gives **6/6 prompts byte-identical across 4 repeats, 24 real calls**.
+deterministic **within a session** — G's probe in the target regime (23k–27k tokens,
+cache disabled, concurrency 16) gives **6/6 prompts byte-identical across 4 repeats,
+24 real calls**, all issued inside one run.
+
+> 🔴 **Scope, added 2026-10-01.** "The endpoint is deterministic" is true of a
+> session and false of a day: re-issuing byte-identical requests 24 h later returned
+> different text in **554 of 1,124** cases on `gpt-oss-120b` (**0 of 1,124** on
+> `gemma-4-31B-it`, so cross-session stability is a property of the MODEL, not the
+> cluster). The retraction above stands — the 4.3% really was a position effect — but
+> the replacement claim needs its session scope.
+> See `docs/SESSION_DETERMINISM_AUDIT.md`.
 
 My replicates were not byte-identical. `build_cell_pair` seeded the target memory's
 **position** with `replicate_id`, so each replicate moved the memory within the context.
