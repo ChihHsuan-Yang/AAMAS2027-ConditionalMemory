@@ -466,3 +466,60 @@ def test_localize_survives_unparseable_source():
     """A historical commit may use syntax this interpreter rejects."""
     bad = "def f(:\n  pass\n" * 30
     assert localize(bad, "fix f", path="m.py", top_k=1) != []
+
+
+# ------------------------------------------------- DEFECT_REGISTER #21
+# n_status_lines was computed, written into the detail string, and then
+# ignored: `if not f2p.ok: return 0.0` collapsed "the tests ran and failed"
+# with "the tests never ran". 27 django and 10 sympy arm-runs carried a
+# manufactured 0.0. These tests fail against that behaviour.
+
+def _fake_outcome(ok, n_status_lines, returncode=0, tail=""):
+    from p1mem.adapters.swebench_harness import TestOutcome
+    return TestOutcome(ok=ok, returncode=returncode, tail=tail,
+                       n_status_lines=n_status_lines)
+
+
+def test_no_f2p_verdict_is_unscorable_not_zero(monkeypatch, tmp_path):
+    """A suite that printed no verdict yields None, never 0.0."""
+    import p1mem.adapters.swebench_harness as H
+    monkeypatch.setattr(H, "run_tests",
+                        lambda *a, **k: _fake_outcome(False, 0, returncode=4))
+    monkeypatch.setattr(H, "_ids_for", lambda *a, **k: ["t"])
+    monkeypatch.setattr(H.subprocess, "run", lambda *a, **k: None)
+    f = tmp_path / "f.py"
+    f.write_text("x = 1\n")
+
+    class _T:
+        test_patch = ""
+        fail_to_pass = ["t"]
+        pass_to_pass = []
+
+    reward, detail = H.score_patched_file(
+        tmp_path, H.Runner("pytest", "python"), _T(), "f.py", "x = 2\n")
+    assert reward is None, f"no-verdict run scored {reward!r}, manufacturing a wrong answer"
+    assert "UNSCORABLE" in detail
+
+
+def test_real_f2p_failure_is_still_zero(monkeypatch, tmp_path):
+    """Control: a suite that RAN and failed must still score 0.0.
+
+    Without this the fix could pass by turning every failure into None,
+    which would delete the real negatives instead of the fake ones.
+    """
+    import p1mem.adapters.swebench_harness as H
+    monkeypatch.setattr(H, "run_tests",
+                        lambda *a, **k: _fake_outcome(False, 3, returncode=1))
+    monkeypatch.setattr(H, "_ids_for", lambda *a, **k: ["t"])
+    monkeypatch.setattr(H.subprocess, "run", lambda *a, **k: None)
+    f = tmp_path / "f.py"
+    f.write_text("x = 1\n")
+
+    class _T:
+        test_patch = ""
+        fail_to_pass = ["t"]
+        pass_to_pass = []
+
+    reward, _ = H.score_patched_file(
+        tmp_path, H.Runner("pytest", "python"), _T(), "f.py", "x = 2\n")
+    assert reward == 0.0, "a genuine test failure must stay 0.0"

@@ -29,7 +29,12 @@
   "slim_slice_sha256": "cf5cc85645249dc1f554eec6b8e0edcfaf267a53fffb64c3173953342c9f717b",
   "analysis": "results/ledgers/repro/scicode/scaleup_analysis.json",
   "precommitment": "docs/SCICODE_SCALEUP_PRECOMMITMENT.md",
-  "dropped_fields": "per-arm raw model text and stderr_tail (size); NOT digested-away elsewhere -- the full artifact retains them on disk so later re-scoring stays possible"
+  "dropped_fields": "stderr_tail and detail (size). MEASURED, not recalled: FULL row keys minus SLIM row keys = ['detail','stderr_tail'] exactly. \ud83d\udd34 CORRECTION (2026-09-30): this field previously claimed the slim slice dropped 'per-arm raw model text' which 'the full artifact retains on disk so later re-scoring stays possible'. THAT WAS FALSE IN BOTH HALVES. There is no model-text key in the full artifact at all -- scripts/scicode_pilot.py's run_arm() records response_chars=len(content) and DISCARDS content, and P1Client was constructed with no cache=, so no completion was persisted anywhere (verified: 0 of 12,023 entries across results/**/*cache*.jsonl key benchmark='scicode'; the same scan keys 12,023 as 'longmemeval_v2', which is the positive control proving the scan can find data). Later re-scoring of SciCode is therefore NOT possible from this artifact and requires re-running the 924 arm-runs. scripts/scicode_to_schema.py records this per row via schema.OUTPUT_NOT_RETAINED_SENTINEL plus a measured provenance.response_chars_<arm>, which is a PERSISTENCE gap and must never be conflated with the SWE-bench licence embargo.",
+  "schema_v3_rows": {
+   "artifact": "results/ledgers/scicode/cells_v3.jsonl",
+   "rows": 154,
+   "note": "154 of 462 cells. Only the `raw` representation is exportable: memory_text is non-nullable and the summary/structured memory text was never persisted (no results/scicode/memories.jsonl, no write cache), so 308 cells have no legal row. Built by scripts/scicode_to_schema.py."
+  }
  },
  "swebench_representations": {
   "full_artifact_path": "results/swebench/representations_v2.json",

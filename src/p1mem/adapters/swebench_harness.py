@@ -311,13 +311,22 @@ def _ids_for(task, tests: Sequence[str], kind: str,
 
 def score_patched_file(repo_dir: Path, runner: Runner | dict[str, Any], task,
                        path: str, new_text: str, *,
-                       p2p_limit: int = 20) -> tuple[float, str]:
+                       p2p_limit: int = 20) -> tuple[float | None, str]:
     """Write ``new_text`` at ``path``, apply the test patch, run F2P then P2P.
 
-    Returns ``(reward, detail)`` with reward in ``{0.0, 1.0}``. This function
-    is only ever called when an edit APPLIED -- an unapplicable edit is
-    ``reward: None`` at the caller and never reaches a scorer, because a 0.0
+    Returns ``(reward, detail)`` with reward in ``{0.0, 1.0, None}``. This
+    function is only ever called when an edit APPLIED -- an unapplicable edit
+    is ``reward: None`` at the caller and never reaches a scorer, because a 0.0
     there would manufacture a harmful memory out of an edit-format artifact.
+
+    🔴 ``None`` is also returned when the suite printed **no verdict at all**
+    (``n_status_lines == 0``): an import error, a collection error, a missing
+    test id. The run produced no evidence about the edit, and 0.0 would record
+    "the model's fix was wrong" where the truth is "the harness never asked".
+    ``TestOutcome.n_status_lines`` was added for exactly this distinction and
+    was being computed, recorded in the detail string, and then ignored by the
+    ``if not f2p.ok`` branch -- so 27 django and 10 sympy arm-runs carried a
+    manufactured 0.0. See DEFECT_REGISTER #21.
     """
     r = _as_runner(runner)
     subprocess.run(["git", "-C", str(repo_dir), "checkout", "-q", "."], check=False)
@@ -330,13 +339,19 @@ def score_patched_file(repo_dir: Path, runner: Runner | dict[str, Any], task,
         f2p_ids = _ids_for(task, task.fail_to_pass, r.kind, repo_dir)
         f2p = run_tests(repo_dir, r, f2p_ids)
         detail = f"F2P rc={f2p.returncode} status_lines={f2p.n_status_lines} :: {f2p.tail}"
+        if f2p.n_status_lines == 0:
+            # No verdict printed: the tests did not run. Not a wrong answer.
+            return None, "UNSCORABLE no F2P verdict printed :: " + detail
         if not f2p.ok:
             return 0.0, detail
         p2p_ids = _ids_for(task, task.pass_to_pass[:p2p_limit], r.kind, repo_dir)
         if not p2p_ids:
             return 1.0, detail + " :: P2P none addressable"
         p2p = run_tests(repo_dir, r, p2p_ids)
-        return (1.0 if p2p.ok else 0.0), detail + f" :: P2P rc={p2p.returncode} {p2p.tail}"
+        p2p_detail = detail + f" :: P2P rc={p2p.returncode} status_lines={p2p.n_status_lines} {p2p.tail}"
+        if p2p.n_status_lines == 0:
+            return None, "UNSCORABLE no P2P verdict printed :: " + p2p_detail
+        return (1.0 if p2p.ok else 0.0), p2p_detail
     finally:
         target.write_text(backup)
         subprocess.run(["git", "-C", str(repo_dir), "checkout", "-q", "."], check=False)

@@ -35,6 +35,7 @@ from .schema import (
     MEMORY_ID_KEYS,
     WITHHELD_SENTINEL,
     field_may_be_null,
+    faithfulness_proxy_runs_at_write,
     ERROR_CODES,
     FIELD_ORDER,
     FIELD_SPEC,
@@ -538,8 +539,20 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
             f"faithfulness_check is kept null for. Leave it null.",
             "faithfulness_detail")
 
+    # 🔴 THE PREMISE IS A PROPERTY OF THE RUNNER, NOT OF THE REPRESENTATION.
+    # "A model-written memory IS scorable" is true wherever the write path
+    # calls the proxy -- which is every LongMemEval/SciCode arm, and NOT the
+    # SWE-bench representation runner (measured: zero `faithfulness` hits in
+    # scripts/swebench_representations.py, and the memory bodies were never
+    # persisted so it cannot be run now either). Keyed on representation
+    # alone, this check would force a SWE-bench row to either attach a score
+    # nobody computed or REWORD its note until the substring disappears --
+    # i.e. a guard satisfied by editing a string rather than by changing the
+    # fact. schema.faithfulness_proxy_runs_at_write fails CLOSED, so an
+    # unknown benchmark still gets the check.
     if rep in ("summary", "structured") and fd is None and "NOT SCORED" in notes \
-            and "did not complete" not in notes:
+            and "did not complete" not in notes \
+            and faithfulness_proxy_runs_at_write(row.get("benchmark")):
         add("faithfulness_claimed_unscored_on_a_written_memory",
             f"representation={rep!r} carries a note claiming no faithfulness proxy was "
             f"run, but a model-written memory IS scorable and the proxy runs at write "
