@@ -8,7 +8,7 @@ Run: /Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py
 Exit 1 if any claim fails to reproduce.
 """
 from __future__ import annotations
-import collections, json, math, re, statistics, sys
+import collections, json, math, random, re, statistics, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -634,6 +634,236 @@ if _mt.is_file():
     _mb = _mt.read_text()
     check("manuscript carries no absolute home path",
           [m.group(0) for rx, _ in _ID_RX for m in rx.finditer(_mb)][:5], [])
+
+print("== Reader transfer: the SESSION-MATCHED result must lead ==")
+# SA-FINAL-AUDIT. The reader-transfer paragraph was the ONLY headline with no
+# check at all: planting "+0.5000 [+0.4000, +0.6000]" as the session-matched
+# effect left this audit green and make_figures.py green, because the former
+# never read the paragraph and the latter never reads main.tex prose.
+#
+# The superseded CROSS-SESSION figure (+0.1268, arms 11 h apart) is still the
+# macro the paragraph leads with. The session-matched arms (14 min apart,
+# memory_text byte-identical 550/550) are the current measurement and are
+# TYPED. These checks re-derive the session-matched contrast from the tracked
+# slim rows -- an independent loader, not a re-read of the analysis file --
+# and then require the manuscript to print it.
+_rsm = REPO / "results/ledgers/repro/raw_session_matched"
+_mtex = REPO.parent / "overleaf" / "main.tex"
+if (_rsm / "raw_gptoss_slim.jsonl").is_file() and _mtex.is_file():
+    def _sm_load(n):
+        return [json.loads(l) for l in (_rsm / n).read_text().splitlines() if l.strip()]
+
+    def _sm_key(r):
+        pr = r.get("provenance") or {}
+        return (pr.get("memory_unit_locator"), r["future_task_id"], r.get("replicate_id"))
+
+    _o = _sm_load("raw_gptoss_slim.jsonl")
+    _g = _sm_load("raw_gemma_slim.jsonl")
+    # The arms must differ in the READER and in nothing else that names an arm.
+    check("session-matched arms are the two readers",
+          (sorted({r["reader_model"] for r in _o}),
+           sorted({r["reader_model"] for r in _g})),
+          (["gpt-oss-120b"], ["gemma-4-31B-it"]))
+    check("session-matched arms share one cluster (not a cluster comparison)",
+          sorted({r["reader_cluster"] for r in _o} | {r["reader_cluster"] for r in _g}),
+          ["metis"])
+    check("session-matched condition_ids are disjoint",
+          set({r["condition_id"] for r in _o}).isdisjoint(
+              {r["condition_id"] for r in _g}), True)
+    # 🔴 The whole point of this arm: BOTH executed on the same date. A
+    # comparator from another day is defect #25 and this contrast exists
+    # because the published one had it.
+    check("both session-matched arms ran in ONE session (same UTC date)",
+          sorted({r["created_at_utc"][:10] for r in _o}
+                 | {r["created_at_utc"][:10] for r in _g}),
+          ["2026-10-01"])
+    # Gemma reports no reasoning tokens; a 0 there would be an absence written
+    # as a measurement (defect #18's shape).
+    check("Gemma rows never coerce reasoning_tokens to 0",
+          sum(1 for r in _g if r["reasoning_tokens"] == 0), 0)
+    check("no errored row was scored instead of left null",
+          sum(1 for r in _o + _g
+              if r["error_code_if_any"] and r["delta_utility"] is not None), 0)
+
+    _O = {_sm_key(r): r["delta_utility"] for r in _o if r["delta_utility"] is not None}
+    _G = {_sm_key(r): r["delta_utility"] for r in _g if r["delta_utility"] is not None}
+    _mk = sorted(set(_O) & set(_G), key=str)
+    check("session-matched n", len(_mk), 550)
+    _sm_mean = statistics.mean(_G[k] - _O[k] for k in _mk)
+    check("session-matched dU gpt-oss",
+          round(statistics.mean(_O[k] for k in _mk), 4), 0.2182)
+    check("session-matched dU Gemma",
+          round(statistics.mean(_G[k] for k in _mk), 4), 0.3164)
+    check("session-matched paired reader effect", round(_sm_mean, 4), 0.0982)
+
+    # Task-clustered bootstrap, recomputed here rather than read back.
+    _bt = collections.defaultdict(list)
+    for k in _mk:
+        _bt[k[1]].append(_G[k] - _O[k])
+    _tl = list(_bt.values())
+    _rng = random.Random(5)
+    _bs = []
+    for _ in range(4000):
+        _s = []
+        for _ in _tl:
+            _s += _rng.choice(_tl)
+        _bs.append(sum(_s) / len(_s))
+    _bs.sort()
+    _lo, _hi = _bs[int(0.025 * len(_bs))], _bs[int(0.975 * len(_bs))]
+    # Seed-to-seed drift is ~0.002, so the ASSERTION is that the interval
+    # excludes zero and brackets the published endpoints -- not equality.
+    check("session-matched interval EXCLUDES zero", _lo > 0, True)
+    check("session-matched CI lower is near the published +0.0247",
+          abs(_lo - 0.0247) < 0.005, True)
+    check("session-matched CI upper is near the published +0.1730",
+          abs(_hi - 0.1730) < 0.005, True)
+
+    # Reader-only means the bytes did not change. Vacuous unless the
+    # comparison is shown able to see a one-byte edit, so plant one.
+    _full = REPO / "results/raw_session_matched"
+    if (_full / "raw_gptoss.jsonl").is_file():
+        _fo = {_sm_key(r): r.get("memory_text")
+               for r in (json.loads(l) for l in (_full / "raw_gptoss.jsonl").open())}
+        _fg = {_sm_key(r): r.get("memory_text")
+               for r in (json.loads(l) for l in (_full / "raw_gemma.jsonl").open())}
+        _same = sum(1 for k in _mk if _fo.get(k) == _fg.get(k) is not None)
+        check("memory_text byte-identical across the two readers",
+              f"{_same}/{len(_mk)}", "550/550")
+        _fg2 = dict(_fg)
+        _fg2[_mk[0]] = (_fg2[_mk[0]] or "") + "X"
+        check("  that check's OWN positive control fires on a 1-byte edit",
+              sum(1 for k in _mk if _fo.get(k) == _fg2.get(k) is not None) < _same,
+              True)
+    else:
+        print("  SKIP  full session-matched rows absent (memory_text unverifiable here)")
+
+    # ---- what the MANUSCRIPT must say about all of the above ----
+    _mb2 = _mtex.read_text()
+    _mp = "\n".join(l for l in _mb2.split("\n") if not l.lstrip().startswith("%"))
+    check("manuscript prints the session-matched effect +0.0982",
+          "+0.0982" in _mp, True)
+    _nomath = " ".join(_mp.replace("$", " ").split())
+    check("manuscript prints the session-matched interval [+0.0247, +0.1730]",
+          "[+0.0247 , +0.1730]" in _nomath or "[+0.0247, +0.1730]" in _nomath, True)
+    # 🔴 The superseded figure may appear, but it must NOT be the only one and
+    # the paragraph must name the confound. These two markers are what stop
+    # +0.1268 reading as the current measurement.
+    check("manuscript names the session confound beside the reader effect",
+          ("deterministic within a session" in _mp
+           and "-0.0327" in _mp.replace("$", "")), True)
+    check("the session-matched decomposition is present, not the 54% share",
+          ("-0.0364" in _mp.replace("$", "")), True)
+    # The WITHOUT-arm share macro is the CONTAMINATED quantity. If the
+    # manuscript ever prints it as a clean reader attribution, fail.
+    _bad_share = re.search(
+        r"(about|roughly)\s+half[^.]{0,80}(weaker reader|a weaker reader)[^.]{0,40}\.",
+        " ".join(_mp.split()))
+    check("manuscript does not state the WITHOUT share as a clean reader attribution",
+          _bad_share.group(0) if _bad_share else None, None)
+else:
+    print("  SKIP  session-matched artifacts or manuscript not present")
+
+print("== Writer x Reader factorial: four nulls, and no same-family claim ==")
+# SA-FINAL-AUDIT. The factorial EXECUTED (2026-10-01, all four arms in one
+# session) and every one of its eight contrasts spans zero. Nothing checked
+# that the manuscript's description of it stayed true.
+_wf = REPO / "results/ledgers/writer_factorial/writer_factorial_analysis.json"
+if _wf.is_file() and _mtex.is_file():
+    _wfa = json.loads(_wf.read_text())
+    _spans = []
+    for _rep, _blk in _wfa["CONTRASTS"].items():
+        for _cname in ("WRITER_main_effect", "READER_main_effect",
+                       "SAME_FAMILY_effect", "INTERACTION"):
+            _tc = _blk[_cname]["task_clustered"]
+            _spans.append((f"{_rep}/{_cname}", _tc["excludes_zero"]))
+    check("every factorial contrast spans zero (no same-family advantage)",
+          [n for n, e in _spans if e], [])
+    check("all eight factorial contrasts were read", len(_spans), 8)
+    # The four arms must be ONE session, or the contrast is confounded by day.
+    check("the factorial's four arms are session-matched",
+          bool(_wfa.get("_all_four_arms_are_session_matched")), True)
+    # The estimators must recover a KNOWN planted effect, else a zero is
+    # uninterpretable (this project's own "positive-control every null").
+    check("the factorial's contrast estimators are positive-controlled",
+          _wfa["_positive_control_contrast_estimators"]["fires"], True)
+    # 🔴 The manuscript currently calls this experiment unrun. It ran.
+    _mp2 = "\n".join(l for l in _mtex.read_text().split("\n")
+                     if not l.lstrip().startswith("%"))
+    _flat2 = " ".join(_mp2.split())
+    _unrun = re.search(r"writer\s*\$?\\?times\$?\s*reader factorial[^.]{0,90}"
+                       r"(unrun|not run|planned and unrun)", _flat2)
+    check("manuscript does NOT call the executed factorial unrun",
+          _unrun.group(0) if _unrun else None, None)
+    _onewriter = re.search(r"(the writer is still one|writer is still one model)", _flat2)
+    check("manuscript does not say the writer is still one model",
+          _onewriter.group(0) if _onewriter else None, None)
+else:
+    print("  SKIP  writer-factorial artifact not present")
+
+print("== Withdrawn / superseded figures must not reappear ==")
+# SA-FINAL-AUDIT. docs/RESULT_INDEX.md section G lists figures that may not be
+# quoted. Only one was mechanically enforced (the 267-edge basis). These are
+# the rest, each pinned to the artifact that supersedes it.
+if _mtex.is_file():
+    _mp3 = "\n".join(l for l in _mtex.read_text().split("\n")
+                     if not l.lstrip().startswith("%"))
+    _flat3 = " ".join(_mp3.split())
+    # The 93.6% truncation share was computed against the WITHDRAWN 3,400-token
+    # cap. At the ADOPTED 2,000-token budget it is 98.5% of units, and on the
+    # executed cells it is 96.6%. Re-derived here so the right number has a
+    # source rather than only the wrong one having a ban.
+    _scr = REPO / "results/deltau_screened/cells.jsonl"
+    if _scr.is_file():
+        _cellt = {}
+        for _l in _scr.read_text().splitlines():
+            if not _l.strip():
+                continue
+            _r = json.loads(_l)
+            _cellt[(_r["memory_id"], _r["future_task_id"])] = (
+                _r.get("memory_embedding_reference") or {}).get("input_truncated")
+        _tr = sum(1 for v in _cellt.values() if v)
+        check("truncated-prefix share, re-derived on the executed cells",
+              round(100.0 * _tr / len(_cellt), 1), 96.6)
+    check("manuscript does not quote the WITHDRAWN 93.6% truncation share",
+          "93.6" in _flat3, False)
+    check("manuscript does not quote the withdrawn 120-unit embedding figure",
+          bool(re.search(r"120 (memory )?units", _flat3)), False)
+    # F_empty is null in the artifact with a WITHOUT_ARM_REUSED flag.
+    _fe = None
+    for _m in re.finditer(r"F_\{?\\?mathrm\{?empty\}?\}?[^.]{0,70}?(?:=|\{=\})\s*0",
+                          _flat3):
+        _tail = _flat3[_m.end(): _m.end() + 70]
+        # "a measured F_empty = 0 RAISES rather than passes" is the protocol
+        # rule (the artifact's value is null with a WITHOUT_ARM_REUSED flag),
+        # not a reported measurement. Only a reporting use is forbidden.
+        if re.match(r"[\s$]*(raises|aborts|must raise)", _tail):
+            continue
+        _fe = _m.group(0)
+        break
+    check("manuscript does not report F_empty as a measured zero", _fe, None)
+    # A harmful-memory RATE is forbidden: the design screened FOR bearing.
+    _hr = re.search(r"harmful[- ]memory rate of\s*[\d.]+|"
+                    r"harm(ful)? rate (of|is|was)\s*[\d.]+", _flat3)
+    check("manuscript quotes no harmful-memory rate",
+          _hr.group(0) if _hr else None, None)
+
+print("== Captions: counts must be named by the unit they are in ==")
+# SA-FINAL-AUDIT. \rgRows is a ROW count (1,694 = 847 cells x 2 replicates).
+# Figure 6's caption called it "cells". Re-derived from the slim rows so the
+# distinction is a measurement, not a reading of the caption.
+_gslim = REPO / "results/ledgers/repro/gemma_reader/transfer_cells_slim.jsonl"
+if _gslim.is_file() and _mtex.is_file():
+    _gr = [json.loads(l) for l in _gslim.read_text().splitlines() if l.strip()]
+    _gcells = {((r.get("provenance") or {}).get("memory_unit_locator"),
+                r["future_task_id"], r["memory_representation"]) for r in _gr}
+    check("Gemma transfer ROW count (what \\rgRows holds)", len(_gr), 1694)
+    check("Gemma transfer CELL count (what it is NOT)", len(_gcells), 847)
+    check("rows are not cells here (the caption must not conflate them)",
+          len(_gr) != len(_gcells), True)
+    _cap = re.search(r"Mean \$\\Delta U\$\s*\n?per reader over the \$\\rgRows\$ (\w+)",
+                     _mtex.read_text())
+    check("Figure 6 caption calls \\rgRows rows, not cells",
+          _cap.group(1) if _cap else "NOT-FOUND", "rows")
 
 print()
 if FAIL:
