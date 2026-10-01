@@ -646,6 +646,25 @@ def crossbench():
     # function called before the `if FAIL:` exit -- a first version appended to
     # FAIL from the emit block at line ~1144, long AFTER that exit at line 955,
     # so two of the three guards were unreachable and passed every plant.
+    # Gold-free replication -- Story 1 support. DEFECT 28 RECURRED HERE: my
+    # first version appended to FAIL from the emit block, long after the
+    # `if FAIL:` exit, so both guards were unreachable and passed every plant
+    # in silence. They live inside this function for that reason.
+    _gfl_g = json.loads((REPO / "results/ledgers" / "gf_llm_effect.json").read_text())
+    _gfx_g = json.loads((REPO / "results/ledgers" / "gf_gold_free_effect.json").read_text())
+    if _gfl_g.get("VERDICT") != "SURVIVES":
+        FAIL.append(f"gold-free: GF-LLM verdict is {_gfl_g.get('VERDICT')!r}, not "
+                    "SURVIVES -- the manuscript says the bearing effect "
+                    "reproduces without gold")
+    if _gfx_g.get("VERDICT") != "DISAPPEARS":
+        FAIL.append(f"gold-free: GF-LEX verdict is {_gfx_g.get('VERDICT')!r}, not "
+                    "DISAPPEARS -- the manuscript reports BOTH screens and why "
+                    "they differ")
+    _go_g = _gfl_g["arm_rates"]["GFLLM_BEARING_gold_free_only"]
+    if not (_go_g["with_rate"] > _go_g["without_rate"]):
+        FAIL.append("gold-free: the gold-free bearing arm no longer improves over "
+                    "its own no-memory arm; the manuscript's 15.6->50.0 is false")
+
     _smg = json.loads((REPO / "results/ledgers/repro/raw_session_matched"
                        / "raw_session_matched_analysis.json").read_text())
     expect("session-matched reader arms: matched cell count",
@@ -1696,6 +1715,25 @@ def main():
     # \rgWithoutDelta, which is the superseded cross-session figure.
     L.append(rf"\def\rgSmWithout{{{_sm['without_arm_change']:+.4f}}}")
     L.append(rf"\def\rgSmWith{{{_sm['with_arm_change']:+.4f}}}")
+    # Gold-free replication of the bearing effect -- Story 1 support. The
+    # numbers the manuscript quotes come from here, never typed.
+    _gfl = json.loads((REPO / "results/ledgers" / "gf_llm_effect.json").read_text())
+    _gfx = json.loads((REPO / "results/ledgers" / "gf_gold_free_effect.json").read_text())
+    _go = _gfl["arm_rates"]["GFLLM_BEARING_gold_free_only"]
+    _gc = _gfl["arm_rates"]["GFLLM_MATCHED_CONTROL"]
+    _gd = _gfl["DECIDING_gold_free_only_vs_control"]["task_clustered"]
+    L.append(rf"\def\gfWithoutPct{{{100*_go['without_rate']:.1f}}}")
+    L.append(rf"\def\gfWithPct{{{100*_go['with_rate']:.1f}}}")
+    L.append(rf"\def\gfN{{{_go['n_rows']}}}")
+    L.append(rf"\def\gfCtlWithoutPct{{{100*_gc['without_rate']:.1f}}}")
+    L.append(rf"\def\gfCtlWithPct{{{100*_gc['with_rate']:.1f}}}")
+    L.append(rf"\def\gfCtlN{{{_gc['n_rows']}}}")
+    L.append(rf"\def\gfDiff{{{_gd['mean_a'] - _gd['mean_b']:+.4f}}}")
+    L.append(rf"\def\gfCells{{{_gd['n_cells_a']}}}")
+    _bl = _gfx["both_arms_fail"]["GF_BEARING"]
+    _bm = _gfl["both_arms_fail"]["GFLLM_BEARING"]
+    L.append(rf"\def\gfLexBaf{{{_bl['n_both_arms_fail']/_bl['n_cells']:.3f}}}")
+    L.append(rf"\def\gfLlmBaf{{{_bm['n_both_arms_fail']/_bm['n_cells']:.3f}}}")
     L.append(rf"\def\rgSmWithoutShare{{{round(abs(_sm['without_arm_change'])/abs(_sm['with_arm_change'])*100)}}}")
     L.append(rf"\def\rgSmOss{{{_sm['deltaU_gptoss']:+.4f}}}")
     L.append(rf"\def\rgSmGem{{{_sm['deltaU_gemma']:+.4f}}}")
