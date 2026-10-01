@@ -37,8 +37,7 @@ Design requirements, each enforced in code (see the named guard):
 COPIED (with minor edits) from a sibling project, deliberately rather than imported,
 so that the two repos can never drift each other's on-disk contracts:
 
-    /Users/bellayang/Documents/2026/iclr_receiver_conditional_communication/
-        agentverse/metrics/receiver_conditional_communication/schema.py
+    <sibling-repo>/agentverse/metrics/receiver_conditional_communication/schema.py
 
 Original author: the ICLR receiver-conditional-communication milestone. Reused here
 with attribution per the P1 cross-repo rule (copy in, do not import across repos).

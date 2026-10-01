@@ -397,6 +397,49 @@ def gate_secret_scan_rows(rows: Sequence[dict[str, Any]],
     return notes
 
 
+#: Patterns that de-anonymise rather than authenticate. The secret scan looks
+#: for credentials; an absolute home path leaks a USERNAME, which is a
+#: double-blind failure and not a secret. Found on 2026-10-01 in the staged
+#: v0.3 tree: code/p1mem/schema.py carried an absolute /Users/<name>/ path in a
+#: provenance docstring. Every gate passed. See DEFECT_REGISTER #23.
+IDENTITY_LEAK_PATTERNS: tuple[tuple[str, str], ...] = (
+    (r"/Users/[A-Za-z0-9._-]+/", "absolute macOS home path (leaks a username)"),
+    (r"/home/[A-Za-z0-9._-]+/", "absolute Linux home path (leaks a username)"),
+    (r"C:\\\\Users\\\\[A-Za-z0-9._-]+", "absolute Windows home path"),
+)
+
+
+def scan_text_for_identity(text: str, where: str) -> list[str]:
+    """De-anonymising strings. Separate from the secret scan on purpose.
+
+    A reviewer-facing artifact must not name its author, and that failure mode
+    is invisible to a credential scanner: the string is not a secret, carries
+    no entropy signature, and reads as an ordinary file path.
+    """
+    out: list[str] = []
+    for rx, why in IDENTITY_LEAK_PATTERNS:
+        for m in re.finditer(rx, text):
+            out.append(f"{where}: {why} -- {m.group(0)!r}")
+    return out
+
+
+def gate_identity_scan_tree(root: Path) -> None:
+    """GATE 2b: no file in the staging tree may de-anonymise the authors."""
+    hits: list[str] = []
+    for p in sorted(root.rglob("*")):
+        if not p.is_file():
+            continue
+        try:
+            hits += scan_text_for_identity(
+                p.read_text(errors="replace"), str(p.relative_to(root)))
+        except Exception:
+            continue
+    if hits:
+        raise GateFailure(
+            "GATE 2b (identity scan) FAILED -- the release would de-anonymise "
+            "the submission.\n" + "\n".join("  " + h for h in hits[:50]))
+
+
 def gate_secret_scan_tree(root: Path) -> None:
     hits: list[str] = []
     for p in sorted(root.rglob("*")):
@@ -1268,7 +1311,8 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
                 "bytes": p.stat().st_size, "sha256": S.file_sha256(p)}
 
     S.write_json_atomic(staging / "MANIFEST.json", manifest)
-    gate_secret_scan_tree(staging)     # final sweep over what will actually ship
+    gate_secret_scan_tree(staging)
+    gate_identity_scan_tree(staging)     # final sweep over what will actually ship
 
     # Post-write gates: these read the ARTIFACT, not the rows in memory.
     gate_exported_file_revalidates(staging / "data" / "cells.jsonl", len(exported))
@@ -1287,6 +1331,7 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
     # imports the shipped package and did, briefly, leave __pycache__ behind. A check
     # placed before the last writer is not a check on what ships.
     gate_secret_scan_tree(staging)
+    gate_identity_scan_tree(staging)
 
     # If the tree was dirty, say whether any dirty path actually reached the release.
     # This is the question a reader has; leaving them to answer it from a boolean is

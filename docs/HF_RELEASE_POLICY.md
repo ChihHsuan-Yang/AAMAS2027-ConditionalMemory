@@ -129,3 +129,41 @@ Its **first** upload succeeded and was broken: gates passed, exit 0, and every p
 failed the validator published beside it, because redaction added fields after validation.
 Found only by downloading and running the card's own command. Gates 4 and 5 exist because of
 it.
+
+## Building the inputs — the step that is not in the exporter
+
+🔴 **`export_hf.py` does not migrate schemas.** The result ledgers on disk are
+`v1` (`deltau_*`) and `v2` (`repr_scaleup`); the exporter requires `v3` and its
+self-test fails with `missing_field:*` if handed a raw ledger. This was not
+written down, and rebuilding v0.3 rediscovered it.
+
+```bash
+for f in deltau_screened deltau_pilot deltau_official; do
+  python3 scripts/migrate_schema_v2.py --in results/$f/cells.jsonl --out /tmp/v3in/$f.jsonl
+done
+# repr_scaleup carries MODEL-WRITTEN representations and needs two more inputs;
+# the migration REFUSES without them rather than publishing a false column:
+#   --memory-records  faithfulness was measured at write time; omitting it would
+#                     publish a null for a quantity that was in fact measured
+#   --parents         without it every derived memory claims no parent, which is false
+python3 scripts/migrate_schema_v2.py \
+  --in results/repr_scaleup/cells.jsonl \
+  --memory-records results/repr_scaleup/memories.jsonl \
+  --parents /tmp/v3in/deltau_screened.jsonl /tmp/v3in/deltau_pilot.jsonl \
+            /tmp/v3in/deltau_official.jsonl \
+  --out /tmp/v3in/repr_scaleup.jsonl
+
+python3 scripts/export_hf.py \
+  --results /tmp/v3in/*.jsonl results/ledgers/scicode/cells_v3.jsonl \
+  --staging ../hf_staging_v03/AAMAS2027-ConditionalMemory
+```
+
+Both refusals are correct behaviour and should not be worked around with a flag.
+
+## GATE 2b — identity, which is not the same gate as secrets
+
+A credential scanner cannot see a de-anonymising string: an absolute home path
+has no entropy signature and reads as an ordinary file path. v0.3 staged with
+`/Users/<name>/` inside `code/p1mem/schema.py` and **all nine gates passed**.
+`gate_identity_scan_tree` now runs over the whole tree and is verified against
+a planted macOS path, a planted Linux path, and a clean negative control.
