@@ -424,6 +424,18 @@ def main() -> int:
             "leaves both sides of the pair."),
         "gemma_cells_lost_vs_gptoss": {
             rep: len(set(oss_means[rep]) - set(gem_means[rep])) for rep in REPS},
+        # TESTABLE PREDICTION of "the driver is the question, not the memory":
+        # the SAME tasks should lose cells under every representation. Reported
+        # so the claim can be checked rather than taken on assertion.
+        "lost_tasks_by_representation": {
+            rep: sorted({k.split("|")[1]
+                         for k in set(oss_means[rep]) - set(gem_means[rep])})
+            for rep in REPS},
+        "lost_tasks_shared_by_all_representations": sorted(
+            set.intersection(*[{k.split("|")[1]
+                                for k in set(oss_means[r]) - set(gem_means[r])}
+                               for r in REPS]) if all(
+                set(oss_means[r]) - set(gem_means[r]) for r in REPS) else set()),
         "gemma": gem_null, "gptoss": oss_null}
 
     # ------------------------------------------------- the matched sets
