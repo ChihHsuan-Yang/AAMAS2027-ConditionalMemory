@@ -1,7 +1,7 @@
 {
   "_what": "READER-TRANSFER: gpt-oss-120b vs gemma-4-31B-it reading the IDENTICAL memory artifacts. Only the reader differs.",
   "_matched_set_rule": "every comparison is computed on pair keys interpretable under BOTH readers for that representation; denominators are printed beside every number; means over different cell sets are never compared.",
-  "generated_at_utc": "2026-10-01T03:15:15.544544+00:00",
+  "generated_at_utc": "2026-10-01T03:22:22.367940+00:00",
   "replicate_policy": {
     "n_replicates_used": 2,
     "_why": "prereg 12 makes the balanced minimum-replicate subset primary. gpt-oss ran 3 replicates on raw BEARING+MC and 2 everywhere else; both readers are read at the first N."

@@ -1,6 +1,6 @@
 # Reader transfer — does memory utility survive a change of reader?
 
-**Generated from `results/ledgers/gemma_reader/reader_transfer_analysis.json` on 2026-10-01T03:15:15.544544+00:00.** Every number here is read out of that artifact at generation time by `scripts/gemma_reader_report.py`; none is typed from recall, so this document cannot drift from the data.
+**Generated from `results/ledgers/gemma_reader/reader_transfer_analysis.json` on 2026-10-01T03:22:22.367940+00:00.** Every number here is read out of that artifact at generation time by `scripts/gemma_reader_report.py`; none is typed from recall, so this document cannot drift from the data.
 
 Pre-registered in `docs/READER_TRANSFER_PRECOMMITMENT.md`, written **before any design-cell Gemma call was issued**.
 
@@ -170,9 +170,9 @@ Only the reader changed. That is **asserted in code at run time**, not claimed i
 
 | control | result |
 |---|---|
-| gate 4 can FAIL (one byte appended to a user message) | aborts, non-zero exit |
-| gate 5 can FAIL (one filler unit dropped, on `raw` where gate 4 is blind) | aborts, non-zero exit |
-| gate 1 can FAIL (one byte changed in `memories.jsonl`) | aborts, non-zero exit |
+| gate 4 can FAIL (one byte appended to a user message) | aborts, exit 1 |
+| gate 5 can FAIL (one filler unit dropped, on `raw` where gate 4 is blind) | aborts, exit 1 |
+| gate 1 can FAIL (one byte changed in `memories.jsonl`) | aborts, exit 1 |
 | the analysis's memory-text check can FAIL (one byte planted) | aborts, exit 1 |
 | the analysis's reader-identity check can FAIL (a gpt-oss `reader_model` planted) | aborts, exit 1 |
 | cache separation, **positive control first** | gpt-oss key HIT → Gemma key MISS → gpt-oss key in Gemma cache MISS |
