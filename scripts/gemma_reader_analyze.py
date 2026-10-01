@@ -412,6 +412,15 @@ def main() -> int:
             "the resulting bias from the PAIRED comparison, because a cell "
             "lost under either reader is dropped from BOTH."),
         "gemma_errors_by_representation": err_by_rep,
+        "_loss_mechanism": (
+            "Gemma's losses are concentrated on the representation with the "
+            "LONGEST context. Raw memories are ~7.1k tokens (median) against "
+            "~357 for summary and ~225 for structured, so the raw WITH arm is "
+            "~25.8k tokens against ~16.3k WITHOUT. That is a property of the "
+            "REPRESENTATION, identical for both readers, so it cannot bias the "
+            "PAIRED contrast -- a cell lost under either reader leaves both "
+            "sides of the pair. It does mean the raw matched set is the "
+            "smallest, and the denominators say so."),
         "gemma": gem_null, "gptoss": oss_null}
 
     # ------------------------------------------------- the matched sets
@@ -429,17 +438,6 @@ def main() -> int:
             "gemma_only_examples": sorted(g - o)[:5],
             "gptoss_only_examples": sorted(o - g)[:5],
         }
-    common3 = sorted(set(matched["raw"]) & set(matched["summary"])
-                     & set(matched["structured"]))
-    coverage["common_to_all_three_representations"] = len(common3)
-    out["matched_set_coverage"] = coverage
-    log(f"matched sets: { {r: len(matched[r]) for r in REPS} }; "
-        f"common to all three: {len(common3)}")
-    for rep in REPS:
-        if not matched[rep]:
-            raise SystemExit(f"matched set for {rep} is EMPTY; a zero here is a "
-                             f"broken join until proven otherwise")
-
     # metadata per pair key
     strat_of, task_of, ep_of = {}, {}, {}
     for rep in REPS:
@@ -448,6 +446,35 @@ def main() -> int:
             strat_of[k] = (r.get("provenance") or {}).get("stratum")
             task_of[k] = r["future_task_id"]
             ep_of[k] = r["source_episode_id"]
+
+    common3 = sorted(set(matched["raw"]) & set(matched["summary"])
+                     & set(matched["structured"]))
+    coverage["common_to_all_three_representations"] = len(common3)
+    # Are the losses BALANCED across strata? The loss rule is non-outcome-based
+    # (a truncation does not depend on correctness), but a loss pattern that
+    # fell mainly on BEARING would still bias the B - MATCHED_CONTROL contrast.
+    # Checked rather than assumed.
+    lossbal = {}
+    for rep in REPS:
+        lost = sorted(set(oss_means[rep]) - set(gem_means[rep]))
+        lossbal[rep] = {
+            "n_lost_under_gemma": len(lost),
+            "by_stratum": dict(collections.Counter(
+                strat_of.get(k) for k in lost)),
+            "by_task_top5": collections.Counter(
+                task_of.get(k) for k in lost).most_common(5),
+            "kept_by_stratum": dict(collections.Counter(
+                strat_of.get(k) for k in matched[rep])),
+        }
+    coverage["loss_balance_across_strata"] = lossbal
+    out["matched_set_coverage"] = coverage
+    log(f"loss balance: { {r: lossbal[r]['by_stratum'] for r in REPS} }")
+    log(f"matched sets: { {r: len(matched[r]) for r in REPS} }; "
+        f"common to all three: {len(common3)}")
+    for rep in REPS:
+        if not matched[rep]:
+            raise SystemExit(f"matched set for {rep} is EMPTY; a zero here is a "
+                             f"broken join until proven otherwise")
 
     # =================================================== TASK 4: per repr
     per_rep: dict[str, Any] = {}

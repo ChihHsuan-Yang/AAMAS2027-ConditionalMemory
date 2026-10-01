@@ -62,7 +62,11 @@ def main() -> int:
     w = out.append
 
     w("# Reader transfer — does memory utility survive a change of reader?\n")
-    w(f"**Generated from `{args.analysis.relative_to(REPO)}` on "
+    try:
+        src = args.analysis.relative_to(REPO)
+    except ValueError:
+        src = args.analysis
+    w(f"**Generated from `{src}` on "
       f"{A['generated_at_utc']}.** Every number here is read out of that "
       f"artifact at generation time by `scripts/gemma_reader_report.py`; none "
       f"is typed from recall, so this document cannot drift from the data.\n")
@@ -94,9 +98,16 @@ def main() -> int:
           f"{f4(d['mean'])} | {ci(d)} | {sig(rep)} |")
     w("")
     w("Cell-level intervals (not clustered) are in the artifact; the "
-      "**task-clustered** interval governs, because a third of all cells sit on "
-      "ten tasks and a cell-level interval would treat repeated views of one "
-      "task as independent draws.\n")
+      "**task-clustered** interval governs, because cells repeat within tasks "
+      "and a cell-level interval would treat repeated views of one task as "
+      "independent draws.\n")
+    w("> ⚠️ `docs/CONTRAST_FRAMING.md` motivates clustering with *\"a third of "
+      "all cells sit on ten tasks\"*. **That figure is pooled over the RANDOM "
+      "stratum and is not true of this cell set.** Re-derived on BEARING + "
+      "MATCHED_CONTROL: 285 cells over 126 tasks, the top ten tasks hold "
+      "**60 cells = 21.1%**, max 7 cells on any one task. Clustering still "
+      "governs — 4.75 cells per memory and up to 18 on one memory — but the "
+      "concentration here is milder than the pooled number implies.\n")
 
     # ------------------------------------------------- the paper's quantity
     w("## The quantity the paper actually reports\n")
