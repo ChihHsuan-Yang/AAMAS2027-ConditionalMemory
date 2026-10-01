@@ -4,9 +4,11 @@
 
 > **What is this memory useful for?**
 
-Status: **analysis and write-up.** Initialized 2026-09-29; the main measurement is complete
-(9,036 real endpoint calls across three LongMemEval-V2 ΔU arms, plus 2,480 for the
-representation scale-up; 0 errors throughout). Jump to
+Status: **analysis and write-up; the scientific scope is FROZEN**
+([`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md)). Initialized 2026-09-29. **29,775 real
+endpoint calls** across three benchmarks and two model backbones, **0 unrecoverable
+losses** — counted, not estimated, by
+[`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md). Jump to
 [`## Current Project State`](#current-project-state).
 
 ---
@@ -50,6 +52,8 @@ A learned predictor appears only if the measurement survives a kill criterion.
 | [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) | decisions with their evidence and their falsifiers |
 | [`docs/ALCF_RESOURCES.md`](docs/ALCF_RESOURCES.md) | endpoints, auth, and the rules binding every run |
 | [`docs/RESULTS_LEDGER.md`](docs/RESULTS_LEDGER.md) | every number, its artifact, its date |
+| [`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md) | **every cell, call and token — counted from logs, never estimated** |
+| [`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md) | what is in scope. **The scope is frozen** |
 | `src/p1mem/` | the package: adapters, client, schema, validator, leakage detector |
 | `configs/` · `scripts/` · `tests/` | run configs, entry points, tests |
 | `data/` · `results/` | not committed; see each README |
@@ -72,16 +76,23 @@ A learned predictor appears only if the measurement survives a kill criterion.
 
 **Use `/Users/bellayang/miniconda3/bin/python3` (3.13).** The system `python3` is 3.9 and
 aborts pytest collection on a vendored file. `pip install -e .` per `pyproject.toml`, then
-`pytest -q` (**593 tests**) and `python3 scripts/audit_claims.py` (**123 checks**).
+`pytest -q` (**638 tests**) and `python3 scripts/audit_claims.py` (**129 checks in 16
+sections**). Both green at `9f835a2`.
 
 ---
 
 ## Current Project State
 
-**Updated 2026-09-30 by SA-ARCHIVE.** This section is the **navigation hub** — read it
-first, then `docs/HANDOFF_CURRENT.md` for detail. Indices:
-[`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) (every result → artifact → script → paper)
-and [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md) (every figure).
+**Updated 2026-10-01 by SA-ARCHIVE.** This section is the **navigation hub** — read it
+first, then [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) **Part I** for detail
+(current state at the top, history below). Indices:
+[`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md) (every cell, call and
+token), [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) (every result → artifact → script →
+paper) and [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md) (every figure).
+
+🔴 **Five agents work this repo concurrently** (SA-PAGE `main.tex` · SA-HF releases ·
+SA-SWE-FINAL SWE-bench · SA-FINAL-AUDIT the audit · SA-ARCHIVE these docs). **Never
+`git add -A`** — it has mis-attributed files twice, in both directions.
 
 ### The story, in one sentence
 
@@ -98,10 +109,11 @@ is the wrong object, for a different reason than we hypothesised.
 | **Title** | *What Is This Memory Useful For? Conditional Evaluation of Long-Term Agent Memory* |
 | **Venue** | AAMAS 2027 main track — abstract 1 Oct AoE, paper 8 Oct AoE |
 | **Overleaf** | `git.overleaf.com/6abbde4a9eb777031afef068` (`main`), local clone `../overleaf` |
-| **Current Overleaf commit** | **`3c06d3a`** "Abstract v5: lead with conditional utility and sparsity", 2026-09-30 16:16 CDT |
+| **Current Overleaf commit** | **`1961825`** "Cite two figures the text never pointed at; tighten the reader paragraph" |
 | **Code repo** | `github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory` (`main`) |
 | **HF dataset** | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
-| **Current HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Verified by downloading the tag; unauthenticated fetch → 401. v0.3 (SciCode) and v0.4 (SWE-bench) not yet cut. |
+| **Current HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Verified by downloading the tag; unauthenticated fetch → 401. **v0.3 (SciCode) is being rebuilt by SA-HF now**; v0.4 (SWE-bench, metrics + ids ONLY) after it. |
+| **Code repo HEAD** | **`9f835a2`** "docs: freeze the scientific scope", 2026-10-01 12:21 CDT · 227 commits |
 
 ### Main local paths
 
@@ -126,27 +138,33 @@ Authoritative definitions: [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.
 
 | Benchmark | Eligible pool | Executed | Coverage | Reader | Writer | Representation | Status |
 |---|---:|---:|---:|---|---|---|---|
-| **LongMemEval-V2** (screened design — what the paper reports) | 1,157 | 1,157 | **100%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **DONE** |
+| **LongMemEval-V2** (screened design — what the paper reports) | 1,157 | 1,157 | **100%** | gpt-oss-120b **+ gemma-4-31B-it** | deterministic + gpt-oss **+ gemma** | raw / summary / structured | **DONE** |
 | LongMemEval-V2 (frozen 8-task pairing universe) | 15,112 | 574 | 3.8% | gpt-oss-120b | — | raw | partial |
-| LongMemEval-V2 (LLM-judged stratum) | 156 q | 0 | 0% | — | — | — | **eligible, blocked on F_judge** |
-| **SciCode** | 154 | 154 | **100%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **DONE** |
-| **SWE-bench Verified** (runnable universe) | 107 | 55 | **51%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **PARTIAL — all django** |
+| LongMemEval-V2 (representation sub-universe, 285 × 3) | 855 | 847 | 99.1% | both | both | all three | 8 structured write failures |
+| LongMemEval-V2 (LLM-judged stratum) | 156 q | 0 | 0% | — | — | — | **eligible, not excluded**, blocked on F_judge |
+| **SciCode** | 154 | 154 | **100%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **DONE** — raw-only in the release |
+| **SWE-bench Verified** (runnable universe) | 107 | **66** | **62%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **PARTIAL — django + sympy; SA-SWE-FINAL owns, in flux** |
 
 🔴 **LongMemEval has two universes and neither percentage alone is honest.** The
-screened design is a **re-pairing**, not a subset of the frozen universe
-(intersection 102 of 1,157). Always name the universe when quoting a coverage %.
+screened design is a **re-pairing**, not a subset of the frozen universe —
+B ∩ A = **102**, B \ A = **1,055**. Always name the universe when quoting a coverage %.
 
-🔴 **SWE-bench is django-only, and that is not a harness limit.** sympy has a
-working runner and a passing scorer control (20/20, negative control 20/20) and
-has never been run — 11 pairs are runnable today.
+✅ **SWE-bench is no longer django-only.** sympy ran clean (11 cells, arm complete under
+the shipped manifest), taking coverage 55/107 all-django → **66/107 across two repos**.
+⚠️ sympy's own scorer control is **8/8**, not 20/20 — the 20/20 is the **union** with
+django's 12/12, which is what the gate reads. **41 django cells remain runnable.**
 
 | Arm | Writer | Reader | Cluster | Prompt | Temp | Max output | Workers |
 |---|---|---|---|---|---:|---:|---:|
 | LongMemEval raw/summary/structured | deterministic / gpt-oss-120b | **gpt-oss-120b** | metis | `p1_deltau_raw_v1` | 0 | 512 | 16 |
 | SciCode raw/summary/structured | deterministic / gpt-oss-120b | **gpt-oss-120b** | metis | `scicode_deltau_v1` | 0 | 1024 | 16 |
 | SWE-bench raw/summary/structured | deterministic / gpt-oss-120b | **gpt-oss-120b** | metis | `swebench_v2_symmetric` | 0 | 2048 | 16 / sequential |
-| **Reader-only replication** | *unchanged* (gpt-oss memories, byte-identical) | **gemma-4-31B-it** | metis | as above | 0 | TBD | **16** (measured, not inherited) |
-| Writer × Reader factorial | + gemma-4-31B-it | both | metis | TBD | 0 | TBD | TBD |
+| **Reader-only replication** — **DONE** | *unchanged* (gpt-oss memories, byte-identical 1694/1694) | **gemma-4-31B-it** | metis | `p1_deltau_raw_v1` | 0 | **512** | **16** (measured, not inherited) |
+| **Writer × Reader factorial** — **DONE** | gpt-oss **and** gemma-4-31B-it | both | metis | `summary_v1@…6ee16b28b818` / `structured_v1@…163d4cd3eb70` | 0 | **512** | **16** |
+
+🔴 **Raw has no writer axis.** "Writer gpt-oss raw" and "writer Gemma raw" are the **same
+bytes** — a deterministic span costs 0 model calls — so Raw is absent from the factorial by
+construction, not by omission. Machine-readable configs: `src/p1mem/schema.py::READER_ARMS`.
 
 **Gemma is verified live** at `metis/gemma-4-31B-it` (capital B) — the *same*
 cluster as gpt-oss, so a reader comparison does not become a cluster
@@ -163,8 +181,8 @@ across models**. Evidence: [`docs/GEMMA_ENDPOINT_PROBE.md`](docs/GEMMA_ENDPOINT_
 | | status |
 |---|---|
 | **LongMemEval-V2** | ✅ **primary, complete** — 1,889 memory units, 1,157 evaluated cells, 5,198 calls, 0 errors, plus two earlier unscreened arms |
-| **SWE-bench Verified** | 🟡 **gate PASSED; the measurement arm is NOT done.** Pairing is excellent (406 cells, 133 donors, **0.0% diagonal**, 0/406 temporal violations, real unit tests). The v1 arm asymmetry was diagnosed as **output-format imitation** (the reader copied the memory's ``` ```diff ``` fence) and fixed by lossless `[added]`/`[removed]` re-encoding: apply-failure gap **0.375 → 0.000**, 8/8 cells arm-symmetric (`results/swebench/parity_v2.json`). What exists so far is a **32-cell, django-only** presence pilot: both-arms-fail 12/32 = 37.5% [22.9, 54.8], ΔU **not significant** (exact p=0.125). 🔴 **No representation arm exists yet** — these cells carry no `memory_representation` field; they vary memory *presence*, not representation. `docs/BENCHMARK_C_DECISION.md` |
-| **SciCode** | 🟡 **executed as a case study, never a main table.** Gate cleared; all three representations run on a 68-pair pilot (408 rows). both-arms-fail 0.456 raw / 0.379 summary / 0.370 structured; ΔU +0.0000 / +0.0690 / +0.0556. 🔴 **Every interval crosses zero.** The defensible reading is that **the point-estimate ordering differs across benchmarks** — LongMemEval's Raw-dominant ordering is **not reproduced** here. This is **not** an established "inversion" and `audit_claims.py` forbids that word. A full-pool 154-pair scale-up is running. `docs/SCICODE_RESULT.md` |
+| **SWE-bench Verified** | 🟡 **representation arms EXIST and are in flux (SA-SWE-FINAL owns).** Pairing is excellent (406 cells, 133 donors, **0.0% diagonal**, 0/406 temporal violations, real unit tests). The v1 arm asymmetry was **output-format imitation** (the reader copied the memory's diff fence), fixed by lossless `[added]`/`[removed]` re-encoding: apply-failure gap **0.375 → 0.000**, 8/8 arm-symmetric. v2 (django, 96 cells, 0 dirty) + sympy (33 cells) give matched **15** after the defect-21 correction; **every contrast `NOT_ESTABLISHED`** per-repo and pooled. The 32-cell presence pilot's 37.5% [22.9, 54.8] (p=0.125) is a **different cell set** and must not be inherited as the representation arm's gate. 🔴 **No licence is declared: metrics + ids ONLY.** `docs/BENCHMARK_C_DECISION.md`, `docs/SWEBENCH_MULTIREPO.md` |
+| **SciCode** | ✅ **complete as a case study, never a main table.** The full **154-pair eligible pool** × 3 representations × 2 arms = **924 arm-runs**. Matched set **n=122**: raw −0.0082 · summary +0.0164 · structured +0.0246. 🔴 **All three contrasts cross zero → `ORDERING_VERDICT: NOT_ESTABLISHED`**, and the free control **F_exec = 5/135 = 0.0370 is LARGER than the biggest point estimate**. The defensible reading is that **the point-estimate ordering differs across benchmarks**; this is **not** an established "inversion" and two guards forbid that word, both verified by planting it. 🔴 **Ships raw-only (154 of 462 cells): the summary/structured memory TEXT was never persisted** and is not recoverable — a *persistence* gap, never the SWE-bench licence embargo. The rewards stay valid. `docs/SCICODE_RESULT.md` |
 | **BEAM** | ❌ **DROPPED, with the measured reason: 92.6% of cited turns are cited by exactly one question**, so BEAM cannot supply the multi-task-per-memory axis this paper needs. Secondary reason: **CC BY-SA 4.0** — ShareAlike is infectious and would force a separate dataset release. `docs/BENCHMARK_DECISIONS.md`, `docs/BENCHMARK_LICENSES.md` |
 | rejected replacements | **DS-1000** (CC BY-SA 4.0 — the same ShareAlike trap) · **SWE-Gym** (MIT, 1,868 multi-recipient donors, held in reserve, but it is agent *training* data so contamination argues against it) · **τ-bench** (HF API 401 — **UNRESOLVED**, not absent) |
 
@@ -189,8 +207,9 @@ All re-derived by `scripts/audit_claims.py` unless noted. Per-result provenance:
    passed on data it had never seen.
 2. **Where a memory bears on a task, it helps.** Paired within-memory **+0.3349** over 60
    memories (**35 non-zero contributors**; contributors-only **+0.5740**), episode-clustered
-   CI excludes zero, p = 5×10⁻⁵. ⚠️ **Two CI values circulate** — see `docs/RESULT_INDEX.md`
-   §F1 before quoting one.
+   **[+0.1974, +0.4736]** excludes zero, p = 5×10⁻⁵. The audit now asserts the manuscript
+   prints that interval and the memory bootstrap **[+0.2085, +0.4606]**; the older pair
+   `docs/SCREENED_RESULT.md` still shows exists in **no artifact** — `RESULT_INDEX.md` §F1.
 3. **Bearing is scarce.** A memory bears on a **median of one** future task out of
    hundreds: 165 of 1,889 units bear on any task, **46** on two or more, from only **23**
    source episodes. This is a ceiling on precision that no amount of compute moves.
@@ -211,36 +230,64 @@ All re-derived by `scripts/audit_claims.py` unless noted. Per-result provenance:
 8. **The reader is not the bottleneck.** A planted per-cell code in the real ~27k context
    is recovered **22/22** by the base config; three stronger readers solve **zero** cells
    the base missed.
+9. **Memory utility TRANSFERS across readers.** 🔴 **Canonical = SESSION-MATCHED
+   +0.0982 [+0.0247, +0.1730], n=550** (matched replicate rows over 275 cells), both arms
+   re-run 14 minutes apart with `memory_text` byte-identical 550/550.
+   `VERDICT: SURVIVES_SESSION_MATCHING`. ⚠️ **The cross-session +0.1268 is SUPERSEDED** —
+   its arms were 11 h apart and this endpoint is not deterministic across sessions. It
+   stays visible as history and **never leads**. **The WITHOUT-arm decomposition did not
+   survive** (−0.0364 session-matched vs −0.0688): do not quote "about half the gain is a
+   weaker reader."
+10. **No same-family writer–reader advantage.** All four factorial contrasts span zero —
+   an informative null, not an underpowered one. Raw is not in the factorial (no writer axis).
+11. **Cross-benchmark heterogeneity is a limit, not a ranking.** LongMemEval's
+   Raw-dominant ordering is **not established** on SciCode or SWE-bench.
 
-### Main figures
+### Main figures and tables
 
-3 in the paper (pipeline · bearing scarcity + sign reversal · similarity vs the content
-screen), all with **every caption number generated, never typed**, by
-`scripts/make_figures.py` → `overleaf/figdata.tex`. A **utility–efficiency frontier** is
-being added (P1-C03); a **cross-benchmark** figure is blocked. Details and rejected
-figures: [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md).
+**5 figures and 3 tables**, counted from `main.tex` on 2026-10-01 (⚠️ earlier docs said
+"3 figures / 2 tables" — both were **stale**):
 
-### Main tables
+| | |
+|---|---|
+| `fig:pipeline` | the conditional memory utility protocol |
+| `fig:bearing` | bearing scarcity **+** sign reversal |
+| `fig:similarity` | similarity vs the content screen |
+| `fig:frontier` | **utility–efficiency frontier** (P1-C03, shipped) |
+| `fig:readertransfer` | **memory utility survives a change of reader** |
+| `tab:coverage` | coverage, on the universe each result is reported over |
+| `tab:crossbench` | the paired representation contrast, all three benchmarks real |
+| `tab:screened` | both-arms-fail and mean ΔU per stratum, both unscreened arms as comparators |
 
-2 in the paper: **`tab:flips`** (sign reversal by stratum) and **`tab:screened`** (both-arms-fail
-and mean ΔU per stratum, with both unscreened arms as comparator rows). Both are typed into
-`main.tex` and protected by `audit_claims.py` rather than generated.
+**Every caption number is generated, never typed**, by `scripts/make_figures.py` →
+`overleaf/figdata.tex`, which **exits non-zero if it disagrees with the audit**.
+`scripts/verify_figure_guards.py` plants **22** defects and requires every guard to fire.
+🔴 **Figure `tab:crossbench` plots contrasts, not per-representation ΔU** — the benchmarks
+have different execution floors and the contrast differences them out. Details and
+rejected figures: [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md).
 
-### Running jobs (2026-09-30 17:45 CDT)
+### Running jobs (2026-10-01 12:45 CDT)
 
-All six Phase-3 sub-agents have **finished and been integrated**. The Master Agent now
-executes directly. **One job is in flight:**
+**Five agents are working concurrently.** Do not edit another agent's files.
 
-- **SciCode representation scale-up** — the full 154-pair candidate pool × 3
-  representations × 2 arms (924 calls), pid 90620, out
-  `results/scicode/scaleup_all3.json`. Design pre-committed before running:
-  [`docs/SCICODE_SCALEUP_PRECOMMITMENT.md`](docs/SCICODE_SCALEUP_PRECOMMITMENT.md).
-  Liveness = `lsof -p <pid> | grep -c ESTABLISHED` → 16. **Its stdout log is
-  block-buffered; empty ≠ stalled, and CPU%% ≈ 0 is normal for endpoint-bound work.**
+| agent | owns | state |
+|---|---|---|
+| **SA-PAGE** | `overleaf/main.tex` | **RUNNING** |
+| **SA-HF** | HF releases, `docs/DATASET_INDEX.md`, `docs/hf_card/` | **RUNNING** — v0.3 staging rebuild in flight |
+| **SA-SWE-FINAL** | new SWE-bench cells, `COVERAGE_MANIFEST.md` §3, `SWEBENCH_MULTIREPO.md` | **RUNNING** — 41 django cells remain |
+| **SA-FINAL-AUDIT** | the standing claim/evidence audit | **RUNNING** |
+| **SA-ARCHIVE** | `README.md`, `HANDOFF_CURRENT.md`, `RESULT_INDEX.md`, `FIGURE_INDEX.md`, `MODEL_ARMS.md`, `MASTER_TODO.md`, `EXPERIMENT_ACCOUNTING.md` | this section |
 
-Exact command and restart procedure: [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md)
-§Currently running. **No long-running compute job is on any cluster queue** — every run to
-date executed on this laptop against the ALCF gateway.
+**SWE-bench numbers are in flux** — cite SA-SWE-FINAL's artifact and say *"as of
+`<commit>`"* rather than freezing a figure you did not derive.
+
+**Liveness for endpoint-bound work:** `lsof -p <pid> | grep -c ESTABLISHED` → expect 16.
+🔴 **CPU% near zero is NOT a stall**, and **stdout is block-buffered, so an empty log is
+NOT a stall either.** Every runner is idempotent through its response cache.
+
+Exact commands and restart procedures:
+[`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) §8. **No compute job is on any
+cluster queue** — every run to date executed on this laptop against the ALCF gateway.
 
 ⚠️ **Never `git add -A`** — it has already mis-attributed files twice in this repo, in
 both directions. Stage explicit paths and verify with `git show --stat`.
@@ -249,6 +296,11 @@ both directions. Stage explicit paths and verify with `git show --stat`.
 
 | run / claim | verdict |
 |---|---|
+| `results/raw_session_matched_VOID_mislabelled/` (570 rows, 1,201 calls) | 🔴 **VOID** (defect 27) — a hardcoded `CONDITION_ID` labelled gpt-oss rows `gemma4_31B`. The runner's own gate caught it (`VERDICT: RUN_FAILED`). Kept so it cannot re-circulate |
+| the cross-session reader transfer **+0.1268** | ⚠️ **SUPERSEDED** by the session-matched **+0.0982**. History, never the lead |
+| "about half the gain is a weaker reader" | 🔴 **WITHDRAWN** — the WITHOUT-arm decomposition was inflated ~2× by a session confound (−0.0364 reader vs −0.0688 published) |
+| SWE-bench representation arm **v1** | ⚠️ **SUPERSEDED by v2** — v1's contagion screen misfired on `+---+` **ASCII table borders in the issue text**. The screen was wrong, not the defanging |
+| 37 SWE-bench arm-reads scored `0.0` | 🔴 **CORRECTED to `None`** (defect 21) — a pytest *collection* error is not a wrong answer. Matched n fell 17 → **15**. Quote the corrected numbers |
 | `results/runs/noise_floor/` | ❌ **superseded** — one arbitrary memory per task, 2/92 accuracy |
 | both unscreened arms | ⚠️ **valid but floor-limited** (~78.5% / 83.75% both-arms-fail). Keep as the dilution comparator; **never quote as the effect** |
 | the official-prompt "fix" | ❌ **refuted its own hypothesis** — accuracy fell 5.7 pts because 128 correct guesses became abstentions and the harness scores an abstention as wrong (McNemar p = 1.12e-9). Do **not** re-run another prompt wording |
@@ -277,43 +329,104 @@ both directions. Stage explicit paths and verify with `git show --stat`.
 13. **`ok=True` did not mean the writer finished.** 7 truncated summaries were admitted as valid.
 14. **The screened cache is readable only by the pre-`5330158` 12-field key shape.**
 15. **`git add -A` is a mis-attribution generator here.** Stage explicit paths.
+16. 🔴 **`condition_id` EMBEDS the representation name** (`lmev2_summary_..._v1`). Including it in a join key returns **ZERO rows** — and an empty join was once read as "not measurable". Correct key: `(memory_unit_locator, future_task_id)`.
+17. 🔴 **`gpt-oss-120b` is deterministic WITHIN a session, NOT ACROSS** (defect 25). 554 of 1,124 byte-identical no-memory requests returned different text in a later session. **Compare only session-matched arms.** Gemma: 0/1,124.
+18. 🔴 **Temperature 0 is not a persistence strategy.** Any arm that discards model-written text is **unrecoverable** (defect 22) — SciCode's summary/structured memory text is gone for exactly this reason.
+19. 🔴 **An absolute `/Users/<name>/` path de-anonymises, and a credential scanner is blind to it** (defect 23). The audit now scans tracked artifacts for this, and the scan is proven non-vacuous.
+20. 🔴 **A pytest collection error is not a wrong answer** (defect 21).
+21. 🔴 **`export_hf.py` does NOT migrate schemas.** The ledgers are **v1/v2** and it needs **v3**.
+22. **`cell_id` is a content hash and CAN collide** — 283 ids cover 285 cells on one factorial arm (defect 26). **Positive-control every join before believing its null.**
 
 Full evidence base, with who found each and what it would have cost:
-[`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md).
+[`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md). Every count behind these:
+[`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md).
 
-### Active TODOs
+### Current TODO — six agent-actionable items
 
-Authoritative list with terminal states: [`docs/MASTER_TODO.md`](docs/MASTER_TODO.md).
-Submission-critical open items: the frontier figure (P1-C03), HF v0.2 (P1-C04), the
-SWE-bench parity fix and pilot (P1-C05/06), the SciCode adapter and pilot (P1-C08/09), the
-**AI-assistance disclosure section, which AAMAS requires and which is still empty**
-(P1-C18), and the final manuscript sync (P1-C17).
+Authoritative, with terminal states for all **198** IDs:
+[`docs/MASTER_TODO.md`](docs/MASTER_TODO.md). **DONE 134 · DEFERRED 38 · KILLED 16 ·
+TODO 7 · RUNNING 2 · BLOCKED 1**, re-derived by running the page's own snippet.
 
-### HOLD / post-submission
+| ID | state | what it waits on |
+|---|---|---|
+| **P1-C17** | TODO | the one genuinely open submission-critical item: final manuscript sync, compile, anonymity, citations |
+| **P1-C19** | RUNNING | 41 runnable django SWE-bench cells remain under the frozen universe |
+| **P1-C21** | RUNNING | HF v0.3 (SciCode) then v0.4 (SWE-bench, **metrics + ids ONLY**) |
+| **P1-C22** | TODO | three `main.tex` ↔ artifact inconsistencies, all retracted-number-still-circulating |
+| **P1-I11** | TODO | 🔴 **the representation scale-up slices are STILL untracked** — Contribution B's 1,124 rows exist on one laptop |
+| **P1-I13** | TODO | the efficiency ratios in `main.tex` (`5.2×` → **5.58×**; "roughly 5×" is wrong for Summary, which is **1.08×**) |
 
-P1-H01…H10: Jev baseline · learned conditional memory gate · LLM memory-manager comparison ·
-cross-model replication · production vector store · more benchmarks · semantic-type
-taxonomy redesign · harmful-memory prevalence study · full P3 receiver integration ·
-training a retention policy. **Recorded so they are not lost; none is in scope now.**
+**P1-C20 (the page budget) is BLOCKED on the author by design** — the body runs ~5,400
+chars onto page 9 and closing it now removes *content*, which is not an agent's decision
+([`docs/PAGE_BUDGET_DECISION.md`](docs/PAGE_BUDGET_DECISION.md) measures five options).
+
+### POST-SUBMISSION / FUTURE WORK — DEFERRED, not killed
+
+Jev baseline · learned memory gate · **RL memory manager** · LLM memory-manager comparison ·
+**new retrieval architectures** · semantic-type redesign · **new representation families** ·
+**additional benchmarks** · **additional backbones** · cross-model replication · production
+vector store · harmful-memory prevalence · full P3 receiver integration · retention policy ·
+position-effect expansion · **the cross-session floor nobody has measured** · **the SciCode
+dep-OR-lex union (+10 eligible pairs, unexecuted)**. Full list with IDs:
+`MASTER_TODO.md` §3.
+
+🔴 **Four storylines are NOT to be resurrected** ([`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md)
+§5): the **sign-flip headline**, the **variance-decomposition headline**, the
+**semantic-type taxonomy** as a live axis, and **harmful-memory prevalence** on this
+design. Each was demoted for a measured reason; *demotion is not an oversight for a later
+agent to correct.*
 
 ### Verification
 
-`scripts/audit_claims.py` re-derives **123 checks** from tracked artifacts and is **proven
-able to fail** (a single flipped reward trips four checks; each newly added guard is
-verified by planting the defect it forbids and watching it FAIL).
-**593 tests pass** under the 3.13 interpreter. `scripts/make_figures.py` independently
-recomputes every figure number and **exits non-zero if it disagrees with the audit**.
+`scripts/audit_claims.py` re-derives **129 PASS / 0 FAIL across 16 sections** from tracked
+artifacts and is **proven able to fail** (a single flipped reward trips four checks; each
+newly added guard is verified by planting the defect it forbids and watching it FAIL).
+**638 tests pass** under the 3.13 interpreter. `scripts/make_figures.py` independently
+recomputes every figure number and **exits non-zero if it disagrees with the audit**, and
+`scripts/verify_figure_guards.py` plants 22 defects and requires every guard to fire.
+`scripts/count_experiment_accounting.py` regenerates every number in
+[`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md).
 
-### Handoff
+**Counted 2026-10-01, not estimated: 29,775 real endpoint calls** across the three
+benchmarks (LongMemEval 27,803 + SciCode 1,340 + SWE-bench 632), ~506.9M input and ~4.36M
+output tokens, 130 truncations, 47 retried calls, **0 unrecoverable losses**.
 
-1. Read this section, then [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md), then
-   [`docs/THE_HONEST_HEADLINE.md`](docs/THE_HONEST_HEADLINE.md), then
+### Handoff — the entry point
+
+**A new Master Agent should be able to take over from
+[`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) Part I alone**, without reading any
+chat history. Read, in this order:
+
+1. This section, then [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) **Part I**
+   (current state at the top; history is Part II).
+2. [`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md) — **the scope is frozen.** Only
+   coverage completion, claim validation, repair of an invalid run, or a
+   validity-critical audit gap may still be run.
+3. [`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md) — every cell, call and
+   token, counted from logs. A quantity it cannot count says
+   `not recoverable from logs`, never a plausible zero.
+4. [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) **§F** (the open disagreements) and
+   **§G** (results that must NOT be quoted), then
+   [`docs/THE_HONEST_HEADLINE.md`](docs/THE_HONEST_HEADLINE.md) and
    [`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md).
-2. Use [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) to go from any claim to its artifact,
-   script and manuscript location — and read its **§F disagreements** before quoting a CI
-   or an efficiency ratio.
-3. Run `/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py`. **If it fails,
-   stop and find out why before anything else.**
-4. Run the suite with the 3.13 interpreter.
-5. **Never quote a number you have not re-derived from an artifact**, and never
-   `git add -A`.
+5. [`docs/MASTER_TODO.md`](docs/MASTER_TODO.md) §5 — the ten open rows and what each waits on.
+
+Then run, in order:
+
+```bash
+/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py      # 129 checks, 16 sections
+/Users/bellayang/miniconda3/bin/python3 -m pytest -q                 # 638 tests
+/Users/bellayang/miniconda3/bin/python3 scripts/count_experiment_accounting.py
+```
+
+**If the audit fails, stop and find out why before anything else.**
+
+🔴 **The five standing rules:**
+**(1)** Never quote a number you have not re-derived from an artifact.
+**(2)** Never `git add -A` — stage explicit paths, verify with `git show --stat`.
+**(3)** Join on `memory_unit_locator`; `memory_id`, `cell_id` and `condition_id` all
+produce silent zeros.
+**(4)** Positive-control every null — an empty result is a dead channel until proven
+otherwise.
+**(5)** Compare only session-matched arms; this endpoint is not deterministic across
+sessions.
