@@ -334,3 +334,93 @@ acquiring a floor. `schema.py`: content-embargoed benchmarks.
 2. HF **v0.4** (SWE-bench — 🔴 **metrics + instance ids ONLY**; the exporter
    must call `assert_content_redistributable`).
 3. Standing claim/evidence audit before any manuscript freeze.
+
+
+---
+
+## Addendum 3 — 2026-10-01 ~00:30 CDT · the model-generalization expansion
+
+Newest section wins where it conflicts with anything above.
+
+### 🟢 The headline result of this phase: memory utility TRANSFERS across readers
+
+`docs/READER_TRANSFER_RESULT.md` · artifacts `results/gemma_reader/` · slim slice
+and analysis tracked under `results/ledgers/repro/gemma_reader/`
+
+**1,694 LongMemEval cells re-read by `gemma-4-31B-it`, reusing the gpt-oss
+memories.** The design invariant is *verified, not assumed*: all 1,694 rows
+carry `memory_text` **byte-identical** to the gpt-oss run (match 1694, mismatch
+0, no counterpart 0), joined on `(memory_unit_locator, future_task_id,
+memory_representation)`. **Only the reader differs.**
+
+| representation | n | ΔU gpt-oss | ΔU Gemma | paired diff | CI (task-clustered) | |
+|---|---:|---:|---:|---:|---|---|
+| **raw** | 276 | +0.1884 | **+0.3152** | **+0.1268** | **[+0.0511, +0.2050]** | **excludes 0** |
+| summary | 274 | +0.0511 | +0.0547 | +0.0036 | [−0.0492, +0.0600] | spans 0 |
+| structured | 269 | +0.0186 | +0.0297 | +0.0112 | [−0.0522, +0.0845] | spans 0 |
+
+Sign agreement on Raw: **49/50 (98%)**. B−MC on Raw: gpt-oss +0.3462
+[+0.2210, +0.4761] → **Gemma +0.6002 [+0.4787, +0.7144]**.
+
+**The effect does not merely survive the reader change — on Raw it is larger.**
+The Raw-dominant ordering reproduces under a second backbone. Outcomes were
+pre-committed in `docs/READER_TRANSFER_PRECOMMITMENT.md`: *no transfer* was an
+equally valid result before the run.
+
+*I re-derived every number in that table independently; it reproduces to 4 dp.*
+
+### SWE-bench is no longer django-only
+
+sympy ran clean (11 cells, arm complete under the shipped manifest). Coverage
+**55/107 all-django → 66/107 across two repos**. Every contrast remains
+`NOT_ESTABLISHED` per-repo and pooled — **the django-only criticism is answered
+on coverage grounds, not on power.**
+
+### 🔴 Two corrections a successor must not reverse
+
+1. **Defect 21 — a pytest collection error was scored as a wrong answer.**
+   `score_patched_file` returned `0.0` whenever F2P was not ok, ignoring
+   `n_status_lines`, which exists precisely to separate *tests ran and failed*
+   from *tests never ran*. **27 django + 10 sympy arm-runs** carried a
+   manufactured `0.0`. Fixed for F2P and P2P (→ `None`, detail prefixed
+   `UNSCORABLE`). Corrected matched n: django 13→12, sympy 4→3, **pooled
+   17→15**. Every contrast still crosses zero. **Quote the corrected numbers.**
+2. **`sympy` scorer control is 8/8, not 20/20.** The 20/20 is the *union* of
+   django 12/12 and sympy 8/8 — which is what the gate reads, since the default
+   `--scorer-control` names both files. I had written the union number attached
+   to sympy in `COVERAGE_MANIFEST.md`; corrected there.
+
+### 🔴 `tasks_per_memory=4` — investigated, deliberately NOT changed
+
+Relaxing it grows pairs 406→552, but the **runnable** universe only 107→117
+(**+10, not +146** — quoting +146 as available work overstates it 14×). Worse,
+`select_cells` dedups by recipient first-wins over locator-sorted order, so
+newly admitted earlier donors **displace incumbents**: 26 django recipients
+change donor and **13 are among the already-executed cells** — they would
+silently become different cells under the same `task_id`. *A subset at one
+stage becomes a re-pairing at the next.* Any uncapped universe must be a **new
+pre-committed manifest under a new filename**.
+
+### Running now
+
+| what | artifact | state |
+|---|---|---|
+| **SA-WRITER** — Gemma-written Summary/Structured + the 2×2 factorial | `docs/WRITER_FACTORIAL_*.md` | **RUNNING** |
+| **SA-FIG** — coverage + reader-generalization figures, Overleaf sync | `main.tex`, `figdata.tex` | **RUNNING** |
+| **SciCode memory recovery → HF v0.3** | `results/scicode/memories.jsonl` | **RUNNING** |
+
+### Known gaps, stated so they are not rediscovered
+
+- **No F_exec for SWE-bench, in either repo.** The WITHOUT arm is byte-identical
+  across all three representations (11/11 sympy, 32/32 django), so the design
+  contains no A/A replicate; a measured 0 would be an artefact. Fixing this
+  needs a deliberate replicate arm, not another repo.
+- **SciCode memory text was never persisted** (`response_chars` recorded,
+  `content` discarded, no `cache=`). It is *recoverable* — the writers are
+  byte-deterministic at temp 0 — and recovery must **prove** identity via the
+  ledger's recorded `prompt_tokens`, not assume it.
+- **F_judge = 0/240 is endpoint determinism, not rubric robustness** (temp 1.0
+  gives 8/8 distinct texts). The honest statement is ≤1.5% for *this* judge
+  under greedy decoding.
+- 64 SFS pairs sit in 6 repos with no runner; **sphinx (37, pure Python) is the
+  next cheapest unlock**. 12 are genuinely blocked by C builds on arm64.
