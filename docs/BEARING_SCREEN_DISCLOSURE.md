@@ -88,3 +88,67 @@ scorer — reporting its overlap with the current bearing set and the
 bearing−control effect it produces. Under the scope freeze this qualifies as
 closing a **validity-critical gap**, not as new science: it validates an
 existing claim rather than opening a branch.
+
+
+---
+
+# ✅ RESOLVED 2026-10-01 — the oracle objection does not hold
+
+`docs/GOLD_FREE_SCREEN_RESULT.md` · artifacts `results/ledgers/gf_*.json` ·
+design pre-committed in `GOLD_FREE_SCREEN_PRECOMMITMENT.md` **before** execution.
+
+Two gold-free screens were built, both reading **memory + question + pool** and
+neither reading gold, reward, model output or eval spec. They disagreed, and
+the disagreement is itself informative.
+
+| screen | deciding contrast (fires, gold did NOT) | n | verdict |
+|---|---|---:|---|
+| gold (re-derived) | +0.3179 [+0.174, +0.477] | 139 | — |
+| **GF-LEX** lexical | +0.0002 [−0.0713, +0.0758] | 160 | DISAPPEARS |
+| **GF-LLM** judge | **+0.3676 [+0.0475, +0.6981]** | 32 | **SURVIVES** |
+
+## The decisive measurement, reproduced independently by the Master Agent
+
+On GF-LLM cells **gold never selected**:
+
+| | WITHOUT | WITH |
+|---|---|---|
+| bearing, gold-free only (n=64) | **15.6%** | **50.0%** |
+| matched control (n=84) | 14.3% | 11.9% |
+
+**A screen that never sees the gold answer finds memories that triple the
+reader's success rate on tasks the gold screen did not select.** Answer
+containment is therefore *not* what makes a bearing memory useful.
+
+## Why the two screens disagree — settled without reference to the effect
+
+GF-LEX is **unfit**, and the evidence is independent of any ΔU:
+
+- its bearing cells fail in **both arms 244/328 = 0.744**, *worse than
+  unscreened RANDOM pairing at 0.701* — a screen whose selections are harder
+  than a random draw has not located bearing;
+- **95% of its firings rest on one generic anchor** (`five`, `typically`,
+  `whenever`).
+
+GF-LLM's bearing cells fail in both arms at **0.310**. Its null is a fact about
+that detector, not about memory — and the null is real, not underpowered: the
+interval half-width 0.0735 is 4.3× too small to hide the gold effect, and the
+4 gold-bearing cells *inside the same run* score ΔU = +1.0.
+
+## What the manuscript may now claim, and what must travel with it
+
+**May:** a gold-free screen reproduces the effect at full size on cells the
+gold screen never selected, so the headline is not an artifact of
+answer-containment.
+
+**Must travel with it:** n=32 cells / 24 memories / 19 episodes; GF-LLM's
+recall stage inherits GF-LEX's weak anchors (it saw 14 of 266 gold cells and
+accepted 10); cross-screen comparisons are **cross-session**, so they agree in
+sign and significance, not magnitude.
+
+**Report both screens.** Reporting only the one that worked would be selecting
+an instrument on its outcome — the exact failure this project screens for.
+
+⚠️ The gold screen remains **a measurement instrument, not a deployable
+retrieval policy**; that disclosure stands unchanged. What has changed is that
+the *finding* no longer depends on it.
