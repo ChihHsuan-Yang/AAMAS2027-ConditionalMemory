@@ -709,3 +709,59 @@ artifacts, because changing a gate's input after seeing results is the thing
 `SCICODE_SCALEUP_PRECOMMITMENT.md` exists to prevent. The extended artifacts
 are a *per-instance diagnostic* that feeds the coverage table's exclusion
 classifier, and the two are kept apart on purpose.
+
+
+## Added 2026-10-01 (SA-HF, the v0.3 and v0.4 releases) — three documents that lied beside correct data
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 30 | **`docs/DATASET_INDEX.md` SHIPS INSIDE the snapshot it describes, and said the snapshot did not exist.** The copies published in **v0.3** and in v0.4's first upload both carried *"v0.3 \| SciCode-derived rows \| **No SciCode row is in any published snapshot** (verified: `benchmark` is `longmemeval_v2` on 5,643/5,643)"* — inside snapshots holding 154 SciCode rows and, at v0.4, 127 SWE-bench rows. The sentence was **true when written at v0.2** | diffing the DOWNLOADED tree against the repo after release — the same move that found v0.1's seam defect, pointed at the docs instead of the rows | a consumer reading the shipped docs beside the shipped data concludes **their download is wrong**. This is #22's cost (a card promising 5,643 against 5,797) in the one file GATE 5b does not read |
+| 31 | **The `MANIFEST.json` provenance note matched dirty git paths by BASENAME.** The data card ships as `README.md`; the repo root also has a `README.md`, edited by another agent and never published. v0.4 shipped with *"1 of them correspond to a file in this release: ['README.md']. Those bytes are the WORKING COPY, not the named commit."* Every word false — the staged card was byte-identical to the committed `docs/hf_card/README.md` | reading the note after a build that should have been clean, and checking the md5s it implicitly claimed differed | the field a reader consults to decide whether a release is **reproducible from its named commit** said it was not, about the one file whose provenance was airtight. A reader who believed it would distrust the whole snapshot |
+| 32 | **The export self-test's fixture could already be in the state the plant creates.** `_pick_isolation_safe_sample` returns the first row with `num_replicates in (None, 1)`; SWE-bench rows carry `None`, so on a metrics-only input it returned a row that is **already withheld and already declares it**. Control (e3) then sets `memory_text` to the sentinel without declaring it and demands `id_mismatch` — on an already-declared row that assignment changes nothing, so the control "failed" about a gate that was working | #23's own standing instruction: the self-test failed on a new input, so the **first** action was re-running it on the previous commit's exporter as a control. It failed identically, clearing the code I had just written | a **SWE-bench-only release would fail its self-test on every build**, sending someone to debug redaction, where the bug is not. Exactly #23's cost from #23's blind spot, one costume along |
+
+### #30 and #31 share the shape that no data gate can have
+
+Both releases' **rows** were correct, both passed all nine gates, and both gates
+suites were re-proven able to fail. The false statements were in *documents beside
+the data*:
+
+> **Every gate in this exporter reads `data/cells.jsonl`.** GATE 5b reads exactly one
+> line of the data card — the validator summary. **Nothing reads the prose of an
+> auxiliary doc, or a provenance note the exporter itself wrote.** A release can
+> therefore be byte-perfect and still ship a sentence that contradicts it.
+
+#31 is the sharper one, because the exporter wrote the false statement *itself*,
+after the gates had passed, into the file that exists to vouch for the others.
+
+### #30's general form, which is not fixable by correcting the sentence
+
+**A document that describes a release cannot be fully correct inside that release**,
+because its own entry is written before the release exists. Correcting the row would
+have left the next release free to repeat it. What the file now carries instead is a
+statement *about itself*: the defect is recorded at the top, and the current version's
+release-commit row is **not transcribed** — the rule the file already stated for v0.2
+and that I violated two commits later while quoting it.
+
+v0.3's tag keeps the bad copy, as v0.1 kept its broken first upload. **Retraction is
+labelling, not deletion.**
+
+### A control that reported "no leak" while aimed at the wrong representation
+
+While proving no SWE-bench corpus text reached the release, the first content scan
+built 503 needles from the withheld model responses and reported **0 leaked**. Its
+positive control then reported only **75 of 503 needles found in the UNREDACTED
+source** — so 428 needles were absent from the very file they were extracted from.
+
+The cause: parsed strings (real newlines) compared against raw JSON text (escaped
+`\n`). The leak scan was clean **because the needles could not match anything**.
+
+> Re-run against parsed values: **478/478 found in the source, 0 in the release.**
+> The verdict did not change and the evidence for it went from worthless to real.
+> **A clean scan whose needle occurs nowhere is not evidence**, and the only reason
+> this was visible is that the positive control printed its own denominator — the
+> register's rule from the `0 of 0` verdict, paying off again.
+
+Three of the first six needles I chose (`diff --git`, `Traceback`, `def test_`) were
+**vacuous**: they do not occur in the source artifacts at all. Recorded rather than
+quietly dropped, because "I searched for six things and found none" reads identically
+whether the needles were well chosen or not.
