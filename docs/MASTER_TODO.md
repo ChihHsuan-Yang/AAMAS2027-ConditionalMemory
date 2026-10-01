@@ -1,7 +1,7 @@
 # P1 Master TODO — authoritative
 
-**Terminalized 2026-09-30 by SA-ARCHIVE.** Every task on this page carries one of six
-terminal states. **No task is ever silently removed**; anything dropped carries `KILLED`
+**Terminalized 2026-09-30, re-terminalized 2026-10-01 by SA-ARCHIVE.** Every task on this
+page carries one of six terminal states. **No task is ever silently removed**; anything dropped carries `KILLED`
 and its measured reason. Legacy IDs from Phases 1–2 are retained in §4 with the Phase 3
 item that absorbed them.
 
@@ -18,8 +18,16 @@ critical path** — they are not blockers and are not reported as such. Overleaf
 standard double-blind form: `Anonymous Author(s)`, no affiliations, no acknowledgements, no
 identifying paths.
 
-**Counts (mechanically re-derived, see §5):** DONE 106 · RUNNING 16 · BLOCKED 10 ·
-TODO 21 · DEFERRED 22 · KILLED 13 — **188 distinct IDs**.
+**Counts (mechanically re-derived 2026-10-01, see §5):** DONE 134 · DEFERRED 38 ·
+KILLED 16 · TODO 7 · RUNNING 2 · BLOCKED 1 — **198 distinct IDs**, every one carrying
+exactly one terminal state.
+
+🔴 **The agent-actionable open set is SIX IDs:** `P1-C17` (final manuscript sync),
+`P1-C19` (SWE-bench coverage), `P1-C21` (HF v0.3/v0.4), `P1-C22` (three `main.tex` ↔
+artifact inconsistencies), `P1-I11` (🔴 the representation scale-up slices are still
+untracked), `P1-I13` (the efficiency ratios). `P1-C20` (page budget) is **blocked on the
+author by design**. §5 lists all ten open rows with what each waits on; §3 holds
+POST-SUBMISSION / FUTURE WORK.
 
 ---
 
@@ -29,22 +37,26 @@ TODO 21 · DEFERRED 22 · KILLED 13 — **188 distinct IDs**.
 |---|---|---|---|---|
 | **P1-C01** | Abstract / story reframe — lead with conditional utility + sparsity, drop the sign-flip framing | SA-WRITE | **DONE** | abstract v5, 299 words, in the manuscript; sign-flip and decomposition framing removed |
 | **P1-C02** | Overleaf figure audit — ranked plan, 3 in / 4 rejected / 1 blocked | SA-FIG | **DONE** | `docs/FIGURE_PLAN.md`; repo `eb4deb3` |
-| **P1-C03** | **Utility–efficiency frontier figure** | SA-FIG2 | **RUNNING** | unblocked by the representation scale-up; inputs in `results/repr_scaleup/`. Was blocked because `memory_representation` was `{'raw'}` on all 2,599 screened rows |
+| **P1-C03** | **Utility–efficiency frontier figure** | SA-FIG2 | **DONE** | ✅ **shipped as `fig:frontier`** in `main.tex` (verified present 2026-10-01 by SA-ARCHIVE). Inputs `results/repr_scaleup/`. Was blocked because `memory_representation` was `{'raw'}` on all 2,599 screened rows |
 | **P1-C04** | HF **v0.2** — add Summary/Structured rows | SA-HF2 | **DONE** | tag `v0.2-repr-derived`, **5,643 rows** (raw 4,519 / summary 570 / structured 554), schema v3, verified by downloading the tag |
 | **P1-C05** | **SWE-bench harness parity fix** — make the prompt arm-symmetric so the memory's own diff cannot be mistaken for the editable region | SA-SWE | **DONE** | apply-gap **0.375 → 0.000**; cause was the reader imitating the memory's diff fence, not the editable region |
 | **P1-C06** | SWE-bench valid pilot at 30–40 cells | SA-SWE | **DONE** | both-arms-fail **37.5%** [22.9, 54.8], below threshold; 0 apply-failures scored as rewards. **django-only** |
-| **P1-C07** | SWE-bench representation arm (Raw/Summary/Structured) | Master | **RUNNING** | `scripts/swebench_representations.py`, out `results/swebench/representations_v1.json`, pid 42104 launched 17:48 CDT. Both gates re-checked from disk at start (scorer control 20/20, apply parity gap +0.000). Memories are contagion-screened **before** any reader sees them; dirty ones are excluded and counted. **No SWE-bench number enters a table until this is analysed on the same paired basis as Fig. 5** |
+| **P1-C07** | SWE-bench representation arm (Raw/Summary/Structured) | Master → **SA-SWE-FINAL** | **DONE** (coverage extension continues under C19) | v1 (126 calls) **superseded** by **v2** (128 calls, 96 cells, 0 dirty, matched n=13 django) + **sympy** (42 calls, 33 cells, matched n=3 after defect 21). Pooled matched **15**. Every contrast `NOT_ESTABLISHED` per-repo and pooled. Gates re-checked from disk: scorer control 20/20 (**union** of django 12/12 + sympy 8/8 — sympy's own is **8/8**), apply parity gap +0.000 |
 | **P1-C08** | SciCode adapter | SA-SCI | **DONE** | adapter + 45 tests, mutation-checked 4/4 |
 | **P1-C09** | SciCode pilot | SA-SCI | **DONE** | both-arms-fail 0.370–0.456 across three representations, all below threshold; errors symmetric across arms |
 | **P1-C10** | SciCode procedural-memory evaluation (a **case study**, never a main table) | SA-SCI → Master | **DONE** | **Scaled to the full 154-pair pool** (924 arm-runs), design pre-committed in `docs/SCICODE_SCALEUP_PRECOMMITMENT.md`. Matched set n=122: raw −0.0082 · summary +0.0164 · structured +0.0246. 🔴 **All three paired contrasts cross zero → `ORDERING_VERDICT: NOT_ESTABLISHED`.** The point-estimate ordering differs across benchmarks; LongMemEval's Raw-dominant ordering is **not reproduced**. **NOT an established inversion** — `audit_claims.py` and `make_figures.py` both forbid that wording and both are verified able to fail. Free control: F_exec = 5/135 = 0.0370, **larger than the biggest point estimate** |
-| **P1-C11** | Cross-benchmark synthesis | Master | **PARTLY DONE** | Figure 5 populated with the one quantity both benchmarks define identically (paired per-cell representation contrast, task-clustered). LongMemEval + SciCode rows are real; the SWE-bench row is **visibly empty and labelled**, pending C07 analysis. Per-representation mean ΔU is deliberately **not** compared across benchmarks — different execution floors (0 vs 0.0370) |
+| **P1-C11** | Cross-benchmark synthesis | Master | **DONE** | Figure 5 populated with the one quantity both benchmarks define identically (paired per-cell representation contrast, task-clustered). LongMemEval + SciCode rows are real; the SWE-bench row is **visibly empty and labelled**, pending C07 analysis. Per-representation mean ΔU is deliberately **not** compared across benchmarks — different execution floors (0 vs 0.0370) |
 | **P1-C12** | Final representation comparison (Contribution B) | Master | **DONE** | `docs/REPRESENTATION_RESULT.md`; 9 audit checks re-derive both cost columns |
-| **P1-C13** | Main figures and tables | SA-FIG2 → Master | **RUNNING** | **5 figures + 2 tables** in `main.tex` at Overleaf `5bba778`; Figure 5 is now real, not a placeholder. Compiles 0 undefined / 0 overfull, body ends before refs on p9 |
+| **P1-C13** | Main figures and tables | SA-FIG2 → **SA-PAGE** | **DONE** (placement continues under C20) | **5 figures + 3 tables** at Overleaf `1961825`, counted from `main.tex` by SA-ARCHIVE: `fig:pipeline`, `fig:bearing`, `fig:similarity`, `fig:frontier`, `fig:readertransfer`; `tab:coverage`, `tab:crossbench`, `tab:screened`. ⚠️ the "2 tables" in every earlier doc was **stale** — `tab:coverage` was added later. 10 pages total; the body runs ~5,400 chars onto p9 and closing it now costs content (`docs/PAGE_BUDGET_DECISION.md`) |
 | **P1-C14** | GitHub handoff documentation — result index, figure index, README hub, handoff, terminal TODO | SA-ARCHIVE | **DONE** | RESULT_INDEX, FIGURE_INDEX, README hub, HANDOFF_CURRENT |
-| **P1-C15** | HF data card update for v0.2 | SA-HF2 | **RUNNING** | v0.1 card is live and byte-identical to `docs/hf_card/README.md` |
-| **P1-C16** | Claim/evidence audit | Master | **RUNNING** (standing) | `scripts/audit_claims.py`, **123 checks**, proven able to fail. New: a benchmark-maturity guard forbidding "invert"/"inversion"/"reversal" near SciCode in `main.tex`, verified by planting the sentence. `make_figures.py` adds two Figure-5 guards, both verified by planting |
-| **P1-C17** | Final manuscript sync + compile + anonymity + citation check | Master | **TODO** | absorbs legacy P1-095 |
-| **P1-C18** | **AI-assistance disclosure section** (prompt + tool + version) | Master | **TODO** | 🔴 **AAMAS requires it and `main.tex:1337` is an empty stub.** Added by SA-ARCHIVE because legacy P1-096 had no Phase-3 owner and would otherwise have stopped being mentioned |
+| **P1-C15** | HF data card update for v0.2 | SA-HF2 → **SA-HF** | **DONE** | `docs/hf_card/README.md` carries the v0.2 figures (5,643 rows, three representations) and already anticipates v0.3/v0.4. v0.3 itself is **C21** |
+| **P1-C16** | Claim/evidence audit | Master → **SA-FINAL-AUDIT** | **DONE** as a milestone; **standing** thereafter | `scripts/audit_claims.py` now prints **129 PASS / 0 FAIL across 16 sections** (counted 2026-10-01; the "38"/"58"/"123" in older docs are all stale). 638 tests pass. Proven able to fail: each guard is verified by planting the defect it forbids. Guards include the SciCode "inversion" wording, the absolute-home-path identity scan (with its own non-vacuity check), both printed CIs, and `make_figures.py`'s five Figure-5/SWE-bench guards |
+| **P1-C17** | Final manuscript sync + compile + anonymity + citation check | **SA-PAGE** | **TODO** | 🔴 **the one genuinely open submission-critical item.** Absorbs legacy P1-095 and P1-100. Overleaf `1961825` compiles to 10 pages; anonymity is audit-enforced (no absolute home path in `main.tex` or any tracked artifact). Blocking sub-items: the page budget (C20) and the three inconsistencies in C22 |
+| **P1-C18** | **AI-assistance disclosure section** (prompt + tool + version) | Master | **DONE** | ✅ `\section*{Use of AI-Assisted Technologies}` is **written** at `main.tex:1678` (~2,400 chars; verified non-stub by SA-ARCHIVE 2026-10-01). Discloses under the **stronger clause** because AI shaped experimental design, names the tool and version, and points prompts + defect register to supplementary. Source `docs/AI_ASSISTANCE_DISCLOSURE.md` |
+| **P1-C19** | **SWE-bench coverage completion** — run the remaining valid cells under the FROZEN eligible universe; mark the rest excluded with reasons | **SA-SWE-FINAL** | **RUNNING** | split out of C07 by SA-ARCHIVE so a growing arm does not keep an otherwise-finished item open. Executed **66 of 107** runnable (django 55 + sympy 11); **41 django remain**. 🔴 **Do not redefine "eligible" after seeing outcomes**, and do not relax `tasks_per_memory=4` in place — see §Killed, and `docs/COVERAGE_MANIFEST.md` §3 |
+| **P1-C20** | **Page budget** — the body runs ~5,400 chars onto p9 against an 8-page limit | **user decision**, executed by SA-PAGE | **BLOCKED** (on the author) | `docs/PAGE_BUDGET_DECISION.md` measures five options and their costs. Closing the gap now **removes content**, which is not an agent's call. Recommended: **C** (AI disclosure → supplementary, explicitly policy-permitted, loses no science) then **A** (Figure 1 → supplementary). 🔴 **B, D and E delete evidence and must not be used to buy space**, and no `\vspace` / geometry / font change — that is format gaming and reviewers check |
+| **P1-C21** | **HF v0.3** (SciCode, Apache-2.0, content OK) and **v0.4** (SWE-bench, 🔴 **metrics + ids ONLY**) | **SA-HF** | **RUNNING** | v0.3 staging rebuild in flight 2026-10-01 12:23 CDT. 🔴 **`export_hf.py` does NOT migrate schemas** — the ledgers are v1/v2 and it needs v3. The exporter must call `assert_content_redistributable` for SWE-bench. SciCode ships **raw-only, 154 of 462 cells**: the summary/structured memory text was never persisted |
+| **P1-C22** | **Three documented inconsistencies between `main.tex` and the artifacts** | **SA-PAGE** / SA-FINAL-AUDIT | **TODO** | found by SA-ARCHIVE 2026-10-01, each re-derived: (1) `main.tex:1664` quotes the **superseded** cross-session `+0.1268` as "the reader effect this apparatus did detect" three lines after the same paragraph correctly reports the session-matched `\rgSmDiff` = +0.0982 — a **retracted number still circulating in its own correction's paragraph**; (2) `\rgWithoutDelta` = −0.0688 is the **withdrawn** cross-session decomposition, printed at `main.tex:1640` and in Figure 6's caption constraint; (3) the efficiency ratios of **P1-I13**. None changes a conclusion; all three are retracted-number-still-circulating, this project's registered defect shape |
 
 ### Level-1 items that will consume the remaining page budget
 
@@ -58,19 +70,19 @@ here because references are uncapped, and reading it as slack is a registered de
 
 | ID | Task | Status | Note |
 |---|---|---|---|
-| **P1-I01** | Top-k retrieval baseline | **TODO** | absorbs half of legacy P1-010. `retrieval_k` is `None` on every existing row, so this is a new arm |
-| **P1-I02** | Keep-all / no-memory retrieval baselines | **TODO** | absorbs the other half of P1-010 |
-| **P1-I03** | Position-effect expansion | **TODO** | currently **n = 12** and explicitly provisional (`docs/POSITION_EFFECT.md`). Absorbs legacy P1-132 |
-| **P1-I04** | Cross-benchmark representation ranking | **BLOCKED** on C07/C10 | one benchmark cannot rank representations across domains |
-| **P1-I05** | Representation-induced harmfulness | **TODO** | no representation shows robust harm; structured's point estimate is negative with a CI spanning zero |
-| **P1-I06** | Domain utility/cost comparison | **TODO** | — |
-| **P1-I07** | Extra retrieval-budget points for the frontier | **BLOCKED** on I01 | the frontier currently has one budget point per representation |
-| **P1-I08** | Benchmark-native memory baseline | **TODO** | — |
-| **P1-I09** | Dataset example notebook | **TODO** | `notebooks/` is empty |
-| **P1-I10** | Public reproduction script | **TODO** | partially served by `audit_claims.py` + `results/ledgers/repro/MANIFEST.json` |
-| **P1-I11** | **Track the representation scale-up artifacts** — force-add slim slices + a `MANIFEST.json` for `results/repr_scaleup/` | **TODO** | 🔴 **found by SA-ARCHIVE:** Contribution B's entire evidence base is untracked and exists on this laptop only. The ΔU arms got this treatment; the repr arm did not |
-| **P1-I12** | **Resolve the paired-CI disagreement** — the manuscript prints an episode-clustered interval no artifact contains | **TODO** | `docs/RESULT_INDEX.md` §F1. Fix by emitting the bootstrap seed/draw count from `k3_analyze_screened.py`, or by quoting the artifact. **Extend `audit_claims.py` to cover both CIs** — it currently checks neither, which is why this survived |
-| **P1-I13** | **Correct the efficiency ratios in `main.tex`** | **TODO** | `docs/RESULT_INDEX.md` §F3: the paper says `5.2×` (audited: **5.58×**) and "roughly 5×" for the charged reversal, which is true of Structured (4.85×) but wrong for Summary (**1.08×**) — the representation the sentence is about |
+| **P1-I01** | Top-k retrieval baseline | **DEFERRED** | 🔴 **closed by `docs/SCOPE_FREEZE.md` §3/§4**: `retrieval_k` is `None` on every existing row, so this is a **new arm**, not a completion of approved coverage. Absorbs half of legacy P1-010. → POST-SUBMISSION |
+| **P1-I02** | Keep-all / no-memory retrieval baselines | **DEFERRED** | same reason as I01: a new arm under a frozen scope. Absorbs the other half of P1-010. → POST-SUBMISSION |
+| **P1-I03** | Position-effect expansion | **DEFERRED** | the n=12 result is already labelled **PROVISIONAL** in `docs/POSITION_EFFECT.md` and in the manuscript, so the paper does not rest on it. Expanding it is a new arm. Absorbs legacy P1-132. → POST-SUBMISSION |
+| **P1-I04** | Cross-benchmark representation ranking | **KILLED** | C07 and C10 both landed and **both returned `NOT_ESTABLISHED`**, so the ranking the item asked for **cannot be produced from this evidence** — that is the answer, not a blocker. The paper reports the heterogeneity as a limit (`SCOPE_FREEZE` result **G**) and `main.tex` carries `tab:crossbench`. Two guards forbid the word "inversion" |
+| **P1-I05** | Representation-induced harmfulness | **KILLED** | 🔴 the design **screened FOR bearing**, so any harm rate computed on it is a **selected-subgroup estimate** and the unscreened 26/872 is not a natural base rate either (the pairing is still ours). `RESULT_INDEX.md` §G forbids quoting a harm rate. Not a measurement this design can take; the study version is **P1-H08** |
+| **P1-I06** | Domain utility/cost comparison | **KILLED** | 🔴 **not computable as specified.** Cost is **not poolable across models** (Gemma reports no reasoning tokens at all — an absence, not a zero) and the three benchmarks have different execution floors, which is exactly why Figure 5 plots *contrasts* rather than per-representation ΔU. A cross-domain cost comparison would mix currencies |
+| **P1-I07** | Extra retrieval-budget points for the frontier | **DEFERRED** | depends on I01, now DEFERRED. The shipped `fig:frontier` has one budget point per representation and says so. → POST-SUBMISSION |
+| **P1-I08** | Benchmark-native memory baseline | **DEFERRED** | a new arm under the frozen scope; no existing row carries a benchmark-native memory. → POST-SUBMISSION |
+| **P1-I09** | Dataset example notebook | **DEFERRED** | `notebooks/` is empty and this is release polish, not a submission dependency. The data card already carries a runnable load+validate command. → POST-SUBMISSION |
+| **P1-I10** | Public reproduction script | **DONE** *(as served)* | `scripts/audit_claims.py` re-derives **129 checks** from the tracked slim slices alone, `scripts/count_experiment_accounting.py` re-derives every count, and `results/ledgers/repro/MANIFEST.json` pins each sha256. A reviewer can clone and re-derive every headline number. A separate one-command wrapper would add convenience, not capability → **POST-SUBMISSION** |
+| **P1-I11** | **Track the representation scale-up artifacts** — force-add slim slices + a `MANIFEST.json` for `results/repr_scaleup/` | **TODO** | 🔴 **STILL OPEN, re-verified 2026-10-01 by SA-ARCHIVE:** `git ls-files results/ledgers/` returns **nothing** for `repr_scaleup`, so Contribution B's entire evidence base (1,124 rows, 2,368 calls) exists on this laptop only. Every other arm got a slim slice — screened, pilot, official, gemma_reader, raw_session_matched, scicode, swebench. **The representation arm is the one gap**, and it is the arm the compression finding rests on. Owner should be whoever ships the release (SA-HF) |
+| **P1-I12** | **Resolve the paired-CI disagreement** | **DONE** | ✅ closed in the **artifact's** direction: `audit_claims.py` now asserts `main.tex` prints **[+0.1974, +0.4736]** (episode-clustered) and **[+0.2085, +0.4606]** (memory bootstrap) — both PASS, verified by SA-ARCHIVE 2026-10-01, and the audit covers them where it previously covered neither. ⚠️ `docs/SCREENED_RESULT.md` still prints the older **[+0.1989, +0.4758]** / **[+0.2138, +0.4622]** pair, which **no artifact on disk contains**; `RESULT_INDEX.md` §F1 keeps the history. Neither interval changes a conclusion |
+| **P1-I13** | **Correct the efficiency ratios in `main.tex`** | **TODO** | 🔴 **still open.** `RESULT_INDEX.md` §F3: the paper says `5.2×` (audited **5.58×**) and "roughly 5×" for the charged reversal — true of Structured (4.85×) but **wrong for Summary (1.08×)**, the representation the sentence is about. The paragraph **understates its own correction**: charged, Summary is not 5× worse than Raw, it is *indistinguishable* from Raw, which is the actual finding. Folded into **C22**; owner SA-PAGE |
 
 ---
 
@@ -90,6 +102,35 @@ Recorded so they are not lost; none is in scope now.
 | **P1-H08** | Harmful-memory prevalence study | **DEFERRED** | the current design cannot support a harm rate |
 | **P1-H09** | Full P3 receiver integration | **DEFERRED** | 4 reserved schema fields already present and null-enforced |
 | **P1-H10** | Training a retention policy | **DEFERRED** | forbidden until the main paper is complete |
+| **P1-H11** | **RL memory manager** | **DEFERRED** | named in `SCOPE_FREEZE.md` §4. Distinct from H02 (a learned *gate*) and H03 (an *LLM* manager): this is a trained policy with a reward signal |
+| **P1-H12** | **New retrieval architectures** | **DEFERRED** | `SCOPE_FREEZE.md` §4. `retrieval_k` is `None` on every existing row, so every retrieval variant is a new arm. Absorbs P1-I01, P1-I02, P1-I07 |
+| **P1-H13** | **New representation families** beyond raw / summary / structured | **DEFERRED** | `SCOPE_FREEZE.md` §4 |
+| **P1-H14** | **Additional backbones** beyond `gpt-oss-120b` and `gemma-4-31B-it` | **DEFERRED** | `SCOPE_FREEZE.md` §6 freezes the model scope. Distinct from H04, which is replication on the *same* two |
+| **P1-H15** | **The cross-session floor, measured as its own quantity** | **DEFERRED** | 🔴 **nobody has measured this.** We know the endpoint drifts (554/1,124 WITHOUT-arm texts differ across sessions, reward on 82, mean −0.0303) and we worked around it by session-matching every arm. What does **not** exist is a *floor*: a pre-committed estimate of the per-cell noise a cross-session comparison carries. Defects #25 and #28 are both this gap surfacing. Cheap to run and the most scientifically interesting of the deferrals |
+| **P1-H16** | **SciCode `dep OR lex` relatedness union** — +10 eligible pairs, **unexecuted** | **DEFERRED** | `COVERAGE_MANIFEST.md` §2.2: 7 of the 12 dependency-relatedness pairs are never admitted by lexical, so a union yields **164** eligible rather than 154. Not implemented. These 10 are an *eligible set under a different defensible relatedness definition*, recorded rather than quietly absent. 🔴 Running it means a **new pre-committed manifest**, not an extension of the shipped one — the shipped 154 is "the whole pool" **only under `relatedness=lexical`** |
+
+### What POST-SUBMISSION / FUTURE WORK holds, in one list
+
+Every item below is **DEFERRED, not killed**, and each is a good idea that is
+**not a reason to delay submission** (`SCOPE_FREEZE.md` §4):
+
+**Jev baseline** (H01) · **learned memory gate** (H02) · **LLM memory-manager
+comparison** (H03) · **RL memory manager** (H11) · **new retrieval
+architectures** (H12, absorbing I01/I02/I07) · **semantic-type redesign**
+(H07) · **new representation families** (H13) · **additional benchmarks**
+(H06) · **additional backbones** (H14) · **the cross-session floor nobody has
+measured** (H15) · **the SciCode dep-OR-lex union, +10 eligible pairs,
+unexecuted** (H16) · cross-model replication (H04) · production vector store
+(H05) · harmful-memory prevalence (H08) · full P3 receiver integration (H09) ·
+retention policy (H10) · position-effect expansion (I03) · benchmark-native
+memory baseline (I08) · dataset example notebook (I09) · a one-command public
+reproduction wrapper (I10).
+
+🔴 **Four storylines are NOT to be resurrected** (`SCOPE_FREEZE.md` §5), each
+demoted for a measured reason already in `docs/`: the **sign-flip headline**,
+the **variance-decomposition headline**, the **semantic-type taxonomy** as a
+live axis, and **harmful-memory prevalence** on this design. *Demotion is not
+an oversight for a later agent to correct.*
 
 ---
 
@@ -164,8 +205,8 @@ Nothing here is dropped. Where a Phase-3 item took over, it is named.
 | P1-053 | LongMemEval-V2 main run | **DONE** | the screened run: 5,198 calls, 0 errors |
 | P1-054 | BEAM pilot | **KILLED** | BEAM dropped |
 | P1-055 | BEAM main run | **KILLED** | BEAM dropped |
-| P1-056 | SciCode pilot | **BLOCKED** | superseded — now owned by P1-C09 |
-| P1-057 | SciCode main run | **BLOCKED** | superseded — now owned by P1-C10 |
+| P1-056 | SciCode pilot | **DONE** | superseded — absorbed by **P1-C09**, which is DONE. (Was BLOCKED only because it predated the Phase-3 item that took it over) |
+| P1-057 | SciCode main run | **DONE** | superseded — absorbed by **P1-C10**, which is DONE (154 pairs, 924 arm-runs, whole eligible pool) |
 | P1-058 | Targeted replication queue | **KILLED** | **`F_exec = 0`** — 0 of 1,157 cells have replicates that disagree. Re-running a deterministic reader buys nothing |
 | P1-059 | Missing-cell recovery | **KILLED** | 0 errors and 0 missing cells across 9,036 calls. Nothing to recover |
 
@@ -187,7 +228,7 @@ Nothing here is dropped. Where a Phase-3 item took over, it is named.
 | P1-071 | API / compute efficiency | **DONE** | writer calls per memory, amortized |
 | P1-072 | Selectivity efficiency | **KILLED** | requires a retrieval arm |
 | P1-073 | Extraction efficiency | **DONE** | formation cost, charged — the finding in `docs/REPRESENTATION_RESULT.md` |
-| P1-074 | Utility–efficiency frontier | **RUNNING** | superseded — now owned by P1-C03 |
+| P1-074 | Utility–efficiency frontier | **DONE** | superseded — **P1-C03** shipped `fig:frontier` |
 | P1-075 | Variance decomposition | **KILLED** | 🔴 **unidentifiable.** Cause is **`F_exec = 0`** — a deterministic reader leaves no residual scale — not the task-crossing defect that *was* fixed. Shares came back equal to 16 s.f. at the optimizer's clip while reporting `converged=True`. **No share may be quoted**; `audit_claims.py` fails if one appears; a figure is forbidden |
 
 ### 4.7 Manuscript
@@ -197,23 +238,23 @@ Nothing here is dropped. Where a Phase-3 item took over, it is named.
 | P1-080 | Abstract v3 | **DONE** | superseded — P1-C01 landed v5 |
 | P1-081…087 | Intro · Related Work · Method · Representations · Benchmarks · Utility · Efficiency | **DONE** | 0 undefined citations, CCS added |
 | P1-088…090 | Results · Analysis · Limitations | **DONE** | all three written against verified sources |
-| P1-091…092 | Figures · Tables | **RUNNING** | superseded — now owned by P1-C13 |
+| P1-091…092 | Figures · Tables | **DONE** | superseded — **P1-C13** is DONE (5 figures + 3 tables). Remaining placement work is **P1-C20** |
 | P1-093 | Reproducibility statement | **DONE** | — |
-| P1-094 | Claim/evidence audit | **RUNNING** | superseded — now owned by P1-C16 |
-| P1-095 | Final compile + anonymity + citation check | **TODO** | superseded — now owned by P1-C17 |
-| P1-096 | AI-assistance disclosure | **TODO** | superseded — now owned by P1-C18. 🔴 still an empty stub and required by AAMAS |
+| P1-094 | Claim/evidence audit | **DONE** | superseded — **P1-C16**, 129 checks / 0 FAIL, standing thereafter |
+| P1-095 | Final compile + anonymity + citation check | **TODO** | superseded — owned by **P1-C17**, which is the one genuinely open submission-critical item. Counted separately per the §5 counting rule |
+| P1-096 | AI-assistance disclosure | **DONE** | superseded — **P1-C18** is DONE: the section is written at `main.tex:1678`, no longer a stub |
 
 ### 4.8 Release
 
 | ID | Task | Status | Note |
 |---|---|---|---|
-| P1-100 | GitHub cleanup | **TODO** | folds into P1-C17 |
+| P1-100 | GitHub cleanup | **TODO** | folds into **P1-C17**. The one concrete sub-item is **P1-I11** (the untracked representation scale-up slices) |
 | P1-101 | README reproduction instructions | **DONE** | README §Setup + §Handoff |
 | P1-102 | HF snapshot | **DONE** | v0.1 + tag |
 | P1-103 | Data card | **DONE** | 20 sections |
 | P1-104 | Licence verification | **DONE** | `docs/BENCHMARK_LICENSES.md`; the exporter fails closed on unknown licences |
 | P1-105 | Results ledger | **DONE** | `docs/RESULTS_LEDGER.md` + `docs/RESULT_INDEX.md` |
-| P1-106 | Final consistency audit | **TODO** | folds into P1-C16 / P1-C17 |
+| P1-106 | Final consistency audit | **TODO** | folds into **P1-C16** (standing, green at 129/129) and **P1-C17**. The open findings are enumerated in **P1-C22** |
 
 ### 4.9 Findings recorded as IDs (§32 requires the trigger be kept)
 
@@ -266,24 +307,24 @@ These are **triggers**, not work items. Each is terminal.
 | P2-04 freeze the four-axis story | **DONE** | — |
 | P2-05 README + handoff | **DONE** | redone as P1-C14 |
 | P2-06 BEAM replacement | **DONE** | conditional: SWE-bench selected but not cleared; clearing it is P1-C05 → C07 |
-| P2-07 frontier | **RUNNING** | → P1-C03 |
+| P2-07 frontier | **DONE** | → P1-C03, shipped as `fig:frontier` |
 | P2-08 bearing-breadth figure | **DONE** | Figure 2(a) |
 | P2-09 similarity figure | **DONE** | Figure 3 |
 | P2-10 abstract v5 | **DONE** | → P1-C01 |
-| P2-11 SciCode | **RUNNING** | → P1-C08 |
-| P2-12 HF v0.2 | **RUNNING** | → P1-C04 |
-| P2-13 cross-benchmark synthesis | **BLOCKED** | → P1-C11 |
-| P2-14 final figure selection + page management | **RUNNING** | → P1-C13 |
-| P2-15 claim/evidence audit at freeze | **RUNNING** | → P1-C16 |
+| P2-11 SciCode | **DONE** | → P1-C08/C09/C10, all DONE |
+| P2-12 HF v0.2 | **DONE** | → P1-C04, tag `v0.2-repr-derived` verified by downloading it. v0.3/v0.4 are **P1-C21** |
+| P2-13 cross-benchmark synthesis | **DONE** | → P1-C11, DONE. All three benchmark rows in `tab:crossbench` are real data |
+| P2-14 final figure selection + page management | **DONE** (selection) | → P1-C13. Page **management** is **P1-C20**, which is blocked on the author by design |
+| P2-15 claim/evidence audit at freeze | **DONE** | → P1-C16, standing |
 
 ### 4.11 User-owned (the Master Agent does not spend cycles here)
 
 | ID | Task | Status |
 |---|---|---|
-| U-01 | Author list | **TODO** (user) |
-| U-02 | Reciprocal reviewer designation (1 Oct) + acceptance (8 Oct) | **TODO** (user) |
-| U-03 | OpenReview profiles / account logistics | **TODO** (user) |
-| U-04 | Submission administration | **TODO** (user) |
+| U-01 | Author list | **DEFERRED** (user-owned) | off the scientific critical path; not a blocker and not reported as one |
+| U-02 | Reciprocal reviewer designation (1 Oct) + acceptance (8 Oct) | **DEFERRED** (user-owned) | deadline-bearing but user-owned |
+| U-03 | OpenReview profiles / account logistics | **DEFERRED** (user-owned) | — |
+| U-04 | Submission administration | **DEFERRED** (user-owned) | — |
 | U-05 | *Optional:* logged-in read of OpenReview `n3GMbobXnc` | **DEFERRED** |
 
 ### 4.12 Legacy deferrals
@@ -327,23 +368,43 @@ print(len(seen), collections.Counter(seen.values()))
 
 | state | count |
 |---|---:|
-| **DONE** | **106** |
-| **RUNNING** | **16** |
-| **BLOCKED** | **10** |
-| **TODO** | **21** |
-| **DEFERRED** | **22** |
-| **KILLED** | **13** |
-| **total distinct IDs** | **188** |
+| **DONE** | **134** |
+| **DEFERRED** | **38** |
+| **KILLED** | **16** |
+| **TODO** | **7** |
+| **RUNNING** | **2** |
+| **BLOCKED** | **1** |
+| **total distinct IDs** | **198** |
+
+**Re-derived mechanically on 2026-10-01 by SA-ARCHIVE**, by running the snippet above.
+Every one of the 198 rows carries exactly one bold state (the snippet asserts it; 0 rows
+fail). The previous counts — DONE 106 / RUNNING 16 / BLOCKED 10 / TODO 21 / DEFERRED 22 /
+KILLED 13 over 188 IDs — are **superseded**, not deleted: 10 IDs were added (C19–C22,
+H11–H16) and the terminalization pass closed the rest.
 
 **Counting rule.** A legacy ID whose work was taken over by a Phase-3 item is counted
 **separately, under its own state**, with the successor named in its row. That is
 deliberate: collapsing them would make a legacy ID stop being mentioned, which this page
 forbids. So `P1-095` (TODO) and its successor `P1-C17` (TODO) are two rows and two counts.
 
-**Active work is the RUNNING + BLOCKED + TODO block (47 IDs), and it is smaller than it
-looks** — 21 of those are user-owned, duplicated legacy IDs, or Level-2 nice-to-haves. The
-submission-critical open set is **P1-C03, C04, C05→C07, C08→C10, C11, C13, C15, C16, C17,
-C18** — 14 IDs, of which 6 are blocked behind two benchmark bring-ups.
+### The entire open set — 10 IDs, and what each is waiting on
+
+| ID | state | owner | waiting on |
+|---|---|---|---|
+| **P1-C17** | **TODO** | SA-PAGE | 🔴 the one genuinely open submission-critical item: final sync + compile + anonymity + citations |
+| **P1-C19** | **RUNNING** | SA-SWE-FINAL | 41 runnable django cells remain under the frozen universe |
+| **P1-C20** | **BLOCKED** | **the author** | removing content is not an agent's decision (`PAGE_BUDGET_DECISION.md`) |
+| **P1-C21** | **RUNNING** | SA-HF | HF v0.3 staging rebuild in flight; v0.4 after it |
+| **P1-C22** | **TODO** | SA-PAGE | three `main.tex` ↔ artifact inconsistencies, all retracted-number-still-circulating |
+| **P1-I11** | **TODO** | SA-HF | 🔴 the representation scale-up slices are **still untracked** |
+| **P1-I13** | **TODO** | SA-PAGE | the efficiency ratios; folded into C22 |
+| P1-095 | TODO | — | duplicate of C17, kept per the counting rule |
+| P1-100 | TODO | — | folds into C17; its concrete sub-item is I11 |
+| P1-106 | TODO | — | folds into C16 (green) and C17 |
+
+**Three of those ten are duplicate legacy IDs and one is a user decision**, so the real
+agent-actionable set is **six**: C17, C19, C21, C22, I11, I13. 🔴 **I11 is the only one
+that risks losing evidence** — Contribution B's row files exist on one laptop.
 
 ## 6. Killed this project, with the measured reason
 
