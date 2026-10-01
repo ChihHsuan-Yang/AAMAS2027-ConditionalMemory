@@ -1,0 +1,125 @@
+{
+  "_what": "behavioural proof that the response cache cannot serve a gpt-oss response to a gemma request",
+  "run_at_utc": "2026-10-01T00:28:01.931581+00:00",
+  "key_fields": [
+    "benchmark",
+    "source_item_id",
+    "memory_repr",
+    "memory_id",
+    "future_task_id",
+    "arm",
+    "retrieval_method",
+    "model_id",
+    "cluster",
+    "prompt_version",
+    "decoding_params",
+    "replicate_id",
+    "context_sha256"
+  ],
+  "cache_schema_version": "p1mem_response_cache_v2_context_hash",
+  "shared_key_fields": {
+    "benchmark": "cache_separation_proof",
+    "source_item_id": "proof_item",
+    "memory_repr": "raw",
+    "memory_id": "proof_memory_content_hash",
+    "future_task_id": "proof_task",
+    "arm": "with_memory",
+    "retrieval_method": "oracle",
+    "prompt_version": "cache_separation_proof_v1",
+    "replicate_id": 0
+  },
+  "messages_sha256": "7255f532e59a16f1ccef6e1d2092e7c32c1af40b1aa72d18301286d95fd6ff28",
+  "steps": [
+    {
+      "step": "1. gpt-oss, cold cache                        -> MISS",
+      "reader": "gptoss",
+      "requested_model": "gpt-oss-120b",
+      "resolved_model": "gpt-oss-120b",
+      "cache_hit": false,
+      "expected_hit": false,
+      "agrees_with_expectation": true,
+      "finish_reason": "stop",
+      "reasoning_tokens": 6,
+      "content_sha256": "c3af6564a14d4654d783e2b5e549c274c356e301dd1e0e2b712b6e97ac37bf7c",
+      "content": "Paris is the capital of France."
+    },
+    {
+      "step": "2. gpt-oss again  [POSITIVE CONTROL]          -> HIT",
+      "reader": "gptoss",
+      "requested_model": "gpt-oss-120b",
+      "resolved_model": "gpt-oss-120b",
+      "cache_hit": true,
+      "expected_hit": true,
+      "agrees_with_expectation": true,
+      "finish_reason": "stop",
+      "reasoning_tokens": 6,
+      "content_sha256": "c3af6564a14d4654d783e2b5e549c274c356e301dd1e0e2b712b6e97ac37bf7c",
+      "content": "Paris is the capital of France."
+    },
+    {
+      "step": "3. gemma, SAME key fields                     -> MISS",
+      "reader": "gemma",
+      "requested_model": "gemma-4-31B-it",
+      "resolved_model": "gemma-4-31B-it",
+      "cache_hit": false,
+      "expected_hit": false,
+      "agrees_with_expectation": true,
+      "finish_reason": "stop",
+      "reasoning_tokens": null,
+      "content_sha256": "3eb3f24a6742f0eb5f48e4d16c8927d3a19dbb42ece2585ef8f57ffd31bd850a",
+      "content": "The capital of France is Paris."
+    },
+    {
+      "step": "4. gemma again                                -> HIT",
+      "reader": "gemma",
+      "requested_model": "gemma-4-31B-it",
+      "resolved_model": "gemma-4-31B-it",
+      "cache_hit": true,
+      "expected_hit": true,
+      "agrees_with_expectation": true,
+      "finish_reason": "stop",
+      "reasoning_tokens": null,
+      "content_sha256": "3eb3f24a6742f0eb5f48e4d16c8927d3a19dbb42ece2585ef8f57ffd31bd850a",
+      "content": "The capital of France is Paris."
+    }
+  ],
+  "stored_rows": [
+    {
+      "key_hash": "f0c2366651a8c0520ef4306bc476bca3cb168f9250aa7a61cd95d0e248166f60",
+      "key_model_id": "gpt-oss-120b",
+      "key_cluster": "metis",
+      "key_decoding_params": {
+        "max_tokens": 512,
+        "reasoning_effort": "low",
+        "temperature": 0.0
+      },
+      "resolved_model": "gpt-oss-120b",
+      "content_sha256": "c3af6564a14d4654d783e2b5e549c274c356e301dd1e0e2b712b6e97ac37bf7c"
+    },
+    {
+      "key_hash": "49b19b895163a677ac6e37f2a11dc847f3be1444fee3cb5c46b8276368501b85",
+      "key_model_id": "gemma-4-31B-it",
+      "key_cluster": "metis",
+      "key_decoding_params": {
+        "max_tokens": 512,
+        "temperature": 0.0
+      },
+      "resolved_model": "gemma-4-31B-it",
+      "content_sha256": "3eb3f24a6742f0eb5f48e4d16c8927d3a19dbb42ece2585ef8f57ffd31bd850a"
+    }
+  ],
+  "checks": {
+    "step1_cold_miss": true,
+    "step2_positive_control_hit": true,
+    "step3_cross_model_miss": true,
+    "step4_gemma_hit": true,
+    "exactly_two_rows_stored": true,
+    "two_distinct_key_hashes": true,
+    "two_distinct_model_ids_in_keys": true,
+    "resolved_model_matches_requested_in_every_row": true,
+    "the_two_readers_returned_different_text": true,
+    "gemma_row_does_not_carry_gptoss_text": true,
+    "gemma_hit_serves_gemma_text": true
+  },
+  "VERDICT": "CACHE_SEPARATION_PROVEN"
+}

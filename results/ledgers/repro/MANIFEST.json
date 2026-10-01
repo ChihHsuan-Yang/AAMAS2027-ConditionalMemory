@@ -46,5 +46,16 @@
   "analysis": "results/ledgers/repro/swebench/representations_v2_analysis.json",
   "dropped_fields": "per-arm raw model response text (size). Retained in the full artifact on disk so re-scoring stays possible.",
   "supersedes": "results/swebench/representations_v1.json -- v1 used a contagion screen that false-positived on ASCII table borders."
+ },
+ "gemma_reader_transfer": {
+  "full_artifact_path": "results/gemma_reader/transfer_cells.jsonl",
+  "full_artifact_sha256": "eebdea055ad6d788a108b3b4d28e67e5d525ab374e3560b285895145841f052f",
+  "full_artifact_bytes": 30574572,
+  "full_artifact_tracked": false,
+  "slim_slice": "results/ledgers/repro/gemma_reader/transfer_cells_slim.jsonl",
+  "analysis": "results/ledgers/repro/gemma_reader/reader_transfer_analysis.json",
+  "precommitment": "docs/READER_TRANSFER_PRECOMMITMENT.md",
+  "n_rows": 1694,
+  "design_invariant_verified": "all 1694 rows carry memory_text byte-identical to the gpt-oss run (match=1694, mismatch=0, no-counterpart=0), joined on (memory_unit_locator, future_task_id, memory_representation). Only the reader differs."
  }
 }

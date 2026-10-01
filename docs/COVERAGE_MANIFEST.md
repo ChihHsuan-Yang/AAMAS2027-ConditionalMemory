@@ -181,16 +181,16 @@ LongMemEval is. Any cross-benchmark representation comparison must say so.
 | survive `is_single_file_solvable` | **303** | −103, all multi-file gold fixes |
 | in a repo with a working runner | **239** | django 227 + sympy 12 |
 | after dedup-by-recipient = **runnable universe** | **107** | django 96 + sympy 11 |
-| **executed (all runs, all django)** | **55** | |
+| **executed** | **66** | django 55 + **sympy 11** (sympy arm COMPLETE under the shipped manifest) |
 | representation arm v2 | 32 recipients / 96 cells / 13 matched | |
-| **remaining runnable today** | **52** | django 41, **sympy 11** |
+| **remaining runnable today** | **41** | django 41; sympy 0 remaining under the shipped manifest |
 
 ### Per-repository coverage
 
 | repo | SFS pairs | runner | executed | status |
 |---|---:|---|---:|---|
-| django/django | 227 | ✅ | 55 | partial |
-| sympy/sympy | 12 | ✅ | **0** | **runnable, never attempted** |
+| django/django | 227 | ✅ | 55 | partial (41 runnable remain) |
+| sympy/sympy | 12 | ✅ | **11** | **COMPLETE** under the shipped manifest (15 runnable if the cap were inert) |
 | sphinx-doc/sphinx | 37 | ❌ | 0 | no runner |
 | matplotlib | 10 | ❌ | 0 | blocked: C build, no Docker on arm64 |
 | xarray | 9 | ❌ | 0 | no runner |
@@ -203,10 +203,15 @@ LongMemEval is. Any cross-benchmark representation comparison must say so.
 1. **`tasks_per_memory=4` is binding**, removing 146 eligible pairs. On SciCode
    the equivalent knob was made inert deliberately. Here it silently caps the
    universe, and the manifest it produced has been treated as *the* pair list.
-2. **sympy has a working runner and a passing scorer control (20/20, negative
-   control 20/20) and has never been run.** The django-only result is not a
-   constraint of the harness — 11 sympy pairs are runnable **today**. This is
-   the single highest-value fix for the "django-heavy" criticism.
+2. **sympy ran (2026-09-30) and SWE-bench is no longer django-only.** 11 cells,
+   sympy arm complete under the shipped manifest.
+   ⚠️ **Correction to this document's own earlier text.** It said sympy had "a
+   passing scorer control (20/20, negative control 20/20)". Sympy's own control
+   is **8/8**; the 20/20 is the **union** of django (12/12) and sympy (8/8),
+   which is what the gate reads because the default `--scorer-control` list
+   names both files. The claim was true; the number attached to it belonged to
+   a different set — *this project's own named defect shape, sitting in the
+   document written to prevent it.*
 
 64 SFS pairs sit in 6 repos with no runner; 12 of those are blocked by C
 extension builds (no Docker on arm64) and are a genuine environment limit, not
@@ -228,7 +233,7 @@ of the design, not a measurement.
 |---|---:|---:|---:|---|
 | LongMemEval-V2 | 1,157 (screened design) | 1,157 | **100%** | complete **on the design the paper reports**; 3.8% of the 15,112-pair frozen universe |
 | SciCode | 154 (lexical) | 154 | **100%** | complete under the shipped relatedness; +10 pairs exist under a union definition |
-| SWE-bench Verified | 107 (runnable) | 55 | **51%** | and **all 55 are django**; 11 sympy pairs runnable and unattempted |
+| SWE-bench Verified | 107 (runnable) | 66 | **62%** | **two repos** (django 55, sympy 11); 41 django pairs remain |
 
 ## 5. Immediate consequences for the campaign
 

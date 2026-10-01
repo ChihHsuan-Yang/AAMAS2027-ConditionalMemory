@@ -1,0 +1,54 @@
+{
+  "_what": "controls for the reader-transfer arm",
+  "generated_at_utc": "2026-10-01T04:07:21.410370+00:00",
+  "aa_determinism_gptoss": {
+    "_what": "gpt-oss-120b: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the cache key). Identical content => the endpoint is deterministic at temperature 0 on the real context shape.",
+    "n_paired_groups": 248,
+    "n_identical": 248,
+    "n_differing": 0,
+    "rate_identical": 1.0,
+    "differing_examples": [],
+    "_vacuity_check_n_groups_gt_0": true
+  },
+  "aa_determinism_gemma": {
+    "_what": "gemma-4-31B-it: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the cache key). Identical content => the endpoint is deterministic at temperature 0 on the real context shape.",
+    "n_paired_groups": 248,
+    "n_identical": 248,
+    "n_differing": 0,
+    "rate_identical": 1.0,
+    "differing_examples": [],
+    "_vacuity_check_n_groups_gt_0": true
+  },
+  "cache_separation_reconfirmed_on_this_run": {
+    "_what": "the response cache cannot serve a gpt-oss answer to a Gemma request. POSITIVE CONTROL FIRST: without a demonstrated HIT, a 'miss' proves only that the cache is dead.",
+    "step1_positive_control_gptoss_key_in_gptoss_cache": {
+      "result": "HIT",
+      "resolved_model": "gpt-oss-120b"
+    },
+    "step2_gemma_key_in_gptoss_cache": {
+      "result": "MISS"
+    },
+    "step3_key_hashes_differ": true,
+    "step4_gptoss_key_in_gemma_cache": {
+      "result": "MISS"
+    },
+    "gemma_cache_resolved_models": {
+      "gemma-4-31B-it": 3294
+    },
+    "gemma_cache_only_serves_gemma": true,
+    "VERDICT": true
+  },
+  "truncation_accounting": {
+    "_what": "On Gemma a truncation returns a plausible FRAGMENT, not null content. Scored, it is a wrong answer that drives dU negative and MANUFACTURES a harmful memory. Every such response must have been refused.",
+    "gemma_cache_finish_reasons": {
+      "stop": 3294
+    },
+    "responses_truncated_with_nonempty_content": 0,
+    "row_error_codes": {
+      "empty_output_finish_length": 56
+    },
+    "rows_with_an_error_code_AND_a_non_null_delta": 0,
+    "no_truncation_was_scored": true,
+    "rows_with_null_delta": 56
+  }
+}
