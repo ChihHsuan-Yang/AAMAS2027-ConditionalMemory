@@ -1,6 +1,7 @@
 ---
 pretty_name: "Conditional Memory Utility Dataset (AAMAS 2027)"
-license: apache-2.0
+license: other
+license_name: mixed-per-row-see-data-card
 task_categories:
   - question-answering
 language:
@@ -24,23 +25,40 @@ configs:
   - Every number below is either MEASURED (a command was run on the released file) or
     marked **pending**. Never write a plausible number. If you do not have it, the word
     is "pending".
-  - `license: apache-2.0` is correct for THIS release because every row derives from
-    LongMemEval-V2 only (verified: 4,519/4,519 rows carry
-    license_source_reference='longmemeval_v2:Apache-2.0' -- re-verified at v0.2 on
-    5,643/5,643). If a BEAM-derived row is ever added, this file is WRONG and the row
-    belongs in a separate CC BY-SA 4.0 dataset.
+  - 🔴 `license:` is `other`, NOT `apache-2.0`, and that changed at v0.4. Through
+    v0.3 every row was Apache-2.0 (LongMemEval-V2 5,643 + SciCode 154, verified by
+    license_source_reference) and the flat tag was true. v0.4 adds 127 SWE-bench
+    Verified rows whose CORPUS DECLARES NO LICENCE; a flat `apache-2.0` would make
+    the Hub advertise an Apache grant over rows nobody has granted anything for,
+    which is the same class of error as the library_name note above -- a platform
+    EXECUTES metadata, and here it would be executing a licence claim we cannot
+    make. The per-row truth is in `license_source_reference`; section 17 has the
+    table. If a BEAM-derived row is ever added, this file is WRONG regardless and
+    the row belongs in a separate CC BY-SA 4.0 dataset.
 -->
 
 # Conditional Memory Utility Dataset
 
-> **v0.3 — `scicode-derived`. 5,797 real evaluated rows, 0 fabricated rows.**
+> **v0.4 — `swebench-metrics`. 5,924 real evaluated rows, 0 fabricated rows.**
 >
-> Adds **154 SciCode rows** (Apache-2.0, content permitted) to v0.2's 5,643
-> LongMemEval-V2 rows. 🔴 **SciCode ships `raw` ONLY — 154 of its 462 cells.**
-> The 308 Summary and Structured cells are **absent because their memory text was
-> never persisted and is NOT recoverable** — a PERSISTENCE gap, not a licence
-> withholding (SciCode is Apache-2.0 and withholds nothing); see §19.14. A
-> partial export that looks complete is the defect, so the gap is stated first.
+> Three benchmarks: **LongMemEval-V2 5,643** · **SciCode 154** · **SWE-bench
+> Verified 127**. Two of them are incomplete, in two different ways, and both
+> gaps are stated before any result:
+>
+> 🔴 **SciCode ships `raw` ONLY — 154 of its 462 cells.** The 308 Summary and
+> Structured cells are **absent because their memory text was never persisted
+> and is NOT recoverable** — a PERSISTENCE gap, not a licence withholding
+> (SciCode is Apache-2.0 and withholds nothing); see §19.14.
+>
+> 🔴 **SWE-bench ships METRICS AND IDS ONLY — no corpus text at all.**
+> `princeton-nlp/SWE-bench_Verified` **declares no licence**, so every text
+> field on those 127 rows carries `__WITHHELD_SEE_LICENSE__` and is declared in
+> `text_fields_withheld`. That is a LICENCE withholding — the text exists and we
+> may not redistribute it — and it is **not** the same fact as SciCode's; see
+> §19.15. **37 manufactured `0.0` rewards were demoted to null before export**
+> (defect 21): a test suite that printed no verdict is not a wrong answer.
+>
+> A partial export that looks complete is the defect, so the gaps are stated first.
 >
 > *(v0.2 was: 5,643 rows, LongMemEval-V2 only, three representations.)*
 > LongMemEval-V2 only, now in **three matched memory representations**: the 4,519 Raw
@@ -87,14 +105,20 @@ effect over overwhelmingly many inert pairs**, not because the sign varies.
 
 ## 3. Source benchmarks
 
-| Benchmark | Role in THIS release | Status |
-|---|---|---|
-| **LongMemEval-V2** (`xiaowu0162/longmemeval-v2`) | **the only source of every row** | released here |
-| LongMemEval V1 | not in this release | annotations only, if ever |
-| BEAM | **excluded by license** | must ship as a separate CC BY-SA 4.0 dataset |
-| SciCode | not run | — |
+| Benchmark | Role in THIS release | Rows | Status |
+|---|---|---:|---|
+| **LongMemEval-V2** (`xiaowu0162/longmemeval-v2`) | the primary source; the only one with all three representations | **5,643** | released here, Apache-2.0, source text included |
+| **SciCode** (`SciCode1/SciCode`) | cross-domain transfer | **154** | released here, Apache-2.0, `raw` only — §19.14 |
+| **SWE-bench Verified** (`princeton-nlp/SWE-bench_Verified`) | cross-domain transfer | **127** | released here, 🔴 **metrics and ids ONLY, no corpus text** — §19.15 |
+| LongMemEval V1 | not in this release | 0 | annotations only, if ever |
+| BEAM | **excluded by license** | 0 | must ship as a separate CC BY-SA 4.0 dataset |
 
-Measured, not assumed: **5,643 / 5,643** rows carry
+**Only LongMemEval-V2 is representation-matched.** SciCode ships one arm of three
+and SWE-bench's three arms rest on 76 scorable cells of 127, so the representation
+comparison this schema was built for is a LongMemEval claim and is not a
+cross-benchmark one.
+
+Measured, not assumed: **5,643 / 5,924** rows carry
 `license_source_reference = 'longmemeval_v2:Apache-2.0'`. Pinned benchmark revision
 `2cc8c540bdb87fe6761629b585e727e1c4704520` — the same revision for both the v0.1 and the
 v0.2 arms.
@@ -106,9 +130,13 @@ trajectory. The boundary is drawn by **the past agent's own behaviour** (it navi
 away), so it is a naturally occurring span, not a window we imposed and certainly not one
 fitted to any question.
 
-Measured over the released rows:
+Measured over the released rows. 🔴 **This table is LongMemEval-V2 ONLY** — it
+describes the memory-unit construction above, which is a LongMemEval procedure.
+The SciCode (154) and SWE-bench (127) rows are counted in §3 and described in
+§19.14 / §19.15; adding them to these denominators would pool three different
+sampling procedures under one count.
 
-| quantity | value | of which v0.2's new arms |
+| quantity (LongMemEval-V2 only) | value | of which v0.2's new arms |
 |---|---|---|
 | rows | **5,643** | 1,124 |
 | cells (memory × task × condition) | **2,679** | 562 |
@@ -169,7 +197,7 @@ were contingent on every row being `raw`, and v0.2 ends that.
 | field | why it is null |
 |---|---|
 | `source_episode_completion_timestamp` | **No wall-clock field exists anywhere in LongMemEval-V2.** An exhaustive key scan of all 1,870 trajectories returns only `{domain, environment, goal, id, outcome, start_url, states}`, and states carry only `{accessibility_tree, action, screenshot, state_index, step, thought, url}`. `state_index` is an *order*, not a timestamp. Re-checked at v0.2: same benchmark revision `2cc8c540`. (LongMemEval **V1** does ship real dates, so the field is defined for a future V1 arm.) |
-| `context_budget` | **No truncation budget was ever enforced.** `memory_tokens_exposed == memory_tokens_retrieved` on **5,643/5,643** rows. Re-checked for the new arm specifically: the representation runner's `truncate_to_tokens` is called **only on the embedding path**, never on the reader's context. (The 20,000-token cap in our design docs is a memory-*selection* rule, not an exposure cap.) |
+| `context_budget` | **No truncation budget was ever enforced.** `memory_tokens_exposed == memory_tokens_retrieved` on **5,797 of 5,924** rows — re-derived at v0.4, not inherited. The other **127 are the SWE-bench rows, where BOTH fields are null** (`retrieval_method='none'`: no retriever ran, so there is no retrieved set to count and nothing was truncated — `schema.BENCHMARK_NULLABLE_EXEMPTIONS`). Those 127 are **not** evidence of no-truncation; they are an absence of the measurement, and counting `null == null` as agreement would have turned a 5,797-row fact into a false 5,924-row one. Re-checked for the representation arm specifically: the runner's `truncate_to_tokens` is called **only on the embedding path**, never on the reader's context. (The 20,000-token cap in our design docs is a memory-*selection* rule, not an exposure cap.) |
 | `propagation_metadata` | P3-reserved. P1 is single-agent; a value could only be fabricated. The validator rejects a non-null value. Re-checked: `receiver_id`, `receiver_role`, `visibility_mask` and `team_reward` are null on all 1,124 new rows. |
 
 ### 7.1 🔴 Two nulls that v0.2 had to fix, because their REASONS were about to become false
@@ -418,14 +446,20 @@ Storage (`memory_tokens`, `storage_bytes`), retrieval (`retrieval_latency`,
 
 | value | meaning |
 |---|---|
-| `extraction_cost_proxy = 0.0` | a **measurement**: raw makes no call, so nothing was billed. Raw's real advantage, and it must survive into the efficiency frontier or model-written representations look free. |
+| `extraction_cost_proxy = 0.0` | a **measurement**: raw makes no call, so nothing was billed. Raw's real advantage, and it must survive into the efficiency frontier or model-written representations look free. **4,673 rows** (LongMemEval raw 4,519 + SciCode raw 154). |
+| `extraction_cost_proxy = null` | **NOT 0.0.** The 41 SWE-bench raw rows: the runner never persisted a memory body, so no token count exists to bill. An absence, not a free write. |
 | `memory_extraction_latency = null` | **no call was made.** Excluded from a mean latency, never averaged in as 0.0. |
 | `reasoning_tokens = null` | **not reported by this cluster.** Metis reports it; Sophia omits it. Must be excluded from a denominator, not summed as zero. |
 
-`compression_ratio = 1.0` on every raw row: raw **is** the source span, verified by
-joining all 5,643 rows to the unit manifest (100% join, 0 misses). Raw's 1.0 is the
-control that makes the new arms' ratios interpretable: **median 0.0162 (summary)** and
-**0.0151 (structured)** — roughly 60× compression.
+`compression_ratio = 1.0` on **4,673 of the 4,714 raw rows**: raw **is** the source
+span, verified by joining the 4,519 LongMemEval rows to the unit manifest (100% join,
+0 misses) and re-derived at v0.4 over SciCode's 154. 🔴 **The other 41 raw rows —
+SWE-bench — carry `null`, not 1.0**, because `memory_tokens` was never measured there
+(the runner holds memory bodies in a local dict and never persists them), and a ratio
+needs a numerator. Writing 1.0 would assert a measured identity nobody measured. Raw's
+1.0 is the control that makes the new arms' ratios interpretable: **median 0.0162
+(summary)** and **0.0151 (structured)** — roughly 60× compression, both LongMemEval
+figures.
 
 ### 14.1 🔴 v0.2: the cost ranking REVERSES once formation is charged
 
@@ -480,10 +514,17 @@ id was minted, is caught.
 **Authoritative document: `docs/BENCHMARK_LICENSES.md`, shipped in this release with its
 sha256 in `MANIFEST.json`.** That document governs; this section summarizes.
 
-Every row here derives from a source whose licence permits redistribution:
-**LongMemEval-V2, Apache-2.0** on 5,643 rows and **SciCode, Apache-2.0** on 154
-(verified on 5,797/5,797 rows by `license_source_reference`),
-so source text **is** redistributed, with attribution and a NOTICE of modifications.
+**Two different regimes in one release, and the row says which.** Read
+`license_source_reference` and `text_fields_withheld` per row; do not assume.
+
+| rows | source | licence | source text |
+|---:|---|---|---|
+| 5,643 | LongMemEval-V2 | Apache-2.0 | ✅ redistributed, with attribution and a NOTICE |
+| 154 | SciCode | Apache-2.0 | ✅ redistributed (the memory text; the reader outputs were never persisted — §19.14) |
+| **127** | **SWE-bench Verified** | 🔴 **none declared** | ❌ **withheld — metrics and ids only (§19.15)** |
+
+So 5,797 of 5,924 rows carry their source text and **127 do not**. The 127 are
+not a subset you can opt into: an absent licence is not a permissive licence.
 
 **Withheld by policy, and absent from this release:**
 
@@ -494,20 +535,26 @@ so source text **is** redistributed, with attribution and a NOTICE of modificati
 | SciCode `test_data.h5` | ❌ Distributed via Google Drive with **no licence stated**. |
 | LongMemEval-V2 bulk trajectories / screenshots | ⚠️ Permitted but ~1.14 GiB+; we ship ids + spans, not the corpus. |
 
-Withheld fields would carry the literal `__WITHHELD_SEE_LICENSE__` with
+Withheld fields carry the literal `__WITHHELD_SEE_LICENSE__` with
 `text_fields_withheld` and `reconstruction_required` recorded per row — **a withholding is
-visible, never silent.** In this release **nothing is withheld**, because everything is
-Apache-2.0: `text_fields_withheld` is `[]` on all 5,797 rows.
+visible, never silent.** In this release that is **127 SWE-bench rows, 5 fields each**;
+`text_fields_withheld` is `[]` on the other 5,797.
 
 ### 🔴 Two different sentinels, which must never be read as the same thing
 
 A field can be empty for two unrelated reasons, and this release uses **two
 distinct literals** so a consumer can tell them apart without guessing:
 
-| literal | means | appears in v0.3 |
+| literal | means | appears in v0.4 |
 |---|---|---|
-| `__WITHHELD_SEE_LICENSE__` | *The text exists and we may not redistribute it.* A **licence** restriction. Always accompanied by the field's name in `text_fields_withheld`. | **nowhere** — 0 of 5,797 rows |
+| `__WITHHELD_SEE_LICENSE__` | *The text exists and we may not redistribute it.* A **licence** restriction. Always accompanied by the field's name in `text_fields_withheld`. | 5 fields on all **127 SWE-bench** rows (§19.15) |
 | `__OUTPUT_NOT_RETAINED_BY_THE_RUN__` | *The text was never written down, by anyone. No licence is involved.* A **persistence** gap in the runner. | `output_with_memory` and `output_without_memory` on all **154 SciCode** rows |
+
+**The two never appear on the same row, and neither is a digest.** A SWE-bench
+row's outputs are withheld (we hold them); a SciCode row's outputs are gone (nobody
+holds them). Swapping the literals would publish a false stated reason in both
+directions at once — asserting a restriction SciCode does not impose, and
+asserting an absence that would excuse us from a restriction that does apply.
 
 So on a SciCode row, `memory_text` carries its **real content** (Apache-2.0
 permits it) while the two reader-output fields carry
@@ -540,17 +587,22 @@ model is `gpt-oss-120b` on Metis and `openai/gpt-oss-120b` on Sophia. Group by
 
 Each of these is a **measured** constraint with a command behind it.
 
-1. **The three arms are not balanced.** 4,519 of 5,643 rows are `raw`; Summary and
-   Structured contribute 570 and 554. The representation comparison (§12.1, §14.1) is
-   therefore run on the **277 design cells present in all three**, over **57 memories** —
-   not on the full corpus — and that is the denominator every representation claim
-   should be read against. A Raw-only statistic computed over all 5,643 rows is *not*
-   comparable to the matched subset.
+1. **The three arms are not balanced.** Of the **5,643 LongMemEval-V2** rows,
+   4,519 are `raw`; Summary and Structured contribute 570 and 554. The representation
+   comparison (§12.1, §14.1) is therefore run on the **277 design cells present in all
+   three**, over **57 memories** — not on the full corpus — and that is the denominator
+   every representation claim should be read against. A Raw-only statistic computed
+   over all 5,643 rows is *not* comparable to the matched subset.
+   **This limitation is worse on the other two benchmarks, not better:** SciCode has
+   only one arm (§19.14) and SWE-bench's three arms rest on 76 scorable cells of 127
+   (§19.15). **No representation claim in this card is a cross-benchmark claim.**
 2. **93.6% of memories are embedded from a TRUNCATED PREFIX.** The embedding server's real
    ceiling cannot be counted locally (the budget is enforced in Qwen tokens; the server
    tokenizes with Mistral), so a conservative 2,000-Qwen-token budget is used. At that
    budget only **29 of 1,889** units fit whole. In this release, **2,512 of 2,599** screened
-   rows have `input_truncated = true` (**4,336 of 5,643** across the whole v0.2 release).
+   rows have `input_truncated = true` (**4,336 of the 5,643 LongMemEval-V2 rows**;
+   the SciCode and SWE-bench rows have no embedding path at all, so they are outside
+   this denominator rather than counted as untruncated).
    So `semantic_similarity` describes a **prefix**, not
    the memory the reader saw. Direction of the bias is predictable: truncation **attenuates**
    any similarity–utility relationship toward zero — which **cuts against our own
@@ -752,6 +804,120 @@ means *same token count under every one of that memory's prompts*, which is stro
 evidence and not proof of byte identity. The opposite null is clean: substituting a
 **different** memory matched **0 of 3,003** times.
 
+## 19.15 🔴 SWE-bench Verified ships METRICS AND IDS ONLY — no corpus text
+
+**v0.4 adds 127 SWE-bench Verified cells, and not one byte of SWE-bench
+content.** This is the strictest embargo in the release and it has a different
+cause from SciCode's gap, so the two must not be read as the same situation.
+
+| | SciCode (v0.3) | SWE-bench Verified (v0.4) |
+|---|---|---|
+| why text is absent | **PERSISTENCE** — never written down | **LICENCE** — exists, may not be redistributed |
+| sentinel in the row | `__OUTPUT_NOT_RETAINED_BY_THE_RUN__` | `__WITHHELD_SEE_LICENSE__` |
+| `text_fields_withheld` | `[]` — nothing withheld | 5 fields, listed per row |
+| upstream licence | Apache-2.0, permits redistribution | 🔴 **none declared** |
+| could we ship it if we chose? | **no** — it does not exist | **no** — we have it and may not |
+
+### Why nothing textual ships
+
+`princeton-nlp/SWE-bench_Verified` **declares no licence.** The HF API returns
+`cardData.license: None`, the tag list carries no `license:*` entry, and the
+card text states none. The MIT grant covers the **harness code**, not the
+corpus, and the underlying issue text and patches belong to the upstream
+projects — every instance here is `django/django` or `sympy/sympy`, both
+BSD-3-Clause, neither Princeton's to relicense nor ours.
+
+> **An absent licence is not a permissive licence, and `gated: false` means
+> *fetchable*, not *redistributable*.**
+
+So five fields carry `__WITHHELD_SEE_LICENSE__` on all 127 rows and are named in
+each row's `text_fields_withheld`: `memory_text`, `future_task_text`,
+`output_with_memory`, `output_without_memory`, `source_episode_metadata`. **A
+withholding is declared, never silent** — a blanked field a row does not admit
+to blanking would let a consumer filtering on that list silently get the wrong
+rows, and `schema.assert_content_redistributable` (export GATE 6) refuses it.
+
+### What ships, because it is ours or is a pointer
+
+Upstream `instance_id` values (identifiers, not content) in
+`provenance.memory_instance_id` / `task_instance_id`; our derived measurements —
+reward, `delta_utility`, both-arms-fail, edit status, contagion diagnostics,
+localizer recall, token counts, representation label; and model/config metadata.
+`provenance.prompt_sha256_*` identifies each prompt **without redistributing a
+byte of it**, and `provenance.reconstruct_from` names the upstream parquet with
+its sha256 so any cell can be rebuilt from the source dataset.
+
+### 🔴 `memory_id` on these rows is NOT a content hash
+
+On every other benchmark here `memory_id` hashes the memory text. It cannot
+here: the SWE-bench runner holds memory bodies in a local dict and **never
+persists them**, so no unredacted ledger of that text exists anywhere — this is
+not text withheld from you, it is text nobody has. `memory_id` is therefore
+minted over the sentinel and identifies
+`(memory_instance_id, memory_representation)`. **Rebuilding the text from
+upstream and re-deriving the hash gives a DIFFERENT value, and that is expected,
+not corruption.** Join on the instance ids. Every row says so in
+`provenance.memory_id_basis`, and the validator flags it per row as
+`id_unverifiable_withheld_input` rather than passing silently — a check that
+did not run is reported, not claimed.
+
+### 🔴 Defect 21: 37 manufactured `0.0` rewards were demoted before export
+
+`status_lines=0` in an arm's test detail means the suite **printed no verdict at
+all** — an import error, a collection error, a missing test id. The harness
+never asked the question, so a stored `0.0` records *"the model's fix was
+wrong"* where the truth is *"no evidence exists"*. On this benchmark that
+**manufactures harm out of a collection error**.
+
+The scorer is fixed; these artifacts were written before the fix, so the
+correction is applied on read:
+
+| | |
+|---|---:|
+| arm-reads with `status_lines=0`, demoted to `null` | **37** (django 27 · sympy 10) |
+| cells touched by at least one demotion | **25** of 127 |
+| real `0.0` rewards (suite ran and failed) left untouched | **110** |
+| rewards with a real verdict, preserved unchanged | **179** |
+
+**No manufactured `0.0` is in this release.** Each affected row records which
+arm moved, in `provenance.reward_demoted_manufactured_zero_{with,without}`, with
+the rule in `provenance.manufactured_zero_rule`. A demoted read is `null` —
+*could not be scored* — and never `0.0`.
+
+The demotion is **not reimplemented** by the exporter: it is the same function
+the analysis uses, which carries a positive control proving it moves a
+manufactured zero, **leaves a real `0.0` untouched**, and is idempotent. Two
+copies of a correction are two chances to correct differently.
+
+### Composition and the caveats that go with it
+
+| | raw | summary | structured | total |
+|---|---:|---:|---:|---:|
+| `django/django` | 32 | 32 | 32 | 96 |
+| `sympy/sympy` | 9 | 11 | 11 | 31 |
+| **total** | **41** | **43** | **43** | **127** |
+
+Two `sympy` raw cells were **excluded for memory contagion** (diff syntax
+leaking into a representation that must be compared against raw on equal
+footing), which is why the raw column is 2 short. They are excluded in the
+source run, not dropped silently here.
+
+* **51 of 127 cells have a null `delta_utility`**, because at least one arm
+  could not be scored. That is the honest denominator, and it is large.
+* **Only 76 cells are scorable**, of which **69 are ties** — 4 helped, 3 hurt.
+  Nothing here supports a claim about representation on SWE-bench, and none is
+  made.
+* **40 cells are both-arms-fail.** As elsewhere in this project, that rate is a
+  property of the *pairing*, not a base rate of anything.
+* `localizer_recall` is `False` on 50 of 127 cells: the memory's file was not in
+  the localizer's output, so those cells test a harder condition than the rest.
+  Split on it before pooling.
+* **15 fields are null by benchmark exemption, each with its own stated reason**
+  in `schema.BENCHMARK_NULLABLE_EXEMPTIONS['swebench_verified']` — no embedding
+  path exists, no semantic type is derivable, latencies and retries were
+  discarded by the runner. `embedding_calls` and `retry_count` are `null` and
+  **not `0`**: zero would be a measured count of something never attempted.
+
 ## 20. Version history
 
 | version | date | contents |
@@ -759,8 +925,7 @@ evidence and not proof of byte identity. The opposite null is clean: substitutin
 | **v0.1 `lmev2-derived`** | 2026-09-30 | First upload. 4,519 rows / 2,117 cells from three LongMemEval-V2 arms (screened, pilot, official-prompt). All `raw`. Schema v2, 97 fields. |
 | **v0.3 `scicode-derived`** | 2026-09-30 | **+154 rows**: SciCode `raw` only (Apache-2.0, content ships). **5,797 rows total**, 98 fields, two benchmarks. 🔴 SciCode's Summary and Structured arms (308 cells) are **absent as unrecoverable** — a PERSISTENCE gap, never a licence withholding: the memory text was never persisted and regeneration is NOT byte-reproducible across sessions (measured: 0/8 at fully matched settings, and 0/12 against ground truth on disk). Adds §19.14 and GATE 5b. |
 | **v0.2 `repr-derived`** | 2026-09-30 | **+1,124 rows**: the matched Summary (570) and Structured (554) arms over the same memories, tasks and reader. **5,643 rows total.** Schema **v3**, **98 fields** (`faithfulness_detail` added). `faithfulness_check` and `parent_memory_id` are now populated on the new rows (§7.1). Adds §12.1 (compression destroys the effect), §14.1 (the cost ranking reverses once formation is charged) and §19.13 (cross-session drift between the arms). |
-| v0.3 *(planned)* | — | SciCode-derived rows. Run in flight at v0.2; **not** included, and no claim is made about it here. |
-| v0.4 *(planned)* | — | SWE-bench Verified rows. Run in flight at v0.2; a localized pilot found an arm asymmetry that must be resolved first. |
+| **v0.4 `swebench-metrics`** *(current)* | 2026-10-01 | **+127 rows**: SWE-bench Verified, **metrics and ids ONLY** — the corpus declares no licence, so all 5 text fields are withheld per row and declared in `text_fields_withheld`. **5,924 rows total**, 98 fields, three benchmarks. 🔴 **37 manufactured `0.0` rewards demoted to null** before export (defect 21: a suite that printed no verdict is not a wrong answer). Adds §19.15. |
 
 **Every v0.1 row is re-shipped under v3**, not left at v2: presence is the contract, so a
 v2 row lacks `faithfulness_detail` and would fail the validator published beside it. The
@@ -791,21 +956,27 @@ reason is harder to catch than a wrong verdict.
 import sys; sys.path.insert(0, "code")          # the shipped schema.py + validate.py
 from p1mem import schema as S, validate as V
 rows = S.load_jsonl("data/cells.jsonl", strict=True)
-print(V.validate_dataset(rows).summary())        # expect: 5797 rows | 0 errors
+print(V.validate_dataset(rows).summary())        # expect: 5924 rows | 0 errors
 ```
 
-Expected output, exactly — **0 errors and 1,437 warnings**, every warning intended and
+Expected output, exactly — **0 errors and 1,691 warnings**, every warning intended and
 documented:
 
 ```
-5797 rows | 0 errors | 1437 warnings
+5924 rows | 0 errors | 1691 warnings
   all_labels_undetermined: 1
-  provenance_incomplete: 1278
+  id_unverifiable_withheld_input: 127
+  provenance_incomplete: 1405
   reasoning_tokens_missing: 154
   scorer_composition_differs_across_strata: 1
   unknown_error_code: 2
   zero_execution_noise: 1
 ```
+
+`id_unverifiable_withheld_input` fires once per SWE-bench row and is **correct**:
+those rows' `memory_id` was minted over text this release withholds, so the
+validator declines to re-derive it and **says so** instead of passing silently
+(§19.15).
 
 **A warning here is a finding, not lint.** None of them is suppressed, and none should be
 "fixed" by loosening the check that raises it.
