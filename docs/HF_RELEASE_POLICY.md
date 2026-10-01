@@ -1,9 +1,12 @@
 # Hugging Face Release Policy
 
-Target: **`AgentsSci/AAMAS2027-ConditionalMemory`** (dataset, private, created
-2026-09-29 17:34Z, currently empty — `usedStorage: 0`, only `.gitattributes`).
+Target: **`AgentsSci/AAMAS2027-ConditionalMemory`** (dataset, **private**, created
+2026-09-29 17:34Z). It is no longer empty: as of 2026-10-01 it holds 5,924 rows across
+17 files on `main`, with four tags. (This line read "currently empty — `usedStorage:
+0`" until v0.4; a stated fact about a mutable object decays exactly like a stated
+reason does.)
 
-**No upload has occurred. The Master Agent authorizes the first one.**
+**Four uploads have occurred**: `v0.1-lmev2-derived`, `v0.2-repr-derived`, `v0.3-scicode-derived`, `v0.4-swebench-metrics` (see the release log below). The repository remains **private**. Each upload is separately authorized; this line is not a standing authorization for the next one.
 
 ---
 
@@ -97,6 +100,95 @@ GitHub code at a named commit.
 ---
 
 ## Release log
+
+### v0.4 — `v0.4-swebench-metrics`, 2026-10-01 ✅ VERIFIED
+
+**5,924 rows** (LongMemEval-V2 5,643 · SciCode 154 · **SWE-bench Verified 127**),
+98 fields, 17 files + `.gitattributes`, private. All nine gates passed. Verified by
+**downloading the tag**: the card's own command printed `5924 rows | 0 errors | 1691
+warnings`, matching the card's stated expected output exactly, and all 17 files are
+byte-identical to what was staged.
+
+🔴 **SWE-bench ships METRICS AND IDS ONLY.** `princeton-nlp/SWE-bench_Verified`
+declares no licence, so five fields carry `__WITHHELD_SEE_LICENSE__` on all 127 rows
+and are **declared** in `text_fields_withheld`. **37 manufactured `0.0` rewards were
+demoted to null** before export (defect 21), verified independently of the converter's
+own count against the untouched sources: 37 moved, 179 real rewards unchanged.
+
+`scripts/swebench_to_schema.py` was written for this release; it did not exist.
+
+#### The sentinel distinction is a gate, not a comment
+
+v0.3 and v0.4 withhold text for **opposite reasons**, and the two literals must never
+be interchanged:
+
+| | SciCode | SWE-bench |
+|---|---|---|
+| reason | **persistence** — never written down | **licence** — exists, may not ship |
+| literal | `__OUTPUT_NOT_RETAINED_BY_THE_RUN__` | `__WITHHELD_SEE_LICENSE__` |
+
+> Writing the SciCode sentinel on a SWE-bench row would assert that no text exists —
+> excusing us from a restriction that does apply. Writing the SWE-bench sentinel on a
+> SciCode row would assert a licence restriction Apache-2.0 does not impose. **The
+> generic embargo gate cannot see either swap**, because both literals read as
+> "withheld" to a check that only asks whether content is present. The converter's
+> self-test plants exactly that swap and requires the refusal.
+
+#### What GATE 5b caught, one release after it was built
+
+The v0.4 build **refused** on its first run: the card still promised 5,797 rows against
+a 5,924-row release. Re-deriving every card claim across the new total then found
+**four more that had decayed** — each true when written, each false once the
+denominator moved:
+
+1. **`license: apache-2.0` in the frontmatter.** The Hub renders that as a grant over
+   the whole dataset, and it is false for 127 rows whose corpus grants nothing. Now
+   `license: other`. *A platform executes metadata* — the same lesson already written
+   in that file about `library_name`.
+2. "Every row derives from a source whose licence permits redistribution."
+3. **`context_budget`'s stated reason** counted 127 `null == null` pairs as a measured
+   equality, turning a true 5,797-row fact into a false 5,924-row one.
+4. **"`compression_ratio = 1.0` on every raw row"** — the 41 SWE-bench raw rows carry
+   `null`, because `memory_tokens` was never measured there.
+
+> **A documented reason is a claim, and it decays.** v0.2 learned this on two nulls;
+> v0.4 is the same lesson at release scope. **Re-derive every number in the card at
+> each release rather than inheriting it** — and note that three of these four were
+> invisible to GATE 5b, which only checks the validator line. The gate caught the one
+> number it was built to catch; a sweep caught the rest.
+
+---
+
+### v0.3 — `v0.3-scicode-derived`, 2026-10-01 ✅ VERIFIED
+
+**5,797 rows** (LongMemEval-V2 5,643 + **SciCode 154**), 98 fields, 17 files, private.
+All nine gates passed. Verified by **downloading the tag**: the card's own command
+printed `5797 rows | 0 errors | 1437 warnings`, matching the card exactly.
+
+🔴 **SciCode ships RAW ONLY — 154 of 462 cells**, and the card says so before any
+result. The summary/structured memory text was never persisted and **cannot be
+reconstructed** (cross-session regeneration at matched settings is 0/8 byte-identical,
+within-session 3/3 — defect 22). **The reward measurements remain valid and are not
+retracted**, and nothing was regenerated and presented as the original.
+
+#### Two figures that are not one figure quoted twice
+
+The card cited `0/12` and the register cited `0/8`. Both are real, they are
+**different subjects on different corpora** (8 ground-truth LongMemEval summaries at
+fully matched settings; 12 Summary memories whose text is on disk), and the card now
+carries a table naming each one's subject, settings and source. They corroborate each
+other **because** they were taken independently, and they must not be pooled into
+"0/20".
+
+#### A prose/data contradiction the gates could not see
+
+The card called the 308 absent cells **"withheld"**. In this schema that word is a
+term of art for a *licence* withholding — it is what `text_fields_withheld` is named
+after, and that field is `[]` on all 154 SciCode rows. The prose asserted a restriction
+the data correctly denied. **No gate can catch this**: every gate was reading the data,
+which was right, and the false statement was in the sentence beside it.
+
+---
 
 ### v0.2 — `v0.2-repr-derived`, 2026-09-30 ✅ VERIFIED
 
