@@ -413,14 +413,17 @@ def main() -> int:
             "lost under either reader is dropped from BOTH."),
         "gemma_errors_by_representation": err_by_rep,
         "_loss_mechanism": (
-            "Gemma's losses are concentrated on the representation with the "
-            "LONGEST context. Raw memories are ~7.1k tokens (median) against "
-            "~357 for summary and ~225 for structured, so the raw WITH arm is "
-            "~25.8k tokens against ~16.3k WITHOUT. That is a property of the "
-            "REPRESENTATION, identical for both readers, so it cannot bias the "
-            "PAIRED contrast -- a cell lost under either reader leaves both "
-            "sides of the pair. It does mean the raw matched set is the "
-            "smallest, and the denominators say so."),
+            "Gemma's losses are TRUNCATIONS: the answer reached max_tokens=512. "
+            "An early reading that they concentrate on the long-context "
+            "representation was NOT borne out -- the per-representation loss "
+            "counts are in 'gemma_cells_lost_vs_gptoss' below and are "
+            "comparable across representations, so the driver is the QUESTION "
+            "(how much the reader wants to say) rather than the memory length. "
+            "Either way the loss is identical in kind for both readers and "
+            "cannot bias the PAIRED contrast: a cell lost under either reader "
+            "leaves both sides of the pair."),
+        "gemma_cells_lost_vs_gptoss": {
+            rep: len(set(oss_means[rep]) - set(gem_means[rep])) for rep in REPS},
         "gemma": gem_null, "gptoss": oss_null}
 
     # ------------------------------------------------- the matched sets
