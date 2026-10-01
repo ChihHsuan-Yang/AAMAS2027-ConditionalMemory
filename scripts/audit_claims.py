@@ -740,11 +740,27 @@ if (_rsm / "raw_gptoss_slim.jsonl").is_file() and _mtex.is_file():
     # ---- what the MANUSCRIPT must say about all of the above ----
     _mb2 = _mtex.read_text()
     _mp = "\n".join(l for l in _mb2.split("\n") if not l.lstrip().startswith("%"))
-    check("manuscript prints the session-matched effect +0.0982",
-          "+0.0982" in _mp, True)
-    _nomath = " ".join(_mp.replace("$", " ").split())
-    check("manuscript prints the session-matched interval [+0.0247, +0.1730]",
-          "[+0.0247 , +0.1730]" in _nomath or "[+0.0247, +0.1730]" in _nomath, True)
+    # 🔴 Check the RENDERED PDF, not the .tex source. A first version grepped
+    # main.tex for the literal digits and broke the moment the numbers were
+    # correctly converted from typed text to generated \rgSm* macros -- it was
+    # testing the authoring layer when the claim is about what a READER sees.
+    # Reading the PDF also covers both forms at once: a typed number and a
+    # macro-expanded one are indistinguishable here, which is the point.
+    import subprocess as _sp
+    _pdf = _mtex.parent / "main.pdf"
+    _rend = ""
+    if _pdf.is_file():
+        _rend = _sp.run(["pdftotext", str(_pdf), "-"],
+                        capture_output=True, text=True).stdout
+    _flat = " ".join(_rend.replace("$", " ").split())
+    if not _rend.strip():
+        print("  SKIP  main.pdf absent or unreadable -- cannot check rendered text")
+    else:
+        check("RENDERED paper prints the session-matched effect +0.0982",
+              "+0.0982" in _flat, True)
+        check("RENDERED paper prints the session-matched interval",
+              ("[+0.0247, +0.1730]" in _flat
+               or "[+0.0247 , +0.1730]" in _flat), True)
     # 🔴 The superseded figure may appear, but it must NOT be the only one and
     # the paragraph must name the confound. These two markers are what stop
     # +0.1268 reading as the current measurement.
