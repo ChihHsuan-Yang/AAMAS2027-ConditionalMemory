@@ -546,3 +546,33 @@ $PY -m pytest tests/ -q      # 629 passed
 | `results/swebench/representations_multirepo.json` | per-repo + pooled, with composition fields |
 | `scripts/swebench_multirepo_analysis.py` | the pooling instrument + 9 positive controls |
 | `logs/sa_swe_full/reps_sympy.log` | the run log |
+
+---
+
+## Master Agent verification, 2026-10-01
+
+I re-derived the pooled contrasts independently from the raw run files rather
+than re-reading the analysis:
+
+```
+MATCHED n=40 | per-repo {'django/django': 37, 'sympy/sympy': 3}
+  structured - raw        -0.0500 [-0.1750,+0.0750]  sep=False
+  summary    - raw        -0.1000 [-0.2250,+0.0000]  sep=False
+  structured - summary    +0.0500 [-0.0750,+0.1750]  sep=False
+```
+
+**These reproduce `representations_multirepo_final.json` exactly**, and the
+coverage identity closes per repo and overall (107 = 37 + 70).
+
+⚠️ **One thing a reader of the agent's own summary should know.** Its prose
+report listed the *pooled contrasts* as −0.0541 / −0.1622 / −0.0541. Those are
+the **django per-arm ΔU values**, not contrasts — the summary transposed two
+adjacent tables. **The tables in this document and the artifact are correct**
+and were not affected. Recorded because the distinction between a per-arm mean
+and a paired contrast is exactly the kind of slip that survives into a paper.
+
+⚠️ **The superseded `representations_v1.json` is still on disk.** My first
+re-derivation globbed `representations_*.json` and swept it in, which changes
+the demoted-zero count (19 vs 12) while leaving n=40 and all three contrasts
+unchanged. The canonical input set is **v2 + sympy + v3_django_a + v3_django_b**;
+v1 was voided for a contagion-screen false positive and must never be pooled.
