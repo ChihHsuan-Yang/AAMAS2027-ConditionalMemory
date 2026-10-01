@@ -1,0 +1,57 @@
+{
+  "_what": "schema validation of the factorial row files, run SEPARATELY from the run scripts' own artifact checks. A per-run check list is not a schema.",
+  "generated_at_utc": "2026-10-01T06:52:56.397824+00:00",
+  "files": {
+    "results/writer_factorial/factorial_cells_gemma.jsonl": {
+      "n_errors": 12,
+      "n_warnings": 2,
+      "error_codes": {
+        "duplicate_row_id": 8,
+        "duplicate_replicate_in_cell": 4
+      },
+      "warning_codes": {
+        "scorer_composition_differs_across_strata": 1,
+        "all_labels_undetermined": 1
+      },
+      "first_errors": [
+        "duplicate_row_id: row_id 'row-5a1277d525fde9bebbba0a4d' already used at row 12; append-only ledgers must not restate a row -- a correction is a NEW row",
+        "duplicate_row_id: row_id 'row-589ad2456bd1b8a43da5ccb3' already used at row 13; append-only ledgers must not restate a row -- a correction is a NEW row",
+        "duplicate_row_id: row_id 'row-6f6a20bd5db1cf6e66153c89' already used at row 18; append-only ledgers must not restate a row -- a correction is a NEW row",
+        "duplicate_row_id: row_id 'row-ce6ca4a105dbf95516236a6f' already used at row 19; append-only ledgers must not restate a row -- a correction is a NEW row",
+        "duplicate_row_id: row_id 'row-a0c2b90a450dac4bdb1f6d60' already used at row 1136; append-only ledgers must not restate a row -- a correction is a NEW row"
+      ]
+    },
+    "results/writer_factorial/factorial_cells_gptoss.jsonl": {
+      "n_errors": 0,
+      "n_warnings": 2,
+      "error_codes": {},
+      "warning_codes": {
+        "scorer_composition_differs_across_strata": 1,
+        "all_labels_undetermined": 1
+      },
+      "first_errors": []
+    }
+  },
+  "duplicate_row_id_explained": {
+    "_covers_BOTH_error_classes": [
+      "duplicate_replicate_in_cell",
+      "duplicate_row_id"
+    ],
+    "n_errors": 8,
+    "n_duplicate_replicate_in_cell": 4,
+    "n_rows": 2248,
+    "n_distinct_row_ids": 2240,
+    "n_distinct_cell_tuples": 2248,
+    "rows_equal_distinct_tuples": true,
+    "n_colliding_cell_ids": 4,
+    "n_rows_involved": 16,
+    "affected_locators": [
+      "06c70de4:13-14",
+      "06c70de4:17-18"
+    ],
+    "_verdict": "NOT a double write: every (representation, locator, task, replicate, reader) tuple is distinct. BOTH error classes have ONE cause -- row_id and cell_id are both derived from memory_id, which is a CONTENT hash, and two source segments share one Gemma memory text (see writer_collapsed_distinct_segments). So one collapsed memory produces a duplicate row_id AND a cell that appears to repeat its replicates. The rows are real and separate.",
+    "_same_root_cause_for_both": true,
+    "_does_not_affect_any_number": "the analysis joins on (memory_unit_locator, future_task_id), which is positional. Verified: the matched summary set is 274, not 272."
+  },
+  "_reading": "The gpt-oss-writer file is clean. The writer-Gemma file's only error class is duplicate_row_id, explained above as a measured property of the writer rather than a defect in this run, and shown not to affect any reported number because the analysis joins positionally."
+}

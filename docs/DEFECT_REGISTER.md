@@ -537,3 +537,67 @@ average over. The control now states the mechanism in the artifact, reports the
 "none was scored" as a separate line. **A denominator that cannot be non-zero is
 not a measurement**, and the previous phrasing would have let a 0 read as a
 property of the model rather than of where the guard sits in the call path.
+
+### A second, larger one from the same session: a comparator from a different day
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 25 | **`gpt-oss-120b` is deterministic WITHIN a session and NOT ACROSS sessions, and the factorial's comparator arms were from the previous day.** Re-issuing the **WITHOUT** arm — which contains *no memory*, and whose request bytes were verified byte-identical (500/500 stored `context_sha256`) — returned **different text in 554 of 1,124 cases** a day later, moving the no-memory baseline by **−0.0320** | the pre-registered control *"the WITHOUT arm is writer-invariant"*, which checks a quantity that is **zero by construction unless something is wrong** | the writer contrast would have been **confounded with the session**, by about the size of the effect being measured, with nothing downstream able to separate them. Every writer, same-family and interaction number would have been uninterpretable while looking entirely normal |
+
+**The fix was a re-run, not a caveat.** Both gpt-oss writer arms were
+re-executed in the same session as the Gemma arms. F-GATE 5 was **inverted**
+for that arm — same memory text means the WITH-arm bytes must *match* the
+published request, verified **1,124/1,124**, a strictly stronger assertion than
+the differs-check it replaced. Recorded as Amendment 1 in
+`docs/WRITER_FACTORIAL_PRECOMMITMENT.md`, made **before any contrast was
+computed**, so the design change cannot have been chosen on an outcome.
+
+### Why the project's existing evidence pointed the wrong way
+
+This project had measured A/A determinism at **248/248 identical** and recorded
+it as "the endpoint is deterministic at temperature 0". That measurement is
+**correct and it is within a single session** — the paired WITHOUT-arm calls it
+compares are issued minutes apart in one run. The factorial's original plan
+quietly extended it across a day.
+
+> **This is defect #21 exactly, in a new place.** #21 was *"a determinism probe
+> measured WITHIN-session repeatability and was read as CROSS-session
+> reproducibility"*, found on SciCode memory regeneration. It was written down,
+> the register named the shape, and the next arm reproduced it anyway — because
+> the stale assumption was not in any one line of code, it was in the choice of
+> which files to use as a comparator.
+
+**The asymmetry is itself a finding.** On the identical comparison the Gemma
+reader drifted **0 / 1,124**. So cross-session stability is a property of the
+**model**, not of the gateway or the cluster — the same shape as
+`reports_reasoning_tokens` (defect #18), which was keyed on cluster on a premise
+measured on one model. **A stability result for one model is not one for
+another**, and `docs/MODEL_ARMS.md`'s A/A rows must now say which session they
+describe.
+
+### A third from the same session: a terser writer collapsed two episodes into one memory
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 26 | **Gemma compressed two DIFFERENT 3,979-token segments to byte-identical 68-token summaries.** `memory_id` and `row_id` are content hashes, so the two memories got the **same id** and the schema validator reported 12 `duplicate_row_id` errors on an otherwise clean 2,248-row file. gpt-oss kept the same two segments distinct (524 and 457 tokens) | `validate_file` on the new rows — a step that is easy to skip once the run's own artifact checks have all passed | on this analysis, **nothing**: the join is on `(memory_unit_locator, future_task_id)`, which is positional and cannot collide, and the matched set is 274 rather than 272 — verified, not assumed. On any analysis joining by `memory_id` it would have **silently merged two experiences into one cell** |
+
+**It is a result, not only a defect.** The ΔU contrasts cannot see it: both
+cells scored identically, so no mean moved. But "the terser writer sometimes
+cannot tell two episodes apart" is exactly the kind of cost a reviewer asking
+*what does aggressive compression lose?* wants, and it is invisible in every
+contrast the factorial reports. It is now measured per writer in the controls
+artifact (`writer_collapsed_distinct_segments`) and reported in the result
+document.
+
+> **The run's own artifact checks all passed.** They checked row counts,
+> identity fields, null handling and replicate balance — everything the script
+> knew to look for. The uniqueness invariant lived only in the *shared*
+> validator, and a run that never calls it gets a clean verdict from a complete
+> set of the wrong checks. **A per-run check list is not a schema.**
+
+Note also the near-miss in the opposite direction: the first instinct on seeing
+`duplicate_row_id` is to look for a bug in the writer loop. The rows were
+**not** duplicated — 2,248 distinct `(locator, task, replicate, reader)` tuples
+produced 2,240 distinct ids. Checking *which field* collided, rather than
+assuming a double-write, is what turned an apparent plumbing bug into a finding
+about the model.

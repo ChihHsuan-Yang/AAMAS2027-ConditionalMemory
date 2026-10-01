@@ -47,3 +47,5 @@ hf_out/
 *.rejected.jsonl
 logs/
 results/gemma_reader/
+results/writer_factorial/
+results/raw_session_matched/

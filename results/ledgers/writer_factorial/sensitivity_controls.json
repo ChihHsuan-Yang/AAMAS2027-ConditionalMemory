@@ -1,0 +1,82 @@
+{
+  "_what": "POSITIVE CONTROLS on the REAL pipeline (join, matched set, replicate collapse, task-clustered bootstrap), not on constructed arrays. Four contrasts all span zero on the real data; these plants prove the pipeline CAN detect an effect.",
+  "generated_at_utc": "2026-10-01T06:28:17.137849+00:00",
+  "_no_real_artifact_is_touched": "rows are copied to a temp path and w3 refuses to mirror a non-default --out into results/ledgers/.",
+  "plant_A_writer_effect": {
+    "_what": "raise the gemma-WRITER arm under BOTH readers => WRITER must fire, SAME-FAMILY/INTERACTION must NOT",
+    "n_rows_flipped": 731,
+    "summary": {
+      "WRITER_main_effect": {
+        "mean": 0.31386861313868614,
+        "excludes_zero": true
+      },
+      "SAME_FAMILY_effect": {
+        "mean": 0.0036496350364963502,
+        "excludes_zero": false
+      },
+      "INTERACTION": {
+        "mean": 0.0072992700729927005,
+        "excludes_zero": false
+      }
+    },
+    "structured": {
+      "WRITER_main_effect": {
+        "mean": 0.34794776119402987,
+        "excludes_zero": true
+      },
+      "SAME_FAMILY_effect": {
+        "mean": 0.01585820895522388,
+        "excludes_zero": false
+      },
+      "INTERACTION": {
+        "mean": 0.03171641791044776,
+        "excludes_zero": false
+      }
+    },
+    "WRITER_fires_on_both_representations": true,
+    "SAME_FAMILY_correctly_stays_null": true,
+    "PASSES": true
+  },
+  "plant_B_same_family_effect": {
+    "_what": "raise ONLY the gem/gem (same-family) cell => SAME-FAMILY must fire AND equal +0.5 x INTERACTION. This is the contrast the experiment exists to measure, and PLANT A leaves it null, so PLANT A alone cannot certify it.",
+    "n_rows_flipped": 438,
+    "summary": {
+      "SAME_FAMILY": {
+        "mean": 0.1906934306569343,
+        "ci": [
+          0.16134751773049646,
+          0.2183938207423006
+        ],
+        "excludes_zero": true
+      },
+      "INTERACTION": {
+        "mean": 0.3813868613138686,
+        "excludes_zero": true
+      },
+      "same_family_minus_half_interaction": 0.0,
+      "sign_relation_PLUS_half_holds_on_real_data": true
+    },
+    "structured": {
+      "SAME_FAMILY": {
+        "mean": 0.2080223880597015,
+        "ci": [
+          0.18076888489208634,
+          0.23730714783187984
+        ],
+        "excludes_zero": true
+      },
+      "INTERACTION": {
+        "mean": 0.416044776119403,
+        "excludes_zero": true
+      },
+      "same_family_minus_half_interaction": 0.0,
+      "sign_relation_PLUS_half_holds_on_real_data": true
+    },
+    "SAME_FAMILY_fires_on_both_representations": true,
+    "plus_half_sign_confirmed_on_a_NONZERO_effect": true,
+    "_why_the_sign_check_needs_a_nonzero_effect": "on the real data both contrasts are ~0, where +1/2 and -1/2 are nearly indistinguishable. The precommitment's sign erratum (DEFECT_REGISTER #24) is only decisively settled on an effect that is large, which is what this plant supplies.",
+    "PASSES": true
+  },
+  "ALL_SENSITIVITY_CONTROLS_PASS": true,
+  "_reading": "Both plants are detected by the FULL pipeline. The four nulls in docs/WRITER_FACTORIAL_RESULT.md are therefore measurements, not an instrument that cannot move."
+}

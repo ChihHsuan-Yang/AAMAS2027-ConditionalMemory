@@ -1,0 +1,179 @@
+{
+  "_what": "WRITER x READER FACTORIAL, the two writer-Gemma cells: Gemma-written memories read by gpt-oss-120b (W1/W2) and by gemma-4-31B-it (W3/W4).",
+  "precommitment": "docs/WRITER_FACTORIAL_PRECOMMITMENT.md",
+  "run_at_utc": "2026-10-01T06:20:04.494096+00:00",
+  "run_id": "writer_factorial_20261001T055216.168085+0000",
+  "writer_arm": "gptoss_metis",
+  "writer_model": "gpt-oss-120b",
+  "writer": "gptoss",
+  "readers": [
+    "gptoss_metis",
+    "gemma_metis"
+  ],
+  "reader_identity": {
+    "gptoss_metis": {
+      "reader_model": "gpt-oss-120b",
+      "reader_cluster": "metis",
+      "reader_endpoint": "metis:/resource_server/metis/api/v1",
+      "reader_reasoning_effort": "low",
+      "temperature": 0,
+      "max_tokens": 512,
+      "max_workers": 16,
+      "reports_reasoning_tokens": true,
+      "truncation_is_always_an_error": false
+    },
+    "gemma_metis": {
+      "reader_model": "gemma-4-31B-it",
+      "reader_cluster": "metis",
+      "reader_endpoint": "metis:/resource_server/metis/api/v1",
+      "reader_reasoning_effort": "none:not_applicable",
+      "temperature": 0,
+      "max_tokens": 512,
+      "max_workers": 16,
+      "reports_reasoning_tokens": false,
+      "truncation_is_always_an_error": true
+    }
+  },
+  "condition_ids": {
+    "summary|gptoss_metis": "lmev2_summary_wgptoss120b_rgptoss120b_factorial_v1",
+    "summary|gemma_metis": "lmev2_summary_wgptoss120b_rgemma4_31B_factorial_v1",
+    "structured|gptoss_metis": "lmev2_structured_wgptoss120b_rgptoss120b_factorial_v1",
+    "structured|gemma_metis": "lmev2_structured_wgptoss120b_rgemma4_31B_factorial_v1"
+  },
+  "representations": [
+    "summary",
+    "structured"
+  ],
+  "replicates": 2,
+  "cells_per_representation": {
+    "summary": 285,
+    "structured": 277
+  },
+  "eligible_pool_size": {
+    "summary": 285,
+    "structured": 277
+  },
+  "excluded": {
+    "summary": [],
+    "structured": [
+      {
+        "cell": "12457787:1-2|17a03f9b",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      },
+      {
+        "cell": "12457787:1-2|f4b2b1fb",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      },
+      {
+        "cell": "2af3e2bb:25-25|8f70bc0e",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      },
+      {
+        "cell": "2af3e2bb:25-25|e77d1287",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      },
+      {
+        "cell": "b1c719fb:3-6|289aea4a",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      },
+      {
+        "cell": "b1c719fb:3-6|4d7dda89",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      },
+      {
+        "cell": "b1c719fb:3-6|77db204d",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      },
+      {
+        "cell": "b1c719fb:3-6|98b62f3d",
+        "reason": "gptoss_write_failed",
+        "error_code": "structured_malformed_json"
+      }
+    ]
+  },
+  "subset_rule_invoked": false,
+  "eligibility_rule": "stratum in BEARING/MATCHED_CONTROL (285 design cells) x {summary, structured}; the GEMMA write succeeded; a gpt-oss row exists for F-GATE 3. NON-OUTCOME-BASED, fixed in docs/WRITER_FACTORIAL_PRECOMMITMENT.md before any Gemma memory was written.",
+  "identity_gates": {
+    "fgate1_filler_pool_sha256": "f6d88934516499fafbf98bd18e907a92f9d6b8f341d37581f017a032784b4651",
+    "fgate2_system_prompt_sha256": "cdc9c36ad4266f53b58c334e45ebd5fc8186751cfe681129e1b3115994ac2780",
+    "fgate3_per_cell_position_and_filler_vs_gptoss_rows": {
+      "matched": 562,
+      "mismatched": 0
+    },
+    "fgate4_without_arm_byte_identity_vs_published": {
+      "matched": 1124,
+      "mismatched": 0,
+      "no_published_reference": 0
+    },
+    "fgate5_with_arm_vs_published": {
+      "matches_published": 1124,
+      "differs_from_published": 0,
+      "no_published_reference": 0
+    },
+    "fgate5_direction": "MUST_MATCH",
+    "_fgate5_note": "F-GATE 4 and F-GATE 5 are the two directions of one check. The WITHOUT arm has no target and MUST be byte-identical across writers. For writer GEMMA the WITH arm MUST DIFFER from the published request (new memory text). For the writer GPTOSS re-run it MUST MATCH -- same memory text, so the same bytes; that is the stronger assertion and it proves the re-run issues the published arm's exact request."
+  },
+  "memories_sha256": "b342151c7f3cac5aa34ddd6d09981dd0272584343870a1c32994ae42a5f7ce5a",
+  "embedding": {
+    "store": "embeddings_gemma.npy",
+    "sha256": "ecfd3118e4be6534a76c9a76b8fde503c9fbd1fc47bd41bda4d1dae10d1ed03c",
+    "shape": [
+      243,
+      4096
+    ],
+    "_note": "RE-MEASURED for the Gemma memory texts. Reusing gpt-oss's would put one memory's similarity on a different memory's row."
+  },
+  "similarity_terciles": {
+    "summary": {
+      "far_below": 0.6783931255340576,
+      "near_at_or_above": 0.7178371548652649
+    },
+    "structured": {
+      "far_below": 0.671728253364563,
+      "near_at_or_above": 0.7077916860580444
+    }
+  },
+  "per_reader_execution": {
+    "gptoss_metis": {
+      "wall_clock_s": 369.32,
+      "real": 2246,
+      "cached": 0,
+      "errors": 2,
+      "resolved_model_counts": {
+        "gpt-oss-120b": 2246
+      }
+    },
+    "gemma_metis": {
+      "wall_clock_s": 1136.87,
+      "real": 2184,
+      "cached": 0,
+      "errors": 64,
+      "resolved_model_counts": {
+        "gemma-4-31B-it": 2184
+      }
+    }
+  },
+  "rows_written": 2248,
+  "rows_with_null_delta": 40,
+  "artifact_checks": {
+    "rows_on_disk_equals_expected": true,
+    "every_row_written_by_the_requested_writer": true,
+    "both_readers_present": true,
+    "reader_row_counts_are_balanced": true,
+    "condition_ids_name_both_models": true,
+    "condition_ids_disjoint_from_published": true,
+    "gemma_reader_reasoning_tokens_null_never_zero": true,
+    "no_row_coerced_a_null_reward_to_zero": true,
+    "every_errored_row_has_null_reward": true,
+    "replicates_per_cell_as_requested": true,
+    "memory_text_is_this_writers_text": true
+  },
+  "VERDICT": "RUN_PASSED"
+}

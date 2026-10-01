@@ -1,0 +1,1469 @@
+{
+  "_what": "WRITER x READER FACTORIAL on LongMemEval-V2: 2 writers (gpt-oss-120b, gemma-4-31B-it) x 2 readers (same two) x 2 representations (summary, structured).",
+  "_matched_set_rule": "EVERY number is computed on the pair keys interpretable under ALL FOUR writer x reader combinations for that representation. A cell lost anywhere is dropped everywhere. Denominators are printed beside every number.",
+  "_raw_is_not_in_the_factorial": "raw is a deterministic span with ZERO model calls, so 'writer gpt-oss raw' and 'writer Gemma raw' are the SAME BYTES. There is no writer axis for raw and it is excluded.",
+  "generated_at_utc": "2026-10-01T06:22:16.518455+00:00",
+  "precommitment": "docs/WRITER_FACTORIAL_PRECOMMITMENT.md",
+  "replicate_policy": {
+    "n_replicates_used": 2,
+    "_why": "prereg section 12 makes the balanced minimum-replicate subset primary; every arm is read at the first N."
+  },
+  "_all_four_arms_are_session_matched": {
+    "_what": "every arm was executed in the SAME session on 2026-10-01.",
+    "_why": "a control found gpt-oss is NOT deterministic across sessions: 554 of 1124 byte-identical WITHOUT-arm requests returned different text when re-issued a day after the published run, moving the WITHOUT-arm reward by -0.0320. Using the published arms as the comparator would confound WRITER with SESSION by about the size of the effect being measured.",
+    "run_ids": {
+      "oss/oss": [
+        "writer_factorial_20261001T055216.168085+0000"
+      ],
+      "oss/gem": [
+        "writer_factorial_20261001T055216.168085+0000"
+      ],
+      "gem/oss": [
+        "writer_factorial_20261001T051802.864941+0000"
+      ],
+      "gem/gem": [
+        "writer_factorial_20261001T051802.864941+0000"
+      ]
+    }
+  },
+  "CROSS_SESSION_DRIFT_vs_the_published_arms": {
+    "_what": "the SAME request re-issued in a later session. This is a measurement of endpoint stability ACROSS sessions, and it is the reason every arm above was re-run today. It is NEVER used as a comparator.",
+    "reader_gptoss": {
+      "n_compared": 1124,
+      "WITHOUT_arm_output_text_differs": 554,
+      "WITHOUT_arm_reward_differs": 82,
+      "WITHOUT_arm_mean_reward_change": -0.030303030303030304,
+      "_note": "the WITHOUT arm has NO memory in it and its request bytes are byte-identical, so every difference here is the endpoint, not the experiment."
+    },
+    "reader_gemma": {
+      "n_compared": 1124,
+      "WITHOUT_arm_output_text_differs": 0,
+      "WITHOUT_arm_reward_differs": 0,
+      "WITHOUT_arm_mean_reward_change": 0.0,
+      "_note": "the WITHOUT arm has NO memory in it and its request bytes are byte-identical, so every difference here is the endpoint, not the experiment."
+    }
+  },
+  "arm_identity": {
+    "_what": "the four arms must differ in exactly the two model fields. Verified on the rows themselves, not assumed from the filenames.",
+    "oss/oss": {
+      "n_rows": 1124,
+      "memory_writer_model": [
+        "gpt-oss-120b"
+      ],
+      "reader_model": [
+        "gpt-oss-120b"
+      ],
+      "reader_cluster": [
+        "metis"
+      ],
+      "condition_ids": [
+        "lmev2_structured_wgptoss120b_rgptoss120b_factorial_v1",
+        "lmev2_summary_wgptoss120b_rgptoss120b_factorial_v1"
+      ],
+      "reasoning_tokens_all_null": false
+    },
+    "oss/gem": {
+      "n_rows": 1124,
+      "memory_writer_model": [
+        "gpt-oss-120b"
+      ],
+      "reader_model": [
+        "gemma-4-31B-it"
+      ],
+      "reader_cluster": [
+        "metis"
+      ],
+      "condition_ids": [
+        "lmev2_structured_wgptoss120b_rgemma4_31B_factorial_v1",
+        "lmev2_summary_wgptoss120b_rgemma4_31B_factorial_v1"
+      ],
+      "reasoning_tokens_all_null": true
+    },
+    "gem/oss": {
+      "n_rows": 1124,
+      "memory_writer_model": [
+        "gemma-4-31B-it"
+      ],
+      "reader_model": [
+        "gpt-oss-120b"
+      ],
+      "reader_cluster": [
+        "metis"
+      ],
+      "condition_ids": [
+        "lmev2_structured_wgemma4_31B_rgptoss120b_factorial_v1",
+        "lmev2_summary_wgemma4_31B_rgptoss120b_factorial_v1"
+      ],
+      "reasoning_tokens_all_null": false
+    },
+    "gem/gem": {
+      "n_rows": 1124,
+      "memory_writer_model": [
+        "gemma-4-31B-it"
+      ],
+      "reader_model": [
+        "gemma-4-31B-it"
+      ],
+      "reader_cluster": [
+        "metis"
+      ],
+      "condition_ids": [
+        "lmev2_structured_wgemma4_31B_rgemma4_31B_factorial_v1",
+        "lmev2_summary_wgemma4_31B_rgemma4_31B_factorial_v1"
+      ],
+      "reasoning_tokens_all_null": true
+    },
+    "all_four_condition_sets_disjoint": true,
+    "all_four_clusters_are_metis": true
+  },
+  "memory_text_checks": {
+    "_what": "the WRITER intervention is the memory text. Within a writer the two readers must see byte-identical text; across writers it must differ. Both directions are checked -- a check that can only pass is not a check.",
+    "within_writer_oss_same_text": {
+      "compared": 562,
+      "identical": 562,
+      "differ": 0
+    },
+    "within_writer_gem_same_text": {
+      "compared": 562,
+      "identical": 562,
+      "differ": 0
+    },
+    "across_writers_text_differs": {
+      "compared": 562,
+      "differ": 562,
+      "IDENTICAL": 0
+    }
+  },
+  "join_traps_demonstrated": {
+    "_what": "run the WRONG joins and print what they return, so the rule is evidence rather than a quoted warning.",
+    "probe_pair_key": "013696c4:28-28|38726e61",
+    "probe_representation": "summary",
+    "rows_matched_by_memory_unit_locator_and_task": 2,
+    "rows_matched_by_condition_id": 0,
+    "rows_matched_by_memory_id": 0,
+    "_note": "condition_id embeds representation + writer + reader, so it can never match across arms. memory_id is a content hash over memory_text AND memory_writer_model, so it differs across writers BY CONSTRUCTION. Only locator+task is correct.",
+    "condition_id_join_returns_zero": true,
+    "memory_id_join_returns_zero_across_writers": true
+  },
+  "unscoreable_ledger": {
+    "_rule": "reward/delta None means COULD NOT BE SCORED. Excluded from means and counted here. NEVER coerced to 0.0.",
+    "per_arm_per_representation": {
+      "oss/oss:summary": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 0,
+        "cells_all_null": 0,
+        "null_replicate_rows": 0,
+        "cells_short_of_requested_replicates": 0
+      },
+      "oss/oss:structured": {
+        "cells": 277,
+        "cells_with_a_null_replicate": 1,
+        "cells_all_null": 1,
+        "null_replicate_rows": 2,
+        "cells_short_of_requested_replicates": 0
+      },
+      "oss/gem:summary": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 11,
+        "cells_all_null": 11,
+        "null_replicate_rows": 22,
+        "cells_short_of_requested_replicates": 0
+      },
+      "oss/gem:structured": {
+        "cells": 277,
+        "cells_with_a_null_replicate": 8,
+        "cells_all_null": 8,
+        "null_replicate_rows": 16,
+        "cells_short_of_requested_replicates": 0
+      },
+      "gem/oss:summary": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 0,
+        "cells_all_null": 0,
+        "null_replicate_rows": 0,
+        "cells_short_of_requested_replicates": 0
+      },
+      "gem/oss:structured": {
+        "cells": 277,
+        "cells_with_a_null_replicate": 0,
+        "cells_all_null": 0,
+        "null_replicate_rows": 0,
+        "cells_short_of_requested_replicates": 0
+      },
+      "gem/gem:summary": {
+        "cells": 285,
+        "cells_with_a_null_replicate": 8,
+        "cells_all_null": 8,
+        "null_replicate_rows": 16,
+        "cells_short_of_requested_replicates": 0
+      },
+      "gem/gem:structured": {
+        "cells": 277,
+        "cells_with_a_null_replicate": 8,
+        "cells_all_null": 8,
+        "null_replicate_rows": 16,
+        "cells_short_of_requested_replicates": 0
+      }
+    },
+    "error_codes": {
+      "oss/oss:summary": {},
+      "oss/oss:structured": {
+        "empty_output_finish_length": 2
+      },
+      "oss/gem:summary": {
+        "truncated_nonempty_at_token_budget": 22
+      },
+      "oss/gem:structured": {
+        "truncated_nonempty_at_token_budget": 16
+      },
+      "gem/oss:summary": {},
+      "gem/oss:structured": {},
+      "gem/gem:summary": {
+        "truncated_nonempty_at_token_budget": 16
+      },
+      "gem/gem:structured": {
+        "truncated_nonempty_at_token_budget": 16
+      }
+    }
+  },
+  "matched_set_coverage": {
+    "summary": {
+      "interpretable_per_arm": {
+        "gem/gem": 277,
+        "gem/oss": 285,
+        "oss/gem": 274,
+        "oss/oss": 285
+      },
+      "MATCHED_all_four_arms": 274,
+      "lost_per_arm_vs_the_union": {
+        "gem/gem": 8,
+        "gem/oss": 0,
+        "oss/gem": 11,
+        "oss/oss": 0
+      },
+      "union_of_all_arms": 285
+    },
+    "structured": {
+      "interpretable_per_arm": {
+        "gem/gem": 269,
+        "gem/oss": 277,
+        "oss/gem": 269,
+        "oss/oss": 276
+      },
+      "MATCHED_all_four_arms": 268,
+      "lost_per_arm_vs_the_union": {
+        "gem/gem": 8,
+        "gem/oss": 0,
+        "oss/gem": 8,
+        "oss/oss": 1
+      },
+      "union_of_all_arms": 277
+    },
+    "loss_balance_across_strata": {
+      "summary": {
+        "n_lost_from_the_matched_set": 11,
+        "by_stratum": {
+          "BEARING": 7,
+          "MATCHED_CONTROL": 4
+        },
+        "kept_by_stratum": {
+          "BEARING": 132,
+          "MATCHED_CONTROL": 142
+        }
+      },
+      "structured": {
+        "n_lost_from_the_matched_set": 9,
+        "by_stratum": {
+          "BEARING": 4,
+          "MATCHED_CONTROL": 5
+        },
+        "kept_by_stratum": {
+          "BEARING": 131,
+          "MATCHED_CONTROL": 137
+        }
+      }
+    }
+  },
+  "deltaU_per_arm_matched": {
+    "summary": {
+      "_cell_set": "pair keys interpretable under ALL FOUR arms",
+      "n_matched_cells": 274,
+      "n_tasks": 124,
+      "n_memories": 60,
+      "deltaU_writeross_readeross": {
+        "n": 274,
+        "mean": 0.058394160583941604,
+        "ci_lower": 0.021897810218978103,
+        "ci_upper": 0.09854014598540146,
+        "p_two_sided": 0.002,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 30,
+          "diluted_mean": 0.058394160583941604,
+          "conditional_mean_on_nonzero": 0.5333333333333333,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "deltaU_writeross_readergem": {
+        "n": 274,
+        "mean": 0.05474452554744526,
+        "ci_lower": 0.025547445255474453,
+        "ci_upper": 0.08759124087591241,
+        "p_two_sided": 0.0004,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 19,
+          "diluted_mean": 0.05474452554744526,
+          "conditional_mean_on_nonzero": 0.7894736842105263,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "deltaU_writergem_readeross": {
+        "n": 274,
+        "mean": 0.051094890510948905,
+        "ci_lower": 0.014598540145985401,
+        "ci_upper": 0.08759124087591241,
+        "p_two_sided": 0.0052,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 28,
+          "diluted_mean": 0.051094890510948905,
+          "conditional_mean_on_nonzero": 0.5,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "deltaU_writergem_readergem": {
+        "n": 274,
+        "mean": 0.029197080291970802,
+        "ci_lower": 0.0036496350364963502,
+        "ci_upper": 0.058394160583941604,
+        "p_two_sided": 0.0388,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 14,
+          "diluted_mean": 0.029197080291970802,
+          "conditional_mean_on_nonzero": 0.5714285714285714,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      }
+    },
+    "structured": {
+      "_cell_set": "pair keys interpretable under ALL FOUR arms",
+      "n_matched_cells": 268,
+      "n_tasks": 121,
+      "n_memories": 57,
+      "deltaU_writeross_readeross": {
+        "n": 268,
+        "mean": 0.03731343283582089,
+        "ci_lower": 0.0037313432835820895,
+        "ci_upper": 0.07462686567164178,
+        "p_two_sided": 0.045,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 24,
+          "diluted_mean": 0.03731343283582089,
+          "conditional_mean_on_nonzero": 0.4166666666666667,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "deltaU_writeross_readergem": {
+        "n": 268,
+        "mean": 0.029850746268656716,
+        "ci_lower": 0.007462686567164179,
+        "ci_upper": 0.055970149253731345,
+        "p_two_sided": 0.0196,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 12,
+          "diluted_mean": 0.029850746268656716,
+          "conditional_mean_on_nonzero": 0.6666666666666666,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "deltaU_writergem_readeross": {
+        "n": 268,
+        "mean": 0.04477611940298507,
+        "ci_lower": 0.007462686567164179,
+        "ci_upper": 0.08582089552238806,
+        "p_two_sided": 0.0304,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 30,
+          "diluted_mean": 0.04477611940298507,
+          "conditional_mean_on_nonzero": 0.4,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "deltaU_writergem_readergem": {
+        "n": 268,
+        "mean": 0.04477611940298507,
+        "ci_lower": 0.018656716417910446,
+        "ci_upper": 0.07462686567164178,
+        "p_two_sided": 0.0018,
+        "excludes_zero": true,
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 16,
+          "diluted_mean": 0.04477611940298507,
+          "conditional_mean_on_nonzero": 0.75,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      }
+    }
+  },
+  "CONTRASTS": {
+    "summary": {
+      "WRITER_effect_under_reader_gptoss": {
+        "_definition": "dU(writer gemma, reader gpt-oss) - dU(writer gpt-oss, reader gpt-oss), paired per cell",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.0072992700729927005,
+          "ci_lower": -0.043795620437956206,
+          "ci_upper": 0.029197080291970802,
+          "p_two_sided": 0.7734,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.0072992700729927005,
+          "ci_lower": -0.04089447863977085,
+          "ci_upper": 0.024475524475524476,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.0072992700729927005,
+          "ci_lower": -0.049431540112186124,
+          "ci_upper": 0.03389830508474576,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 28,
+          "diluted_mean": -0.0072992700729927005,
+          "conditional_mean_on_nonzero": -0.07142857142857142,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "WRITER_effect_under_reader_gemma": {
+        "_definition": "dU(writer gemma, reader gemma) - dU(writer gpt-oss, reader gemma), paired per cell",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.025547445255474453,
+          "ci_lower": -0.05474452554744526,
+          "ci_upper": 0.0,
+          "p_two_sided": 0.078,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.025547445255474453,
+          "ci_lower": -0.05363984674329502,
+          "ci_upper": 0.0,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.025547445255474453,
+          "ci_lower": -0.05494642857142857,
+          "ci_upper": 6.493506493412001e-05,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 15,
+          "diluted_mean": -0.025547445255474453,
+          "conditional_mean_on_nonzero": -0.4666666666666667,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "WRITER_main_effect": {
+        "_definition": "average of the two writer contrasts above (the 2x2 main effect for writer)",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.016423357664233577,
+          "ci_lower": -0.041970802919708027,
+          "ci_upper": 0.0072992700729927005,
+          "p_two_sided": 0.214,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.016423357664233577,
+          "ci_lower": -0.038,
+          "ci_upper": 0.0034602076124567475,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.016423357664233577,
+          "ci_lower": -0.04832863652716153,
+          "ci_upper": 0.013215859030837005,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 35,
+          "diluted_mean": -0.016423357664233577,
+          "conditional_mean_on_nonzero": -0.12857142857142856,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "READER_effect_under_writer_gptoss": {
+        "_definition": "dU(writer gpt-oss, reader gemma) - dU(writer gpt-oss, reader gpt-oss). THIS IS THE PUBLISHED READER ARM, recomputed on the 4-way matched set. It is the replication check.",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.0036496350364963502,
+          "ci_lower": -0.04744525547445255,
+          "ci_upper": 0.040145985401459854,
+          "p_two_sided": 0.9186,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.0036496350364963502,
+          "ci_lower": -0.04583504098360655,
+          "ci_upper": 0.04332129963898917,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.0036496350364963502,
+          "ci_lower": -0.03664921465968586,
+          "ci_upper": 0.027522935779816515,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 29,
+          "diluted_mean": -0.0036496350364963502,
+          "conditional_mean_on_nonzero": -0.034482758620689655,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "READER_effect_under_writer_gemma": {
+        "_definition": "dU(writer gemma, reader gemma) - dU(writer gemma, reader gpt-oss), paired per cell",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.021897810218978103,
+          "ci_lower": -0.06204379562043796,
+          "ci_upper": 0.01824817518248175,
+          "p_two_sided": 0.3292,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.021897810218978103,
+          "ci_lower": -0.07473551698259374,
+          "ci_upper": 0.027972027972027972,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.021897810218978103,
+          "ci_lower": -0.05752212389380531,
+          "ci_upper": 0.011539017341040455,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 32,
+          "diluted_mean": -0.021897810218978103,
+          "conditional_mean_on_nonzero": -0.1875,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "READER_main_effect": {
+        "_definition": "average of the two reader contrasts above",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.012773722627737226,
+          "ci_lower": -0.04927007299270073,
+          "ci_upper": 0.021897810218978103,
+          "p_two_sided": 0.4966,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.012773722627737226,
+          "ci_lower": -0.054819392873428435,
+          "ci_upper": 0.031047817959868742,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.012773722627737226,
+          "ci_lower": -0.040650712606523656,
+          "ci_upper": 0.014815731573157303,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 45,
+          "diluted_mean": -0.012773722627737226,
+          "conditional_mean_on_nonzero": -0.07777777777777778,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "SAME_FAMILY_effect": {
+        "_definition": "mean of [same-family: writer oss x reader oss, writer gem x reader gem] MINUS mean of [cross-family: writer oss x reader gem, writer gem x reader oss], paired within cell.",
+        "_same_family_arms": [
+          "oss/oss",
+          "gem/gem"
+        ],
+        "_cross_family_arms": [
+          "oss/gem",
+          "gem/oss"
+        ],
+        "_IDENTICAL_TO": "exactly +0.5 x INTERACTION below -- SAME sign, factor of two. SAME-FAMILY and INTERACTION are ONE contrast with two readings, not two findings that agree. Reporting them as mutual corroboration would be this project's own 'two routes converged' defect.",
+        "_precommitment_sign_erratum": "docs/WRITER_FACTORIAL_PRECOMMITMENT.md states '-0.5 x INTERACTION'. That sign is WRONG; the correct relation is +0.5. Both quantities are defined and computed exactly as pre-registered -- only the prose claim about their relationship was mistaken, and the machine-checked identity below is what caught it.",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.009124087591240875,
+          "ci_lower": -0.03102189781021898,
+          "ci_upper": 0.012773722627737226,
+          "p_two_sided": 0.4758,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.009124087591240875,
+          "ci_lower": -0.03084525272025272,
+          "ci_upper": 0.012110726643598616,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.009124087591240875,
+          "ci_lower": -0.028106657398826073,
+          "ci_upper": 0.009191176470588236,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 33,
+          "diluted_mean": -0.009124087591240875,
+          "conditional_mean_on_nonzero": -0.07575757575757576,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "INTERACTION": {
+        "_definition": "[dU(gem,gem) - dU(oss,gem)] - [dU(gem,oss) - dU(oss,oss)]: does writer choice matter differently per reader",
+        "n_matched_cells": 274,
+        "cell_level": {
+          "n": 274,
+          "mean": -0.01824817518248175,
+          "ci_lower": -0.06204379562043796,
+          "ci_upper": 0.025547445255474453,
+          "p_two_sided": 0.4758,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 124,
+          "n_obs": 274,
+          "mean": -0.01824817518248175,
+          "ci_lower": -0.06169050544050544,
+          "ci_upper": 0.02422145328719723,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 274,
+          "mean": -0.01824817518248175,
+          "ci_lower": -0.056213314797652146,
+          "ci_upper": 0.01838235294117647,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 274,
+          "n_nonzero": 33,
+          "diluted_mean": -0.01824817518248175,
+          "conditional_mean_on_nonzero": -0.15151515151515152,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "_same_family_equals_PLUS_half_interaction": {
+        "_relation": "SAME_FAMILY == +0.5 * INTERACTION",
+        "max_abs_difference": 0.0,
+        "holds": true,
+        "max_abs_difference_against_the_PRECOMMITTED_MINUS_sign": 2.0,
+        "precommitted_minus_sign_holds": false,
+        "_why_checked": "the precommitment stated this relation as algebra AND GOT THE SIGN WRONG ('-0.5'). Verifying it on the actual numbers rather than trusting the prose is what caught that. Both columns are reported so the erratum is visible, not smoothed."
+      }
+    },
+    "structured": {
+      "WRITER_effect_under_reader_gptoss": {
+        "_definition": "dU(writer gemma, reader gpt-oss) - dU(writer gpt-oss, reader gpt-oss), paired per cell",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": 0.007462686567164179,
+          "ci_lower": -0.029850746268656716,
+          "ci_upper": 0.04477611940298507,
+          "p_two_sided": 0.7776,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": 0.007462686567164179,
+          "ci_lower": -0.027874564459930314,
+          "ci_upper": 0.044534412955465584,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": 0.007462686567164179,
+          "ci_lower": -0.04237488007675087,
+          "ci_upper": 0.05673758865248227,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 26,
+          "diluted_mean": 0.007462686567164179,
+          "conditional_mean_on_nonzero": 0.07692307692307693,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "WRITER_effect_under_reader_gemma": {
+        "_definition": "dU(writer gemma, reader gemma) - dU(writer gpt-oss, reader gemma), paired per cell",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": 0.014925373134328358,
+          "ci_lower": -0.011194029850746268,
+          "ci_upper": 0.041044776119402986,
+          "p_two_sided": 0.2988,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": 0.014925373134328358,
+          "ci_lower": -0.010948905109489052,
+          "ci_upper": 0.04,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": 0.014925373134328358,
+          "ci_lower": -0.010676156583629894,
+          "ci_upper": 0.045871559633027525,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 12,
+          "diluted_mean": 0.014925373134328358,
+          "conditional_mean_on_nonzero": 0.3333333333333333,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "WRITER_main_effect": {
+        "_definition": "average of the two writer contrasts above (the 2x2 main effect for writer)",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": 0.011194029850746268,
+          "ci_lower": -0.011194029850746268,
+          "ci_upper": 0.03544776119402985,
+          "p_two_sided": 0.3936,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": 0.011194029850746268,
+          "ci_lower": -0.013725490196078431,
+          "ci_upper": 0.036001639344262266,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": 0.011194029850746268,
+          "ci_lower": -0.021660929239641896,
+          "ci_upper": 0.04585152838427948,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 36,
+          "diluted_mean": 0.011194029850746268,
+          "conditional_mean_on_nonzero": 0.08333333333333333,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "READER_effect_under_writer_gptoss": {
+        "_definition": "dU(writer gpt-oss, reader gemma) - dU(writer gpt-oss, reader gpt-oss). THIS IS THE PUBLISHED READER ARM, recomputed on the 4-way matched set. It is the replication check.",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": -0.007462686567164179,
+          "ci_lower": -0.05223880597014925,
+          "ci_upper": 0.033582089552238806,
+          "p_two_sided": 0.7876,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": -0.007462686567164179,
+          "ci_lower": -0.05466300743569132,
+          "ci_upper": 0.04181217789907394,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": -0.007462686567164179,
+          "ci_lower": -0.05172585519989009,
+          "ci_upper": 0.0392156862745098,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 31,
+          "diluted_mean": -0.007462686567164179,
+          "conditional_mean_on_nonzero": -0.06451612903225806,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "READER_effect_under_writer_gemma": {
+        "_definition": "dU(writer gemma, reader gemma) - dU(writer gemma, reader gpt-oss), paired per cell",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": 0.0,
+          "ci_lower": -0.04477611940298507,
+          "ci_upper": 0.04477611940298507,
+          "p_two_sided": 1.0,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": 0.0,
+          "ci_lower": -0.05426356589147287,
+          "ci_upper": 0.054901960784313725,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": 0.0,
+          "ci_lower": -0.037037037037037035,
+          "ci_upper": 0.040910953800298036,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 38,
+          "diluted_mean": 0.0,
+          "conditional_mean_on_nonzero": 0.0,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "READER_main_effect": {
+        "_definition": "average of the two reader contrasts above",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": -0.0037313432835820895,
+          "ci_lower": -0.041044776119402986,
+          "ci_upper": 0.03544776119402985,
+          "p_two_sided": 0.8854,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": -0.0037313432835820895,
+          "ci_lower": -0.04964927523946766,
+          "ci_upper": 0.04618473895582329,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": -0.0037313432835820895,
+          "ci_lower": -0.039802902664591154,
+          "ci_upper": 0.03320638020833329,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 51,
+          "diluted_mean": -0.0037313432835820895,
+          "conditional_mean_on_nonzero": -0.0196078431372549,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "SAME_FAMILY_effect": {
+        "_definition": "mean of [same-family: writer oss x reader oss, writer gem x reader gem] MINUS mean of [cross-family: writer oss x reader gem, writer gem x reader oss], paired within cell.",
+        "_same_family_arms": [
+          "oss/oss",
+          "gem/gem"
+        ],
+        "_cross_family_arms": [
+          "oss/gem",
+          "gem/oss"
+        ],
+        "_IDENTICAL_TO": "exactly +0.5 x INTERACTION below -- SAME sign, factor of two. SAME-FAMILY and INTERACTION are ONE contrast with two readings, not two findings that agree. Reporting them as mutual corroboration would be this project's own 'two routes converged' defect.",
+        "_precommitment_sign_erratum": "docs/WRITER_FACTORIAL_PRECOMMITMENT.md states '-0.5 x INTERACTION'. That sign is WRONG; the correct relation is +0.5. Both quantities are defined and computed exactly as pre-registered -- only the prose claim about their relationship was mistaken, and the machine-checked identity below is what caught it.",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": 0.0037313432835820895,
+          "ci_lower": -0.016791044776119403,
+          "ci_upper": 0.024253731343283583,
+          "p_two_sided": 0.7892,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": 0.0037313432835820895,
+          "ci_lower": -0.014652014652014652,
+          "ci_upper": 0.022556390977443608,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": 0.0037313432835820895,
+          "ci_lower": -0.017578125,
+          "ci_upper": 0.025822608062166085,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 34,
+          "diluted_mean": 0.0037313432835820895,
+          "conditional_mean_on_nonzero": 0.029411764705882353,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "INTERACTION": {
+        "_definition": "[dU(gem,gem) - dU(oss,gem)] - [dU(gem,oss) - dU(oss,oss)]: does writer choice matter differently per reader",
+        "n_matched_cells": 268,
+        "cell_level": {
+          "n": 268,
+          "mean": 0.007462686567164179,
+          "ci_lower": -0.033582089552238806,
+          "ci_upper": 0.048507462686567165,
+          "p_two_sided": 0.7892,
+          "excludes_zero": false
+        },
+        "task_clustered": {
+          "n_clusters": 121,
+          "n_obs": 268,
+          "mean": 0.007462686567164179,
+          "ci_lower": -0.029304029304029304,
+          "ci_upper": 0.045112781954887216,
+          "excludes_zero": false
+        },
+        "episode_clustered": {
+          "n_clusters": 35,
+          "n_obs": 268,
+          "mean": 0.007462686567164179,
+          "ci_lower": -0.03515625,
+          "ci_upper": 0.05164521612433217,
+          "excludes_zero": false
+        },
+        "GOVERNING": "task_clustered",
+        "contributors": {
+          "n_nominal": 268,
+          "n_nonzero": 34,
+          "diluted_mean": 0.007462686567164179,
+          "conditional_mean_on_nonzero": 0.058823529411764705,
+          "_rule": "a cell that is 0 under every arm is a STRUCTURAL zero (docs/BEARING_SCARCITY.md), not a measurement of 'no difference'. A zero-spanning CI with few contributors is UNDERPOWERED, not null (docs/PAIRED_POWER.md)."
+        }
+      },
+      "_same_family_equals_PLUS_half_interaction": {
+        "_relation": "SAME_FAMILY == +0.5 * INTERACTION",
+        "max_abs_difference": 0.0,
+        "holds": true,
+        "max_abs_difference_against_the_PRECOMMITTED_MINUS_sign": 1.0,
+        "precommitted_minus_sign_holds": false,
+        "_why_checked": "the precommitment stated this relation as algebra AND GOT THE SIGN WRONG ('-0.5'). Verifying it on the actual numbers rather than trusting the prose is what caught that. Both columns are reported so the erratum is visible, not smoothed."
+      }
+    }
+  },
+  "READER_EFFECT_REPLICATION_CHECK": {
+    "_what": "The reader effect under writer gpt-oss is the SAME CONTRAST the published reader arm reports. It is recomputed here on the 4-way matched set AND in a fresh session, so TWO things differ from the published figure: a smaller cell set, and a different session. Both are stated; a DIRECTION or SIGNIFICANCE flip is a finding and is flagged.",
+    "_two_differences_not_one": "the published number came from runs on 2026-09-30; this one was re-executed on 2026-10-01 because the WITHOUT-arm control proved gpt-oss is not deterministic across sessions. So this is NOT a pure re-computation of the published number on fewer cells -- it is a re-MEASUREMENT. See CROSS_SESSION_DRIFT_vs_the_published_arms.",
+    "summary": {
+      "four_way_matched_set": {
+        "n": 274,
+        "mean": -0.0036496350364963502,
+        "ci_lower": -0.04583504098360655,
+        "ci_upper": 0.04332129963898917,
+        "excludes_zero": false
+      },
+      "published_two_way_matched_set": {
+        "n_matched_cells": 274,
+        "mean": 0.0036496350364963502,
+        "ci_lower": -0.04844452047719878,
+        "ci_upper": 0.061224489795918366,
+        "excludes_zero": false
+      },
+      "same_sign": false,
+      "same_significance_verdict": true,
+      "REPRODUCES_precommitted_sign_and_significance": false,
+      "difference_in_point_estimate": -0.0072992700729927005,
+      "_added_after_seeing_the_data": true,
+      "published_mean_inside_todays_CI": true,
+      "todays_mean_inside_published_CI": true,
+      "both_span_zero": true,
+      "COMPATIBLE_mutual_CI_containment": true
+    },
+    "structured": {
+      "four_way_matched_set": {
+        "n": 268,
+        "mean": -0.007462686567164179,
+        "ci_lower": -0.05466300743569132,
+        "ci_upper": 0.04181217789907394,
+        "excludes_zero": false
+      },
+      "published_two_way_matched_set": {
+        "n_matched_cells": 269,
+        "mean": 0.011152416356877323,
+        "ci_lower": -0.053573139025725226,
+        "ci_upper": 0.08333333333333333,
+        "excludes_zero": false
+      },
+      "same_sign": false,
+      "same_significance_verdict": true,
+      "REPRODUCES_precommitted_sign_and_significance": false,
+      "difference_in_point_estimate": -0.0186151029240415,
+      "_added_after_seeing_the_data": true,
+      "published_mean_inside_todays_CI": true,
+      "todays_mean_inside_published_CI": true,
+      "both_span_zero": true,
+      "COMPATIBLE_mutual_CI_containment": true
+    },
+    "ALL_REPRODUCE_precommitted_criterion": false,
+    "ALL_COMPATIBLE_added_criterion": true,
+    "_how_to_read_a_disagreement_between_the_two": "If the pre-committed criterion FAILS while the added one PASSES, the two estimates are statistically compatible and differ in SIGN on a near-zero quantity. That is a statement about the ESTIMAND being close to zero, not about a failure to replicate -- but the pre-committed verdict is still reported as FAILED, because a criterion rewritten after it fires is not a criterion."
+  },
+  "writer_effect_decomposed_by_arm": {
+    "summary": {
+      "n_cells": 274,
+      "oss/oss": {
+        "n": 274,
+        "mean_reward_WITH": 0.13503649635036497,
+        "mean_reward_WITHOUT": 0.07664233576642336
+      },
+      "oss/gem": {
+        "n": 274,
+        "mean_reward_WITH": 0.0948905109489051,
+        "mean_reward_WITHOUT": 0.040145985401459854
+      },
+      "gem/oss": {
+        "n": 274,
+        "mean_reward_WITH": 0.12773722627737227,
+        "mean_reward_WITHOUT": 0.07664233576642336
+      },
+      "gem/gem": {
+        "n": 274,
+        "mean_reward_WITH": 0.06934306569343066,
+        "mean_reward_WITHOUT": 0.040145985401459854
+      },
+      "WITHOUT_arm_change_from_writer_under_reader_oss": 0.0,
+      "WITHOUT_arm_change_from_writer_under_reader_gem": 0.0,
+      "_reading": "The WITHOUT arm contains NO memory, so a WRITER change cannot move it. A non-zero change there would mean something other than the memory differed between the arms -- a defect, not a finding. F-GATE 4 asserted the WITHOUT-arm request bytes are identical across writers, so any residual here is reader sampling and should be exactly 0 at temperature 0."
+    },
+    "structured": {
+      "n_cells": 268,
+      "oss/oss": {
+        "n": 268,
+        "mean_reward_WITH": 0.11194029850746269,
+        "mean_reward_WITHOUT": 0.07462686567164178
+      },
+      "oss/gem": {
+        "n": 268,
+        "mean_reward_WITH": 0.06343283582089553,
+        "mean_reward_WITHOUT": 0.033582089552238806
+      },
+      "gem/oss": {
+        "n": 268,
+        "mean_reward_WITH": 0.11940298507462686,
+        "mean_reward_WITHOUT": 0.07462686567164178
+      },
+      "gem/gem": {
+        "n": 268,
+        "mean_reward_WITH": 0.07835820895522388,
+        "mean_reward_WITHOUT": 0.033582089552238806
+      },
+      "WITHOUT_arm_change_from_writer_under_reader_oss": 0.0,
+      "WITHOUT_arm_change_from_writer_under_reader_gem": 0.0,
+      "_reading": "The WITHOUT arm contains NO memory, so a WRITER change cannot move it. A non-zero change there would mean something other than the memory differed between the arms -- a defect, not a finding. F-GATE 4 asserted the WITHOUT-arm request bytes are identical across writers, so any residual here is reader sampling and should be exactly 0 at temperature 0."
+    }
+  },
+  "memory_length_by_writer_on_matched_cells": {
+    "_what": "the most obvious mechanism for a writer effect is simply how much the writer wrote. Reported so a writer effect is not read as a claim about compression QUALITY when it may be about compression AMOUNT.",
+    "per_representation": {
+      "summary": {
+        "oss": {
+          "n": 274,
+          "mean_memory_tokens": 324.9890510948905,
+          "median_memory_tokens": 281.0
+        },
+        "gem": {
+          "n": 274,
+          "mean_memory_tokens": 150.67518248175182,
+          "median_memory_tokens": 146.0
+        },
+        "gemma_over_gptoss_mean_ratio": 0.4636315653531281
+      },
+      "structured": {
+        "oss": {
+          "n": 268,
+          "mean_memory_tokens": 238.04850746268656,
+          "median_memory_tokens": 216.0
+        },
+        "gem": {
+          "n": 268,
+          "mean_memory_tokens": 179.48134328358208,
+          "median_memory_tokens": 176.0
+        },
+        "gemma_over_gptoss_mean_ratio": 0.7539696223960374
+      }
+    }
+  },
+  "within_memory_bearing_minus_control_per_arm": {
+    "_what": "the quantity docs/REPRESENTATION_RESULT.md actually reports, computed under each of the four arms on the matched cells.",
+    "per_representation": {
+      "summary": {
+        "oss/oss": {
+          "n_memories": 59,
+          "n_nonzero_contributors": 20,
+          "n": 59,
+          "mean": 0.12321092278719398,
+          "ci_lower": 0.0305991054613936,
+          "ci_upper": 0.2217537664783427,
+          "p_two_sided": 0.0082,
+          "excludes_zero": true
+        },
+        "oss/gem": {
+          "n_memories": 59,
+          "n_nonzero_contributors": 17,
+          "n": 59,
+          "mean": 0.09557438794726932,
+          "ci_lower": 0.014359698681732582,
+          "ci_upper": 0.17914312617702452,
+          "p_two_sided": 0.0198,
+          "excludes_zero": true
+        },
+        "gem/oss": {
+          "n_memories": 59,
+          "n_nonzero_contributors": 18,
+          "n": 59,
+          "mean": 0.0643596986817326,
+          "ci_lower": -0.02236699623352165,
+          "ci_upper": 0.15772598870056495,
+          "p_two_sided": 0.1458,
+          "excludes_zero": false
+        },
+        "gem/gem": {
+          "n_memories": 59,
+          "n_nonzero_contributors": 11,
+          "n": 59,
+          "mean": 0.07838983050847458,
+          "ci_lower": 0.02824858757062147,
+          "ci_upper": 0.13488700564971753,
+          "p_two_sided": 0.001,
+          "excludes_zero": true
+        }
+      },
+      "structured": {
+        "oss/oss": {
+          "n_memories": 56,
+          "n_nonzero_contributors": 17,
+          "n": 56,
+          "mean": 0.029365079365079372,
+          "ci_lower": -0.03586557539682539,
+          "ci_upper": 0.10476190476190476,
+          "p_two_sided": 0.4164,
+          "excludes_zero": false
+        },
+        "oss/gem": {
+          "n_memories": 56,
+          "n_nonzero_contributors": 12,
+          "n": 56,
+          "mean": 0.03888888888888888,
+          "ci_lower": -0.022817460317460316,
+          "ci_upper": 0.10298115079365072,
+          "p_two_sided": 0.2244,
+          "excludes_zero": false
+        },
+        "gem/oss": {
+          "n_memories": 56,
+          "n_nonzero_contributors": 17,
+          "n": 56,
+          "mean": 0.08878968253968253,
+          "ci_lower": 0.015873015873015876,
+          "ci_upper": 0.16865079365079366,
+          "p_two_sided": 0.0126,
+          "excludes_zero": true
+        },
+        "gem/gem": {
+          "n_memories": 56,
+          "n_nonzero_contributors": 15,
+          "n": 56,
+          "mean": 0.08998015873015873,
+          "ci_lower": 0.0170610119047619,
+          "ci_upper": 0.1625,
+          "p_two_sided": 0.0148,
+          "excludes_zero": true
+        }
+      }
+    }
+  },
+  "harm_on_bearing_cells_per_arm": {
+    "summary": {
+      "n_bearing_cells_matched": 132,
+      "oss/oss": {
+        "n_negative": 2,
+        "most_negative": -1.0
+      },
+      "oss/gem": {
+        "n_negative": 0,
+        "most_negative": 0.0
+      },
+      "gem/oss": {
+        "n_negative": 4,
+        "most_negative": -1.0
+      },
+      "gem/gem": {
+        "n_negative": 0,
+        "most_negative": 0.0
+      }
+    },
+    "structured": {
+      "n_bearing_cells_matched": 131,
+      "oss/oss": {
+        "n_negative": 3,
+        "most_negative": -1.0
+      },
+      "oss/gem": {
+        "n_negative": 0,
+        "most_negative": 0.0
+      },
+      "gem/oss": {
+        "n_negative": 3,
+        "most_negative": -1.0
+      },
+      "gem/gem": {
+        "n_negative": 0,
+        "most_negative": 0.0
+      }
+    }
+  },
+  "noise_floors_delta_scale": {
+    "oss/oss:summary": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 60,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "oss/oss:structured": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 57,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "oss/gem:summary": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 60,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "oss/gem:structured": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 57,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gem/oss:summary": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 59,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gem/oss:structured": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 57,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'mc_choice_set_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gem/gem:summary": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 59,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "gem/gem:structured": {
+      "point": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0,
+      "n_units": 57,
+      "flags": [
+        "POOLED_ACROSS_IDENTITY:verifier_id=['mc_choice_match', 'norm_phrase_set_match', 'norm_phrase_set_match_ordered']"
+      ]
+    },
+    "_positive_control_gem_gem_summary": {
+      "_what": "F_exec after flipping one replicate in 144 cells. MUST be > 0, or a 0.000 floor proves nothing.",
+      "n_cells_perturbed": 144,
+      "point": 0.5097613469304757,
+      "fires": true
+    }
+  },
+  "label_counts_per_arm": {
+    "summary": {
+      "_rule": "prereg section 4, each arm against ITS OWN measured F_exec. Using one arm's floor on another would be a different experiment.",
+      "n_cells": 272,
+      "label_counts_per_arm": {
+        "oss/oss": {
+          "neutral": 243,
+          "robust_useful": 22,
+          "robust_harmful": 7
+        },
+        "oss/gem": {
+          "neutral": 254,
+          "robust_useful": 16,
+          "robust_harmful": 2
+        },
+        "gem/oss": {
+          "neutral": 244,
+          "robust_useful": 21,
+          "robust_harmful": 7
+        },
+        "gem/gem": {
+          "robust_useful": 11,
+          "neutral": 258,
+          "robust_harmful": 3
+        }
+      },
+      "all_four_arms_agree": 223
+    },
+    "structured": {
+      "_rule": "prereg section 4, each arm against ITS OWN measured F_exec. Using one arm's floor on another would be a different experiment.",
+      "n_cells": 268,
+      "label_counts_per_arm": {
+        "oss/oss": {
+          "neutral": 244,
+          "robust_useful": 17,
+          "robust_harmful": 7
+        },
+        "oss/gem": {
+          "neutral": 256,
+          "robust_harmful": 2,
+          "robust_useful": 10
+        },
+        "gem/oss": {
+          "neutral": 238,
+          "robust_useful": 21,
+          "robust_harmful": 9
+        },
+        "gem/gem": {
+          "robust_useful": 14,
+          "neutral": 252,
+          "robust_harmful": 2
+        }
+      },
+      "all_four_arms_agree": 216
+    }
+  },
+  "_positive_control_contrast_estimators": {
+    "_what": "the four contrasts must recover KNOWN values on constructed input, or an observed zero is uninterpretable. Construction: writer effect 0.0 under reader oss, +0.5 under reader gem.",
+    "writer_under_reader_oss": 0.0,
+    "expected": 0.0,
+    "writer_under_reader_gem": 0.5,
+    "expected_gem": 0.5,
+    "interaction": 0.5,
+    "expected_interaction": 0.5,
+    "same_family": 0.25,
+    "expected_same_family": 0.25,
+    "_expected_same_family_why": "+0.25 = +0.5 x the interaction of 0.5. The precommitment's '-0.5 x INTERACTION' would predict -0.25; this control is constructed from a KNOWN ground truth and so settles the sign independently of either document.",
+    "fires": true
+  },
+  "VERDICT_WITH_DENOMINATORS": [
+    "summary/WRITER_main_effect: n=274 matched cells (35 non-zero contributors) | -0.0164 [-0.0380, 0.0035] task-clustered, excludes_zero=False",
+    "summary/READER_main_effect: n=274 matched cells (45 non-zero contributors) | -0.0128 [-0.0548, 0.0310] task-clustered, excludes_zero=False",
+    "summary/SAME_FAMILY_effect: n=274 matched cells (33 non-zero contributors) | -0.0091 [-0.0308, 0.0121] task-clustered, excludes_zero=False",
+    "summary/INTERACTION: n=274 matched cells (33 non-zero contributors) | -0.0182 [-0.0617, 0.0242] task-clustered, excludes_zero=False",
+    "structured/WRITER_main_effect: n=268 matched cells (36 non-zero contributors) | 0.0112 [-0.0137, 0.0360] task-clustered, excludes_zero=False",
+    "structured/READER_main_effect: n=268 matched cells (51 non-zero contributors) | -0.0037 [-0.0496, 0.0462] task-clustered, excludes_zero=False",
+    "structured/SAME_FAMILY_effect: n=268 matched cells (34 non-zero contributors) | 0.0037 [-0.0147, 0.0226] task-clustered, excludes_zero=False",
+    "structured/INTERACTION: n=268 matched cells (34 non-zero contributors) | 0.0075 [-0.0293, 0.0451] task-clustered, excludes_zero=False"
+  ]
+}

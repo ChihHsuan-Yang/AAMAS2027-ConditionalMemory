@@ -189,16 +189,81 @@ comparison and must be reported as such.
 ⚠️ **Do not assume gpt-oss's 16 workers transfer.** The worker count for Gemma
 is set by its own measured throughput ladder, not inherited.
 
-## Planned arms — Writer × Reader factorial
+## Writer × Reader factorial — EXECUTED 2026-10-01
 
-🔴 **Not yet executed.** Gemma-written memories are an **additional** writer
-arm; they never replace or overwrite the gpt-oss-written memories.
+Gemma-written memories are an **additional** writer arm; they never replace or
+overwrite the gpt-oss-written memories. `results/repr_scaleup/memories.jsonl`
+was asserted byte-unchanged (sha256 `b342151c7f3cac5a…`) before **and** after
+the Gemma write pass.
 
 | | Reader gpt-oss | Reader Gemma |
 |---|---|---|
-| **Writer gpt-oss** (Summary, Structured) | A2/A3 — **DONE** | R2/R3 — planned |
-| **Writer Gemma** (Summary, Structured) | W1/W2 — planned | W3/W4 — planned |
-| **Writer deterministic** (Raw) | A1 — **DONE** | R1 — planned |
+| **Writer gpt-oss** (Summary, Structured) | A2/A3 — **DONE** | R2/R3 — **DONE** |
+| **Writer Gemma** (Summary, Structured) | W1/W2 — **DONE** | W3/W4 — **DONE** |
+| **Writer deterministic** (Raw) | A1 — **DONE** | R1 — **DONE** |
+
+🔴 **Raw has no writer axis and is NOT in the factorial.** It is a
+deterministic span with **zero model calls**, so "writer gpt-oss raw" and
+"writer Gemma raw" are the same bytes. The factorial covers Summary and
+Structured only — and raw is the strongest representation under both readers,
+so the factorial does not speak to the project's headline representation.
+
+### FROZEN Gemma WRITER configuration
+
+| Arm | Writer | Reader | Cluster | Writer prompt version | Temp | Max output | Workers |
+|---|---|---|---|---|---|---|---|
+| **W1** Summary | **`gemma-4-31B-it`** | `gpt-oss-120b` | metis | `summary_v1@1.0.0+6ee16b28b818` | 0 | 512 | 16 |
+| **W2** Structured | **`gemma-4-31B-it`** | `gpt-oss-120b` | metis | `structured_v1@1.0.0+163d4cd3eb70` | 0 | 512 | 16 |
+| **W3** Summary | **`gemma-4-31B-it`** | **`gemma-4-31B-it`** | metis | `summary_v1@1.0.0+6ee16b28b818` | 0 | 512 | 16 |
+| **W4** Structured | **`gemma-4-31B-it`** | **`gemma-4-31B-it`** | metis | `structured_v1@1.0.0+163d4cd3eb70` | 0 | 512 | 16 |
+
+The writer prompt versions are **byte-identical** to the gpt-oss arms' — the
+version string is a digest of the prompt file, so equality of the string is
+equality of the bytes. Only the writing MODEL differs.
+
+🔴 **`truncation_is_always_an_error` is OFF on the WRITE pass for BOTH
+writers, deliberately.** `representations.py` records `finish_reason` and keeps
+a truncated-but-parseable memory on purpose, and gpt-oss's 7 truncated
+summaries and 3 truncated structured writes are in the published arm on that
+basis. Enabling the strict guard for Gemma's writes alone would make the two
+writer arms differ in their **admission rule** as well as their model — a
+second intervention wearing the first one's name. It stays **ON** for every
+Gemma *reader* call, as in the published reader arm.
+
+### 🔴 `gpt-oss-120b` is deterministic WITHIN a session, NOT ACROSS sessions
+
+Measured 2026-10-01 by re-issuing the factorial's **WITHOUT** arm — which
+contains no memory and whose request bytes were verified byte-identical
+(500/500 stored `context_sha256`) — against the published 2026-09-30 run:
+
+| reader | WITHOUT-arm requests | output text DIFFERS | reward differs | mean reward change |
+|---|---:|---:|---:|---:|
+| `gpt-oss-120b` | 1,124 | **554** | 84 | **−0.0320** |
+| `gemma-4-31B-it` | 1,124 | **0** | 0 | 0.0000 |
+
+**This does not contradict the 248/248 A/A result** — that measurement is
+within one session (paired calls minutes apart) and remains correct. It is a
+*different quantity*, and the distinction has to be stated every time either
+number is quoted.
+
+Two consequences, both binding:
+
+1. **Arms that will be compared must be executed in the same session.** The
+   writer factorial re-ran its gpt-oss comparator arms for exactly this reason
+   (`docs/WRITER_FACTORIAL_PRECOMMITMENT.md`, Amendment 1); a cross-session
+   comparator would confound the contrast with the day it ran, by about the
+   size of the effect.
+2. **Cross-session stability is a property of the MODEL, not the cluster.**
+   Gemma drifted 0/1,124 on the identical comparison. This is the same shape as
+   `reports_reasoning_tokens` (defect #18): a per-model fact that a
+   cluster-keyed assumption cannot express.
+
+🔴 **A writer-arm cache key must name the WRITER.** `memory_content_id` is a
+hash of `(episode_id, segment text)` and is therefore **identical across
+writers** for the same unit. A key built on it would differ from the published
+writer-gpt-oss key only in `context_sha256`. `w2_run_factorial.py` uses a hash
+of `(writer_model, memory_text)` instead, and the control artifact verifies the
+factorial's memory ids are **disjoint** from the published caches'.
 
 This separates four questions that a single combined change would confound:
 **reader effect** (same memory, different reader) · **writer effect** (same

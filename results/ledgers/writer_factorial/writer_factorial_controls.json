@@ -1,0 +1,240 @@
+{
+  "_what": "controls for the Writer x Reader factorial",
+  "generated_at_utc": "2026-10-01T06:30:44.347018+00:00",
+  "cache_separation_across_writers": {
+    "_what": "the response cache cannot serve a writer-gpt-oss answer to a writer-Gemma request. POSITIVE CONTROL FIRST: without a demonstrated HIT, a 'miss' proves only that the cache is dead.",
+    "step1_POSITIVE_CONTROL_published_key_in_published_cache": {
+      "result": "HIT",
+      "resolved_model": "gpt-oss-120b"
+    },
+    "step2_writer_gemma_shaped_key_in_published_cache": {
+      "result": "MISS"
+    },
+    "step3_key_hashes_differ": true,
+    "step4_published_key_in_factorial_cache": {
+      "result": "MISS"
+    },
+    "factorial_cache_resolved_models": {
+      "gpt-oss-120b": 4490,
+      "gemma-4-31B-it": 4370
+    },
+    "factorial_cache_distinct_memory_ids": 233,
+    "factorial_memory_ids_disjoint_from_published": true,
+    "VERDICT": true
+  },
+  "aa_determinism_gpt_oss_120b": {
+    "_what": "reader gpt-oss, writer Gemma: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the key). Identical content => deterministic at temperature 0 on the real shape.",
+    "n_paired_groups": 248,
+    "n_identical": 248,
+    "n_differing": 0,
+    "rate_identical": 1.0,
+    "differing_examples": [],
+    "_vacuity_check_n_groups_gt_0": true
+  },
+  "aa_determinism_gemma_4_31B_it": {
+    "_what": "reader Gemma, writer Gemma: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the key). Identical content => deterministic at temperature 0 on the real shape.",
+    "n_paired_groups": 244,
+    "n_identical": 244,
+    "n_differing": 0,
+    "rate_identical": 1.0,
+    "differing_examples": [],
+    "_vacuity_check_n_groups_gt_0": true
+  },
+  "without_arm_is_writer_invariant_SESSION_MATCHED": {
+    "reader_gptoss": {
+      "_what": "SESSION-MATCHED: writer gpt-oss vs writer Gemma, reader_gptoss, both executed 2026-10-01. The WITHOUT arm contains NO memory and F-GATE 4 proved its request bytes identical, so it MUST be identical here.",
+      "_note": "a difference here is a DEFECT, not a finding.",
+      "n_compared": 1124,
+      "n_reward_identical": 1122,
+      "n_reward_differing": 0,
+      "n_output_text_identical": 1124,
+      "differing_examples": [],
+      "HOLDS": true,
+      "_vacuity_check": true
+    },
+    "reader_gemma": {
+      "_what": "SESSION-MATCHED: writer gpt-oss vs writer Gemma, reader_gemma, both executed 2026-10-01. The WITHOUT arm contains NO memory and F-GATE 4 proved its request bytes identical, so it MUST be identical here.",
+      "_note": "a difference here is a DEFECT, not a finding.",
+      "n_compared": 1124,
+      "n_reward_identical": 1086,
+      "n_reward_differing": 0,
+      "n_output_text_identical": 1124,
+      "differing_examples": [],
+      "HOLDS": true,
+      "_vacuity_check": true
+    },
+    "HOLDS_ON_BOTH_READERS": true
+  },
+  "cross_session_drift_that_forced_the_rerun": {
+    "_what": "CROSS-SESSION (published 2026-09-30 vs today): the SAME WITHOUT-arm request bytes, re-issued a day later.",
+    "_note": "This is NOT a writer comparison -- it is the endpoint's cross-session stability, and it is why every arm was re-run in one session. A non-zero count here is a finding about the ENDPOINT.",
+    "n_compared": 1124,
+    "n_reward_identical": 1040,
+    "n_reward_differing": 84,
+    "n_output_text_identical": 570,
+    "differing_examples": [
+      {
+        "key": [
+          "structured",
+          "0eef1502:2-3",
+          "15e5efa6",
+          0
+        ],
+        "writer_gptoss": 1.0,
+        "writer_gemma": 0.0
+      },
+      {
+        "key": [
+          "structured",
+          "0eef1502:2-3",
+          "15e5efa6",
+          1
+        ],
+        "writer_gptoss": 1.0,
+        "writer_gemma": 0.0
+      },
+      {
+        "key": [
+          "structured",
+          "11c4dfb8:6-9",
+          "8957a127",
+          0
+        ],
+        "writer_gptoss": 0.0,
+        "writer_gemma": 1.0
+      },
+      {
+        "key": [
+          "structured",
+          "11c4dfb8:6-9",
+          "8957a127",
+          1
+        ],
+        "writer_gptoss": 0.0,
+        "writer_gemma": 1.0
+      },
+      {
+        "key": [
+          "structured",
+          "12457787:40-40",
+          "adddeaa5",
+          0
+        ],
+        "writer_gptoss": 0.0,
+        "writer_gemma": 1.0
+      }
+    ],
+    "HOLDS": null,
+    "_vacuity_check": true,
+    "_this_is_a_measurement_not_a_gate": true
+  },
+  "truncation_accounting": {
+    "_what": "On Gemma a truncation returns a plausible FRAGMENT, not null content. Scored, it is a wrong answer that drives dU negative and MANUFACTURES a harmful memory. The guard tests three observables; the ARITHMETIC one (completion_tokens >= max_tokens) is counted separately because the server has been measured reporting neither reason field.",
+    "\ud83d\udd34_READ_THE_CACHE_COUNTS_CORRECTLY": "P1Client raises the truncation guard BEFORE it stores to the cache (client.py: _assert_not_truncated then cache.store), so a REFUSED truncation is never written to the cache at all. The cache counts below are therefore 'truncations ADMITTED', which is 0 BY CONSTRUCTION on a strict arm -- they are NOT evidence that no truncation occurred. The number that shows how often it DID occur is the row error-code count (truncated_nonempty_at_token_budget / empty_output_finish_length) below; the number that shows none was SCORED is rows_with_an_error_code_AND_a_non_null_delta. An absent check must never read as a passing one.",
+    "_denominator": "BOTH writer arms' rows, 2026-10-01 session",
+    "n_rows_both_writer_arms": 4496,
+    "n_truncations_REFUSED_visible_only_in_the_rows": 72,
+    "cache_finish_reasons": {
+      "gemma-4-31B-it:stop": 4370,
+      "gpt-oss-120b:stop": 4490
+    },
+    "responses_at_or_above_max_tokens_ARITHMETIC_clause": 0,
+    "responses_truncated_with_nonempty_content": 0,
+    "row_error_codes": {
+      "truncated_nonempty_at_token_budget": 70,
+      "empty_output_finish_length": 2
+    },
+    "rows_with_an_error_code_AND_a_non_null_delta": 0,
+    "no_truncation_was_scored": true,
+    "rows_with_null_delta": 72
+  },
+  "malformed_structured_validator_controls": {
+    "_what": "Gemma produced ZERO malformed structured writes. A rate of 0 from a validator never shown to reject is not a measurement, so the validator is made to FIRE on four planted defects AND replayed against the gpt-oss outputs it already rejected.",
+    "planted_defects_and_the_code_each_produced": {
+      "missing_keys": "structured_missing_keys",
+      "bad_enum": "structured_bad_enum_value",
+      "extra_key": "structured_extra_keys",
+      "non_string": "structured_non_string_value"
+    },
+    "all_planted_defects_rejected": true,
+    "a_valid_object_is_ACCEPTED": true,
+    "replay_on_the_gptoss_rejections": [
+      {
+        "locator": "12457787:1-2",
+        "recorded": "structured_malformed_json",
+        "replayed": "structured_malformed_json",
+        "agrees": true
+      },
+      {
+        "locator": "2af3e2bb:25-25",
+        "recorded": "structured_malformed_json",
+        "replayed": "structured_malformed_json",
+        "agrees": true
+      },
+      {
+        "locator": "b1c719fb:3-6",
+        "recorded": "structured_malformed_json",
+        "replayed": "structured_malformed_json",
+        "agrees": true
+      }
+    ],
+    "replay_agrees_with_what_was_recorded": true,
+    "gemma_malformed_count": 0,
+    "gptoss_malformed_count": 3,
+    "gemma_malformed_denominator": 60,
+    "gptoss_malformed_denominator": 60
+  },
+  "writer_collapsed_distinct_segments": {
+    "_what": "two DIFFERENT source segments compressed to byte-identical memory text. The ids are content hashes, so they collide and the validator reports duplicate_row_id. This is a property of the WRITER.",
+    "gemma": {
+      "summary": {
+        "n_memories": 60,
+        "n_distinct_texts": 59,
+        "n_texts_shared_by_more_than_one_segment": 1,
+        "colliding_locator_groups": [
+          [
+            "06c70de4:13-14",
+            "06c70de4:17-18"
+          ]
+        ],
+        "n_memories_involved": 2
+      },
+      "structured": {
+        "n_memories": 60,
+        "n_distinct_texts": 60,
+        "n_texts_shared_by_more_than_one_segment": 0,
+        "colliding_locator_groups": [],
+        "n_memories_involved": 0
+      }
+    },
+    "gptoss": {
+      "summary": {
+        "n_memories": 60,
+        "n_distinct_texts": 60,
+        "n_texts_shared_by_more_than_one_segment": 0,
+        "colliding_locator_groups": [],
+        "n_memories_involved": 0
+      },
+      "structured": {
+        "n_memories": 57,
+        "n_distinct_texts": 57,
+        "n_texts_shared_by_more_than_one_segment": 0,
+        "colliding_locator_groups": [],
+        "n_memories_involved": 0
+      }
+    },
+    "_finding": "Gemma collapsed 1 summary text(s) across 2 segments; gpt-oss collapsed 0. Gemma writes ~2x shorter summaries, and at that compression two distinct episodes can land on the same words.",
+    "_does_it_affect_any_number": "NO. The analysis joins on (memory_unit_locator, future_task_id), which is positional and cannot collide; the affected cells stay separate in the matched set. It WOULD have corrupted any analysis joining on memory_id -- which is exactly why this project's join rule forbids that."
+  },
+  "CONTROL_GATES": {
+    "cache_separation": true,
+    "without_arm_writer_invariant_session_matched": true,
+    "no_truncation_scored": true,
+    "validator_rejects_planted_defects": true,
+    "validator_accepts_a_valid_object": true,
+    "validator_replay_agrees": true,
+    "aa_determinism_gpt_oss_120b_non_vacuous": true,
+    "aa_determinism_gemma_4_31B_it_non_vacuous": true
+  },
+  "ALL_CONTROLS_PASS": true
+}

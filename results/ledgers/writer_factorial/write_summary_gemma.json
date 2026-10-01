@@ -1,0 +1,459 @@
+{
+  "_what": "W1 WRITE PASS: Gemma-written summary + structured memories from the SAME 60 BEARING/MATCHED_CONTROL segments gpt-oss saw. A NEW writer arm; the gpt-oss arm is untouched.",
+  "precommitment": "docs/WRITER_FACTORIAL_PRECOMMITMENT.md",
+  "run_at_utc": "2026-10-01T05:14:03.657037+00:00",
+  "wall_clock_s": 53.66,
+  "writer_arm": "gemma_metis",
+  "writer_identity": {
+    "writer_model": "gemma-4-31B-it",
+    "writer_cluster": "metis",
+    "reasoning_effort_sent": null,
+    "temperature": 0.0,
+    "max_tokens": 512,
+    "workers": 16,
+    "truncation_is_always_an_error_on_the_WRITE_pass": false,
+    "_why_guard_off": "MATCHES the gpt-oss write pass exactly. representations.py records finish_reason and keeps a truncated-but-parseable memory on purpose; gpt-oss's 7 truncated summaries and 3 truncated structured writes are in the published arm on that basis. Enabling it for Gemma alone would make the two writer arms differ in their ADMISSION RULE as well as their model."
+  },
+  "n_segments": 60,
+  "strata": [
+    "BEARING",
+    "MATCHED_CONTROL"
+  ],
+  "gates": {
+    "wgate0_writer_blindness_positive_controls": {
+      "metadata_denylist_raises_on_task_key": true,
+      "arity_barrier_raises_on_two_param_writer": true,
+      "prompt_placeholder_barrier_raises_on_question": true,
+      "structured_validator_rejects_missing_keys": true,
+      "structured_validator_accepts_a_valid_object": true,
+      "all_fired": true
+    },
+    "wgate1_token_count_reproduction": {
+      "matched": 60,
+      "total": 60
+    },
+    "wgate2_segment_bytes_vs_gptoss_write_pass": {
+      "matched": 60,
+      "mismatched": 0,
+      "no_reference": 0
+    },
+    "wgate3_prompt_versions": {
+      "ours": {
+        "summary": "summary_v1@1.0.0+6ee16b28b818",
+        "structured": "structured_v1@1.0.0+163d4cd3eb70"
+      },
+      "gptoss": {
+        "summary": [
+          "summary_v1@1.0.0+6ee16b28b818"
+        ],
+        "structured": [
+          "structured_v1@1.0.0+163d4cd3eb70"
+        ]
+      },
+      "summary": true,
+      "structured": true,
+      "digest_moves_on_a_one_byte_change": true
+    },
+    "wgate4_gptoss_memories_sha256_unchanged": {
+      "before": "b342151c7f3cac5aa34ddd6d09981dd0272584343870a1c32994ae42a5f7ce5a",
+      "after": "b342151c7f3cac5aa34ddd6d09981dd0272584343870a1c32994ae42a5f7ce5a",
+      "unchanged": true
+    }
+  },
+  "budget": {
+    "limit": 160,
+    "planned": 120,
+    "real_endpoint_calls": 120,
+    "cache_hits": 0,
+    "counter": 120
+  },
+  "prompts": {
+    "semantic_type_v1": {
+      "version": "semantic_type_v1@1.0.0+c488b32ec77a",
+      "sha256": "c488b32ec77a06c0f7cffb476b9e416271fac7e1a06b2a571adee80c9484f146",
+      "semver": "1.0.0"
+    },
+    "structured_procedural_v1": {
+      "version": "structured_procedural_v1@1.0.0+623976e89cb2",
+      "sha256": "623976e89cb255108bdffe6f62bc10d331649264e9b05679d14d76431a4fe5e9",
+      "semver": "1.0.0"
+    },
+    "structured_v1": {
+      "version": "structured_v1@1.0.0+163d4cd3eb70",
+      "sha256": "163d4cd3eb7088ee61027f3f2d84e946152b3b8fc110b3c3e708253272847a2d",
+      "semver": "1.0.0"
+    },
+    "summary_v1": {
+      "version": "summary_v1@1.0.0+6ee16b28b818",
+      "sha256": "6ee16b28b818ed476246b4b9c6a607fb24cee7cce6f2ba3c0d3015a7b7dac58b",
+      "semver": "1.0.0"
+    }
+  },
+  "tokenizer": {
+    "tokenizer": "Qwen/Qwen3.5-9B",
+    "tokenizer_file": "/Users/bellayang/.cache/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer.json",
+    "vocab_size": "248070"
+  },
+  "write_outcomes": {
+    "structured:ok": 60,
+    "summary:ok": 60
+  },
+  "write_failures": {},
+  "truncation": {
+    "finish_reason_counts": {
+      "structured:stop": 60,
+      "summary:stop": 60
+    },
+    "n_truncated": {
+      "summary": 0,
+      "structured": 0
+    },
+    "truncated_locators": {
+      "summary": [],
+      "structured": []
+    }
+  },
+  "MALFORMED_STRUCTURED_RATE_IS_A_RESULT": {
+    "_rule": "NO silent repair, NO fallback to summary, NO retry. A malformed structure is recorded with its error code and the rate is reported PER WRITER.",
+    "gemma": {
+      "summary": {
+        "all_writes": {
+          "numerator": 0,
+          "denominator": 60
+        },
+        "writes_that_finished": {
+          "_definition": "finish_reason != 'length'",
+          "numerator": 0,
+          "denominator": 60
+        },
+        "writes_that_hit_the_cap": {
+          "numerator": 0,
+          "denominator": 0
+        },
+        "by_error_code": {}
+      },
+      "structured": {
+        "all_writes": {
+          "numerator": 0,
+          "denominator": 60
+        },
+        "writes_that_finished": {
+          "_definition": "finish_reason != 'length'",
+          "numerator": 0,
+          "denominator": 60
+        },
+        "writes_that_hit_the_cap": {
+          "numerator": 0,
+          "denominator": 0
+        },
+        "by_error_code": {}
+      }
+    },
+    "gptoss_same_segments": {
+      "summary": {
+        "all_writes": {
+          "numerator": 0,
+          "denominator": 60
+        },
+        "writes_that_finished": {
+          "numerator": 0,
+          "denominator": 53
+        },
+        "by_error_code": {}
+      },
+      "structured": {
+        "all_writes": {
+          "numerator": 3,
+          "denominator": 60
+        },
+        "writes_that_finished": {
+          "numerator": 0,
+          "denominator": 57
+        },
+        "by_error_code": {
+          "structured_malformed_json": 3
+        }
+      }
+    }
+  },
+  "FORMATION_COST_NEVER_POOLED": {
+    "_rule": "Gemma and gpt-oss formation costs are different currencies and are kept in separate blocks. Gemma reports NO reasoning tokens at all -- an absence, never 0.",
+    "gemma": {
+      "summary": {
+        "n_memories": 60,
+        "n_calls": 60,
+        "sum_input_tokens": 581074,
+        "sum_output_tokens": 10084,
+        "mean_input_tokens": 9684.566666666668,
+        "mean_output_tokens": 168.06666666666666,
+        "mean_latency_s": 6.2949949479855904,
+        "sum_latency_s": 377.69969687913544,
+        "sum_reasoning_tokens": null,
+        "n_rows_reporting_reasoning_tokens": 0,
+        "_reasoning_tokens_note": "None means the server returned no completion_tokens_details at all. That is an ABSENCE, not a measured zero, and a token-cost comparison against gpt-oss (which does report them) is therefore NOT apples-to-apples."
+      },
+      "structured": {
+        "n_memories": 60,
+        "n_calls": 60,
+        "sum_input_tokens": 618293,
+        "sum_output_tokens": 12082,
+        "mean_input_tokens": 10304.883333333333,
+        "mean_output_tokens": 201.36666666666667,
+        "mean_latency_s": 6.556746283402512,
+        "sum_latency_s": 393.4047770041507,
+        "sum_reasoning_tokens": null,
+        "n_rows_reporting_reasoning_tokens": 0,
+        "_reasoning_tokens_note": "None means the server returned no completion_tokens_details at all. That is an ABSENCE, not a measured zero, and a token-cost comparison against gpt-oss (which does report them) is therefore NOT apples-to-apples."
+      }
+    },
+    "gptoss_same_segments": {
+      "summary": {
+        "n_memories": 60,
+        "n_calls": 60,
+        "sum_input_tokens": 442635,
+        "sum_output_tokens": 20833,
+        "mean_input_tokens": 7377.25,
+        "mean_output_tokens": 347.21666666666664,
+        "mean_latency_s": 3.29153215274564,
+        "sum_latency_s": 197.4919291647384,
+        "sum_reasoning_tokens": 1960,
+        "n_rows_reporting_reasoning_tokens": 60,
+        "_reasoning_tokens_note": "None means the server returned no completion_tokens_details at all. That is an ABSENCE, not a measured zero, and a token-cost comparison against gpt-oss (which does report them) is therefore NOT apples-to-apples."
+      },
+      "structured": {
+        "n_memories": 60,
+        "n_calls": 60,
+        "sum_input_tokens": 454275,
+        "sum_output_tokens": 20787,
+        "mean_input_tokens": 7571.25,
+        "mean_output_tokens": 346.45,
+        "mean_latency_s": 3.298714886799765,
+        "sum_latency_s": 197.9228932079859,
+        "sum_reasoning_tokens": 6483,
+        "n_rows_reporting_reasoning_tokens": 60,
+        "_reasoning_tokens_note": "None means the server returned no completion_tokens_details at all. That is an ABSENCE, not a measured zero, and a token-cost comparison against gpt-oss (which does report them) is therefore NOT apples-to-apples."
+      }
+    }
+  },
+  "memory_text_differs_from_gptoss": {
+    "compared": 117,
+    "differ": 117,
+    "identical": 0,
+    "identical_examples": []
+  },
+  "per_representation": {
+    "summary": {
+      "representation": "summary",
+      "n_segments": 60,
+      "n_ok": 60,
+      "n_failed": 0,
+      "failure_rate": 0.0,
+      "failure_codes": {},
+      "memory_tokens": {
+        "n": 60,
+        "min": 53.0,
+        "p10": 95.30000000000001,
+        "p25": 122.5,
+        "median": 157.5,
+        "p75": 194.25,
+        "p90": 236.4,
+        "max": 456.0,
+        "mean": 163.81666666666666,
+        "total": 9829.0
+      },
+      "source_tokens": {
+        "n": 60,
+        "min": 1490.0,
+        "p10": 3102.5,
+        "p25": 4673.75,
+        "median": 7091.5,
+        "p75": 11724.0,
+        "p90": 17889.2,
+        "max": 19801.0,
+        "mean": 8424.95,
+        "total": 505497.0
+      },
+      "compression_ratio": {
+        "n": 60,
+        "min": 0.004999747487500632,
+        "p10": 0.007404856474928391,
+        "p25": 0.01089920591079713,
+        "median": 0.023178368345501903,
+        "p75": 0.03771234095523618,
+        "p90": 0.05818713634196739,
+        "max": 0.13455296547654175,
+        "mean": 0.030303691714020857,
+        "total": 1.8182215028412514
+      },
+      "extraction_calls_total": 60,
+      "extraction_calls_mean": 1.0,
+      "extraction_input_tokens_total": 581074,
+      "extraction_output_tokens_total": 10084,
+      "extraction_reasoning_tokens_total": null,
+      "n_with_reasoning_tokens": 0,
+      "latency_mean_s": 6.2949949479855904,
+      "latency_n": 60,
+      "_latency_n_note": "mean is over latency_n calls, NOT over n_segments. Raw makes no call, so its latency is null and excluded -- averaging it in as 0.0 would report a number describing nothing.",
+      "latency_total_s": 377.69969687913544,
+      "retry_total": 0,
+      "cache_hits": 0,
+      "semantic_types": {}
+    },
+    "structured": {
+      "representation": "structured",
+      "n_segments": 60,
+      "n_ok": 60,
+      "n_failed": 0,
+      "failure_rate": 0.0,
+      "failure_codes": {},
+      "memory_tokens": {
+        "n": 60,
+        "min": 124.0,
+        "p10": 150.4,
+        "p25": 164.75,
+        "median": 180.0,
+        "p75": 202.0,
+        "p90": 217.3,
+        "max": 265.0,
+        "mean": 184.16666666666666,
+        "total": 11050.0
+      },
+      "source_tokens": {
+        "n": 60,
+        "min": 1490.0,
+        "p10": 3102.5,
+        "p25": 4673.75,
+        "median": 7091.5,
+        "p75": 11724.0,
+        "p90": 17889.2,
+        "max": 19801.0,
+        "mean": 8424.95,
+        "total": 505497.0
+      },
+      "compression_ratio": {
+        "n": 60,
+        "min": 0.008181404979546487,
+        "p10": 0.011262154573813587,
+        "p25": 0.014428415734536789,
+        "median": 0.029003437752901196,
+        "p75": 0.040031058620904364,
+        "p90": 0.0605571586747457,
+        "max": 0.14026845637583893,
+        "mean": 0.032805063763427504,
+        "total": 1.9683038258056504
+      },
+      "extraction_calls_total": 60,
+      "extraction_calls_mean": 1.0,
+      "extraction_input_tokens_total": 618293,
+      "extraction_output_tokens_total": 12082,
+      "extraction_reasoning_tokens_total": null,
+      "n_with_reasoning_tokens": 0,
+      "latency_mean_s": 6.556746283402512,
+      "latency_n": 60,
+      "_latency_n_note": "mean is over latency_n calls, NOT over n_segments. Raw makes no call, so its latency is null and excluded -- averaging it in as 0.0 would report a number describing nothing.",
+      "latency_total_s": 393.4047770041507,
+      "retry_total": 0,
+      "cache_hits": 0,
+      "semantic_types": {
+        "episodic": 56,
+        "procedural": 1,
+        "failure_reflection": 3
+      }
+    }
+  },
+  "faithfulness": {
+    "summary": {
+      "n_scored": 60,
+      "n_with_numbers": 60,
+      "mean_number_support": 1.0,
+      "n_with_entities": 60,
+      "mean_entity_support": 0.9238266207923872,
+      "n_with_bindings": 0,
+      "mean_contradiction_rate": null,
+      "mean_contradiction_rate_excl_scope_collision": null,
+      "n_scope_collisions": 0,
+      "_contradiction_caveat": "mean_contradiction_rate is an UPPER BOUND, not a hallucination rate: a structured field name can collide with a source field name at a different granularity (per-segment 'action' vs per-state '- Action:'). Both contradictions in the B6 pilot were this artifact.",
+      "n_flagged": 3,
+      "limitations": [
+        "recombination: correct entities wired into a false relation scores 1.0",
+        "omission: a summary that drops the decisive fact scores 1.0",
+        "unsupported inference with no new tokens scores 1.0",
+        "negation/modality in free prose is invisible to the contradiction check",
+        "faithful paraphrase that renames an entity is scored as UNSUPPORTED (false alarm)",
+        "ENTITY FALSE-ALARM FLOOR (MEASURED, B6 pilot): the unsupported 'entities' were almost entirely sentence-initial capitalised VERBS ('Clicked', 'Executed', 'Performed', 'Starting') plus the structured renderer's OWN key names ('memory_type'), none of which are model-invented content. So entity_support is a LOWER bound -- 0.809 for structured and 0.928 for summary in the pilot -- and a gap from 1.0 is not evidence of hallucination without reading the list.",
+        "SCOPE COLLISION (false alarm, MEASURED): when a structured field name equals a source field name at a different granularity -- the schema's per-SEGMENT 'action' vs the source's per-STATE '- Action:' -- a correct summary of several actions is scored as contradicting the one action the source binds. Both contradictions in the B6 pilot were this, not hallucination. So the structured contradiction rate is an UPPER BOUND and must never be quoted as a hallucination rate."
+      ]
+    },
+    "structured": {
+      "n_scored": 60,
+      "n_with_numbers": 60,
+      "mean_number_support": 1.0,
+      "n_with_entities": 60,
+      "mean_entity_support": 0.8508342784070587,
+      "n_with_bindings": 33,
+      "mean_contradiction_rate": 0.9090909090909091,
+      "mean_contradiction_rate_excl_scope_collision": 0.0,
+      "n_scope_collisions": 30,
+      "_contradiction_caveat": "mean_contradiction_rate is an UPPER BOUND, not a hallucination rate: a structured field name can collide with a source field name at a different granularity (per-segment 'action' vs per-state '- Action:'). Both contradictions in the B6 pilot were this artifact.",
+      "n_flagged": 32,
+      "limitations": [
+        "recombination: correct entities wired into a false relation scores 1.0",
+        "omission: a summary that drops the decisive fact scores 1.0",
+        "unsupported inference with no new tokens scores 1.0",
+        "negation/modality in free prose is invisible to the contradiction check",
+        "faithful paraphrase that renames an entity is scored as UNSUPPORTED (false alarm)",
+        "ENTITY FALSE-ALARM FLOOR (MEASURED, B6 pilot): the unsupported 'entities' were almost entirely sentence-initial capitalised VERBS ('Clicked', 'Executed', 'Performed', 'Starting') plus the structured renderer's OWN key names ('memory_type'), none of which are model-invented content. So entity_support is a LOWER bound -- 0.809 for structured and 0.928 for summary in the pilot -- and a gap from 1.0 is not evidence of hallucination without reading the list.",
+        "SCOPE COLLISION (false alarm, MEASURED): when a structured field name equals a source field name at a different granularity -- the schema's per-SEGMENT 'action' vs the source's per-STATE '- Action:' -- a correct summary of several actions is scored as contradicting the one action the source binds. Both contradictions in the B6 pilot were this, not hallucination. So the structured contradiction rate is an UPPER BOUND and must never be quoted as a hallucination rate."
+      ]
+    }
+  },
+  "faithfulness_planted_control": {
+    "_what": "one invented number appended to a real Gemma summary; number_support MUST drop below 1.0",
+    "n": 5,
+    "n_fired": 5,
+    "all_fired": true,
+    "detail": [
+      {
+        "segment_id": "013696c4:28-28",
+        "number_support": 0.9473684210526315,
+        "fires": true
+      },
+      {
+        "segment_id": "01b7cff8:7-8",
+        "number_support": 0.9736842105263158,
+        "fires": true
+      },
+      {
+        "segment_id": "028ee25f:4-4",
+        "number_support": 0.9333333333333333,
+        "fires": true
+      },
+      {
+        "segment_id": "06c70de4:13-14",
+        "number_support": 0.75,
+        "fires": true
+      },
+      {
+        "segment_id": "06c70de4:17-18",
+        "number_support": 0.75,
+        "fires": true
+      }
+    ]
+  },
+  "artifact_checks": {
+    "rows_on_disk_equals_expected": true,
+    "every_row_carries_the_locator": true,
+    "locators_match_the_gptoss_set": true,
+    "writer_model_is_gemma": true,
+    "reasoning_tokens_all_null_never_zero": true,
+    "no_failed_write_carries_memory_text": true,
+    "every_failed_write_has_an_error_code": true,
+    "every_failed_structured_write_kept_its_raw_output": true,
+    "prompt_version_equals_the_gptoss_one": true,
+    "gptoss_memories_untouched": true,
+    "memories_differ_from_gptoss": true,
+    "faithfulness_control_fired": true,
+    "blindness_controls_fired": true
+  },
+  "VERDICT": "WRITE_PASSED"
+}
