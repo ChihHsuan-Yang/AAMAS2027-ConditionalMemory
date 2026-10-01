@@ -44,6 +44,7 @@ section and for the claim that the measurement is trustworthy.
 | 19 | **A case-variant model id returns HTTP 200 and is silently corrected.** `gemma-4-31b-it` (lowercase b) is not a 404; metis resolves it to `gemma-4-31B-it` | SA-GEMMA | `_assert_model` catches it at call time, but a mis-cased config would pass every dry run and every liveness check |
 | 20 | **I claimed an artifact retained model text without opening it.** My commit `53a21f8` stated the full SciCode artifact "keeps the raw model text on disk rather than being reduced to a digest, so re-scoring under a corrected verifier stays possible", and `MANIFEST.json` said the same. Measured: FULL minus SLIM keys is `['stderr_tail']` — there is **no model-text key anywhere**. `scicode_pilot.py` records `response_chars=len(content)` and discards `content`; `P1Client` was built with no `cache=`, so no completion was persisted. I was reasoning from the LongMemEval artifact's shape, which does retain text | SA-HF-CONVERT, then confirmed by me | **SciCode could never be re-scored under a corrected verifier** — the exact failure the retention policy exists to prevent, recorded in the register as prevented while being untrue. Note the shape: this is [#]'a stamp you did not measure' applied to a provenance claim rather than a number |
 | 21 | **A pytest collection error was scored as a wrong answer.** `score_patched_file` ended its F2P branch with `if not f2p.ok: return 0.0`. `TestOutcome.n_status_lines` exists *precisely* to separate "the tests ran and failed" from "the tests never ran" — it was computed, written into the detail string, and then **never consulted**. Measured across both repos: **27 django + 10 sympy arm-runs** carried `reward 0.0` with `status_lines=0`, i.e. an import/collection error recorded as the model's fix being wrong | Master, by checking that sympy's first-ever rewards came from real test runs rather than trusting `reward is not None` | this is defect #10's family again — **an error value becoming a real number** — and it ran in the opposite direction from the apply-failure guard the harness was *built* to prevent. Corrected denominators: django matched 13→12, sympy 4→3, pooled 17→15. The conclusion did not change (every contrast still crosses zero), which is why it had to be found by looking rather than by a surprising result |
+| 22 | **I measured within-session repeatability and called it reproducibility.** On finding the SciCode memory text was never persisted, I probed the writer twice *in one process*, got byte-identical output, and concluded the text was "reproducible, not lost" — then dispatched a recovery on that premise. The two draws shared a session; the question was whether a draw TODAY equals a draw from a RUN LAST WEEK. **Measured at fully matched settings** (`max_tokens=512`, temp 0, `reasoning_effort=low`, segments rebuilt with r1's own `load_segments`) against 8 ground-truth LongMemEval summaries: **0/8 byte-identical**, while a within-session triple draw is **3/3 identical**. Same prompt, same decoding, different day, different text | SA-RECOVER found it; its own disproof used `max_tokens=1024` against a 512 corpus and was caught by the verifier; I then settled it at matched settings | **308 SciCode cells would have shipped carrying regenerated text presented as the memory whose utility was measured** — a different memory wearing this run's rewards. The general rule: *temperature 0 is not a persistence strategy.* Any arm that discards model-written text is unrecoverable by construction |
 
 ## Added 2026-09-30 (later) — found while RUNNING the reader-transfer arm
 
@@ -487,3 +488,51 @@ Prefer: a field in the artifact > an assertion in code > a line in a doc > an ag
 Defects #1, #4, #5 were in code or reasoning I authored, and #3 I reported to the user as a
 measured result. Each was found by an agent I had asked to check my work. That is the
 argument for the cross-checking discipline, and the reason none of them is in the paper.
+
+## Added 2026-10-01 (SA-WRITER, the Writer × Reader factorial)
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 24 | **A stated algebraic identity, asserted in a precommitment and wrong in its sign.** `docs/WRITER_FACTORIAL_PRECOMMITMENT.md` defined the SAME-FAMILY contrast correctly, defined INTERACTION correctly, and then claimed SAME-FAMILY ≡ **−**½ × INTERACTION. With the four arm means `oo, og, go, gg`: `INTERACTION = (gg−og)−(go−oo) = gg−og−go+oo` and `SAME_FAMILY = ½(oo+gg)−½(og+go)`, so the relation is **+**½ | the constructed-ground-truth positive control in `scripts/w3_analyze_factorial.py`, which predicts same-family from a KNOWN interaction and **refused to fire** against the documented sign | the two quantities were computed correctly, so no reported number was wrong. What would have shipped is a **methods sentence that contradicts its own table** — and a reader checking the algebra would be entitled to distrust everything else in the document |
+
+### Why this one is worth keeping even though no number moved
+
+It is the register's standing shape in its mildest costume. The quantities were
+right; only the **claim about how they relate** was wrong, and that claim was the
+one thing in the section nobody had machine-checked, *because it looked like
+algebra rather than like a measurement*.
+
+> **An identity stated in prose is an unverified assertion no matter how
+> derivable it is.** It earns the same treatment as a number: compute it, and
+> report the residual.
+
+The analysis now emits the residual against **both** signs
+(`_same_family_equals_PLUS_half_interaction`, with
+`max_abs_difference_against_the_PRECOMMITTED_MINUS_sign` beside it), so the
+erratum is visible in the artifact rather than living only in a document
+someone has to remember to re-read.
+
+**What caught it was a control built from a known ground truth, not a review.**
+The control constructs four arms with an interaction of exactly +0.5, so it knows
+what same-family must be. Reading the precommitment would never have caught this:
+the sentence is fluent, the surrounding definitions are correct, and the error is
+one character.
+
+**The erratum is labelled, not deleted.** The precommitment keeps the original
+wording with the correction beneath it, per `retraction is labelling, not
+deletion`. A precommitment silently edited after the fact is no longer a
+precommitment.
+
+### A near-miss recorded at the same time: a count that is zero by construction
+
+The factorial's cache contains **zero** truncated responses under both readers. That
+is true and it is **not** evidence that no truncation occurred: `P1Client` raises
+the truncation guard **before** `cache.store`, so a refused truncation is never
+written to the cache at all. On a strict arm the cache count is 0 *by construction*.
+
+This was caught before it reached a sentence, by asking what the number was an
+average over. The control now states the mechanism in the artifact, reports the
+**refused** count from the rows (where truncation is actually visible), and keeps
+"none was scored" as a separate line. **A denominator that cannot be non-zero is
+not a measurement**, and the previous phrasing would have let a 0 read as a
+property of the model rather than of where the guard sits in the call path.
