@@ -1166,7 +1166,9 @@ def main():
     L.append(rf"\def\rgSmDiff{{{_sm['paired_diff_gemma_minus_gptoss']:+.4f}}}")
     L.append(rf"\def\rgSmLo{{{_lo:+.4f}}}")
     L.append(rf"\def\rgSmHi{{{_hi:+.4f}}}")
-    L.append(rf"\def\rgSmN{{{_sm['n_matched']}}}")
+    L.append(rf"\def\rgSmN{{{_sm['n_matched']}}}")        # REPLICATE ROWS
+    L.append(rf"\def\rgSmCells{{{_sm['n_cells']}}}")      # cells -- the honest unit
+    L.append(rf"\def\rgSmTasks{{{_sm['n_tasks']}}}")
     L.append(rf"\def\rgSmOss{{{_sm['deltaU_gptoss']:+.4f}}}")
     L.append(rf"\def\rgSmGem{{{_sm['deltaU_gemma']:+.4f}}}")
 

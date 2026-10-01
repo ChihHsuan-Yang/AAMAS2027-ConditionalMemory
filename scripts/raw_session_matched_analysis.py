@@ -112,6 +112,16 @@ def main() -> int:
         "_what": ("raw reader effect, BOTH ARMS RE-RUN IN ONE SESSION. Replaces "
                   "the published cross-session figure for this contrast."),
         "n_matched": len(matched),
+        "_n_matched_UNIT": ("REPLICATE ROWS, not cells. The 550 are 275 cells x 2 "
+                            "replicates; the join key includes replicate_id. "
+                            "Averaging replicates within a cell first gives "
+                            "n=275 cells over 123 tasks and the IDENTICAL point "
+                            "estimate and interval, because the bootstrap "
+                            "resamples by TASK and both replicates of a cell "
+                            "always travel together. Quote 275 cells / 550 "
+                            "replicate rows -- never '550 cells'."),
+        "n_cells": len({(k[0], k[1]) for k in matched}),
+        "n_tasks": len({k[1] for k in matched}),
         "deltaU_gptoss": round(mo_, 4),
         "deltaU_gemma": round(mg_, 4),
         "paired_diff_gemma_minus_gptoss": round(mean, 4),

@@ -1,6 +1,9 @@
 {
  "_what": "raw reader effect, BOTH ARMS RE-RUN IN ONE SESSION. Replaces the published cross-session figure for this contrast.",
  "n_matched": 550,
+ "_n_matched_UNIT": "REPLICATE ROWS, not cells. The 550 are 275 cells x 2 replicates; the join key includes replicate_id. Averaging replicates within a cell first gives n=275 cells over 123 tasks and the IDENTICAL point estimate and interval, because the bootstrap resamples by TASK and both replicates of a cell always travel together. Quote 275 cells / 550 replicate rows -- never '550 cells'.",
+ "n_cells": 275,
+ "n_tasks": 123,
  "deltaU_gptoss": 0.2182,
  "deltaU_gemma": 0.3164,
  "paired_diff_gemma_minus_gptoss": 0.0982,
