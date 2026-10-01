@@ -41,6 +41,34 @@ forbidden-claims list.
 
 A learned predictor appears only if the measurement survives a kill criterion.
 
+## Start here — the provenance layer
+
+**Take any figure, table, claim, benchmark or dataset row in the paper and find the code
+and data behind it, without reading chat history.**
+
+| | |
+|---|---|
+| 📄 **Paper** | *What Is This Memory Useful For? Measuring Task-Conditioned Utility in Long-Term Agent Memory* (AAMAS 2027) |
+| ✍️ **Manuscript (Overleaf)** | <https://git.overleaf.com/6abbde4a9eb777031afef068> · local clone `../overleaf` · manuscript-side lookup `overleaf/ARTIFACT_LOOKUP.md` |
+| 🤗 **Dataset (Hugging Face)** | <https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory> — **private**; tags `v0.1-lmev2-derived`, `v0.2-repr-derived`, `v0.3-scicode-derived`, `v0.4-swebench-metrics` |
+| 💻 **Code (GitHub)** | <https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory> |
+
+| map | what it answers |
+|---|---|
+| [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) | **paper → artifact.** Every figure and table with its generator, canonical input, GitHub path, HF subset and unit; memory construction per benchmark; the eligibility/validity rules and what is **never** scored as reward zero |
+| [`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md) | **can we reproduce and audit it?** Per benchmark: source episode, each memory text, both arm outputs, reward, scorer, endpoint and replicate metadata — HF-private / GitHub / local-only / **unavailable forever**. Gaps are recorded, not softened |
+| [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) | every headline result, one row each |
+| [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md) | figure decisions and the generator contract |
+| [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) | one row per published HF snapshot, with its known limitations |
+| [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) | the authoritative definition of "full coverage", per benchmark, with the universe named |
+| [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) | current state — the entry point for a new agent |
+
+🔴 **Two standing traps before you quote anything.** The HF `benchmark` field spells
+`longmemeval_v2` / `scicode` / `swebench_verified` — a grep for `lmev2` or `swebench`
+returns a **false zero**. And `/tmp/lmev2/questions.jsonl` is untracked, outside the
+repo, in shared `/tmp`, and gates the bearing-scarcity figure
+([`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md) §5).
+
 ## Repository map
 
 | Path | Contents |
@@ -54,6 +82,11 @@ A learned predictor appears only if the measurement survives a kill criterion.
 | [`docs/RESULTS_LEDGER.md`](docs/RESULTS_LEDGER.md) | every number, its artifact, its date |
 | [`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md) | **every cell, call and token — counted from logs, never estimated** |
 | [`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md) | what is in scope. **The scope is frozen** |
+| [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) | **paper → artifact.** Every figure, table, memory-construction rule and eligibility rule, with verified paths |
+| [`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md) | **what still exists.** Per-result trace audit: HF-private / GitHub / local-only / unavailable forever |
+| [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) · [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md) | result and figure navigation tables |
+| [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) · [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) | published snapshots; the authoritative coverage universes |
+| [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) | current state, the entry point |
 | `src/p1mem/` | the package: adapters, client, schema, validator, leakage detector |
 | `configs/` · `scripts/` · `tests/` | run configs, entry points, tests |
 | `data/` · `results/` | not committed; see each README |
@@ -106,12 +139,12 @@ is the wrong object, for a different reason than we hypothesised.
 
 | | |
 |---|---|
-| **Title** | *What Is This Memory Useful For? Conditional Evaluation of Long-Term Agent Memory* |
+| **Title** | *What Is This Memory Useful For? Measuring Task-Conditioned Utility in Long-Term Agent Memory* (re-checked against `overleaf/main.tex:65` on 2026-10-01; the previous line here said “Conditional Evaluation of” and was stale) |
 | **Venue** | AAMAS 2027 main track — abstract 1 Oct AoE, paper 8 Oct AoE |
-| **Overleaf** | `git.overleaf.com/6abbde4a9eb777031afef068` (`main`), local clone `../overleaf` |
+| **Overleaf** | <https://git.overleaf.com/6abbde4a9eb777031afef068> (`main`), local clone `../overleaf`; manuscript-side lookup `overleaf/ARTIFACT_LOOKUP.md` |
 | **Current Overleaf commit** | **`1961825`** "Cite two figures the text never pointed at; tighten the reader paragraph" |
-| **Code repo** | `github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory` (`main`) |
-| **HF dataset** | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
+| **Code repo** | <https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory> (`main`) |
+| **HF dataset** | <https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory> (**private**) |
 | **Current HF version** | **v0.4 `swebench-metrics`**, tag `v0.4-swebench-metrics` (commit `bc66629f`, == branch `main` byte-for-byte) — **5,924 rows** (longmemeval_v2 5,643 / scicode 154 / swebench_verified 127), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Licence frontmatter is `other` + `license_name: mixed-per-row-see-data-card`, NOT apache-2.0: the 127 SWE-bench rows are metrics-and-ids only. All four tags exist (v0.1/v0.2/v0.3/v0.4). **Re-verified 2026-10-01 by SA-SYNC by downloading every tag** — row counts, schema version, benchmark composition and withholding state all reproduce exactly. 🔴 The benchmark field spells `longmemeval_v2` / `scicode` / `swebench_verified`; a grep for `lmev2` or `swebench` returns a false zero. |
 | **Code repo HEAD** | **`9f835a2`** "docs: freeze the scientific scope", 2026-10-01 12:21 CDT · 227 commits |
 
