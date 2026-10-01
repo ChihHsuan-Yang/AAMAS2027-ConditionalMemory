@@ -97,6 +97,21 @@ def main() -> int:
           f"{f4(e['deltaU_gptoss']['mean'])} | {f4(e['deltaU_gemma']['mean'])} | "
           f"{f4(d['mean'])} | {ci(d)} | {sig(rep)} |")
     w("")
+    w("`docs/ZERO_CONTRIBUTORS.md` requires the non-zero contributor count "
+      "beside the nominal denominator, and **both** magnitudes. A cell failing "
+      "in both arms under both readers contributes an exact 0.0, which is a "
+      "structural zero and not a measurement of \"the readers agree\":\n")
+    w("| representation | nominal cells | non-zero contributors | diluted mean | conditional mean (contributors only) |")
+    w("|---|---:|---:|---:|---:|")
+    for rep in REPS:
+        c = P[rep]["contributors"]
+        w(f"| {rep} | {c['n_nominal']} | {c['n_nonzero']} | "
+          f"{f4(c['diluted_mean'])} | {f4(c['conditional_mean_on_nonzero'])} |")
+    w("")
+    w("> **Neither magnitude alone is the answer.** The diluted mean is the "
+      "honest population figure and is what the significance verdict comes "
+      "from; the conditional mean conditions on an outcome and can never be "
+      "the population claim.\n")
     w("Cell-level intervals (not clustered) are in the artifact; the "
       "**task-clustered** interval governs, because cells repeat within tasks "
       "and a cell-level interval would treat repeated views of one task as "
