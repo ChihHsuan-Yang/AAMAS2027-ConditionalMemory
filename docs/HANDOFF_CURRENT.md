@@ -48,8 +48,10 @@ Then:
 
 ## 2. Who is working right now — DO NOT EDIT THEIR FILES
 
-Five agents work this repo concurrently. `git add -A` has mis-attributed files **twice**.
-**Stage explicit paths and verify with `git show --stat`.**
+Five agents work this repo concurrently and **share one git index**. `git add -A` has
+mis-attributed files twice — and staging an explicit path is **still not enough**, because
+`git commit` commits the whole index. **Use `git commit -F <msg> -- <paths>` and verify
+with `git show --stat` every time.** See §10 trap 23; I hit this on 2026-10-01.
 
 | agent | owns |
 |---|---|
@@ -382,8 +384,25 @@ not), **P1-I13** the efficiency ratios in `main.tex`.
     `assert_content_redistributable`. Enforced in
     `p1mem.schema.CONTENT_EMBARGOED_BENCHMARKS` with 4 tests; findings in
     `docs/BENCHMARK_LICENSES.md` §5.
-23. **🔴 NEVER `git add -A`.** Concurrent agents; it has already swept other agents'
-    in-progress files into the wrong commit, **in both directions**.
+23. **🔴 NEVER `git add -A`** — and **that rule alone is NOT sufficient.** Concurrent
+    agents have already swept each other's in-progress files into the wrong commit, in
+    both directions. 🔴 **New, found by SA-ARCHIVE 2026-10-01 by hitting it:** staging an
+    explicit path is **not enough**, because `git commit` commits the **entire index**,
+    not what you just staged. I ran `git add README.md` and the resulting commit carried
+    **23 files and 29,075 insertions** — all of SA-SWE-FINAL's staged SWE-bench work,
+    under my commit message. *The index is shared state between agents; your `git add` is
+    an append to it, not a declaration of what the commit contains.*
+
+    **The safe form is a pathspec-limited commit, which ignores the rest of the index:**
+
+    ```bash
+    git commit -F <msgfile> -- path/one path/two     # ONLY these paths
+    git show --stat HEAD                              # then VERIFY, every time
+    ```
+
+    `git show --stat` is what caught it. **Run it after every commit**, and if the stat
+    shows files you did not write: `git reset --soft HEAD~1` (which preserves the other
+    agent's staging) and re-commit with `--`.
 
 ### The numbers
 

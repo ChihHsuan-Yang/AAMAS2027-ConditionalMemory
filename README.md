@@ -290,7 +290,19 @@ Exact commands and restart procedures:
 cluster queue** — every run to date executed on this laptop against the ALCF gateway.
 
 ⚠️ **Never `git add -A`** — it has already mis-attributed files twice in this repo, in
-both directions. Stage explicit paths and verify with `git show --stat`.
+both directions. 🔴 **And staging an explicit path is NOT sufficient:** `git commit`
+commits the **whole index**, which is shared with every other agent. Use a
+**pathspec-limited commit** and verify every time:
+
+```bash
+git commit -F <msgfile> -- path/one path/two     # ONLY these paths
+git show --stat HEAD                              # then VERIFY
+```
+
+If the stat shows files you did not write: `git reset --soft HEAD~1` (this preserves the
+other agent's staging) and re-commit with `--`. SA-ARCHIVE hit this on 2026-10-01 — a
+`git add README.md` produced a 23-file, 29,075-insertion commit carrying another agent's
+work. `git show --stat` is what caught it.
 
 ### Failed, invalid, and superseded runs
 
@@ -423,7 +435,8 @@ Then run, in order:
 
 🔴 **The five standing rules:**
 **(1)** Never quote a number you have not re-derived from an artifact.
-**(2)** Never `git add -A` — stage explicit paths, verify with `git show --stat`.
+**(2)** Never `git add -A`, and never a bare `git commit` either — the index is shared.
+Use `git commit -F <msg> -- <paths>` and verify with `git show --stat`.
 **(3)** Join on `memory_unit_locator`; `memory_id`, `cell_id` and `condition_id` all
 produce silent zeros.
 **(4)** Positive-control every null — an empty result is a dead channel until proven
