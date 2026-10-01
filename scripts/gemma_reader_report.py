@@ -112,6 +112,13 @@ def main() -> int:
       "honest population figure and is what the significance verdict comes "
       "from; the conditional mean conditions on an outcome and can never be "
       "the population claim.\n")
+    w("🔴 **A CI that spans zero here is not evidence that the readers agree.** "
+      "`docs/PAIRED_POWER.md`: power depends on the spread among contributors, "
+      "not their count alone, and a contrast with few non-zero contributors is "
+      "underpowered rather than null. Read the contributor counts above "
+      "**before** reading any interval — where they are small, the honest "
+      "reading of a zero-spanning interval is *underpowered*, not *no "
+      "difference*.\n")
     w("Cell-level intervals (not clustered) are in the artifact; the "
       "**task-clustered** interval governs, because cells repeat within tasks "
       "and a cell-level interval would treat repeated views of one task as "
