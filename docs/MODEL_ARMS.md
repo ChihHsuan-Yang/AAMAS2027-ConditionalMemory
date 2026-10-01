@@ -135,6 +135,35 @@ memory on purpose.
 not decided: whether to re-run those 8 pilot cells or annotate them is a call
 about published results. Recorded in `docs/DEFECT_REGISTER.md`.
 
+### 🔴 CORRECTION (2026-09-30, later): the fix above was INSUFFICIENT
+
+The guard described above still hung off **`finish_reason == "length"`**. Under
+16-worker load at the real 15–29k-token cell shape, metis/`gemma-4-31B-it`
+returns truncated responses with `finish_reason` **`""`** *and*
+`usage.stop_reason` **`""`** — neither says `"length"` — while
+`completion_tokens` sits **exactly at `max_tokens`**. The guard was silent and
+**7 fragments of 2,034–2,146 characters were returned as answers** before the
+run was killed at 600/3,388 calls.
+
+The sentence above — *"Measured live at `max_tokens=8`: `finish_reason="length"`"* —
+is **true of a single idle request and false of the run**. A single-request
+probe cannot find this; it was found by auditing the in-flight cache.
+
+`P1Client._looks_truncated` now tests **three** observables, on both the fresh
+and the cache-hit path:
+
+```text
+1. finish_reason == "length"              the documented signal
+2. usage.stop_reason == "length"          the same fact, other field
+3. completion_tokens >= max_tokens        the ARITHMETIC fact
+```
+
+Clause 3 cannot be misreported without the server also misreporting its own
+token count. **Verified not to move a published number:** across **11,693**
+`gpt-oss-120b` rows in every shipped cache the widened detector flags
+**exactly the 19** rows clause 1 already flagged. Full account:
+`docs/DEFECT_REGISTER.md` #20.
+
 ### A second defect found while fixing the first
 
 `P1Client` enforced its truncation guard on a **fresh** response but **not on

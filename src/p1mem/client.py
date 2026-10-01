@@ -113,6 +113,13 @@ class CallRecord:
     finish_reason: str = ""
     cache_hit: bool = False
     http_status: int | None = None
+    #: usage.stop_reason verbatim -- None means the server did not send it,
+    #: which is NOT the same as it sending "". Kept distinct so an audit can
+    #: tell an absent field from a reported one.
+    raw_stop_reason: str | None = None
+    #: the max_tokens this call was issued under, so the cache-hit path can
+    #: re-apply the arithmetic truncation clause without guessing a budget.
+    budget_tokens: int | None = None
     attempts: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -299,7 +306,14 @@ class P1Client:
                     resolved_model=hit.resolved_model, latency_s=hit.latency_s,
                     input_tokens=hit.prompt_tokens, output_tokens=hit.completion_tokens,
                     reasoning_tokens=hit.reasoning_tokens, retry_count=hit.retry_count,
-                    finish_reason=hit.finish_reason, cache_hit=True, http_status=200)
+                    finish_reason=hit.finish_reason, cache_hit=True, http_status=200,
+                    # The cache-hit path must see the SAME three observables
+                    # as the fresh path, or the arithmetic truncation clause
+                    # is enforced on a first run and silently skipped on a
+                    # RESUME -- which is defect #17's shape, in the detector
+                    # that was added to fix defect #16.
+                    raw_stop_reason=(hit.raw_usage or {}).get("stop_reason"),
+                    budget_tokens=max_tokens)
                 # A cached row must still satisfy the pin. A cache written
                 # under a different model is a contradiction, not a shortcut.
                 self._assert_model(hit.resolved_model)
@@ -360,7 +374,16 @@ class P1Client:
         rec.reasoning_tokens = details.get("reasoning_tokens")
 
         choice = (payload.get("choices") or [{}])[0]
+        # 🔴 `or ""` turns an ABSENT or NULL finish_reason into the empty
+        # string, and "" != "length", so the truncation guard silently does
+        # not fire. Measured live on metis/gemma-4-31B-it 2026-09-30: under
+        # load at the real ~15-29k-token cell shape the gateway returns
+        # finish_reason "" (and usage.stop_reason "") on responses that sit
+        # EXACTLY at max_tokens. Recorded raw so a later audit can tell an
+        # absent field from a reported one.
         rec.finish_reason = choice.get("finish_reason") or ""
+        rec.raw_stop_reason = (payload.get("usage") or {}).get("stop_reason")
+        rec.budget_tokens = max_tokens
         content = (choice.get("message") or {}).get("content") or ""
 
         self._assert_not_truncated(rec, content, max_tokens)
@@ -373,6 +396,36 @@ class P1Client:
                 latency_s=rec.latency_s, retry_count=rec.retry_count,
                 error_code=rec.error_code, raw_usage=usage))
         return content, rec
+
+    @staticmethod
+    def _looks_truncated(rec: CallRecord, max_tokens: int) -> bool:
+        """Was this response cut off at the token budget?
+
+        THREE observables, because `finish_reason == "length"` is a property
+        of a SERVER'S REPORTING, not of truncation -- the third disguise of
+        defect #16 (docs/DEFECT_REGISTER.md):
+
+        1. ``finish_reason == "length"``  -- the documented signal;
+        2. ``usage.stop_reason == "length"`` -- the same fact in the other
+           field metis populates;
+        3. ``completion_tokens >= max_tokens`` -- the ARITHMETIC fact, which
+           no server can misreport without also misreporting its own token
+           count. This is the clause that catches the measured metis/Gemma
+           case where BOTH reason fields come back as the empty string on a
+           response sitting exactly at the cap.
+
+        Clause 3 is SOUND, not merely sufficient: a model that stops on its
+        own must emit the EOS token, so a complete answer cannot consume the
+        whole budget. Verified against every shipped cache -- across 11,693
+        gpt-oss rows it flags exactly the 19 that clause 1 already flagged and
+        not one more, so widening the detector CANNOT alter a published
+        gpt-oss number. On the Gemma rows it flags 7 that clause 1 missed.
+        """
+        if rec.finish_reason == "length":
+            return True
+        if getattr(rec, "raw_stop_reason", None) == "length":
+            return True
+        return bool(max_tokens) and int(rec.output_tokens or 0) >= int(max_tokens)
 
     def _assert_not_truncated(self, rec: CallRecord, content: str,
                               max_tokens: int) -> None:
@@ -400,7 +453,7 @@ class P1Client:
         that is a scientific decision about existing results, not a code
         change. It is recorded in docs/MODEL_ARMS.md instead.
         """
-        if rec.finish_reason != "length":
+        if not self._looks_truncated(rec, max_tokens):
             return
         blank = not content.strip()
         if not (blank or self.truncation_is_always_an_error):
@@ -408,8 +461,24 @@ class P1Client:
         rec.error_code = "truncated_no_content" if blank else "truncated_fragment"
         why = ("empty content" if blank else
                f"a {len(content.strip())}-character FRAGMENT: {content.strip()[:80]!r}")
+        # Name the clause that ACTUALLY fired. A guard that reports the wrong
+        # reason for a right verdict is harder to catch than a wrong verdict:
+        # printing "finish_reason='length'" on the metis/Gemma case -- where
+        # that field is the EMPTY STRING and only the arithmetic clause fired
+        # -- would have hidden this very defect from the next reader.
+        if rec.finish_reason == "length":
+            clause = "finish_reason='length'"
+        elif getattr(rec, "raw_stop_reason", None) == "length":
+            clause = (f"usage.stop_reason='length' "
+                      f"(finish_reason was {rec.finish_reason!r})")
+        else:
+            clause = (f"completion_tokens={rec.output_tokens} >= "
+                      f"max_tokens={max_tokens} -- the ARITHMETIC clause; this "
+                      f"server reported finish_reason={rec.finish_reason!r} and "
+                      f"stop_reason={getattr(rec, 'raw_stop_reason', None)!r}, "
+                      f"neither of which says 'length'")
         raise TruncatedResponseError(
-            f"{self.cluster}/{self.model}: finish_reason='length' with {why}. "
+            f"{self.cluster}/{self.model}: {clause} with {why}. "
             f"max_tokens={max_tokens} was exhausted "
             f"(reasoning_tokens={rec.reasoning_tokens}, "
             f"completion_tokens={rec.output_tokens}). "

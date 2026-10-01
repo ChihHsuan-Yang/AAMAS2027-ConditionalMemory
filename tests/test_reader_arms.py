@@ -269,3 +269,168 @@ def test_the_sophia_gemma_spelling_on_metis_is_caught_as_normalisation():
     something merged two serving stacks that return different text."""
     row = _gemma_row(reader_model="google/gemma-4-31B-it")
     assert "cross_cluster_model_naming" in {i.code for i in V.validate_row(row)}
+
+
+# ===========================================================================
+# DEFECT #20 (2026-09-30, SA-GEMMA-READER): the truncation guard's observable
+# was a property of the SERVER'S REPORTING, not of truncation.
+#
+# Measured live on metis/gemma-4-31B-it at the real ~15-29k-token cell shape,
+# under 16-worker load: a response sitting EXACTLY at max_tokens came back
+# with finish_reason "" and usage.stop_reason "" -- neither says "length".
+# The guard tested `finish_reason == "length"`, so it was silent, and seven
+# 2,034-2,146-character FRAGMENTS were returned as if they were answers.
+# Scored, each is a wrong answer that drives dU negative and MANUFACTURES a
+# harmful memory. That is defect #16 in a third disguise: #16 was "the
+# observable is a property of the MODEL", this is "the observable is a
+# property of the SERVER'S REPORTING OF THAT MODEL, under load".
+#
+# Each test below was verified to FAIL against the unfixed client.
+# ===========================================================================
+
+def _rec(**kw):
+    from p1mem.client import CallRecord
+    base = dict(cluster="metis", requested_model="gemma-4-31B-it")
+    base.update(kw)
+    return CallRecord(**base)
+
+
+def test_truncation_caught_when_server_reports_no_finish_reason():
+    """The MEASURED metis/Gemma shape: at the cap, both reason fields empty."""
+    from p1mem.client import P1Client, TruncatedResponseError
+    c = P1Client(cluster="metis", model="gemma-4-31B-it", cache=None,
+                 truncation_is_always_an_error=True)
+    rec = _rec(finish_reason="", raw_stop_reason="", output_tokens=512)
+    # the OLD detector is silent on exactly this record --
+    assert rec.finish_reason != "length"
+    # -- and the new one must not be.
+    with pytest.raises(TruncatedResponseError):
+        c._assert_not_truncated(rec, "a plausible grammatical fragment", 512)
+
+
+def test_truncation_caught_via_stop_reason_alone():
+    from p1mem.client import P1Client, TruncatedResponseError
+    c = P1Client(cluster="metis", model="gemma-4-31B-it", cache=None,
+                 truncation_is_always_an_error=True)
+    rec = _rec(finish_reason="", raw_stop_reason="length", output_tokens=200)
+    with pytest.raises(TruncatedResponseError):
+        c._assert_not_truncated(rec, "fragment", 512)
+
+
+def test_complete_answer_below_the_cap_is_not_flagged():
+    """The detector must DISCRIMINATE, not just fire."""
+    from p1mem.client import P1Client
+    c = P1Client(cluster="metis", model="gemma-4-31B-it", cache=None,
+                 truncation_is_always_an_error=True)
+    rec = _rec(finish_reason="stop", raw_stop_reason="stop", output_tokens=133)
+    c._assert_not_truncated(rec, "A complete answer. \\boxed{X}", 512)
+
+
+def test_widened_detector_does_not_change_gptoss_behaviour():
+    """Widening the detector must NOT retroactively invalidate shipped cells.
+
+    The 8 published gpt-oss pilot cells are non-empty truncations that the
+    arm deliberately does NOT treat as errors (docs/MODEL_ARMS.md). A fix for
+    a Gemma hazard must not silently alter a gpt-oss table.
+    """
+    from p1mem.client import P1Client, TruncatedResponseError
+    c = P1Client(cluster="metis", model="gpt-oss-120b", cache=None)
+    assert c.truncation_is_always_an_error is False
+    # non-empty truncation: still returned
+    c._assert_not_truncated(
+        _rec(requested_model="gpt-oss-120b", finish_reason="length",
+             raw_stop_reason="length", output_tokens=512),
+        "a long truncated gpt-oss answer", 512)
+    # empty truncation: still raises (clause 1 intact)
+    with pytest.raises(TruncatedResponseError):
+        c._assert_not_truncated(
+            _rec(requested_model="gpt-oss-120b", finish_reason="length",
+                 raw_stop_reason="length", output_tokens=512), "", 512)
+
+
+def test_arithmetic_clause_flags_exactly_what_clause_one_flags_on_shipped_caches():
+    """Proven on real data, not on constructed records.
+
+    Across every shipped cache the widened detector must select EXACTLY the
+    rows the old one did for gpt-oss -- otherwise the fix moves a published
+    number. Skips rather than passes vacuously if the caches are absent.
+    """
+    import json
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[1]
+    paths = sorted(repo.glob("results/*/*cache*.jsonl"))
+    if not paths:
+        pytest.skip("no caches on disk")
+    n_checked = 0
+    for p in paths:
+        for line in p.open():
+            if not line.strip():
+                continue
+            d = json.loads(line)
+            if "response" not in d or "key" not in d:
+                continue
+            if d["key"].get("model_id") != "gpt-oss-120b":
+                continue
+            mt = (d["key"].get("decoding_params") or {}).get("max_tokens")
+            ct = d["response"].get("completion_tokens") or 0
+            fr = d["response"].get("finish_reason")
+            sr = (d["response"].get("raw_usage") or {}).get("stop_reason")
+            old = fr == "length"
+            new = old or sr == "length" or (mt is not None and ct >= mt)
+            assert old == new, (
+                f"{p}: widening the detector changes a gpt-oss row "
+                f"(finish={fr!r} stop={sr!r} tokens={ct}/{mt})")
+            n_checked += 1
+    assert n_checked > 1000, (
+        f"only {n_checked} gpt-oss rows checked; a near-empty scan would pass "
+        f"this test vacuously")
+
+
+def test_cache_hit_path_also_applies_the_widened_detector():
+    """Defect #17's shape, inside the fix for defect #16.
+
+    A guard enforced on the fresh path and not the cache path means a RESUME
+    scores exactly what the first run refused.
+    """
+    import json
+    import tempfile
+    from pathlib import Path
+    from p1mem.cache import CachedResponse, ResponseCache, make_key
+    from p1mem.client import P1Client, TruncatedResponseError
+    d = Path(tempfile.mkdtemp()) / "c.jsonl"
+    kf = dict(benchmark="b", source_item_id="s", memory_repr="raw",
+              memory_id="m", future_task_id="t", arm="with_memory",
+              retrieval_method="oracle", model_id="gemma-4-31B-it",
+              cluster="metis", prompt_version="p",
+              decoding_params={"temperature": 0.0, "max_tokens": 512},
+              replicate_id=0, context_sha256="x")
+    k = make_key(**kf)
+    ResponseCache(d).store(k, CachedResponse(
+        content="a plausible fragment", resolved_model="gemma-4-31B-it",
+        cluster="metis", prompt_tokens=100, completion_tokens=512,
+        finish_reason="", raw_usage={"stop_reason": ""}))
+    c = P1Client(cluster="metis", model="gemma-4-31B-it",
+                 cache=ResponseCache(d), truncation_is_always_an_error=True)
+    hit = c.cache.lookup(k)
+    assert hit is not None, "the stored row must be findable, or this is vacuous"
+    rec = _rec(finish_reason=hit.finish_reason,
+               raw_stop_reason=(hit.raw_usage or {}).get("stop_reason"),
+               output_tokens=hit.completion_tokens, budget_tokens=512,
+               cache_hit=True)
+    with pytest.raises(TruncatedResponseError):
+        c._assert_not_truncated(rec, hit.content, 512)
+
+
+def test_error_message_names_the_clause_that_actually_fired():
+    """A right verdict with a wrong stated reason hides the next defect."""
+    from p1mem.client import P1Client, TruncatedResponseError
+    c = P1Client(cluster="metis", model="gemma-4-31B-it", cache=None,
+                 truncation_is_always_an_error=True)
+    with pytest.raises(TruncatedResponseError) as e:
+        c._assert_not_truncated(
+            _rec(finish_reason="", raw_stop_reason="", output_tokens=512),
+            "fragment", 512)
+    msg = str(e.value)
+    assert "ARITHMETIC" in msg
+    # it must NOT claim a finish_reason it did not see
+    assert "finish_reason='length'" not in msg

@@ -43,6 +43,69 @@ section and for the claim that the measurement is trustworthy.
 | 18 | **`CLUSTER_REPORTS_REASONING_TOKENS` is keyed on CLUSTER, on a premise measured on one model.** "Metis reports reasoning tokens" is true of `gpt-oss-120b` and FALSE of `gemma-4-31B-it` on the same cluster (no `completion_tokens_details` at all) | SA-GEMMA-READER, by validating a Gemma row before writing one | two failures at once: a spurious `reasoning_tokens_missing` warning on every correct Gemma row (training a reader to ignore it), and **silence on the real corruption** — `reasoning_tokens=0`, an absence written as a measurement |
 | 19 | **A case-variant model id returns HTTP 200 and is silently corrected.** `gemma-4-31b-it` (lowercase b) is not a 404; metis resolves it to `gemma-4-31B-it` | SA-GEMMA | `_assert_model` catches it at call time, but a mis-cased config would pass every dry run and every liveness check |
 
+## Added 2026-09-30 (later) — found while RUNNING the reader-transfer arm
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 20 | **The truncation guard's observable was a property of the SERVER'S REPORTING, not of truncation.** Under 16-worker load at the real 15–29k-token cell shape, metis/`gemma-4-31B-it` returned responses sitting **exactly at `max_tokens`** with `finish_reason` **`""`** and `usage.stop_reason` **`""`** — neither says `"length"`. The guard tested `finish_reason == "length"`, so it was silent, and seven 2,034–2,146-character **fragments** were returned as if they were answers | SA-GEMMA-READER, by auditing the in-flight cache rather than waiting for the run to finish | each fragment scored as a wrong answer ⇒ ΔU negative ⇒ **a manufactured harmful memory**. Defect #10/#16 in a **third** disguise |
+
+### Why #16's fix did not prevent #20
+
+#16 widened the guard from "empty content" to "any content, on an arm that
+declares it". Both clauses still hung off **`finish_reason == "length"`**. #16's
+lesson was recorded as *"the observable was a property of the **model**"*; the
+true generalisation is **"the observable was a property of something other than
+truncation"**, and the next layer that could vary was the **server's reporting
+of that model, under load**.
+
+🔴 **The single-request probe could not have found it.** `max_tokens=8` on an
+idle endpoint returns a clean `finish_reason="length"` — re-measured during this
+session, three times, at both 48k and short prompts. The empty field appears
+only at concurrency on long prompts. **A guard probed in a quieter environment
+than the run is not known to hold in the run** — the same shape as measuring
+throughput at the wrong prompt length.
+
+### The fix: three observables, one of which cannot be misreported
+
+```text
+1. finish_reason == "length"              the documented signal
+2. usage.stop_reason == "length"          the same fact, other field
+3. completion_tokens >= max_tokens        the ARITHMETIC fact
+```
+
+Clause 3 is **sound, not merely sufficient**: a model stopping on its own must
+emit EOS, so a complete answer cannot consume the entire budget. No server can
+misreport it without also misreporting its own token count.
+
+**Proven not to move a published number.** Across **11,693** `gpt-oss-120b` rows
+in every shipped cache the widened detector flags **exactly the 19** rows clause
+1 already flagged — zero additions — so a fix for a Gemma hazard cannot silently
+alter a gpt-oss table. That equality is itself a test
+(`test_arithmetic_clause_flags_exactly_what_clause_one_flags_on_shipped_caches`),
+with a `n_checked > 1000` assertion so an empty scan cannot pass it vacuously.
+
+**Seven regression tests, four of which were verified to FAIL against the
+unfixed code**, plus a second mutation (`>=` → `>`) that fails three — the
+off-by-one is the near-miss that still misses the exactly-at-cap case, which is
+the only case actually observed.
+
+**The error message was part of the fix.** It previously hardcoded
+`finish_reason='length'`; on the measured case that string is **false** — the
+field was `""` and only the arithmetic clause fired. A right verdict with a
+wrong stated reason would have hidden this defect from the next reader, so the
+message now names the clause that actually fired.
+
+### What this cost, and what was done with it
+
+The first execution attempt was **killed at 600/3,388 calls** on finding it. The
+7 contaminated cache rows are **quarantined, not deleted**
+(`results/gemma_reader/transfer_cache_quarantined_truncations.jsonl`, with the
+pre-fix cache preserved whole) — a resumed run reads the cache, so leaving them
+in place would have re-served exactly what the first run should have refused.
+**All 7 were `raw`, and all 7 were on a single task (`40758d8b`)**, so the
+contamination was concentrated rather than diffuse — which is also why a
+spot-check of a few cells would have missed it.
+
 ### Pre-existing truncation exposure on the gpt-oss arms — a finding, not a fix
 
 Auditing the shipped caches for defect #16's shape found it is **not
