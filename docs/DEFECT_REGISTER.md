@@ -799,3 +799,38 @@ two processes appended to blind, a dead artifact one agent left reachable for
 the next, and a correction written by a reader of someone else's summary. Each
 agent's own work verified clean in isolation. *Checking your own output does
 not check the thing you handed to, or inherited from, someone else.*
+
+## Added 2026-10-01 (SA-GOLDFREE, the gold-free bearing screen) — `GF-1` … `GF-5`
+
+Closing `docs/BEARING_SCREEN_DISCLOSURE.md`'s one experiment. Full result:
+`docs/GOLD_FREE_SCREEN_RESULT.md`. Every one of these was found by **planting**
+rather than by reading code, and three of them are the register's standing
+shape — *a control that cannot fail* — in new costumes.
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| GF-1 | **A mutation control that could not fail, because the parameter it mutated was inert.** C2 removed the screen's `≤8` discriminativeness bound and required the yield to inflate. The yield did **not move**: under GF-LEX's all-anchors fire rule **no task fires on more than 8 pool memories at all** (max observed 8), whereas the GOLD screen has **205 of 295** tasks over the same bound | the control FAILING, then measuring the per-task hit distribution instead of deleting the bound | the tempting repair — drop the bound — would have made the two screens **structurally incomparable**, destroying the experiment while making its control pass. The bound is *non-binding at this operating point*; that is now a **reported property of the screen**, and the bound is shown able to fire by exercising it under a relaxed fire rule where 20 tasks do exceed it |
+| GF-2 | **A gold-freeness guard that tested the wrong proposition, and aborted a clean run.** It asserted the normalized gold string did not occur in the question/instruction block; it killed the run on task `ca8e070b` — question *"…true or false?"*, gold `false` | the run stopping on a cell that was not a leak, then asking whether the premise was right | **gold-free means the answer is not supplied as a privileged input**, not that the gold string is absent from the question — the question is a legitimate input a deployable retriever also reads. Measured and now disclosed: **69 of 295** deterministic questions contain their own normalized gold answer. The check is now a **byte-exact reconstruction** of the prompt from (question, memory), verified against two plants. A substring test would also have *passed* a genuinely leaky prompt that paraphrased the answer |
+| GF-3 | **A cache reader that guessed its field names and recovered ZERO rows.** It read `key_fields`/`content`; the cache writes `key`/`response` | the **non-vacuity guard** refusing to build controls from an empty recovery | every GF-LLM matched control would have been a cell **the judge never saw**, silently substituted for a cell **the judge rejected** — two different objects wearing one label. This is *absent input defaults to a plausible zero*: the empty set is a valid-looking input to the next step |
+| GF-4 | **The positive control passed on a design that could not fail it.** C5 plants a gold-sized effect and requires the CI to exclude zero. On a 1-cell-per-stratum synthetic it returned **PASS with CI `[0.3349, 0.3349]`** — zero width. With one cell and one task there is nothing to resample, so "excludes zero" was **arithmetic, not power** | running the control against a deliberately degenerate input, which is not what it was written for | a null would have been certified by a control that fires on everything. C5 now additionally requires a **non-degenerate interval**, **≥5 tasks and ≥5 episodes**, and a **label-shuffle control that must NOT fire**. The GF-LEX null — the result that depends on it — is also backed by three independent checks, including the 4 gold-bearing cells *inside the same run* scoring dU = +1.0 |
+| GF-5 | **Controls existed for only 18 of 42 cells, because the judge had only ever been shown one kind of cell.** GF-LLM's judge saw only lexical-recall survivors, so its 799 NO verdicts were all lexically similar cells; **24 of 42** bearing cells had no same-family judge-NO control | checking control availability per memory × family **before** building the design | the design would have been built with controls missing for most of the stratum, or would have fallen back to unjudged cells (GF-3's cost). Fixed by `gf7_judge_controls.py` — 126 extra calls, **125 NO** — giving all 28 bearing memories a control and a balanced 42/42 design |
+
+### The shape, again — and one new one
+
+GF-1, GF-3 and GF-4 are all **controls that could not fail**, which is the most
+repeated entry in this register. What is new is GF-1's direction: it is the
+first case where **the control's failure was the finding**, and where the
+obvious repair would have silently destroyed the experiment. The rule it
+yields:
+
+> **When a mutation control does not move the yield, ask whether the parameter
+> binds before concluding the code is wrong.** A non-binding parameter is a
+> property of the instrument worth reporting, and removing it to make the
+> control pass removes the comparability the control exists to protect.
+
+GF-2 is a different and sharper shape:
+
+> **A guard can be wrong about its own subject.** It fired, which looked like
+> diligence, and it was testing a proposition nobody had checked against the
+> definition it claimed to enforce. *The right verdict for the wrong reason and
+> the wrong verdict for a plausible reason are the same defect.*

@@ -35,6 +35,19 @@ def log(m: str) -> None:
     print(m, flush=True)
 
 
+def _rel_to_repo(p) -> str:
+    """Repo-relative path for an artifact field (DEFECT_REGISTER #23/#29).
+
+    Never write an absolute /Users/<name>/ path into a tracked ledger: it
+    de-anonymises a double-blind submission and a credential scanner is
+    structurally blind to it.
+    """
+    try:
+        return str(Path(p).resolve().relative_to(REPO))
+    except Exception:
+        return Path(p).name
+
+
 def cell_means(rows: list[dict]) -> dict[tuple, float]:
     """One dU per cell, replicates averaged (prereg section 3).
 
@@ -326,7 +339,7 @@ def main() -> int:
     res: dict[str, Any] = {
         "_what": "GF4 gold-free bearing-control effect",
         "_precommitment": "docs/GOLD_FREE_SCREEN_PRECOMMITMENT.md",
-        "rows_artifact": str(args.rows.relative_to(REPO)),
+        "rows_artifact": _rel_to_repo(args.rows),
         "n_rows": len(rows), "condition_id": list(cond)[0],
         "session_id": list(sess)[0],
         "_session_policy": "both arms of every cell in ONE session (DEFECT #25)",

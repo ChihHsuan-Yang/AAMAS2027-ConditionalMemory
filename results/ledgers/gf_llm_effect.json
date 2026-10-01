@@ -1,0 +1,259 @@
+{
+  "DECIDING_gold_free_only_vs_control": {
+    "_why_this_governs": "the executed screened cells were chosen BY THE GOLD SCREEN, so a contrast including also-gold-bearing cells partly re-measures it. These cells are gold-free by construction.",
+    "episode_clustered": {
+      "_method": "cluster bootstrap resampling whole SOURCE EPISODES",
+      "ci": [
+        0.14474132220455752,
+        0.6690507518796993
+      ],
+      "ci_excludes_zero": true,
+      "difference": 0.36755952380952384,
+      "n_episodes": 19
+    },
+    "paired_by_memory": {
+      "_denominator_note": "24 memories (14 non-zero). Never quote the nominal count alone.",
+      "ci_excludes_zero": true,
+      "mean_paired_difference": 0.4895833333333333,
+      "memory_bootstrap_ci": [
+        0.23263888888888887,
+        0.7569444444444443
+      ],
+      "n_memories_negative": 2,
+      "n_memories_positive": 12,
+      "n_memories_zero": 10,
+      "n_nonzero_contributors": 14,
+      "n_paired_memories": 24,
+      "n_zero_contributors": 10,
+      "sign_flip_p_two_sided": 0.0026998650067496625
+    },
+    "positive_control_C5": {
+      "PASS": true,
+      "_what": "C5: with +0.3349 planted on every bearing cell the interval MUST exclude zero -- and the interval must be NON-DEGENERATE, and a label SHUFFLE must NOT fire",
+      "episode_clustered": {
+        "ci": [
+          0.47964132220455763,
+          1.003950751879699
+        ],
+        "ci_width": 0.5243094296751414,
+        "difference": 0.7024595238095238,
+        "excludes_zero": true
+      },
+      "nonvacuity": {
+        "PASS": true,
+        "_why": "a zero-width interval 'excludes zero' by arithmetic, not by power -- measured on a 1-cell design, which passed the first version of this control",
+        "episode_ci_width": 0.5243094296751414,
+        "n_episodes": 19,
+        "n_tasks": 44,
+        "task_ci_width": 0.6505570450843425
+      },
+      "planted_effect": 0.3349,
+      "shuffle_control": {
+        "PASS": true,
+        "ci": [
+          -0.4290352489854825,
+          0.033333333333333326
+        ],
+        "difference": -0.18303571428571427,
+        "excludes_zero": false,
+        "must_not_exclude_zero": true
+      },
+      "task_clustered": {
+        "ci": [
+          0.3823949029676055,
+          1.032951948051948
+        ],
+        "ci_width": 0.6505570450843425,
+        "difference": 0.7024595238095238,
+        "excludes_zero": true
+      }
+    },
+    "task_clustered": {
+      "_method": "cluster bootstrap resampling whole TASKS",
+      "ci": [
+        0.04749490296760555,
+        0.698051948051948
+      ],
+      "ci_excludes_zero": true,
+      "difference": 0.36755952380952384,
+      "mean_a": 0.34375,
+      "mean_b": -0.023809523809523808,
+      "n_boot": 10000,
+      "n_cells_a": 32,
+      "n_cells_b": 42,
+      "n_tasks": 44
+    }
+  },
+  "VERDICT": "SURVIVES",
+  "VERDICT_why": "the gold-free bearing-control contrast is positive with a task-clustered 95% CI excluding zero, on cells the gold screen does NOT select",
+  "_none_policy": "reward None means COULD NOT BE SCORED; never coerced to 0.0",
+  "_precommitment": "docs/GOLD_FREE_SCREEN_PRECOMMITMENT.md",
+  "_session_policy": "both arms of every cell in ONE session (DEFECT #25)",
+  "_verdict_rule": "fixed in docs/GOLD_FREE_SCREEN_PRECOMMITMENT.md \u00a77 before the screen was run; all three outcomes acceptable, none aimed for",
+  "_what": "GF4 gold-free bearing-control effect",
+  "arm_rates": {
+    "GFLLM_BEARING": {
+      "n_rows": 84,
+      "n_scorable_rows": 84,
+      "n_unscorable": 0,
+      "with_correct": 50,
+      "with_rate": 0.5952380952380952,
+      "without_correct": 20,
+      "without_rate": 0.23809523809523808
+    },
+    "GFLLM_BEARING_also_gold_bearing": {
+      "n_rows": 20,
+      "n_scorable_rows": 20,
+      "n_unscorable": 0,
+      "with_correct": 18,
+      "with_rate": 0.9,
+      "without_correct": 10,
+      "without_rate": 0.5
+    },
+    "GFLLM_BEARING_gold_free_only": {
+      "n_rows": 64,
+      "n_scorable_rows": 64,
+      "n_unscorable": 0,
+      "with_correct": 32,
+      "with_rate": 0.5,
+      "without_correct": 10,
+      "without_rate": 0.15625
+    },
+    "GFLLM_MATCHED_CONTROL": {
+      "n_rows": 84,
+      "n_scorable_rows": 84,
+      "n_unscorable": 0,
+      "with_correct": 10,
+      "with_rate": 0.11904761904761904,
+      "without_correct": 12,
+      "without_rate": 0.14285714285714285
+    }
+  },
+  "bearing_stratum": "GFLLM_BEARING",
+  "both_arms_fail": {
+    "GFLLM_BEARING": {
+      "n_both_arms_fail": 13,
+      "n_cells": 42,
+      "rate": 0.30952380952380953
+    },
+    "GFLLM_BEARING_gold_free_only": {
+      "n_both_arms_fail": 13,
+      "n_cells": 32,
+      "rate": 0.40625
+    },
+    "GFLLM_MATCHED_CONTROL": {
+      "n_both_arms_fail": 33,
+      "n_cells": 42,
+      "rate": 0.7857142857142857
+    },
+    "_why": "a stratum whose cells mostly fail under BOTH arms cannot express an effect. Compare against the screened run's strata: gold BEARING 0.525, RANDOM 0.701, MATCHED_CONTROL 0.788."
+  },
+  "condition_id": "lmev2_raw_metis_gptoss120b_goldfree_llm_v1",
+  "control_stratum": "GFLLM_MATCHED_CONTROL",
+  "gold_comparator_rederived": {
+    "_cross_session_caveat": "the screened run and the GF run are SEPARATE SESSIONS (DEFECT #25). Each contrast is internally session-matched; the two effects are compared in SIGN and SIGNIFICANCE, and a numeric difference between them would be confounded with the session.",
+    "_what": "the GOLD screen's own bearing-control effect, RE-DERIVED here from the screened rows rather than quoted",
+    "arm_rates_BEARING": {
+      "n_rows": 417,
+      "n_scorable_rows": 417,
+      "n_unscorable": 0,
+      "with_correct": 192,
+      "with_rate": 0.460431654676259,
+      "without_correct": 48,
+      "without_rate": 0.11510791366906475
+    },
+    "episode_clustered": {
+      "_method": "cluster bootstrap resampling whole SOURCE EPISODES",
+      "ci": [
+        0.2082387850244993,
+        0.4295458952122428
+      ],
+      "ci_excludes_zero": true,
+      "difference": 0.31792648073322166,
+      "n_episodes": 35
+    },
+    "paired_by_memory": {
+      "_denominator_note": "60 memories (35 non-zero). Never quote the nominal count alone.",
+      "ci_excludes_zero": true,
+      "mean_paired_difference": 0.33486111111111116,
+      "memory_bootstrap_ci": [
+        0.2110648148148148,
+        0.46453819444444444
+      ],
+      "n_memories_negative": 4,
+      "n_memories_positive": 31,
+      "n_memories_zero": 25,
+      "n_nonzero_contributors": 35,
+      "n_paired_memories": 60,
+      "n_zero_contributors": 25,
+      "sign_flip_p_two_sided": 9.99950002499875e-05
+    },
+    "task_clustered": {
+      "_method": "cluster bootstrap resampling whole TASKS",
+      "ci": [
+        0.1739880389185192,
+        0.47673216628574727
+      ],
+      "ci_excludes_zero": true,
+      "difference": 0.31792648073322166,
+      "mean_a": 0.34532374100719426,
+      "mean_b": 0.0273972602739726,
+      "n_boot": 10000,
+      "n_cells_a": 139,
+      "n_cells_b": 146,
+      "n_tasks": 126
+    }
+  },
+  "n_rows": 168,
+  "n_rows_unscorable_dU_none": 0,
+  "pooled_gf_bearing_vs_control": {
+    "_caveat": "pooled over gold-free AND also-gold-bearing cells. Reported for completeness; the DECIDING quantity is the gold-free one.",
+    "episode_clustered": {
+      "_method": "cluster bootstrap resampling whole SOURCE EPISODES",
+      "ci": [
+        0.12820512820512822,
+        0.7058823529411765
+      ],
+      "ci_excludes_zero": true,
+      "difference": 0.38095238095238093,
+      "n_episodes": 19
+    },
+    "paired_by_memory": {
+      "_denominator_note": "28 memories (17 non-zero). Never quote the nominal count alone.",
+      "ci_excludes_zero": true,
+      "mean_paired_difference": 0.494047619047619,
+      "memory_bootstrap_ci": [
+        0.27366071428571437,
+        0.7261904761904762
+      ],
+      "n_memories_negative": 2,
+      "n_memories_positive": 15,
+      "n_memories_zero": 11,
+      "n_nonzero_contributors": 17,
+      "n_paired_memories": 28,
+      "n_zero_contributors": 11,
+      "sign_flip_p_two_sided": 0.00039998000099995
+    },
+    "task_clustered": {
+      "_method": "cluster bootstrap resampling whole TASKS",
+      "ci": [
+        0.07582023843953856,
+        0.7146544526901668
+      ],
+      "ci_excludes_zero": true,
+      "difference": 0.38095238095238093,
+      "mean_a": 0.35714285714285715,
+      "mean_b": -0.023809523809523808,
+      "n_boot": 10000,
+      "n_cells_a": 42,
+      "n_cells_b": 42,
+      "n_tasks": 47
+    }
+  },
+  "rows_artifact": "results/deltau_goldfree_llm/cells.jsonl",
+  "session_id": "gf_c47c812e0513",
+  "strata_row_counts": {
+    "GFLLM_BEARING": 84,
+    "GFLLM_MATCHED_CONTROL": 84
+  }
+}
