@@ -192,6 +192,29 @@ def main() -> int:
           f"{a['k']}/{a['n']} |")
     w("")
 
+    # ------------------------------------------------- harm
+    H = A.get("harm_on_bearing_cells", {}).get("per_representation", {})
+    if H:
+        w("## Does the near-absence of harm transfer?\n")
+        w("`docs/THE_HONEST_HEADLINE.md`'s sharpest claim is that **where a "
+          "memory bears on a task it helps, and harm is nearly absent** — on "
+          "gpt-oss, 2 negative BEARING cells of 139. Re-asked of a second "
+          "reader, on the matched BEARING cells:\n")
+        w("| representation | BEARING cells | gpt-oss negative | Gemma negative | negative under BOTH | Gemma-only negative |")
+        w("|---|---:|---:|---:|---:|---:|")
+        for rep in REPS:
+            h = H[rep]
+            w(f"| {rep} | {h['n_bearing_cells_matched']} | "
+              f"{h['gptoss']['n_negative']} | {h['gemma']['n_negative']} | "
+              f"{h['both_readers_negative']} | "
+              f"{h['gemma_negative_where_gptoss_was_not']} |")
+        w("")
+        w("A Wilson interval on each rate is in the artifact. **A count of "
+          "negative cells is not a harm claim**: the pre-registered label rule "
+          "requires the cell's CI to exclude zero *and* its magnitude to clear "
+          "the measured execution floor. The label table above is the one that "
+          "settles harm; this table shows the raw direction.\n")
+
     # ------------------------------------------------- ordering
     w("## Does the representation ordering transfer?\n")
     w(f"On the **{X['n_cells']}** cells present in all three representations "

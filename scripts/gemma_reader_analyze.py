@@ -632,6 +632,34 @@ def main() -> int:
         "fires": (abs(pearson(_x, _x) - 1.0) < 1e-9
                   and abs(pearson(_x, -_x) + 1.0) < 1e-9),
     }
+    # THE_HONEST_HEADLINE's sharpest claim: on BEARING cells harm is nearly
+    # absent (gpt-oss: 2 negative of 139 raw). Whether a SECOND READER
+    # reproduces that is the most reviewer-relevant transfer question, so it
+    # is computed explicitly rather than left implicit in the sign table.
+    harm = {}
+    for rep in REPS:
+        keys = [k for k in matched[rep] if strat_of.get(k) == "BEARING"]
+        h = {"n_bearing_cells_matched": len(keys)}
+        for name, mm in (("gptoss", oss_means[rep]), ("gemma", gem_means[rep])):
+            neg = [k for k in keys if mm[k] < 0]
+            p_, lo_, hi_ = wilson(len(neg), len(keys))
+            h[name] = {"n_negative": len(neg), "rate": p_,
+                       "wilson_lower": lo_, "wilson_upper": hi_,
+                       "most_negative": min((mm[k] for k in keys), default=None)}
+        h["both_readers_negative"] = len(
+            [k for k in keys if oss_means[rep][k] < 0 and gem_means[rep][k] < 0])
+        h["gemma_negative_where_gptoss_was_not"] = len(
+            [k for k in keys if gem_means[rep][k] < 0 and oss_means[rep][k] >= 0])
+        harm[rep] = h
+    out["harm_on_bearing_cells"] = {
+        "_what": "docs/THE_HONEST_HEADLINE.md reports that where a memory bears "
+                 "on a task it HELPS, and harm is nearly absent. This is that "
+                 "claim re-asked of a second reader, on the matched cells.",
+        "per_representation": harm}
+    log(f"harm on BEARING: "
+        f"{ {r: (harm[r]['gptoss']['n_negative'], harm[r]['gemma']['n_negative'], harm[r]['n_bearing_cells_matched']) for r in REPS} }"
+        f"  (gptoss_neg, gemma_neg, n)")
+
     out["sign_and_correlation"] = agree
 
     # ------------- useful / neutral / harmful agreement, prereg section 4 -----
