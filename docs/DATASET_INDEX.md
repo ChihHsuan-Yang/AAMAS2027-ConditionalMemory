@@ -4,6 +4,26 @@ One row per published snapshot. **Every figure here was produced by a command on
 released artifact**, not copied from a plan. A snapshot that is not in this table has not
 shipped.
 
+> 🔴 **This file SHIPS INSIDE the snapshot it describes, and that made it lie.** The
+> copy inside **v0.3** (and the first upload of v0.4) still carried the row *"v0.3 |
+> SciCode-derived rows | **No SciCode row is in any published snapshot** (verified:
+> `benchmark` is `longmemeval_v2` on 5,643/5,643)"* — inside a snapshot holding 154
+> SciCode rows. The sentence was **true when written at v0.2** and was published
+> unchanged into the two releases that falsified it. A consumer reading the shipped
+> docs would have concluded their download was wrong.
+>
+> No gate could see it: every gate reads `data/cells.jsonl`, which was correct, and the
+> false statement was in a document beside it. **GATE 5b checks the card's validator
+> line and nothing checks the prose of an auxiliary doc.** It was found by diffing the
+> *downloaded* tree against the repo after release — the same move that found v0.1's
+> seam defect.
+>
+> **The general shape: a document that describes a release cannot be fully correct
+> inside that release**, because its own entry is written before the release exists.
+> That is why the current version's release-commit row is never transcribed here. v0.3's
+> tag is left as published, with the defect recorded, exactly as v0.1's broken first
+> upload was left and recorded rather than retconned.
+
 Repository: `AgentsSci/AAMAS2027-ConditionalMemory` (dataset, **private**).
 Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.md`.
 
@@ -144,7 +164,7 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
 | **rows** | **5,924** (v0.3's 5,797 + 127 SWE-bench) |
 | **cells** | 2,960 (127 new, over 20 memory instances and 43 task instances; django 96 · sympy 31) |
 | **schema version** | `p1mem_conditional_memory_utility_v3`, **98 fields** |
-| **release commit** | `1741c80` |
+| **release commit** | **not transcribed** — v0.4 is the current release and this file ships *inside* it, so a hash written here cannot be the hash of the tree containing it. Read `release_commit` in the snapshot's own `MANIFEST.json`. |
 | **files** | 17 + `.gitattributes` |
 | **size** | 139.7 MB (`data/cells.jsonl` 139,676,660 B) |
 | **validation** | **5,924 rows / 0 errors / 1,691 warnings**, verified **on the downloaded tag** by the card's own command |
