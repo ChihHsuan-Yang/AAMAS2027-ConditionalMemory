@@ -335,7 +335,17 @@ def coverage_plants():
           "be able to FAIL --")
     record("[0] an UNPLANTED coverage run PASSES", not _run_cov())
 
-    sw = REPO / "results/swebench/representations_multirepo.json"
+    # 🔴 RE-POINTED by SA-FIGURE-STORY. commit a09385b moved make_figures.py
+    # onto results/ledgers/repro/swebench/representations_multirepo_final.json
+    # (the n=40 artifact) but left these plants writing to the OLD
+    # results/swebench/representations_multirepo.json, which nothing reads any
+    # more. Five plants [M][N][O][P][R] therefore corrupted a file the
+    # generator never opens and reported "a guard did not fire" -- an
+    # instrument aimed at nothing, and the voided guards were the ones
+    # protecting the defect-21 correction and the two-repo composition.
+    # The plants must land in the file the generator actually reads.
+    sw = REPO / ("results/ledgers/repro/swebench/"
+                 "representations_multirepo_final.json")
     sc = REPO / "results/ledgers/repro/scicode/scaleup_analysis.json"
     man = REPO / "data/manifests/k1_screened_cells.jsonl"
     rowf = REPO / "results/deltau_screened/cells.jsonl"
@@ -350,7 +360,11 @@ def coverage_plants():
 
     f = _patch_json(sw, lambda d: d["pooled"].__setitem__(
         "MATCHED_CELL_SET_N", 17))
-    record("[N] the defect-21 correction silently reverts (matched 15 -> 17)",
+    # The label said "15 -> 17", which was the matched set of the OLD
+    # django-only artifact. On the final multi-repo artifact it is 40. A
+    # check's message is part of the check: a right verdict under a wrong
+    # stated reason is harder to catch than a wrong verdict.
+    record("[N] the SWE-bench matched set silently moves off 40",
            bool(f), "; ".join(f)[:150])
 
     f = _patch_json(sw, lambda d: d["defect21_manufactured_zero_correction"]

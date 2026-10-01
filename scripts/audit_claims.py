@@ -1138,10 +1138,44 @@ if _gslim.is_file() and _mtex.is_file():
     check("Gemma transfer CELL count (what it is NOT)", len(_gcells), 847)
     check("rows are not cells here (the caption must not conflate them)",
           len(_gr) != len(_gcells), True)
-    _cap = re.search(r"Mean \$\\Delta U\$\s*\n?per reader over the \$\\rgRows\$ (\w+)",
-                     _mtex.read_text())
-    check("Figure 6 caption calls \\rgRows rows, not cells",
-          _cap.group(1) if _cap else "NOT-FOUND", "rows")
+    # 🔴 RE-POINTED by SA-FIGURE-STORY, and made STRICTLY STRONGER rather
+    # than relaxed. The original matched one caption sentence that quoted
+    # \rgRows; Figure 6 was redesigned to draw the CANONICAL session-matched
+    # arm, whose counts are different numbers (570 joinable rows / 550
+    # scorable rows / 275 cells) and in which \rgRows -- a CROSS-SESSION row
+    # count -- has no place. A check pinned to a deleted sentence reports
+    # NOT-FOUND, which is an instrument aimed at nothing, so it now checks
+    # the claim itself: EVERY occurrence of \rgRows in the manuscript must
+    # be named as rows, and never as cells.
+    _body = "\n".join(l for l in _mtex.read_text().split("\n")
+                      if not l.lstrip().startswith("%"))
+    _rgr = [m for m in re.finditer(r"\\rgRows", _body)]
+    check("\\rgRows still appears in the manuscript (the check has a subject)",
+          len(_rgr) > 0, True)
+    # The word within 60 characters after the last \rgRows in a run must not
+    # be "cells": that is the conflation this check exists to catch.
+    _mis = []
+    for _m in _rgr:
+        _after = _body[_m.end():_m.end() + 60]
+        if re.match(r"[\s$/\\]*(?:\\rgRows)?[\s$/\\]*cells\b", _after):
+            _mis.append(_after[:40])
+    check("no \\rgRows occurrence is labelled 'cells'", _mis, [])
+    # And the redesigned Figure 6 caption must name its own three counts in
+    # their own units. These are genuinely different numbers; the artifact
+    # itself warns that quoting 550 as cells is the defect.
+    _f6 = re.search(r"\\caption\{\\textbf\{The Raw memory effect survives"
+                    r".*?\\label\{fig:readertransfer\}", _body, re.S)
+    check("Figure 6's canonical caption is present", bool(_f6), True)
+    if _f6:
+        _t = " ".join(_f6.group(0).split())
+        check("Figure 6 caption names \\rgSmCells as CELLS",
+              bool(re.search(r"\\rgSmCells\$? matched cells", _t)), True)
+        check("Figure 6 caption names \\rgSmN as REPLICATE ROWS",
+              bool(re.search(r"\\rgSmN\$? replicate rows", _t)), True)
+        check("Figure 6 caption names \\smIdentN as ROWS",
+              bool(re.search(r"\\smIdentN\$? joinable rows", _t)), True)
+        check("Figure 6 caption does not call \\rgSmN cells",
+              bool(re.search(r"\\rgSmN\$? (?:matched )?cells", _t)), False)
 
 print()
 if FAIL:

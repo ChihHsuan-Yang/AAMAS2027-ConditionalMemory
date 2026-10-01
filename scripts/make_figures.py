@@ -143,6 +143,212 @@ def flips_by_stratum():
     return out
 
 
+# ---------------------------------------------------------------------------
+# FIGURE 1b -- THE CENTRAL CLAIM: utility is sparse across future tasks
+# ---------------------------------------------------------------------------
+def sparsity_map():
+    """Per-cell measured utility for every screened cell, laid out by stratum.
+
+    THE PAPER'S CENTRAL CLAIM HAD NO FIGURE. "A global memory score is
+    insufficient because utility is sparse across future tasks" was carried
+    only by table rows. This draws the cell-level evidence directly: one small
+    square per MEASURED cell, 1,157 of them, grouped into the three strata.
+
+    FOUR DESIGN CONSTRAINTS, each forced by a property of the real data that
+    was checked before the figure was drawn rather than assumed.
+
+    1. dU TAKES EXACTLY THREE VALUES, -1, 0 and +1. Both replicates of every
+       cell agree (0/1157 disagree), and the reward is binary, so the cell
+       mean cannot land between them. A continuous colour ramp would therefore
+       be a ramp over three levels and would imply a precision the measurement
+       does not have. Three discrete marks instead. ASSERTED below: if a
+       fourth level ever appears the build fails, because the legend would
+       then be describing a scale the data no longer has.
+
+    2. UNMEASURED SLOTS MUST NOT BE DRAWN, AND THE REASON IS ARITHMETIC. The
+       strata have different per-memory widths (max 9 / 9 / 15 cells), so a
+       memory's row is RAGGED. Pad the rows to a rectangle and the eye reads
+       dark marks per unit AREA, which is 9.3% for BEARING against 9.1% for
+       RANDOM -- indistinguishable, and the opposite of the finding. The
+       honest quantity is dark marks per DRAWN square: 36.0% against 9.4%.
+       The ratio of the two readings is asserted below, so a later edit that
+       pads the grid cannot pass silently.
+
+    3. A MEASURED ZERO IS DRAWN, AN ABSENT CELL IS NOT. This project's own
+       recorded defect shape is an absence rendered as a value. A measured
+       zero is a real finding -- the reader scored the same with and without
+       the memory -- and gets a visible light square; a cell that was never
+       run gets nothing at all. The two must not share an appearance.
+
+    4. THE ROW ORDER IS FIXED BY THE DATA, NOT CHOSEN. Memories are sorted by
+       their BEARING-stratum positive count, descending. Sorting rows by a
+       quantity the figure then displays is circular IF the claim were about
+       which memories rank highest; it is not -- the claim is about the
+       CONTRAST BETWEEN STRATUM BLOCKS, and the sort is applied identically to
+       all three blocks of every row. The sort is therefore disclosed in the
+       caption and the stratum contrast is also reported as a number the sort
+       cannot touch (positive RATE per stratum, with Wilson intervals).
+    """
+    sc = load("results/ledgers/repro/screened_cells_slim.jsonl")
+
+    # One representation, one reader: this figure is about memory x task, and
+    # pooling representations or readers here would make the sparsity a mix of
+    # three different measurements.
+    reps = {r["memory_representation"] for r in sc}
+    readers = {r["reader_model"] for r in sc}
+    if reps != {"raw"}:
+        FAIL.append(f"sparsity: the screened rows carry representations {reps}; "
+                    "the figure's caption says one representation (raw)")
+    if readers != {GPTOSS_READER_ID}:
+        FAIL.append(f"sparsity: the screened rows carry readers {readers}; the "
+                    "caption says a single frozen reader")
+
+    cells = collections.defaultdict(list)
+    for r in sc:
+        if r.get("reward_with_memory") is None:
+            continue
+        cells[(r["stratum"], r["memory_id"], r["future_task_id"])].append(r)
+    du = {k: statistics.mean(x["reward_with_memory"] - x["reward_without_memory"]
+                             for x in v) for k, v in cells.items()}
+    expect("sparsity: measured cells", len(du), 1157)
+
+    # ---- constraint 1: the scale really is three-valued.
+    levels = sorted({round(v, 6) for v in du.values()})
+    expect("sparsity: distinct dU levels", levels, [-1.0, 0.0, 1.0])
+    if len(levels) != 3:
+        FAIL.append(f"sparsity: dU now takes {len(levels)} distinct values "
+                    f"{levels}; the figure draws THREE discrete marks and its "
+                    "legend would be describing a scale the data no longer has")
+    # The three-valuedness is a consequence of replicate agreement. If
+    # replicates ever disagree the cell mean lands between levels, so assert
+    # the cause as well as the effect -- a figure whose premise has changed is
+    # wrong even while its current numbers still render.
+    disagree = sum(1 for v in cells.values()
+                   if len({x["reward_with_memory"] - x["reward_without_memory"]
+                           for x in v}) > 1)
+    expect("sparsity: cells whose replicates disagree", disagree, 0)
+
+    per = collections.defaultdict(lambda: collections.defaultdict(list))
+    for (s, m, t), v in du.items():
+        per[m][s].append(v)
+    mems = sorted(per)
+    expect("sparsity: memories", len(mems), 60)
+    # Every memory appears in every stratum -- that is what makes the three
+    # blocks a paired within-memory comparison rather than three samples.
+    if any(len(per[m]) != 3 for m in mems):
+        FAIL.append("sparsity: some memory is missing a stratum; the figure's "
+                    "three blocks are drawn as a within-memory comparison")
+
+    STRATA = ("BEARING", "MATCHED_CONTROL", "RANDOM")
+    width = {s: max(len(per[m][s]) for m in mems) for s in STRATA}
+    expect("sparsity: block widths", [width[s] for s in STRATA], [9, 9, 15])
+
+    stats = {}
+    for s in STRATA:
+        vals = [v for m in mems for v in per[m][s]]
+        k = sum(1 for v in vals if v > 0)
+        lo, hi = wilson(k, len(vals))
+        stats[s] = {"n": len(vals), "pos": k,
+                    "neg": sum(1 for v in vals if v < 0),
+                    "zero": sum(1 for v in vals if v == 0),
+                    "rate": k / len(vals), "lo": lo, "hi": hi,
+                    "slots": len(mems) * width[s]}
+    for s, n_, k_ in (("BEARING", 139, 50), ("MATCHED_CONTROL", 146, 10),
+                      ("RANDOM", 872, 82)):
+        expect(f"sparsity {s}: measured cells", stats[s]["n"], n_)
+        expect(f"sparsity {s}: positive cells", stats[s]["pos"], k_)
+
+    # ---- constraint 2: the padding trap, asserted as a number.
+    # Per DRAWN square BEARING is ~3.8x RANDOM; per BLOCK AREA it is ~1.0x.
+    # If a later edit pads the grid, the figure stops showing the finding
+    # while still containing every correct value. That is this project's
+    # "true about the wrong subject" shape, so both readings are computed and
+    # the gap between them is required to persist.
+    drawn_ratio = stats["BEARING"]["rate"] / stats["RANDOM"]["rate"]
+    area_b = stats["BEARING"]["pos"] / stats["BEARING"]["slots"]
+    area_r = stats["RANDOM"]["pos"] / stats["RANDOM"]["slots"]
+    area_ratio = area_b / area_r
+    expect("sparsity: BEARING/RANDOM positive rate, per DRAWN cell",
+           round(drawn_ratio, 2), 3.83)
+    expect("sparsity: BEARING/RANDOM, per padded BLOCK AREA",
+           round(area_ratio, 2), 1.02)
+    if drawn_ratio < 2.0 * area_ratio:
+        FAIL.append(
+            f"sparsity: the per-drawn-cell ratio {drawn_ratio:.2f} is no "
+            f"longer well above the per-area ratio {area_ratio:.2f}. The "
+            "figure draws ONLY measured cells precisely because padding the "
+            "ragged rows to a rectangle collapses the contrast; if these two "
+            "readings have converged the design rationale in the caption is "
+            "false and the layout must be re-argued")
+
+    # ---- the stratum contrast, in a form the row sort cannot manufacture.
+    if not (stats["BEARING"]["lo"] > stats["RANDOM"]["hi"]):
+        FAIL.append(
+            f"sparsity: BEARING's positive-rate interval "
+            f"[{stats['BEARING']['lo']:.4f},{stats['BEARING']['hi']:.4f}] no "
+            f"longer sits entirely above RANDOM's "
+            f"[{stats['RANDOM']['lo']:.4f},{stats['RANDOM']['hi']:.4f}]; the "
+            "caption states the blocks separate, and the row ordering must "
+            "never be what carries that claim")
+    expect("sparsity: BEARING Wilson lower", round(stats["BEARING"]["lo"], 4),
+           0.2847)
+    expect("sparsity: RANDOM Wilson upper", round(stats["RANDOM"]["hi"], 4),
+           0.1152)
+
+    # ---- constraint 5: A COLUMN IS NOT A TASK, and the caption must say so.
+    # Within a block a memory's cells are laid out left to right in its OWN
+    # task order. Column 3 of row 7 and column 3 of row 8 are DIFFERENT tasks.
+    # This is forced by the data -- a shared task axis is not drawable here,
+    # because the strata span 56/100/147 distinct tasks against block widths
+    # of 9/9/15, and bearing tasks are nearly private to one memory (20 of 56
+    # belong to a single memory). A reader who took a column for a task would
+    # read vertical streaks as "this task is easy", which the layout cannot
+    # support. Asserted so the caption's disclaimer cannot quietly stop being
+    # necessary -- if a block ever becomes narrow enough to BE a task axis,
+    # the figure should be redrawn as one and the caption rewritten.
+    ntask = {s_: len({t for (ss, _m, t) in du if ss == s_}) for s_ in STRATA}
+    expect("sparsity: distinct tasks per stratum",
+           [ntask[s_] for s_ in STRATA], [56, 100, 147])
+    for s_ in STRATA:
+        if ntask[s_] <= width[s_]:
+            FAIL.append(
+                f"sparsity: {s_} now spans {ntask[s_]} tasks against a block "
+                f"{width[s_]} columns wide, so a column COULD be a task. The "
+                "caption states columns are per-memory task slots and NOT a "
+                "shared task axis; redraw against a real task axis instead")
+
+    # ---- constraint 4: the row order, computed here so TikZ chooses nothing.
+    order = sorted(mems, key=lambda m: (-sum(1 for v in per[m]["BEARING"] if v > 0),
+                                        -sum(1 for v in per[m]["BEARING"]), m))
+
+    # Sparsity stated as the headline number the caption quotes.
+    nonzero = sum(1 for v in du.values() if v != 0)
+    expect("sparsity: cells with ANY measured effect", nonzero, 176)
+    # How many memories help at all, per stratum. The claim is about WHERE a
+    # memory helps, so "a memory helps somewhere" must not be confused with
+    # "a memory helps on this task": 32 of 60 memories help on some bearing
+    # task, but only 50 of 139 bearing CELLS move.
+    helps = {s_: sum(1 for m in mems if any(v > 0 for v in per[m][s_]))
+             for s_ in STRATA}
+    expect("sparsity: memories helping on >=1 BEARING task", helps["BEARING"], 32)
+    expect("sparsity: memories helping on >=1 control task",
+           helps["MATCHED_CONTROL"], 9)
+    expect("sparsity: share of cells that are exactly zero",
+           round(100.0 * (len(du) - nonzero) / len(du), 1), 84.8)
+
+    marks = []
+    for row, m in enumerate(order):
+        for s in STRATA:
+            for col, v in enumerate(sorted(per[m][s], reverse=True)):
+                marks.append((row, s, col, v))
+    expect("sparsity: marks to draw equals measured cells", len(marks), len(du))
+    return {"marks": marks, "order": order, "width": width, "stats": stats,
+            "n_cells": len(du), "nonzero": nonzero, "n_mems": len(mems),
+            "drawn_ratio": drawn_ratio, "area_ratio": area_ratio,
+            "ntask": ntask, "helps": helps}
+
+
+
 
 # ---------------------------------------------------------------------------
 # FIGURE 3 -- what locates utility: embedding similarity, or content bearing?
@@ -792,6 +998,255 @@ def reader_generalization(_gemma_rows=None, _analysis=None):
                        "n_gemma_rows": len(gem)}
 
 
+
+
+# ---------------------------------------------------------------------------
+# FIGURE 6 (CANONICAL PANEL) -- the SESSION-MATCHED reader contrast
+# ---------------------------------------------------------------------------
+def reader_session_matched():
+    """The canonical reader-transfer result, recomputed from the slim rows.
+
+    WHY THIS FUNCTION EXISTS. Figure 6 drew `\\rgRawDiff`, which is the
+    SUPERSEDED cross-session contrast (+0.1268, arms 11 hours apart), while
+    the prose beside it quoted the canonical session-matched +0.0982. A reader
+    comparing the figure's marker to the paragraph's number found two
+    different results for one claim, and nothing failed. The canonical
+    quantity is now computed here and is what the figure draws.
+
+    THE ESTIMATOR IS REIMPLEMENTED, NOT IMPORTED. scripts/raw_session_matched_
+    analysis.py uses random.Random(5), 20,000 task-clustered resamples and an
+    index-based percentile. That is reproduced here exactly so the comparison
+    against the artifact is an EQUALITY, not a tolerance -- two independent
+    computations that must agree is the check this file is built on.
+
+    WHAT THE FIGURE MUST NOT DRAW, and it is a measurement not a preference:
+    the two readers' own 95% intervals OVERLAP heavily (gpt-oss tops out at
+    about +0.30, Gemma starts at about +0.23). Drawing them side by side
+    invites "the intervals overlap, so there is no difference", which is
+    false -- the cells are PAIRED and the paired interval excludes zero. So
+    the figure draws the per-reader POINTS and exactly one interval, the
+    paired one. The overlap is asserted below so that this stays a documented
+    property of the data rather than a drafting choice.
+    """
+    D = "results/ledgers/repro/raw_session_matched"
+    oss = load(f"{D}/raw_gptoss_slim.jsonl")
+    gem = load(f"{D}/raw_gemma_slim.jsonl")
+    ana = json.loads((REPO / D / "raw_session_matched_analysis.json").read_text())
+
+    # ---- guard SM-A: the arms are the two readers and nothing else.
+    mo = {r["reader_model"] for r in oss}
+    mg = {r["reader_model"] for r in gem}
+    if mo != {GPTOSS_READER_ID} or mg != {GEMMA_READER_ID}:
+        FAIL.append(f"session-matched: arms carry readers {mo} and {mg}; the "
+                    f"figure says only the reader changed")
+    clusters = {r["reader_cluster"] for r in oss} | {r["reader_cluster"] for r in gem}
+    if clusters != {"metis"}:
+        FAIL.append(f"session-matched: arms span clusters {clusters}; pooling "
+                    "serving configurations would confound the reader contrast")
+    # ---- guard SM-B: ONE SESSION. This arm exists BECAUSE the published one
+    # was 11 hours split; if the dates ever diverge it has become the thing it
+    # replaced, and the word "session-matched" in the caption is false.
+    dates = ({r["created_at_utc"][:10] for r in oss}
+             | {r["created_at_utc"][:10] for r in gem})
+    if len(dates) != 1:
+        FAIL.append(f"session-matched: the arms ran on {sorted(dates)} -- more "
+                    "than one date. This contrast exists because the "
+                    "superseded one was split across sessions; the caption "
+                    "calls it session-matched")
+    # ---- guard SM-C: an errored row must never carry a score.
+    bad = sum(1 for r in oss + gem
+              if r.get("error_code_if_any") and r.get("delta_utility") is not None)
+    if bad:
+        FAIL.append(f"session-matched: {bad} errored rows carry a delta_utility; "
+                    "an error is an absence and must never be scored")
+
+    def _key(r):
+        p = r.get("provenance") or {}
+        return (p.get("memory_unit_locator"), r["future_task_id"],
+                r.get("replicate_id"))
+
+    O = {_key(r): r["delta_utility"] for r in oss if r["delta_utility"] is not None}
+    G = {_key(r): r["delta_utility"] for r in gem if r["delta_utility"] is not None}
+    matched = sorted(set(O) & set(G))
+    # ---- guard SM-D: positive-control the join. An empty matched set must be
+    # distinguishable from a key error, so the WRONG key is run and required
+    # to return zero -- condition_id embeds the reader, by construction.
+    wrong = {(r.get("condition_id"), r["future_task_id"]) for r in oss} & {
+        (r.get("condition_id"), r["future_task_id"]) for r in gem}
+    if wrong:
+        FAIL.append(f"session-matched: the condition_id join returned "
+                    f"{len(wrong)} rows; it embeds the reader and MUST return "
+                    "zero, so the locator join below is no longer evidenced")
+    if not matched:
+        FAIL.append("session-matched: the locator join returned ZERO rows")
+        return None
+
+    def _boot(vals, tasks, n=20000, seed=5):
+        """random.Random(5), 20k task-clustered resamples, index percentile.
+
+        Byte-for-byte the estimator in scripts/raw_session_matched_analysis.py.
+        """
+        import random
+        rng = random.Random(seed)
+        byt = collections.defaultdict(list)
+        for v, t in zip(vals, tasks):
+            byt[t].append(v)
+        keys = list(byt)
+        out = []
+        for _ in range(n):
+            s = []
+            for _ in keys:
+                s += byt[rng.choice(keys)]
+            out.append(sum(s) / len(s))
+        out.sort()
+        return round(out[int(0.025 * n)], 4), round(out[int(0.975 * n)], 4)
+
+    diffs = [G[k] - O[k] for k in matched]
+    tasks = [k[1] for k in matched]
+    lo, hi = _boot(diffs, tasks)
+    mean = sum(diffs) / len(diffs)
+    m_oss = sum(O[k] for k in matched) / len(matched)
+    m_gem = sum(G[k] for k in matched) / len(matched)
+    cells = {(k[0], k[1]) for k in matched}
+    n_tasks = len({k[1] for k in matched})
+
+    # ---- guard SM-E: EQUALITY with the artifact, not a tolerance.
+    expect("session-matched: replicate rows", len(matched), ana["n_matched"])
+    expect("session-matched: cells", len(cells), ana["n_cells"])
+    expect("session-matched: tasks", n_tasks, ana["n_tasks"])
+    expect("session-matched: dU gpt-oss", round(m_oss, 4), ana["deltaU_gptoss"])
+    expect("session-matched: dU Gemma", round(m_gem, 4), ana["deltaU_gemma"])
+    expect("session-matched: paired reader effect", round(mean, 4),
+           ana["paired_diff_gemma_minus_gptoss"])
+    expect("session-matched: CI lower", lo, ana["ci95_task_clustered"][0])
+    expect("session-matched: CI upper", hi, ana["ci95_task_clustered"][1])
+    # The canonical values the manuscript prints, pinned independently of the
+    # artifact as well -- an artifact regenerated wrongly would otherwise move
+    # the figure and the equality check above would still pass.
+    expect("session-matched: the canonical point estimate", round(mean, 4),
+           0.0982)
+    expect("session-matched: the canonical interval", [lo, hi], [0.0247, 0.173])
+    expect("session-matched: the canonical cell count", len(cells), 275)
+
+    # ---- guard SM-F: the UNIT. 550 is REPLICATE ROWS; 275 is cells. A caption
+    # that calls 550 "cells" is this project's named units defect, and the
+    # artifact itself carries the warning. Assert the arithmetic that makes
+    # them different numbers so neither can be substituted for the other.
+    if len(matched) != 2 * len(cells):
+        FAIL.append(f"session-matched: {len(matched)} rows is not 2x the "
+                    f"{len(cells)} cells; the caption distinguishes replicate "
+                    "rows from cells and the factor-of-two is why")
+
+    # ---- guard SM-G: the superseded figure must stay superseded. The
+    # published cross-session contrast is a DIFFERENT number on DIFFERENT
+    # cells; if the figure ever draws it again, this fires.
+    pub = ana["published_cross_session"]
+    expect("session-matched: the superseded cross-session mean", pub["mean"],
+           0.1268)
+    if abs(pub["mean"] - mean) < 1e-9:
+        FAIL.append("session-matched: the canonical and superseded estimates "
+                    "are now identical, so the figure can no longer be shown "
+                    "to draw the canonical one")
+    if ana.get("VERDICT") != "SURVIVES_SESSION_MATCHING":
+        FAIL.append(f"session-matched: VERDICT is {ana.get('VERDICT')!r}; the "
+                    "caption says the effect survives session matching")
+    if not (lo > 0):
+        FAIL.append(f"session-matched: the interval [{lo}, {hi}] no longer "
+                    "excludes zero on the positive side; the caption calls "
+                    "this a positive reader-transfer result")
+
+    # ---- guard SM-J: the memory text and the whole rendered request must be
+    # IDENTICAL across the two arms, or this is not a reader-only contrast and
+    # the caption's "same memory text" is false. The rows carry four hashes;
+    # all four are compared on EVERY matched row rather than sampled, and the
+    # count is emitted so the caption quotes a measurement rather than a
+    # recollection. Note the unit: these are the 570 joinable replicate rows
+    # BEFORE the scorability filter, which is the right denominator for a
+    # question about what was SENT -- an unscorable row was still rendered.
+    _O_all = {_key(r): r for r in oss}
+    _G_all = {_key(r): r for r in gem}
+    _ident = sorted(set(_O_all) & set(_G_all))
+    hashes = ("memories_sha256", "context_sha256", "config_sha256",
+              "filler_pool_sha256")
+    same = {h: sum(1 for k in _ident
+                   if (_O_all[k].get("provenance") or {}).get(h)
+                   == (_G_all[k].get("provenance") or {}).get(h))
+            for h in hashes}
+    expect("session-matched: rows compared for request identity", len(_ident),
+           570)
+    for h in hashes:
+        expect(f"session-matched: {h} identical", same[h], len(_ident))
+        if same[h] != len(_ident):
+            FAIL.append(
+                f"session-matched: {h} differs on "
+                f"{len(_ident) - same[h]} of {len(_ident)} rows; the caption "
+                "says the two readers saw the same memory text in the same "
+                "request, so this would not be a reader-only contrast")
+    # POSITIVE-CONTROL the identity check itself. 570/570 equal is only
+    # evidence if an unequal pair would have been counted -- otherwise the
+    # number proves the comparison ran, not that it discriminates. This is
+    # the defect shape the Gemma figure's own byte-identity check records.
+    _probe = dict(_O_all[_ident[0]].get("provenance") or {})
+    _probe["memories_sha256"] = "0" * 64
+    if _probe["memories_sha256"] == (_G_all[_ident[0]].get("provenance")
+                                     or {}).get("memories_sha256"):
+        FAIL.append("session-matched: the identity check's positive control "
+                    "does not discriminate -- a changed hash still compares "
+                    "equal, so 570/570 proves only that it ran")
+
+    # ---- the matched per-cell agreement, Panel B. Cell means over the two
+    # replicates; three-valued for the same reason the sparsity figure is.
+    cd = collections.defaultdict(lambda: [[], []])
+    for k in matched:
+        cd[(k[0], k[1])][0].append(O[k])
+        cd[(k[0], k[1])][1].append(G[k])
+    cm = {k: (statistics.mean(v[0]), statistics.mean(v[1])) for k, v in cd.items()}
+
+    def sgn(x):
+        return 0 if abs(x) < 1e-9 else (1 if x > 0 else -1)
+
+    conf = collections.Counter((sgn(a), sgn(b)) for a, b in cm.values())
+    both = [(a, b) for a, b in cm.values() if sgn(a) and sgn(b)]
+    agree = sum(1 for a, b in both if sgn(a) == sgn(b))
+    zero_both = conf[(0, 0)]
+    expect("session-matched: cells in the agreement panel", sum(conf.values()),
+           275)
+    expect("session-matched: zero under BOTH readers", zero_both, 170)
+    expect("session-matched: non-zero under both, signs agreeing",
+           f"{agree}/{len(both)}", "55/58")
+    # ---- guard SM-H: the tied zeros dominate, which is WHY the panel reports
+    # agreement on the cells that could move rather than a raw agreement rate.
+    # A 245/275 "agreement" would be mostly cells that cannot move at all.
+    if zero_both <= len(both):
+        FAIL.append(f"session-matched: tied zeros ({zero_both}) no longer "
+                    f"dominate the movable cells ({len(both)}); the panel's "
+                    "caption explains the agreement rate is quoted on movable "
+                    "cells FOR that reason")
+
+    # ---- guard SM-I: the per-reader intervals OVERLAP, which is exactly why
+    # the figure draws one paired interval and not two marginal ones. If they
+    # ever separate, the drawing rationale in the caption is wrong even though
+    # every plotted value would still be right.
+    olo, ohi = _boot([O[k] for k in matched], tasks)
+    glo, ghi = _boot([G[k] for k in matched], tasks)
+    if not (ohi > glo):
+        FAIL.append(
+            f"session-matched: the per-reader intervals [{olo},{ohi}] and "
+            f"[{glo},{ghi}] no longer overlap. The figure deliberately draws "
+            "ONE paired interval because two overlapping marginal intervals "
+            "would invite the false reading 'no difference'; that rationale "
+            "is stated in the caption and must be re-argued")
+    expect("session-matched: marginal intervals overlap (why one is drawn)",
+           round(ohi - glo, 4), 0.0689)
+
+    return {"n_rows": len(matched), "n_cells": len(cells), "n_tasks": n_tasks,
+            "oss": m_oss, "gem": m_gem, "diff": mean, "lo": lo, "hi": hi,
+            "conf": conf, "agree": agree, "both": len(both),
+            "zero_both": zero_both, "pub": pub,
+            "n_ident": len(_ident), "same_hashes": same,
+            "marg": {"oss": (olo, ohi), "gem": (glo, ghi)}}
+
+
 # ---------------------------------------------------------------------------
 # TABLE 2 -- coverage: eligible / attempted / completed / exclusions
 # ---------------------------------------------------------------------------
@@ -961,6 +1416,8 @@ def _boot_mean_ci(xs, n_boot=200000, seed=20260929, alpha=0.05):
 # emit
 # ---------------------------------------------------------------------------
 def main():
+    print("== sparsity map (fig. 1b -- the central claim) ==")
+    sp = sparsity_map()
     print("== bearing breadth (fig. 2a) ==")
     dist, n_units, n_bear, n_ge2, n_eps, n_det = bearing_breadth()
     print("== sign reversal by stratum (fig. 2b) ==")
@@ -973,6 +1430,8 @@ def main():
     xb = crossbench()
     print("== reader generalization (fig. 6) ==")
     rg, rgcorr, rgmeta = reader_generalization()
+    print("== reader transfer, SESSION-MATCHED (fig. 6, canonical) ==")
+    sm = reader_session_matched()
     print("== coverage table (tab. 2) ==")
     cov = coverage()
 
@@ -1014,6 +1473,65 @@ def main():
     L.append("%%% Sources: data/manifests/lmev2_leakage_small.jsonl")
     L.append("%%%          results/ledgers/repro/screened_cells_slim.jsonl")
     L.append("%%%          results/ledgers/k1_screened_design.json (basis pin)")
+    L.append("")
+
+    # ---- figure 1b: the sparsity map --------------------------------------
+    # One square per MEASURED cell; nothing is drawn where no cell was run.
+    # The three strata are three blocks on a shared row of 60 memories, so a
+    # row is one memory read across its own bearing, matched-control and
+    # unscreened tasks. Geometry is computed HERE; TikZ places what it is
+    # given and performs no arithmetic on a measurement.
+    SP_CW, SP_RH = 4.20, 2.55     # pt per column, pt per row
+    SP_GAP = 9.0                  # pt between stratum blocks
+    SP_ORDER = ("BEARING", "MATCHED_CONTROL", "RANDOM")
+    _x0, SP_X0 = 0.0, {}
+    for _s in SP_ORDER:
+        SP_X0[_s] = _x0
+        _x0 += sp["width"][_s] * SP_CW + SP_GAP
+    SP_TOTW = _x0 - SP_GAP
+    SP_TOTH = sp["n_mems"] * SP_RH
+
+    L.append("%% --- sparsity map (fig 1b): one square per MEASURED cell ---")
+    L.append("%% The paper's central claim, drawn at cell level. dU is exactly")
+    L.append("%% three-valued (-1/0/+1) and the generator FAILS if a fourth")
+    L.append("%% level appears. Unmeasured slots are drawn as NOTHING: the")
+    L.append("%% rows are ragged, and padding them to a rectangle collapses")
+    L.append("%% the BEARING/RANDOM contrast from 3.83x to 1.02x -- both")
+    L.append("%% readings are asserted so a padded redraw cannot pass.")
+    _pos, _neg, _zero = [], [], []
+    for row, s_, col, v in sp["marks"]:
+        x = SP_X0[s_] + col * SP_CW
+        y = -row * SP_RH
+        (_pos if v > 0 else _neg if v < 0 else _zero).append(f"{x:.2f}/{y:.2f}")
+    # Emitted as \foreach lists: TikZ iterates coordinates, it computes none.
+    L.append(r"\def\spPos{" + ",".join(_pos) + "}")
+    L.append(r"\def\spNeg{" + ",".join(_neg) + "}")
+    L.append(r"\def\spZero{" + ",".join(_zero) + "}")
+    L.append(rf"\def\spCW{{{SP_CW:.2f}pt}}")
+    L.append(rf"\def\spRH{{{SP_RH:.2f}pt}}")
+    L.append(rf"\def\spTotW{{{SP_TOTW:.2f}pt}}")
+    L.append(rf"\def\spTotH{{{SP_TOTH:.2f}pt}}")
+    for s_, tag in (("BEARING", "Bear"), ("MATCHED_CONTROL", "Ctrl"),
+                    ("RANDOM", "Rand")):
+        st = sp["stats"][s_]
+        L.append(rf"\def\sp{tag}X{{{SP_X0[s_]:.2f}pt}}")
+        L.append(rf"\def\sp{tag}W{{{sp['width'][s_] * SP_CW:.2f}pt}}")
+        L.append(rf"\def\sp{tag}Mid{{{SP_X0[s_] + sp['width'][s_] * SP_CW / 2:.2f}pt}}")
+        L.append(rf"\def\sp{tag}N{{{st['n']}}}")
+        L.append(rf"\def\sp{tag}Pos{{{st['pos']}}}")
+        L.append(rf"\def\sp{tag}Neg{{{st['neg']}}}")
+        L.append(rf"\def\sp{tag}Rate{{{100.0 * st['rate']:.1f}}}")
+        L.append(rf"\def\sp{tag}Lo{{{100.0 * st['lo']:.1f}}}")
+        L.append(rf"\def\sp{tag}Hi{{{100.0 * st['hi']:.1f}}}")
+    L.append(rf"\def\spCells{{{sp['n_cells']:,}}}".replace(",", "{,}"))
+    L.append(rf"\def\spMems{{{sp['n_mems']}}}")
+    L.append(rf"\def\spNonzero{{{sp['nonzero']}}}")
+    L.append(rf"\def\spZeroPct{{{100.0 * (sp['n_cells'] - sp['nonzero']) / sp['n_cells']:.1f}}}")
+    L.append(rf"\def\spDrawnRatio{{{sp['drawn_ratio']:.1f}}}")
+    for s_, tag in (("BEARING", "Bear"), ("MATCHED_CONTROL", "Ctrl"),
+                    ("RANDOM", "Rand")):
+        L.append(rf"\def\sp{tag}Tasks{{{sp['ntask'][s_]}}}")
+        L.append(rf"\def\sp{tag}Helps{{{sp['helps'][s_]}}}")
     L.append("")
 
     L.append("%% --- bearing breadth: counts, and log-scaled bar heights in pt ---")
@@ -1174,6 +1692,11 @@ def main():
     L.append(rf"\def\rgSmN{{{_sm['n_matched']}}}")        # REPLICATE ROWS
     L.append(rf"\def\rgSmCells{{{_sm['n_cells']}}}")      # cells -- the honest unit
     L.append(rf"\def\rgSmTasks{{{_sm['n_tasks']}}}")
+    # The decomposition ON THE SESSION-MATCHED ROWS. Never mix this with
+    # \rgWithoutDelta, which is the superseded cross-session figure.
+    L.append(rf"\def\rgSmWithout{{{_sm['without_arm_change']:+.4f}}}")
+    L.append(rf"\def\rgSmWith{{{_sm['with_arm_change']:+.4f}}}")
+    L.append(rf"\def\rgSmWithoutShare{{{round(abs(_sm['without_arm_change'])/abs(_sm['with_arm_change'])*100)}}}")
     L.append(rf"\def\rgSmOss{{{_sm['deltaU_gptoss']:+.4f}}}")
     L.append(rf"\def\rgSmGem{{{_sm['deltaU_gemma']:+.4f}}}")
 
@@ -1252,6 +1775,48 @@ def main():
     L.append(rf"\def\rgWithoutShare{{{100.0 * _dec['share_of_deltaU_change_from_the_WITHOUT_arm']:.0f}}}")
     L.append(rf"\def\rgWithDelta{{{_dec['change_in_WITH_arm']:+.4f}}}")
     L.append(rf"\def\rgWithoutDelta{{{_dec['change_in_WITHOUT_arm']:+.4f}}}")
+    L.append("")
+
+    # ---- figure 6: the CANONICAL session-matched reader contrast ---------
+    # The figure previously drew \rgRawDiff, the SUPERSEDED cross-session
+    # value, beside prose quoting the canonical session-matched one. The
+    # geometry below is the canonical arm's, and reader_session_matched()
+    # fails the build if the two ever become the same number -- the drawing
+    # could then no longer be shown to use the canonical one.
+    SM_W = 92.0                     # pt, drawable width of panel A
+    SM_LO, SM_HI = 0.00, 0.40       # dU axis; covers both points and the CI
+    def smx(v):
+        return SM_W * (v - SM_LO) / (SM_HI - SM_LO)
+
+    L.append("%% --- reader transfer, SESSION-MATCHED (fig 6a) ------------")
+    L.append("%% CANONICAL. 275 cells / 123 tasks / 550 replicate rows, both")
+    L.append("%% arms in ONE session. The superseded cross-session +0.1268 is")
+    L.append("%% NOT drawn. Exactly ONE interval is drawn, the PAIRED one:")
+    L.append("%% the two readers' marginal intervals overlap by 0.0689, so")
+    L.append("%% drawing them would invite a false 'no difference' reading.")
+    L.append(rf"\def\smXOss{{{smx(sm['oss']):.2f}pt}}")
+    L.append(rf"\def\smXGem{{{smx(sm['gem']):.2f}pt}}")
+    # The paired interval is anchored at the gpt-oss point, which is exact:
+    # on a paired set the mean of the differences IS the gap between means.
+    L.append(rf"\def\smXCiLo{{{smx(sm['oss'] + sm['lo']):.2f}pt}}")
+    L.append(rf"\def\smXCiHi{{{smx(sm['oss'] + sm['hi']):.2f}pt}}")
+    for v, nm in ((0.0, "Zero"), (0.1, "One"), (0.2, "Two"), (0.3, "Three"),
+                  (0.4, "Four")):
+        L.append(rf"\def\smTick{nm}{{{smx(v):.2f}pt}}")
+    L.append(rf"\def\smW{{{SM_W:.2f}pt}}")
+    # Panel B: the matched per-cell agreement table, every count from the join.
+    _c = sm["conf"]
+    for so, st in ((1, "Pos"), (0, "Zero"), (-1, "Neg")):
+        for sg, gt in ((1, "Pos"), (0, "Zero"), (-1, "Neg")):
+            L.append(rf"\def\smC{st}{gt}{{{_c.get((so, sg), 0)}}}")
+    L.append(rf"\def\smAgree{{{sm['agree']}}}")
+    L.append(rf"\def\smBoth{{{sm['both']}}}")
+    L.append(rf"\def\smZeroBoth{{{sm['zero_both']}}}")
+    # Request-identity, in its own unit: JOINABLE REPLICATE ROWS (570),
+    # which is a different number from the 550 scorable rows and the 275
+    # cells. All three appear in this figure and must not be interchanged.
+    L.append(rf"\def\smIdentN{{{sm['n_ident']:,}}}".replace(",", "{,}"))
+    L.append(rf"\def\smIdentK{{{sm['same_hashes']['context_sha256']:,}}}".replace(",", "{,}"))
     L.append("")
 
     # ---- table 2: coverage ------------------------------------------------
