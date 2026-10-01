@@ -1,0 +1,24 @@
+{
+ "_what": "raw reader effect, BOTH ARMS RE-RUN IN ONE SESSION. Replaces the published cross-session figure for this contrast.",
+ "n_matched": 550,
+ "deltaU_gptoss": 0.2182,
+ "deltaU_gemma": 0.3164,
+ "paired_diff_gemma_minus_gptoss": 0.0982,
+ "ci95_task_clustered": [
+  0.0247,
+  0.173
+ ],
+ "excludes_zero": true,
+ "sign_agreement_nonzero_under_both": "110/116",
+ "published_cross_session": {
+  "mean": 0.1268,
+  "ci": [
+   0.0511,
+   0.205
+  ],
+  "arms_hours_apart": 11
+ },
+ "published_mean_inside_session_matched_CI": true,
+ "session_matched_mean_inside_published_CI": true,
+ "VERDICT": "SURVIVES_SESSION_MATCHING"
+}

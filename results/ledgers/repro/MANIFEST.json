@@ -57,5 +57,27 @@
   "precommitment": "docs/READER_TRANSFER_PRECOMMITMENT.md",
   "n_rows": 1694,
   "design_invariant_verified": "all 1694 rows carry memory_text byte-identical to the gpt-oss run (match=1694, mismatch=0, no-counterpart=0), joined on (memory_unit_locator, future_task_id, memory_representation). Only the reader differs."
+ },
+ "raw_session_matched_gptoss": {
+  "full_artifact_path": "results/raw_session_matched/raw_gptoss.jsonl",
+  "full_artifact_sha256": "e89041b531c1a4e74733f829b462dfe8faced00ce990e4d627c9265d1371f923",
+  "full_artifact_bytes": 20380268,
+  "full_artifact_tracked": false,
+  "slim_slice": "results/ledgers/repro/raw_session_matched/raw_gptoss_slim.jsonl",
+  "n_rows": 570
+ },
+ "raw_session_matched_gemma": {
+  "full_artifact_path": "results/raw_session_matched/raw_gemma.jsonl",
+  "full_artifact_sha256": "9de36aa2330dabd1dd57243bc0fee78fac504b8c5e28b1578973c2fff1ea9c69",
+  "full_artifact_bytes": 20985394,
+  "full_artifact_tracked": false,
+  "slim_slice": "results/ledgers/repro/raw_session_matched/raw_gemma_slim.jsonl",
+  "n_rows": 570
+ },
+ "raw_session_matched_analysis": {
+  "path": "results/ledgers/repro/raw_session_matched/raw_session_matched_analysis.json",
+  "script": "scripts/raw_session_matched_analysis.py",
+  "_falsifiers_committed_before_data": "8763fb8",
+  "_what": "settles whether the published +0.1268 raw reader effect was session drift. Both arms re-run 14 minutes apart; memory_text byte-identical 550/550."
  }
 }
