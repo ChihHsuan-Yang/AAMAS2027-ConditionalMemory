@@ -342,7 +342,16 @@ acquiring a floor. `schema.py`: content-embargoed benchmarks.
 
 Newest section wins where it conflicts with anything above.
 
-### 🟢 The headline result of this phase: memory utility TRANSFERS across readers
+### 🟡 The headline result of this phase: memory utility TRANSFERS across readers — **PROVISIONAL**
+
+> 🔴 **Updated 2026-10-01 03:50.** The two arms below were **not session-matched**
+> (Gemma `10-01T03:05`, gpt-oss comparator `09-30T16:47`). **Defect 25** then
+> showed `gpt-oss-120b` drifts across sessions by −0.0303 on a **memory-free**
+> prompt — the same order as this effect. **The +0.1268 therefore confounds
+> reader with session.** A session-matched `raw` re-measurement is running
+> (`results/raw_session_matched/`). Gemma drifted 0/1124, so the instability is
+> the gpt-oss arm's. **Do not put this figure in the manuscript until the
+> re-measurement lands.**
 
 `docs/READER_TRANSFER_RESULT.md` · artifacts `results/gemma_reader/` · slim slice
 and analysis tracked under `results/ledgers/repro/gemma_reader/`

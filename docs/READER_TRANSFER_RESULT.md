@@ -22,6 +22,24 @@ A reviewer will ask whether the representation finding is an artifact of `gpt-os
 
 **Per-cell agreement is weaker than the headline correlation suggests, and on structured there is none.** Over all matched cells Pearson r is 0.5196 (raw) and -0.0084 (structured) — but a cell that is 0 under both readers counts as perfect agreement there, and most cells are such zeros. Restricted to cells non-zero under either reader, raw falls to 0.2129 (n=109) and structured is -0.0699 (n=35). **The two readers agree on the ORDERING and the DIRECTION, not cell by cell.** That is reported as a limitation, not smoothed: a reviewer asking "is it the same memories that help?" does not yet have a clean yes.
 
+> # 🔴 PROVISIONAL — this number's two arms were not session-matched
+>
+> The Gemma arm ran `2026-10-01T03:05`; its gpt-oss comparator ran
+> `2026-09-30T16:47` — **eleven hours apart**. **DEFECT_REGISTER #25** then
+> established that `gpt-oss-120b` is deterministic *within* a session and **not
+> across** one: re-issuing byte-identical **memory-free** WITHOUT-arm requests a
+> day later returned different text in **554/1124** cases and moved the
+> no-memory baseline by **−0.0303** — the same order as the effect reported here.
+>
+> **So the +0.1268 confounds reader with session**, and the sign of the
+> confound is unknown. The Writer × Reader factorial cannot settle it: `raw` has
+> no writer axis, so the factorial contains no `raw` rows at all.
+>
+> A **session-matched** re-measurement of `raw` under both readers is running
+> (`results/raw_session_matched/`). **Do not quote this figure in the manuscript
+> until that lands.** Gemma itself drifted **0/1124** on the identical
+> comparison, so the instability is a property of the gpt-oss arm.
+
 ## The headline
 
 Per representation, on the cells interpretable under **both** readers. ΔU is the mean per-cell utility delta over 2 replicates; the paired difference is per cell, so each row compares the two readers on the *same* memories against the *same* tasks.

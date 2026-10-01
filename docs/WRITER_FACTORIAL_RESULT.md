@@ -1,5 +1,23 @@
 # Writer × Reader — does it matter which model wrote the memory?
 
+> # 🔴 PROVISIONAL — this number's two arms were not session-matched
+>
+> The Gemma arm ran `2026-10-01T03:05`; its gpt-oss comparator ran
+> `2026-09-30T16:47` — **eleven hours apart**. **DEFECT_REGISTER #25** then
+> established that `gpt-oss-120b` is deterministic *within* a session and **not
+> across** one: re-issuing byte-identical **memory-free** WITHOUT-arm requests a
+> day later returned different text in **554/1124** cases and moved the
+> no-memory baseline by **−0.0303** — the same order as the effect reported here.
+>
+> **So the +0.1268 confounds reader with session**, and the sign of the
+> confound is unknown. The Writer × Reader factorial cannot settle it: `raw` has
+> no writer axis, so the factorial contains no `raw` rows at all.
+>
+> A **session-matched** re-measurement of `raw` under both readers is running
+> (`results/raw_session_matched/`). **Do not quote this figure in the manuscript
+> until that lands.** Gemma itself drifted **0/1124** on the identical
+> comparison, so the instability is a property of the gpt-oss arm.
+
 **Generated from `results/ledgers/writer_factorial/writer_factorial_analysis.json` on 2026-10-01T06:22:16.518455+00:00.** Every number here is read out of that artifact at generation time by `scripts/w5_factorial_report.py`; none is typed from recall, so this document cannot drift from the data.
 
 Pre-registered in `docs/WRITER_FACTORIAL_PRECOMMITMENT.md`, written **before any Gemma memory was written** and before any writer-Gemma cell was run.
