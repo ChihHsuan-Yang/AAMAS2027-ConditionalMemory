@@ -25,9 +25,16 @@ from typing import Any, Iterable, Sequence
 
 from .schema import (
     CLUSTER_MODEL_NAMING,
+    OUTPUT_NOT_RETAINED_SENTINEL,
     CLUSTER_REPORTS_REASONING_TOKENS,
+    READER_ARMS,
     DELTA_TOLERANCE,
     ENUMS,
+    ROW_ID_KEYS,
+    CELL_ID_KEYS,
+    MEMORY_ID_KEYS,
+    WITHHELD_SENTINEL,
+    field_may_be_null,
     ERROR_CODES,
     FIELD_ORDER,
     FIELD_SPEC,
@@ -160,7 +167,15 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
             continue
         value = row[name]
         if value is None:
-            if not spec["nullable"]:
+            # Nullability is per (benchmark, field), not global. FIELD_SPEC was
+            # written for a LongMemEval-shaped row; a METRICS-ONLY row from
+            # another benchmark can have nothing to measure in a field that is
+            # non-nullable there. schema.field_may_be_null is the single
+            # authority, and each exemption carries its measured reason -- see
+            # schema.BENCHMARK_NULLABLE_EXEMPTIONS. The alternatives were to
+            # invent values or to ship the benchmark outside this validator;
+            # both are defects this repo already has a register entry for.
+            if not field_may_be_null(row.get("benchmark"), name):
                 add("null_in_non_nullable", "field may not be null", name)
             continue
         if not _type_ok(spec["kind"], value):
@@ -252,6 +267,30 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
     for out_f, rew_f in (("output_with_memory", "reward_with_memory"),
                          ("output_without_memory", "reward_without_memory")):
         o, r = row.get(out_f), row.get(rew_f)
+
+        # A run that DISCARDED its completions is a third state, distinct from
+        # both "empty completion" (the trap below) and "withheld under a
+        # licence". It is only admissible with EVIDENCE: the row must carry a
+        # measured non-zero response length for THIS arm, proving a real answer
+        # existed and was scored. Without that proof the sentinel would be an
+        # unfalsifiable excuse that silences the empty-output trap -- so an
+        # unproven sentinel is rejected rather than trusted.
+        if o == OUTPUT_NOT_RETAINED_SENTINEL:
+            arm = "with" if out_f.endswith("with_memory") else "without"
+            prov_ = row.get("provenance")
+            chars = (prov_ or {}).get(f"response_chars_{arm}") if isinstance(
+                prov_, dict) else None
+            if isinstance(chars, int) and not isinstance(chars, bool) and chars > 0:
+                continue
+            add("output_not_retained_without_evidence",
+                f"{out_f} carries the not-retained sentinel but the row does not "
+                f"prove a completion ever existed: provenance.response_chars_{arm}="
+                f"{chars!r}. Without a measured non-zero length this is "
+                f"indistinguishable from an EMPTY completion scored as an answer, "
+                f"which manufactures harm. Record the measured length or set an "
+                f"error code.", out_f)
+            continue
+
         empty = o is None or (isinstance(o, str) and not o.strip())
         if empty and r is not None:
             add("scored_empty_output",
@@ -272,18 +311,43 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
             "reader_endpoint")
 
     # --- reasoning_tokens: absent is not zero ---
+    #
+    # 🔴 THE SUBJECT OF THIS CHECK IS THE READER, NOT THE CLUSTER. Until
+    # 2026-09-30 it keyed on reader_cluster alone, on a premise ("Metis reports
+    # reasoning-token counts") that had been measured on exactly ONE model.
+    # Re-measured live: metis gpt-oss-120b returns
+    # completion_tokens_details.reasoning_tokens=5, metis gemma-4-31B-it returns
+    # no completion_tokens_details AT ALL. Left cluster-keyed, this check would
+    # (a) emit reasoning_tokens_missing on every correct Gemma row, training a
+    # reader to ignore it, and (b) FAIL TO FIRE on the real corruption --
+    # reasoning_tokens=0 on Gemma, an absence written as a measurement.
+    #
+    # The (cluster, model) pair is consulted first and the cluster map is the
+    # fallback for readers not in the registry, so an unseen model still gets
+    # the old behaviour rather than silently getting no check at all.
     cl = row.get("reader_cluster")
+    md = row.get("reader_model")
     rt = row.get("reasoning_tokens")
-    if isinstance(cl, str) and cl in CLUSTER_REPORTS_REASONING_TOKENS:
+    reports = None
+    source = ""
+    if isinstance(cl, str) and isinstance(md, str):
+        for spec in READER_ARMS.values():
+            if spec["reader_cluster"] == cl and spec["reader_model"] == md:
+                reports = bool(spec["reports_reasoning_tokens"])
+                source = f"reader {md!r} on cluster {cl!r}"
+                break
+    if reports is None and isinstance(cl, str) and cl in CLUSTER_REPORTS_REASONING_TOKENS:
         reports = CLUSTER_REPORTS_REASONING_TOKENS[cl]
+        source = f"cluster {cl!r} (model {md!r} not in READER_ARMS)"
+    if reports is not None:
         if not reports and rt == 0:
             add("absent_reported_as_zero",
-                f"cluster {cl!r} does not report completion_tokens_details, so "
+                f"{source} does not report completion_tokens_details, so "
                 f"reasoning_tokens=0 is an absent value written as a measurement; use null",
                 "reasoning_tokens")
         if reports and rt is None and err is None:
             add("reasoning_tokens_missing",
-                f"cluster {cl!r} does report reasoning tokens but this successful row has "
+                f"{source} does report reasoning tokens but this successful row has "
                 f"none recorded", "reasoning_tokens", sev=SEVERITY_WARN)
 
     # --- cluster/model naming asymmetry must survive ---
@@ -311,11 +375,47 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
                 sev=SEVERITY_WARN)
 
     # --- deterministic ids must actually be the hash of the content ---
-    for name, fn in (("memory_id", compute_memory_id),
-                     ("cell_id", compute_cell_id),
-                     ("row_id", compute_row_id)):
+    #
+    # EXPORT EXEMPTION. ``memory_text`` is one of MEMORY_ID_KEYS, and the exporter
+    # replaces it with WITHHELD_SENTINEL for a licence-restricted row AFTER the id was
+    # minted. Recomputing over the blanked text therefore mismatches BY CONSTRUCTION on
+    # every withheld row. Left unexempted, gate 4 rejects every release that withholds
+    # anything -- which is exactly what v0.4 (SWE-bench, metrics-only) is.
+    #
+    # The pre-redaction text is NOT recoverable here, so this does not "verify the id a
+    # different way": it declines to check the one id whose inputs we blanked, and says
+    # so as a warning rather than passing silently. Claiming a check that did not run is
+    # how a provenance field nobody measured gets shipped.
+    #
+    # The exemption is NARROW in three ways, so it cannot become a hole:
+    #   1. only fields the row DECLARES in text_fields_withheld,
+    #   2. only fields actually holding the sentinel (an ordinary edit still trips),
+    #   3. only the ids whose OWN key set contains such a field. cell_id keys on
+    #      memory_id (not on memory_text) and row_id on cell_id, so both stay fully
+    #      checked even on a withheld row -- a copied or corrupted id is still caught.
+    #
+    # Re-minting the ids instead was the alternative. Rejected: published ids would then
+    # no longer join to the unredacted ledger, breaking the reconstruction path that the
+    # withheld release exists to support.
+    _blanked: set[str] = set()
+    _tfw = row.get("text_fields_withheld")
+    if isinstance(_tfw, list):
+        _blanked = {f for f in _tfw
+                    if isinstance(f, str) and row.get(f) == WITHHELD_SENTINEL}
+
+    for name, fn, keys in (("memory_id", compute_memory_id, MEMORY_ID_KEYS),
+                           ("cell_id", compute_cell_id, CELL_ID_KEYS),
+                           ("row_id", compute_row_id, ROW_ID_KEYS)):
         v = row.get(name)
         if not isinstance(v, str) or not v:
+            continue
+        hidden = sorted(_blanked.intersection(keys))
+        if hidden:
+            add("id_unverifiable_withheld_input",
+                f"{name} cannot be re-derived: {hidden} were replaced by the withholding "
+                f"marker after the id was minted, so the hash of this row no longer "
+                f"reproduces it. The id is carried forward from the unredacted ledger; "
+                f"reconstruct the source text to check it", name, sev=SEVERITY_WARN)
             continue
         try:
             expected = fn(row)

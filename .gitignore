@@ -46,3 +46,4 @@ hf_staging/
 hf_out/
 *.rejected.jsonl
 logs/
+results/gemma_reader/

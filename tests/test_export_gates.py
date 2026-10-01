@@ -311,3 +311,158 @@ def test_schema_version_was_bumped_and_the_old_one_is_still_recognised():
     assert "faithfulness_detail" in S.FIELD_ORDER
     assert S.SCHEMA_VERSION_V2 in S.KNOWN_SCHEMA_VERSIONS
     assert S.SCHEMA_VERSION_V1 in S.KNOWN_SCHEMA_VERSIONS
+
+
+# ===================================================== v0.3 (SciCode) / v0.4 (SWE-bench)
+# These pin the licence RULINGS in code. Changing a ruling must mean deleting a failing
+# test as the receipt, not quietly editing a table.
+
+def _row(**over):
+    import export_hf as EH
+    return {**EH._synthetic_row(), **over}
+
+
+def _scicode_row(**over):
+    return _row(benchmark="scicode",
+                license_source_reference="scicode:Apache-2.0", **over)
+
+
+def _swebench_row(**over):
+    return _row(benchmark="swebench_verified",
+                license_source_reference="swebench_verified:none_declared", **over)
+
+
+def test_scicode_policy_permits_text_both_code_and_data_are_apache2():
+    """BENCHMARK_LICENSES.md section 4. The stale PENDING entry over-redacted."""
+    import export_hf as EH
+    pol = EH.policy_for("scicode:Apache-2.0")
+    assert pol.key == "scicode", "policy key must match the prefix converted rows carry"
+    assert pol.redistribute_source_text and pol.redistribute_model_output
+    out, withheld = EH.redact_row(_scicode_row(memory_text="Fermi energy problem"))
+    assert withheld == [], f"SciCode is Apache-2.0 but redaction withheld {withheld}"
+    assert out["memory_text"] == "Fermi energy problem"
+
+
+def test_swebench_policy_is_an_explicit_refusal_not_a_default():
+    """An absent entry and a dated refusal are different facts (section 5)."""
+    import export_hf as EH
+    pol = EH.policy_for("swebench_verified:none_declared")
+    assert pol.key == "swebench_verified", "must not fall through to __unknown__"
+    assert not pol.redistribute_source_text and not pol.redistribute_model_output
+    note = pol.note.lower()
+    for token in ("undeclared", "carddata.license", "harness", "section 5"):
+        assert token in note, f"the ruling's note must state {token!r}"
+
+
+def test_swebench_text_is_withheld_and_both_guards_agree():
+    import export_hf as EH
+    from p1mem import schema as S
+    out, withheld = EH.redact_row(_swebench_row(memory_text="django issue body"))
+    assert out["memory_text"] == EH.WITHHELD
+    assert set(withheld) >= {"memory_text", "future_task_text"}
+    EH.gate_license_exclusion([out])      # keyed on license_source_reference
+    S.assert_content_redistributable([out])   # keyed independently on `benchmark`
+
+
+def test_a_redacted_row_still_passes_the_validator_gate4_runs():
+    """The v0.4 blocker: memory_text is a MEMORY_ID_KEY, so blanking it broke the id."""
+    import export_hf as EH
+    from p1mem import validate as V
+    out, _ = EH.redact_row(_swebench_row(memory_text="django issue body"))
+    rep = V.validate_dataset([out])
+    assert rep.ok, [f"{e.code}:{e.field}" for e in rep.errors]
+
+
+def test_id_mismatch_still_fires_on_a_non_sentinel_edit():
+    """POSITIVE CONTROL: the withholding exemption must not swallow real corruption."""
+    from p1mem import validate as V
+    bad = _row(memory_text="an ordinary edit, not a withholding")
+    assert "id_mismatch" in {e.code for e in V.validate_dataset([bad]).errors}
+
+
+def test_declaring_a_withholding_that_did_not_happen_buys_no_exemption():
+    from p1mem import validate as V
+    bad = _row(memory_text="real text", text_fields_withheld=["memory_text"],
+               reconstruction_required=True)
+    assert "id_mismatch" in {e.code for e in V.validate_dataset([bad]).errors}
+
+
+def test_copied_cell_id_is_caught_even_on_a_withheld_row():
+    """The exemption narrows per-id: cell_id keys on memory_id, not memory_text."""
+    import export_hf as EH
+    from p1mem import validate as V
+    out, _ = EH.redact_row(_swebench_row(memory_text="django issue body"))
+    out["cell_id"] = "cell-someoneelse-000000000000000000000000"
+    assert "id_mismatch" in {e.code for e in V.validate_dataset([out]).errors}
+
+
+def test_undeclared_withholding_is_rejected_by_the_schema_helper():
+    import pytest as _pt
+    import export_hf as EH
+    from p1mem import schema as S
+    out, _ = EH.redact_row(_swebench_row(memory_text="django issue body"))
+    out["text_fields_withheld"] = []
+    with _pt.raises(ValueError, match="WITHOUT declaring"):
+        S.assert_content_redistributable([out])
+
+
+def test_beam_rows_are_refused_outright_not_merely_redacted():
+    """Three docs asserted this control; measured 2026-09-30, it did not exist."""
+    import pytest as _pt
+    import export_hf as EH
+    beam = _row(benchmark="beam", license_source_reference="beam:CC-BY-SA-4.0")
+    with _pt.raises(EH.GateFailure, match="refusal"):
+        EH.gate_benchmark_refusal([beam])
+    # negative control: the gate is not a blanket refusal
+    EH.gate_benchmark_refusal([_scicode_row(), _swebench_row(), _row()])
+
+
+def test_benchmark_and_license_reference_must_name_the_same_source():
+    """The measured bypass: 'swebench' (no _verified) matched no embargo entry."""
+    import pytest as _pt
+    import export_hf as EH
+    with _pt.raises(EH.GateFailure, match="GATE 0"):
+        EH.gate_benchmark_license_agreement(
+            [_row(benchmark="swebench",
+                  license_source_reference="swebench_verified:none_declared")])
+    # a recognised benchmark pointed at the wrong reference (the prefix comparison)
+    with _pt.raises(EH.GateFailure, match="GATE 0"):
+        EH.gate_benchmark_license_agreement(
+            [_row(benchmark="scicode",
+                  license_source_reference="longmemeval_v2:Apache-2.0")])
+    EH.gate_benchmark_license_agreement([_scicode_row(), _swebench_row(), _row()])
+
+
+def test_scicode_eval_targets_are_refused_despite_a_permissive_row_policy():
+    """test_data.h5 is outside the Apache-2.0 grant: a per-FIELD carve-out."""
+    import pytest as _pt
+    import export_hf as EH
+    with _pt.raises(EH.GateFailure, match="GATE 3c"):
+        EH.gate_scicode_eval_targets([_scicode_row(
+            memory_text="expected = [0.4472135954999579, 1.2247448713915890, "
+                        "3.1415926535897931]")])
+    EH.gate_scicode_eval_targets([_scicode_row(memory_text="Compute the Fermi energy.")])
+
+
+def test_secret_scan_still_matches_real_django_source():
+    """Do not relax assigned_secret to quiet a false positive on real code."""
+    import export_hf as EH
+    for real in EH.SECRET_SCAN_REAL_SOURCE_MATCHES:
+        assert EH.scan_text_for_secrets(real, "t"), (
+            f"assigned_secret no longer matches {real!r}; a genuine credential "
+            f"assignment would now be invisible too")
+
+
+def test_a_secret_in_a_withheld_field_is_recorded_but_one_that_ships_fails():
+    import pytest as _pt
+    import export_hf as EH
+    payload = EH.SECRET_SCAN_REAL_SOURCE_MATCHES[0]
+    sw = _swebench_row(output_with_memory=payload)
+    _, withheld = EH.redact_row(sw)
+    notes = EH.gate_secret_scan_rows([sw], withheld_fields=[withheld])
+    assert notes, "a match in a withheld field must be recorded, not silently dropped"
+    # the same class of string in a field that SHIPS is still a hard failure
+    sc = _scicode_row(output_with_memory="api_key=sk-abcdefghijklmnopqrstuvwxyz0123")
+    _, sc_withheld = EH.redact_row(sc)
+    with _pt.raises(EH.GateFailure):
+        EH.gate_secret_scan_rows([sc], withheld_fields=[sc_withheld])

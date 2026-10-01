@@ -14,9 +14,18 @@ Hard errors (raise, never warn, never return a scored response)
    answer. Scoring that as a wrong answer would not merely lose a cell: it
    would push the measured utility delta negative and MANUFACTURE a harmful
    memory -- fabricating the exact phenomenon this project exists to measure.
+1b. ``finish_reason == "length"`` with ANY content, on an arm that declares
+   ``truncation_is_always_an_error``. The empty-content observable in (1) is a
+   property of gpt-oss, NOT of truncation: a model with no separate reasoning
+   stream spends the budget on the answer and returns a grammatical fragment.
+   Added 2026-09-30 for the Gemma arm; see ``_assert_not_truncated``.
 2. Resolved model id != pinned model id -> ``ModelIdMismatchError``.
 3. Model names are NEVER normalised across clusters. A silent rename would
    merge two arms into one.
+
+Both (1) and (2) are enforced on the CACHE-HIT path as well as the fresh one.
+They were not, before 2026-09-30, for (1): a stored truncation came back
+without an exception, so a resumed run could score what the first run refused.
 
 Token handling: the Globus access token is re-fetched when it ages past
 ``token_refresh_s`` so a multi-hour run does not die at expiry. The token is
@@ -38,7 +47,21 @@ from pathlib import Path
 from typing import Any
 
 from .cache import CachedResponse, ResponseCache, make_key
+from .schema import READER_ARMS
 from .vendor.rcc_schema import sha256_text
+
+
+def _arm_requires_strict_truncation(cluster: str, model: str) -> bool:
+    """Does the reader registry say this model truncates into non-empty text?
+
+    Measured per model, never assumed. An UNKNOWN model returns False, i.e. the
+    historical behaviour -- this helper must not silently change the guard for
+    the arms whose results are already published.
+    """
+    for spec in READER_ARMS.values():
+        if spec["reader_cluster"] == cluster and spec["reader_model"] == model:
+            return bool(spec["truncation_is_always_an_error"])
+    return False
 
 GATEWAY = "https://inference-api.alcf.anl.gov/resource_server"
 AUTH_DIR = Path("/Users/bellayang/Documents/2026/iclr_receiver_conditional_communication")
@@ -165,7 +188,8 @@ class P1Client:
                  token_provider: TokenProvider | None = None,
                  max_retries: int = 5, base_backoff_s: float = 1.0,
                  max_backoff_s: float = 60.0, timeout_s: float = 300.0,
-                 max_concurrency: int = 16):
+                 max_concurrency: int = 16,
+                 truncation_is_always_an_error: bool | None = None):
         if cluster not in CLUSTER_FRAMEWORK:
             raise ValueError(
                 f"unknown cluster {cluster!r}; known: {sorted(CLUSTER_FRAMEWORK)}"
@@ -173,6 +197,24 @@ class P1Client:
         self.cluster = cluster
         self.model = model
         self.cache = cache
+        # 🔴 The empty-content clause of the truncation guard is MODEL-SPECIFIC,
+        # and that was discovered rather than designed. On gpt-oss-120b an
+        # under-budgeted call spends the budget on REASONING and returns
+        # content=null, so `not content.strip()` fires. Gemma has no separate
+        # reasoning stream: it spends the budget on the ANSWER and returns a
+        # plausible FRAGMENT ("Here is the step-by-step", measured at
+        # max_tokens=8) with finish_reason="length". That fragment would be
+        # scored as a wrong answer, pushing dU negative and MANUFACTURING a
+        # harmful memory -- the exact phenomenon this project measures.
+        #
+        # Default: read the model's own entry in READER_ARMS, so a caller that
+        # forgets the flag still gets the right behaviour for a known model.
+        # A caller may force it on; it is never silently forced OFF for a model
+        # the registry says needs it.
+        if truncation_is_always_an_error is None:
+            truncation_is_always_an_error = _arm_requires_strict_truncation(
+                cluster, model)
+        self.truncation_is_always_an_error = bool(truncation_is_always_an_error)
         self.tokens = token_provider or TokenProvider()
         self.max_retries = max_retries
         self.base_backoff_s = base_backoff_s
@@ -261,6 +303,14 @@ class P1Client:
                 # A cached row must still satisfy the pin. A cache written
                 # under a different model is a contradiction, not a shortcut.
                 self._assert_model(hit.resolved_model)
+                # ...and the SAME truncation guard. Until 2026-09-30 it did not
+                # run here, so a response the fresh path REFUSES to return was
+                # returned on the second call: demonstrated by storing a
+                # finish_reason="length" + content="" row and reading it back
+                # without an exception. The runner's resume path is a cache
+                # read, so a killed-and-resumed run could score exactly the
+                # truncations the first run rejected.
+                self._assert_not_truncated(rec, hit.content, max_tokens)
                 return hit.content, rec
 
         body: dict[str, Any] = {"model": self.model, "messages": messages,
@@ -313,15 +363,7 @@ class P1Client:
         rec.finish_reason = choice.get("finish_reason") or ""
         content = (choice.get("message") or {}).get("content") or ""
 
-        if rec.finish_reason == "length" and not content.strip():
-            rec.error_code = "truncated_no_content"
-            raise TruncatedResponseError(
-                f"{self.cluster}/{self.model}: finish_reason='length' with empty content. "
-                f"max_tokens={max_tokens} was consumed by reasoning "
-                f"(reasoning_tokens={rec.reasoning_tokens}, completion_tokens={rec.output_tokens}). "
-                f"This is NOT a model answer -- scoring it would manufacture a false "
-                f"utility delta. Raise max_tokens or lower reasoning_effort."
-            )
+        self._assert_not_truncated(rec, content, max_tokens)
 
         if key is not None and self.cache is not None:
             self.cache.store(key, CachedResponse(
@@ -331,6 +373,49 @@ class P1Client:
                 latency_s=rec.latency_s, retry_count=rec.retry_count,
                 error_code=rec.error_code, raw_usage=usage))
         return content, rec
+
+    def _assert_not_truncated(self, rec: CallRecord, content: str,
+                              max_tokens: int) -> None:
+        """Refuse to return a response that was cut off at the token budget.
+
+        TWO clauses, because the observable differs by model and only the first
+        was ever implemented:
+
+        1. ``finish_reason == "length"`` with EMPTY content. This is what
+           gpt-oss-120b does: reasoning tokens come out of the same budget as
+           the answer, so an under-budgeted call reasons to an answer and then
+           has nothing left to say it with.
+        2. ``finish_reason == "length"`` with ANY content, on an arm whose
+           registry entry sets ``truncation_is_always_an_error``. Gemma emits
+           no separate reasoning stream, so it spends the budget on the ANSWER
+           and returns a grammatical FRAGMENT. Measured at max_tokens=8:
+           ``content="Here is the step-by-step"``, 24 non-blank characters,
+           ``finish_reason="length"``. Clause 1 is False on that, and the
+           fragment would be scored as a wrong answer -- driving dU negative
+           and manufacturing a harmful memory.
+
+        Clause 2 is OPT-IN PER ARM rather than global, deliberately. Turning it
+        on everywhere would retroactively invalidate 8 already-published
+        gpt-oss pilot cells whose scored output is a long truncated answer, and
+        that is a scientific decision about existing results, not a code
+        change. It is recorded in docs/MODEL_ARMS.md instead.
+        """
+        if rec.finish_reason != "length":
+            return
+        blank = not content.strip()
+        if not (blank or self.truncation_is_always_an_error):
+            return
+        rec.error_code = "truncated_no_content" if blank else "truncated_fragment"
+        why = ("empty content" if blank else
+               f"a {len(content.strip())}-character FRAGMENT: {content.strip()[:80]!r}")
+        raise TruncatedResponseError(
+            f"{self.cluster}/{self.model}: finish_reason='length' with {why}. "
+            f"max_tokens={max_tokens} was exhausted "
+            f"(reasoning_tokens={rec.reasoning_tokens}, "
+            f"completion_tokens={rec.output_tokens}). "
+            f"This is NOT a complete model answer -- scoring it would manufacture a "
+            f"false utility delta. Raise max_tokens or lower reasoning_effort."
+        )
 
     def _assert_model(self, resolved: str) -> None:
         """Exact match. No normalisation, no stripping of a vendor prefix.

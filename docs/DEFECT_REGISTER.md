@@ -34,6 +34,49 @@ section and for the claim that the measurement is trustworthy.
 | 14 | Concurrency ladder measured one wave at the top level | Sub-agent C | a wrong throughput ceiling |
 | 15 | Python 3.9 aborts pytest collection on a vendored file | Master | **a healthy suite looking broken** |
 
+## Added 2026-09-30 — found while building the Gemma reader arm (SA-GEMMA-READER)
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 16 | **The truncation guard's observable was a property of gpt-oss, not of truncation.** `finish_reason=="length" AND not content.strip()` fires on gpt-oss because reasoning tokens eat the budget and the answer comes back null. Gemma has no separate reasoning stream, spends the budget on the ANSWER, and returns a grammatical FRAGMENT (`"Here is the step-by-step"` at `max_tokens=8`). The clause is False; the fragment is returned as a normal answer | SA-GEMMA (flagged), SA-GEMMA-READER (fixed + regression-tested) | a fragment scored as a wrong answer ⇒ ΔU negative ⇒ **a manufactured harmful memory** — defect #10 recurring in a new disguise |
+| 17 | **The truncation guard and the model-id pin ran on a FRESH response but NOT on a cache hit.** Demonstrated: store `finish_reason="length"` + `content=""`, read it back, no exception | SA-GEMMA-READER, by trying the cache path on purpose | the runner's RESUME path is a cache read, so a killed-and-resumed run would score exactly the truncations the first run refused — and the first run's refusal is what makes the ledger trustworthy |
+| 18 | **`CLUSTER_REPORTS_REASONING_TOKENS` is keyed on CLUSTER, on a premise measured on one model.** "Metis reports reasoning tokens" is true of `gpt-oss-120b` and FALSE of `gemma-4-31B-it` on the same cluster (no `completion_tokens_details` at all) | SA-GEMMA-READER, by validating a Gemma row before writing one | two failures at once: a spurious `reasoning_tokens_missing` warning on every correct Gemma row (training a reader to ignore it), and **silence on the real corruption** — `reasoning_tokens=0`, an absence written as a measurement |
+| 19 | **A case-variant model id returns HTTP 200 and is silently corrected.** `gemma-4-31b-it` (lowercase b) is not a 404; metis resolves it to `gemma-4-31B-it` | SA-GEMMA | `_assert_model` catches it at call time, but a mis-cased config would pass every dry run and every liveness check |
+
+### Pre-existing truncation exposure on the gpt-oss arms — a finding, not a fix
+
+Auditing the shipped caches for defect #16's shape found it is **not
+Gemma-specific**: `results/deltau_pilot/cache.jsonl` has **8** rows with
+`finish_reason=="length"` and non-empty content, and those 8 reached **8
+scored cells** — 6 WITHOUT-arm fragments of 3,011 chars, and 2 WITH-arm rows
+whose entire output was `\boxed{C`, a truncated answer token scored as a wrong
+answer.
+
+**All 8 have ΔU = 0.0 and `utility_label = undetermined`, so no reported
+number moves.** The two main runs (`deltau_screened`, `repr_scaleup`) have
+**zero**. Handed back undecided in `docs/MODEL_ARMS.md`: re-running or
+annotating those cells is a decision about published results, not a code
+change, and the strict guard was deliberately NOT switched on for the gpt-oss
+arms so that fixing a Gemma hazard could not silently alter a shipped table.
+
+### The shape, again
+
+Three of the four are the same shape in a new costume:
+
+> **A check that was verified on its home case is not known to discriminate on
+> an unfamiliar one.** #16 and #18 each passed every test for an entire
+> project because the only reader was the one they were written against. The
+> new reader did not break them; it revealed that their subject had always
+> been the model, not the thing they claimed to measure.
+
+#17 is the adjacent shape: **a guard enforced on one path and not its
+alternative**, where the unguarded path is the one a resumed run takes.
+
+What caught them: not reading the code. Running the new model against the old
+assumption, and — for #17 — deliberately constructing the stored row the guard
+was supposed to reject. Each fix carries a regression test **verified to fail
+against the unfixed code** (three mutations, each caught).
+
 ## The pattern
 
 **Eleven of these produced a plausible number.** None announced itself as an error. The

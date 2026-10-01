@@ -107,9 +107,197 @@ ERROR_CODES: tuple[str, ...] = (
 # together would merge two experimental arms. This table is used to DETECT normalization,
 # never to perform it.
 CLUSTER_MODEL_NAMING: dict[str, tuple[str, ...]] = {
-    "metis": ("gpt-oss-120b",),
-    "sophia": ("openai/gpt-oss-120b", "Salesforce/SFR-Embedding-Mistral"),
+    # 2026-09-30: gemma-4-31B-it added on metis, google/gemma-4-31B-it on sophia.
+    # The asymmetry here is the SAME shape as gpt-oss's and is just as real: the
+    # bare id 404s on sophia and the prefixed id 404s on metis (both measured,
+    # docs/GEMMA_ENDPOINT_PROBE.md section 2), so a validator that normalised
+    # them would merge two serving stacks that return DIFFERENT TEXT for
+    # identical input.
+    #
+    # The capital B is load-bearing and is NOT a style choice: metis returns
+    # HTTP 200 for the lowercase 'gemma-4-31b-it' and silently resolves it to
+    # the capital form. See KNOWN_SILENT_MODEL_ALIASES.
+    "metis": ("gpt-oss-120b", "gemma-4-31B-it"),
+    "sophia": ("openai/gpt-oss-120b", "Salesforce/SFR-Embedding-Mistral",
+               "google/gemma-4-31B-it"),
 }
+
+# ======================================================  READER ARM REGISTRY
+# Added 2026-09-30 (SA-GEMMA-READER) so that "which reader" is a RECORDED
+# PARAMETER rather than a constant repeated in each run script.
+#
+# Why a table and not a config file: three different run scripts previously
+# hard-coded ``reader_model="gpt-oss-120b"`` as a string literal next to
+# ``reader_reasoning_effort="low"``. Adding a second reader by editing those
+# literals is the "three functions, one name" shape -- a copied body is not a
+# copied decision. Here the per-reader facts live once, each with the probe
+# that established it, and a run script asks for an arm by name.
+#
+# 🔴 EVERY FIELD BELOW IS A MEASUREMENT, NOT A PREFERENCE. Changing one
+# defines a NEW arm (docs/CLUSTER_DECISION.md); it is never a backfill.
+
+
+class ReaderArmError(ValueError):
+    """Raised when a reader arm is unknown or internally inconsistent."""
+
+
+#: Readers that may answer a future task, keyed by a short arm id.
+#:
+#: ``reasoning_effort`` is the value to SEND. ``None`` means *omit the field*,
+#: which is NOT the same as sending "none" (metis rejects that with a 400).
+#: ``reader_reasoning_effort`` is the value to RECORD -- never null, per
+#: NON_NULLABLE_IDENTITY, so a model with no effort control records the
+#: explicit sentinel rather than an empty string.
+#:
+#: ``reports_reasoning_tokens`` is a property of the MODEL, not the cluster.
+#: Metis reports them for gpt-oss-120b and does NOT report them for
+#: gemma-4-31B-it -- measured, see docs/GEMMA_ENDPOINT_PROBE.md section 6.
+#: The older cluster-keyed CLUSTER_REPORTS_REASONING_TOKENS cannot express
+#: that, which is why this field exists; see the note on that constant.
+#:
+#: ``truncation_is_always_an_error``: on gpt-oss an under-budgeted call spends
+#: the budget on REASONING and returns content=null, so the client's
+#: empty-content guard fires. Gemma has no separate reasoning stream, spends
+#: the budget on the ANSWER, and returns a plausible FRAGMENT with
+#: finish_reason="length" -- which that guard does not catch. Measured live:
+#: max_tokens=8 -> finish_reason="length", content="Here is the step-by-step".
+#: A fragment scored as a wrong answer pushes dU negative and MANUFACTURES a
+#: harmful memory. So this arm treats finish_reason=="length" as an error
+#: regardless of content.
+READER_ARMS: dict[str, dict[str, Any]] = {
+    "gptoss_metis": {
+        "reader_model": "gpt-oss-120b",
+        "reader_cluster": "metis",
+        "reader_endpoint": "metis:/resource_server/metis/api/v1",
+        "reader_endpoint_url":
+            "https://inference-api.alcf.anl.gov/resource_server/metis/api/v1",
+        "reasoning_effort": "low",
+        "reader_reasoning_effort": "low",
+        "temperature": 0,
+        "max_tokens": 512,
+        "max_workers": 16,
+        "reports_reasoning_tokens": True,
+        "truncation_is_always_an_error": False,
+        "_evidence": (
+            "docs/CLUSTER_DECISION.md + docs/ENDPOINT_THROUGHPUT.md. 16 workers: "
+            "zero failures across 316 requests; 429 appears at 24. The frozen "
+            "primary arm; A1-A3, B1-B3, C1-C3 all ran under it."),
+    },
+    "gemma_metis": {
+        "reader_model": "gemma-4-31B-it",   # capital B is LOAD-BEARING, see below
+        "reader_cluster": "metis",
+        "reader_endpoint": "metis:/resource_server/metis/api/v1",
+        "reader_endpoint_url":
+            "https://inference-api.alcf.anl.gov/resource_server/metis/api/v1",
+        # OMIT the field. Accepted (low/medium/high) but verifiably INERT:
+        # content sha identical across omitted/low/medium/high, against a
+        # determinism control (3/3 identical) and a positive control on
+        # gpt-oss that DOES move (reasoning_tokens 58/118/473).
+        "reasoning_effort": None,
+        "reader_reasoning_effort": "none:not_applicable",
+        "temperature": 0,
+        "max_tokens": 512,
+        "max_workers": 16,
+        "reports_reasoning_tokens": False,
+        "truncation_is_always_an_error": True,
+        "_evidence": (
+            "docs/GEMMA_ENDPOINT_PROBE.md. 16 workers: 252/252 clean at <=16, "
+            "25.00% 429 at 24, 71.88% at 32 (ladder auto-aborted); 74.0/min "
+            "sustained over 6 waves at the real 25,176-token shape."),
+    },
+}
+
+#: Sophia serves a Gemma under a DIFFERENT id, framework, context window and
+#: output. It is a separate arm and is listed so that reaching for it is a
+#: deliberate act rather than a typo that lands somewhere plausible.
+#: Identical input gave different output (372 chars/134 tok vs 400/144), so
+#: these are different serving stacks -- NEVER pool them.
+READER_ARMS["gemma_sophia_failover"] = {
+    "reader_model": "google/gemma-4-31B-it",
+    "reader_cluster": "sophia",
+    "reader_endpoint": "sophia:/resource_server/sophia/vllm/v1",
+    "reader_endpoint_url":
+        "https://inference-api.alcf.anl.gov/resource_server/sophia/vllm/v1",
+    "reasoning_effort": None,
+    "reader_reasoning_effort": "none:not_applicable",
+    "temperature": 0,
+    "max_tokens": 512,
+    "max_workers": 16,
+    "reports_reasoning_tokens": False,
+    "truncation_is_always_an_error": True,
+    "_evidence": (
+        "docs/GEMMA_ENDPOINT_PROBE.md section 3. NOT throughput-measured; "
+        "max_workers is inherited and must be re-measured before use."),
+}
+
+#: Model ids that resolve to a DIFFERENT id than the one sent -- the gateway
+#: returns HTTP 200 and silently corrects. ``P1Client._assert_model`` catches
+#: it at call time, but a config carrying one of these would 200 forever in a
+#: dry run. Mapped to what the server actually serves.
+#:
+#: Measured: POST metis/`gemma-4-31b-it` (lowercase b) -> 200, resolved
+#: `gemma-4-31B-it`. This is not a hypothetical.
+KNOWN_SILENT_MODEL_ALIASES: dict[tuple[str, str], str] = {
+    ("metis", "gemma-4-31b-it"): "gemma-4-31B-it",
+}
+
+
+def reader_arm(arm_id: str) -> dict[str, Any]:
+    """Look up a reader arm. An unknown id RAISES rather than defaulting.
+
+    A default here would silently run the Gemma replication against gpt-oss
+    and produce a perfectly plausible table.
+    """
+    if arm_id not in READER_ARMS:
+        raise ReaderArmError(
+            f"unknown reader arm {arm_id!r}; known: {sorted(READER_ARMS)}. "
+            f"There is no default: a wrong-but-plausible reader is the failure "
+            f"this registry exists to prevent.")
+    spec = dict(READER_ARMS[arm_id])
+    alias = KNOWN_SILENT_MODEL_ALIASES.get(
+        (spec["reader_cluster"], spec["reader_model"]))
+    if alias is not None:
+        raise ReaderArmError(
+            f"reader arm {arm_id!r} pins model {spec['reader_model']!r} on cluster "
+            f"{spec['reader_cluster']!r}, but the gateway returns HTTP 200 for that "
+            f"string and silently resolves it to {alias!r}. Fix the arm's id.")
+    spec["arm_id"] = arm_id
+    return spec
+
+
+def reader_row_fields(arm_id: str) -> dict[str, Any]:
+    """The five reader-identity schema fields for this arm, plus the hash.
+
+    Returned as a dict to be splatted into ``CellWriter.build``, so a run
+    script cannot populate four of the five and leave the fifth null. Every
+    value is non-null by construction; ``reader_reasoning_effort`` carries the
+    explicit 'none:not_applicable' sentinel where the control does not exist,
+    never "" and never None (NON_NULLABLE_IDENTITY).
+    """
+    spec = reader_arm(arm_id)
+    fields = {
+        "reader_model": spec["reader_model"],
+        "reader_cluster": spec["reader_cluster"],
+        "reader_endpoint": spec["reader_endpoint"],
+        "reader_reasoning_effort": spec["reader_reasoning_effort"],
+        "reader_endpoint_sha256": sanitized_base_url_hash(spec["reader_endpoint_url"]),
+    }
+    blank = [k for k, v in fields.items() if v is None or str(v).strip() == ""]
+    if blank:
+        raise ReaderArmError(
+            f"reader arm {arm_id!r} would write null/empty {blank}; these are "
+            f"NON_NULLABLE_IDENTITY fields")
+    return fields
+
+
+def reader_reports_reasoning_tokens(arm_id: str) -> bool:
+    """Whether this reader returns ``completion_tokens_details.reasoning_tokens``.
+
+    Measured per MODEL. Metis reports them for gpt-oss-120b and not for
+    gemma-4-31B-it, so the cluster-keyed table cannot answer this.
+    """
+    return bool(reader_arm(arm_id)["reports_reasoning_tokens"])
+
 
 # Float tolerance for delta_utility == reward_with - reward_without.
 DELTA_TOLERANCE = 1e-9
@@ -835,6 +1023,16 @@ NON_NULLABLE_IDENTITY: tuple[str, ...] = (
 # frozen in docs/CLUSTER_DECISION.md). Used ONLY to tell "absent" from "zero":
 #   reasoning_tokens is null  and cluster reports     -> suspicious, flagged
 #   reasoning_tokens is 0     and cluster does NOT report -> REJECTED (absent as zero)
+#
+# 🔴 SUPERSEDED FOR MULTI-READER WORK, AND KEPT ONLY FOR THE gpt-oss ARMS.
+# This map is keyed on CLUSTER, and that premise was measured on exactly one
+# model. It is FALSE as a cluster property: metis gpt-oss-120b returns
+# completion_tokens_details.reasoning_tokens, and metis gemma-4-31B-it returns
+# no completion_tokens_details AT ALL (re-measured live 2026-09-30). The
+# authority for a reader is READER_ARMS[...]["reports_reasoning_tokens"];
+# ``reader_reports_reasoning_tokens()`` reads it. The validator consults this
+# map only for readers absent from the registry, so a Gemma row is not flagged
+# for an absence that is correct.
 CLUSTER_REPORTS_REASONING_TOKENS: dict[str, bool] = {
     "metis": True,
     "sophia": False,
@@ -905,32 +1103,199 @@ CONTENT_EMBARGOED_BENCHMARKS: dict[str, str] = {
 }
 
 
+#: The literal a withheld text field carries. Defined HERE, not in the exporter,
+#: because two different components must agree on it: ``export_hf.redact_row``
+#: writes it and ``assert_content_redistributable`` must recognise it. When the
+#: exporter owned the only copy, the two mechanisms were mutually exclusive --
+#: redaction wrote a truthy string and this helper read every truthy string as
+#: carried content, so a CORRECTLY redacted embargoed row could not be exported
+#: at all. The sentinel is a constant this repo controls, so equality against it
+#: is a fact about the string, not an inference about its provenance.
+WITHHELD_SENTINEL = "__WITHHELD_SEE_LICENSE__"
+
+
+#: The literal an output field carries when the RUN NEVER PERSISTED the text.
+#:
+#: 🔴 THIS IS NOT ``WITHHELD_SENTINEL`` AND THE TWO MUST NEVER BE INTERCHANGED.
+#: ``WITHHELD_SEE_LICENSE`` says "the text exists and we may not redistribute
+#: it". This one says "the text was never written down, by anyone, and no
+#: licence is involved". Conflating them would publish a FALSE STATED REASON:
+#: SciCode is Apache-2.0 and its redistribution is PERMITTED
+#: (docs/BENCHMARK_LICENSES.md section 4), so stamping a licence withholding on
+#: a SciCode row would assert a restriction that does not exist, in the one
+#: field a consumer would check to find out.
+#:
+#: It is also NOT a digest. A digest asserts "here is a fingerprint of the
+#: text"; this asserts "there is no text to fingerprint". A digest would be
+#: worse than absence (docs/DEFECT_REGISTER.md: a hash is a verifier, not a
+#: recovery); this is absence, said out loud.
+#:
+#: USING IT IS GATED ON EVIDENCE, not on a caller's say-so. ``validate.py``
+#: accepts it ONLY when the row proves the completion was non-empty, by
+#: carrying a measured ``provenance.response_chars_<arm> > 0``. Without that
+#: proof the sentinel is rejected, because then the row is indistinguishable
+#: from the empty-completion trap the ``scored_empty_output`` check exists to
+#: catch -- a truncated reasoning response scored as a wrong answer, which
+#: manufactures harm and has shipped here twice.
+OUTPUT_NOT_RETAINED_SENTINEL = "__OUTPUT_NOT_RETAINED_BY_THE_RUN__"
+
+
+#: Per-BENCHMARK relaxations of ``FIELD_SPEC[...]["nullable"]``, each with the
+#: reason that field cannot be measured on that benchmark.
+#:
+#: WHY THIS EXISTS. ``FIELD_SPEC``'s nullability was written for a
+#: LongMemEval-shaped row: one benchmark, an embedding pass, a retriever, a
+#: write-time memory record, per-call latencies. A METRICS-ONLY cross-benchmark
+#: row does not have that shape, and 15 fields that are non-nullable there have
+#: NOTHING TO MEASURE here. Before this table the only ways to pass the
+#: validator were to invent values or to ship SWE-bench outside the shipped
+#: validator entirely -- the first is the defect this repo exists to avoid, the
+#: second reopens the seam gates 4/5 were built to close.
+#:
+#: WHY IT IS A TABLE AND NOT A FLAG. A blanket "metrics-only rows may be null"
+#: switch would exempt every field at once, including the ones that ARE
+#: measured, and a forgotten field would then read as a deliberate reservation.
+#: Each entry below names one field and states why no value exists, so the
+#: relaxation is auditable field by field and a reader can check any one of
+#: them against the runner.
+#:
+#: WHAT IT IS NOT. It does not add, remove, or retype a field: a row is still
+#: exactly ``FIELD_ORDER``, so this is not a schema version bump. It narrows
+#: ONE check (``null_in_non_nullable``) for ONE benchmark, and only for the
+#: fields named. Every other check -- ids, deltas, embargo, empty-output --
+#: runs unchanged. ``tests/test_schema.py`` proves the exemption does not
+#: reach another benchmark and does not reach an unlisted field.
+#:
+#: Each reason below was MEASURED, not assumed: grep over
+#: ``scripts/swebench_representations.py``, ``scripts/swebench_pilot_v2.py``
+#: and ``src/p1mem/adapters/swebench*.py`` returns zero hits for
+#: ``embedding``/``semantic_similarity``, and the runner discards
+#: ``CallRecord.latency_s`` and ``CallRecord.retry_count`` rather than reading
+#: them.
+BENCHMARK_NULLABLE_EXEMPTIONS: dict[str, dict[str, str]] = {
+    "swebench_verified": {
+        "memory_semantic_type": (
+            "SWE-bench declares no semantic type and none is derivable from an "
+            "issue/patch pair. Choosing 'procedural' or 'failure_reflection' by "
+            "intuition would be inventing the field this schema added to be "
+            "measured."),
+        "memory_tokens": (
+            "The runner holds memory bodies in memory only and never persists "
+            "them (verified: zero 'django__django' hits in every results/*.jsonl "
+            "cache), so no tokenizer was ever run over a SWE-bench memory."),
+        "embedding_model": "No embedding model was run on SWE-bench.",
+        "embedding_version": "No embedding model was run on SWE-bench.",
+        "memory_embedding_reference": "No embedding model was run on SWE-bench.",
+        "task_embedding_reference": "No embedding model was run on SWE-bench.",
+        "semantic_similarity": (
+            "Requires two embeddings; no embedding path exists in the SWE-bench "
+            "runner."),
+        "semantic_distance_band": (
+            "A discretization of semantic_similarity, which was not measured."),
+        "future_task_family": (
+            "SWE-bench declares no task family. Synthesizing one from `repo` "
+            "would publish a grouping the benchmark does not make."),
+        "memory_tokens_retrieved": (
+            "retrieval_method='none': no retriever ran, so there is no retrieved "
+            "set to count. 0 would assert an empty retrieval that happened."),
+        "memory_tokens_exposed": (
+            "Same: nothing was retrieved, so nothing was truncated or exposed by "
+            "a retriever."),
+        "generation_latency": (
+            "CallRecord.latency_s exists but the SWE-bench runner discards it; no "
+            "per-call duration was retained."),
+        "end_to_end_latency": (
+            "Not recorded by the runner. A cell's wall-clock cannot be "
+            "reconstructed from the artifact."),
+        "embedding_calls": (
+            "NOT 0. There is no embedding code path on this benchmark, so 0 would "
+            "be a measured zero for a thing that was never attempted -- the "
+            "absent-as-zero defect this schema's reasoning_tokens note names."),
+        "retry_count": (
+            "NOT 0. CallRecord.retry_count exists but the runner never reads it, "
+            "so the number of retries is unknown. FIELD_SPEC's own words: '0 is a "
+            "measurement; it is never a stand-in for unknown.'"),
+    },
+}
+
+
+def field_may_be_null(benchmark: Any, field: str) -> bool:
+    """True when `field` may be null on a row from `benchmark`.
+
+    The single authority both ``validate.py`` and any exporter consult, so a
+    relaxation cannot be granted in one place and denied in another.
+    """
+    if FIELD_SPEC.get(field, {}).get("nullable"):
+        return True
+    b = (benchmark or "").strip().lower() if isinstance(benchmark, str) else ""
+    return field in BENCHMARK_NULLABLE_EXEMPTIONS.get(b, {})
+
+
+def _field_is_withheld(value) -> bool:
+    """True when a field holds our withholding marker rather than content.
+
+    Two shapes, because ``redact_row`` writes two: the bare sentinel for string
+    fields, and ``{"__withheld__": True, ...}`` for ``source_episode_metadata``.
+    """
+    if value == WITHHELD_SENTINEL:
+        return True
+    return isinstance(value, dict) and value.get("__withheld__") is True
+
+
 def assert_content_redistributable(rows) -> None:
     """Raise if any row carries text content from an embargoed benchmark.
 
-    Called by the exporter BEFORE an upload is assembled. The check is on the
-    emitted rows, not on an intention recorded elsewhere: a policy that lives
-    only in a document cannot fail a release.
+    Called by ``scripts/export_hf.py`` as GATE 6, before anything is written.
+    (Until 2026-09-30 this docstring claimed a caller it did not have: the only
+    callers were tests. A provenance claim nobody measured.)
+
+    A field counts as CARRYING content unless it is genuinely absent
+    (``None``/``""``/``[]``/``{}``) or holds the withholding marker. A withheld
+    field must ALSO be declared in ``text_fields_withheld``: a blanked field the
+    row does not admit to blanking is an undeclared withholding, and a consumer
+    filtering on that list would silently get the wrong rows. The two failures
+    get two different messages, because a right verdict with a wrong stated
+    reason is harder to catch than a wrong verdict.
     """
-    bad: list[str] = []
+    carried_bad: list[str] = []
+    undeclared_bad: list[str] = []
     for i, r in enumerate(rows):
         b = (r.get("benchmark") or "").strip().lower()
         if b not in CONTENT_EMBARGOED_BENCHMARKS:
             continue
-        carried = [f for f in REDISTRIBUTABLE_TEXT_FIELDS
-                   if r.get(f) not in (None, "", [], {})]
+        who = r.get("cell_id") or r.get("task_id")
+        declared = r.get("text_fields_withheld")
+        declared = set(declared) if isinstance(declared, list) else set()
+        carried, undeclared = [], []
+        for f in REDISTRIBUTABLE_TEXT_FIELDS:
+            v = r.get(f)
+            if v in (None, "", [], {}):
+                continue
+            if _field_is_withheld(v):
+                if f not in declared:
+                    undeclared.append(f)
+                continue
+            carried.append(f)
         if carried:
-            bad.append(f"row {i} ({r.get('cell_id') or r.get('task_id')}): "
-                       f"benchmark={b!r} carries {carried}")
-    if bad:
+            carried_bad.append(f"row {i} ({who}): benchmark={b!r} carries {carried}")
+        if undeclared:
+            undeclared_bad.append(
+                f"row {i} ({who}): {undeclared} hold the withholding marker but are "
+                f"not listed in text_fields_withheld={sorted(declared)}")
+    if carried_bad:
+        reasons = sorted({CONTENT_EMBARGOED_BENCHMARKS[b] for b in
+                          {(r.get("benchmark") or "").strip().lower() for r in rows}
+                          if b in CONTENT_EMBARGOED_BENCHMARKS})
         raise ValueError(
             "content-embargoed benchmark rows carry redistributable text:\n  "
-            + "\n  ".join(bad[:10])
-            + f"\n({len(bad)} rows total)\nReason: "
-            + CONTENT_EMBARGOED_BENCHMARKS[
-                (rows[0].get("benchmark") or "").strip().lower()
-                if rows and (rows[0].get("benchmark") or "").strip().lower()
-                in CONTENT_EMBARGOED_BENCHMARKS else "swebench_verified"])
+            + "\n  ".join(carried_bad[:10])
+            + f"\n({len(carried_bad)} rows total)\nReason: " + "\n        ".join(reasons))
+    if undeclared_bad:
+        raise ValueError(
+            "content-embargoed rows were redacted WITHOUT declaring it in "
+            "text_fields_withheld, so a consumer cannot tell a withholding from "
+            "absent data:\n  " + "\n  ".join(undeclared_bad[:10])
+            + f"\n({len(undeclared_bad)} rows total)")
 
 
 # ============================================================  DETERMINISTIC IDS
@@ -1369,6 +1734,9 @@ __all__ = [
     "ADDED_FIELDS", "GROUPS", "P3_RESERVED_FIELDS", "NON_NULLABLE_IDENTITY",
     "IMPLICIT_CONDITION_KEYS", "REDISTRIBUTABLE_TEXT_FIELDS", "ENUMS",
     "CONTENT_EMBARGOED_BENCHMARKS", "assert_content_redistributable",
+    "BENCHMARK_NULLABLE_EXEMPTIONS", "field_may_be_null",
+    "WITHHELD_SENTINEL", "OUTPUT_NOT_RETAINED_SENTINEL",
+    "WITHHELD_SENTINEL",
     "MEMORY_REPRESENTATIONS", "MEMORY_SEMANTIC_TYPES", "SEMANTIC_DISTANCE_BANDS",
     "RETRIEVAL_METHODS", "UTILITY_LABELS", "BEARING_LABELS", "MEMORY_TYPES_COARSE",
     "MEMORY_TYPE_COARSE_OF", "BEARING_SCREEN_CAVEAT",
@@ -1384,6 +1752,8 @@ __all__ = [
     "derive_utility_label", "derive_utility_label_from_row", "compute_delta_utility",
     "ERROR_CODES", "ERROR_EMPTY_OUTPUT_FINISH_LENGTH", "CLUSTER_MODEL_NAMING",
     "CLUSTER_REPORTS_REASONING_TOKENS", "PINNED_IDENTITY",
+    "READER_ARMS", "KNOWN_SILENT_MODEL_ALIASES", "ReaderArmError",
+    "reader_arm", "reader_row_fields", "reader_reports_reasoning_tokens",
     "looks_like_bare_digest", "endpoint_is_credential_safe",
     "blank_row", "new_row", "condition_key", "implicit_condition_key",
     "logical_model_id", "field_report",

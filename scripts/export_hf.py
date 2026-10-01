@@ -10,11 +10,31 @@ a public dataset release.
 **Gates 1-3 run BEFORE a single byte is emitted.** If any fails the script writes
 nothing at all -- it does not write a partial export and warn:
 
+  GATE 0  benchmark/licence      -- ``benchmark`` and ``license_source_reference`` name
+          agreement                 the SAME source. The embargo keys on the first and
+                                    redaction on the second; when they disagreed,
+                                    benchmark="swebench" (missing "_verified") carried
+                                    raw django issue text through with no error at all.
   GATE 1  schema validation      -- every row conforms (scripts cannot fix data)
   GATE 2  secret scan            -- no token, key, credential or bearer string anywhere,
-                                    including inside model outputs and metadata
+                                    including inside model outputs and metadata.
+                                    Severity keys on whether the string SHIPS: a match
+                                    inside a licence-withheld field is recorded in the
+                                    manifest, not silently dropped and not a blocker.
   GATE 3  license exclusion      -- no text field is emitted whose source license forbids
                                     redistribution
+  GATE 3b benchmark refusal      -- BEAM rows may not appear in this dataset in ANY form.
+                                    Redaction cannot cure ShareAlike: the row itself is
+                                    the adaptation. Three documents claimed this control
+                                    existed; measured 2026-09-30, it did not.
+  GATE 3c SciCode eval targets   -- SciCode is Apache-2.0 (so its problem text SHIPS),
+                                    but test_data.h5 is distributed outside that grant
+                                    with no licence stamp. A per-FIELD carve-out that a
+                                    per-row policy flag cannot express.
+  GATE 6  schema embargo helper  -- runs schema.assert_content_redistributable, which
+                                    keys on ``benchmark`` rather than on the licence
+                                    reference. Deliberately redundant with gate 3: two
+                                    independent keys over one ruling.
 
 **Gates 4-5 run AFTER the directory is written, on the artifact itself**, because gates
 1-3 inspect rows held in memory and cannot see a defect introduced by the writing:
@@ -36,6 +56,17 @@ A gate that has never rejected anything is not known to work, so ``--self-test``
 secret and a non-redistributable payload into a copy of the data and asserts each gate
 fires. ``--self-test`` runs automatically before every real export unless
 ``--skip-self-test`` is passed, which is itself recorded in the manifest.
+
+v0.3 (SciCode) and v0.4 (SWE-bench) are the first releases to ship more than one
+benchmark and the first to WITHHOLD anything, which is why several of the gates above
+are dated 2026-09-30: v0.1/v0.2 were pure LongMemEval-V2 (Apache-2.0, nothing withheld),
+so every path that only runs on a withheld or multi-benchmark row was unexercised. Two
+were outright broken. ``memory_text`` is one of ``MEMORY_ID_KEYS``, so blanking it after
+the id was minted made every withheld row fail gate 4 with ``id_mismatch``; and
+``assert_content_redistributable`` read the withholding sentinel -- a truthy string --
+as carried content, so a CORRECTLY redacted row could not be exported at all. The two
+mechanisms were mutually exclusive and nothing detected it, because nothing had ever
+been withheld.
 
 NOTHING HERE UPLOADS. This script only builds a directory. Upload is a separate,
 explicitly authorized step (see ``--print-upload-command``).
@@ -103,8 +134,41 @@ LICENSE_POLICIES: dict[str, LicensePolicy] = {
         "longmemeval_v2", True, True,
         "Apache-2.0 with a LICENSE file in the release (verified by Sub-agent A). "
         "Redistribution permitted with attribution."),
-    "beam": LicensePolicy("beam", False, False, "PENDING Sub-agent A. Fail closed."),
-    "scicode": LicensePolicy("scicode", False, False, "PENDING Sub-agent A. Fail closed."),
+    "beam": LicensePolicy(
+        "beam", False, False,
+        "CC BY-SA 4.0 (docs/BENCHMARK_LICENSES.md section 3). ShareAlike is INFECTIOUS: "
+        "shipping BEAM content in a mixed release either violates it or silently "
+        "relicenses the V1/V2/SciCode rows beside it. Measurements ABOUT BEAM are facts, "
+        "not adaptations, and stay publishable. BEAM rows are refused outright by "
+        "gate_benchmark_refusal, not merely redacted -- see that gate. (Was 'PENDING "
+        "Sub-agent A' until 2026-09-30; A's ruling had been written for some time and "
+        "this note had not caught up.)"),
+    "scicode": LicensePolicy(
+        "scicode", True, True,
+        "Apache-2.0 on BOTH the code (github.com/scicode-bench/SciCode, LICENSE read at "
+        "HEAD e3158ea0) and the data (HF SciCode1/SciCode, license:apache-2.0, "
+        "gated:false) -- docs/BENCHMARK_LICENSES.md section 4. Problems, subproblem "
+        "prompts and test cases are redistributable with attribution and NOTICE. "
+        "🔴 CARVE-OUT: the numeric eval targets in test_data.h5 are NOT covered -- they "
+        "ship via an unversioned Google Drive folder with no licence stamp, so "
+        "Apache-2.0 on the repository cannot be assumed to reach them (section 4, "
+        "exclusion checklist item 3). Enforced by gate_scicode_eval_targets, not by "
+        "this flag: the flag is per-row policy, the carve-out is per-FIELD. (Was "
+        "'PENDING Sub-agent A' until 2026-09-30; shipping that stale note meant "
+        "over-redacting SciCode against a written finding.)"),
+    "swebench_verified": LicensePolicy(
+        "swebench_verified", False, False,
+        "🔴 CORPUS LICENCE UNDECLARED -- docs/BENCHMARK_LICENSES.md section 5. The HF "
+        "API returns cardData.license: None for princeton-nlp/SWE-bench_Verified, the "
+        "tag list carries no license:* entry, and the card text states none. The MIT "
+        "grant covers the HARNESS CODE only, not the corpus; the underlying issue text "
+        "and patches belong to the upstream OSS projects (django, sympy, ...) and are "
+        "not Princeton's to relicense nor ours. An absent licence is NOT a permissive "
+        "licence and gated:false means FETCHABLE, not redistributable. Metrics, "
+        "instance ids and our derived measurements only. Recorded EXPLICITLY rather "
+        "than left to DEFAULT_POLICY: both fail closed, but '__unknown__' reads as "
+        "'nobody looked' when in fact this is a dated, sourced refusal -- the same "
+        "distinction this schema draws between an empty list and a null."),
 }
 
 # Fail closed: a benchmark with no policy entry is treated as non-redistributable.
@@ -159,6 +223,28 @@ SECRET_SCAN_NEGATIVES: tuple[str, ...] = (
     "sha256: " + "a" * 64,
     "See docs/BENCHMARK_LICENSES.md for the token accounting.",
     "hf_hub_download('AgentsSci/AAMAS2027-ConditionalMemory')",
+)
+
+# Real payload strings, lifted verbatim from results/swebench/representations_v2.json,
+# that the scanner DOES match and that are NOT secrets. They are django source code
+# echoed inside a model response:
+#
+#     passwd = conn_params.get        -- an attribute read, value is an identifier
+#     passwd:\n            subprocess_env  -- a dict key beside a variable name
+#
+# They are recorded here as EVIDENCE, not as an allowlist. Nothing suppresses them:
+# ``assigned_secret`` is the pattern that catches a genuine credential assignment and
+# weakening it to spell these away would trade a real detection for a cosmetic one.
+# What resolves them instead is WHERE they sit -- see ``gate_secret_scan_rows``: these
+# live in model-output fields that SWE-bench's licence already withholds, so they are
+# not in the artifact. A hit in a field that actually ships is still a hard failure.
+#
+# This list exists so the scanner is known to have met real source code. Until v0.4 its
+# only negatives were hand-written sentences, and a scanner tested only on strings
+# someone invented for it is not known to discriminate on the corpus it will meet.
+SECRET_SCAN_REAL_SOURCE_MATCHES: tuple[str, ...] = (
+    "passwd = conn_params.get('passwd') or conn_params.get('password')",
+    "if passwd:\n            subprocess_env['PGPASSWORD'] = str(passwd)",
 )
 
 # Files never copied into staging regardless of content.
@@ -267,16 +353,48 @@ def gate_validate(rows: Sequence[dict[str, Any]]) -> V.Report:
     return rep
 
 
-def gate_secret_scan_rows(rows: Sequence[dict[str, Any]]) -> None:
+def gate_secret_scan_rows(rows: Sequence[dict[str, Any]],
+                          *, withheld_fields: Sequence[Sequence[str]] | None = None,
+                          ) -> list[str]:
+    """GATE 2. Returns non-blocking notes; raises on anything that would SHIP.
+
+    A hit is a release blocker when the string ends up in the artifact. A hit inside a
+    field the licence policy BLANKS is a different fact: the string is in our ledger,
+    which is worth recording, but it is not in the release, and failing the build on it
+    would mean a benchmark can never be exported because its own source code contains
+    the word ``passwd``.
+
+    Measured on results/swebench/representations_v2.json: 6 matches, all
+    ``assigned_secret`` on django source inside model responses (see
+    ``SECRET_SCAN_REAL_SOURCE_MATCHES``). Every one of those fields is withheld under
+    the SWE-bench embargo, so none reaches the artifact.
+
+    The pattern is NOT relaxed to accommodate them. ``assigned_secret`` is the rule that
+    catches a real credential assignment; spelling around two django lines would trade a
+    live detection for a cosmetic pass. Severity keys on whether the string ships.
+    """
     hits: list[str] = []
+    notes: list[str] = []
     for i, r in enumerate(rows):
-        hits += scan_obj_for_secrets(r, f"row[{i}]")
+        blanked = set(withheld_fields[i]) if withheld_fields else set()
+        for k, v in r.items():
+            found = scan_obj_for_secrets(v, f"row[{i}].{k}")
+            found += scan_obj_for_secrets(k, f"row[{i}].<key>")
+            if not found:
+                continue
+            if k in blanked:
+                notes += [h + "  [NOT SHIPPED: field is withheld under the licence "
+                              "policy, so this string is not in the artifact]"
+                          for h in found]
+            else:
+                hits += found
         if len(hits) > 50:
             break
     if hits:
         raise GateFailure(
             "GATE 2 (secret scan) FAILED -- nothing was written.\n"
             + "\n".join("  " + h for h in hits[:50]))
+    return notes
 
 
 def gate_secret_scan_tree(root: Path) -> None:
@@ -336,6 +454,157 @@ def gate_license_exclusion(exported: Sequence[dict[str, Any]]) -> dict[str, int]
             "GATE 3 (license exclusion) FAILED -- nothing was written.\n"
             + "\n".join("  " + x for x in leaks[:50]))
     return dict(counts)
+
+
+# Which ``license_source_reference`` prefix each benchmark is allowed to carry.
+# TWO NAMESPACES, ONE FACT: ``assert_content_redistributable`` keys the embargo on
+# ``row["benchmark"]`` while ``policy_for`` keys redaction on the prefix of
+# ``license_source_reference``. Nothing made them agree, and ``benchmark`` is not in
+# ``S.ENUMS``, so any string passes it. Measured consequence: benchmark="swebench"
+# (missing "_verified") carried raw django issue text through the embargo with no error
+# at all -- a one-character divergence silently disabled the ruling.
+BENCHMARK_LICENSE_PREFIX: dict[str, str] = {
+    "longmemeval_v1": "longmemeval_v1",
+    "longmemeval_v2": "longmemeval_v2",
+    "beam": "beam",
+    "scicode": "scicode",
+    "swebench_verified": "swebench_verified",
+}
+
+# Benchmarks refused OUTRIGHT, never merely redacted, with the reason.
+# Redaction answers "may we ship this text?"; refusal answers "may this row be in THIS
+# dataset at all?". ShareAlike is the second question: a redacted BEAM row still
+# contributes a CC BY-SA adaptation to a release that is not CC BY-SA.
+REFUSED_BENCHMARKS: dict[str, str] = {
+    "beam": ("BEAM is CC BY-SA 4.0 (docs/BENCHMARK_LICENSES.md section 3, exclusion "
+             "checklist item 4). ShareAlike is infectious: merging BEAM-derived rows "
+             "into a release with V1/V2/SciCode rows either violates ShareAlike or "
+             "silently relicenses the others. Redaction does NOT cure this -- the row "
+             "itself is the adaptation. BEAM ships separately or not at all."),
+}
+
+
+def gate_benchmark_license_agreement(rows: Sequence[dict[str, Any]]) -> None:
+    """GATE 0: ``benchmark`` and ``license_source_reference`` must name the same source.
+
+    The embargo reads one field and the redactor reads the other. If they disagree, the
+    row is redacted under one ruling and embargo-checked under another, and neither
+    check reports anything. This gate makes the divergence itself the error, so the two
+    namespaces cannot drift apart silently again.
+
+    ``benchmark`` is not an enum in the schema (adding it there would reject the short
+    fixture names several test modules legitimately use), so the closed vocabulary is
+    enforced HERE, at the export boundary, where the licence question is actually asked.
+    """
+    problems: list[str] = []
+    for i, r in enumerate(rows):
+        b = (r.get("benchmark") or "").strip()
+        ref = r.get("license_source_reference")
+        prefix = ref.split(":", 1)[0].strip() if isinstance(ref, str) else None
+        if b.lower() not in BENCHMARK_LICENSE_PREFIX:
+            problems.append(
+                f"row[{i}]: benchmark={b!r} is not a recognised benchmark for export. "
+                f"Known: {sorted(BENCHMARK_LICENSE_PREFIX)}. An unrecognised name means "
+                f"the embargo in schema.CONTENT_EMBARGOED_BENCHMARKS never matches it, "
+                f"so its licence ruling would not be applied at all")
+            continue
+        want = BENCHMARK_LICENSE_PREFIX[b.lower()]
+        if prefix != want:
+            problems.append(
+                f"row[{i}]: benchmark={b!r} but license_source_reference={ref!r} has "
+                f"prefix {prefix!r}, expected {want!r}. The embargo keys on benchmark "
+                f"and redaction keys on the prefix; disagreeing fields mean the two "
+                f"answer different questions about the same row")
+    if problems:
+        raise GateFailure(
+            "GATE 0 (benchmark/licence agreement) FAILED -- nothing was written.\n"
+            + "\n".join("  " + x for x in problems[:20]))
+
+
+def gate_benchmark_refusal(rows: Sequence[dict[str, Any]]) -> None:
+    """GATE 3b: refuse a benchmark whose rows may not be in this dataset at all.
+
+    Three documents (HF_RELEASE_POLICY.md, DATASET_INDEX.md, the data card) each state
+    that the exporter REFUSES BEAM rows. Measured 2026-09-30: it did not. A BEAM row was
+    redacted and accepted, and no test covered it -- a control asserted in prose by
+    three readers and built by none. This is that control.
+    """
+    hits: list[str] = []
+    for i, r in enumerate(rows):
+        b = (r.get("benchmark") or "").strip().lower()
+        prefix = ""
+        ref = r.get("license_source_reference")
+        if isinstance(ref, str):
+            prefix = ref.split(":", 1)[0].strip().lower()
+        for name, why in REFUSED_BENCHMARKS.items():
+            if name in (b, prefix):
+                hits.append(f"row[{i}] ({r.get('cell_id') or r.get('task_id')}): {why}")
+                break
+    if hits:
+        raise GateFailure(
+            "GATE 3b (benchmark refusal) FAILED -- nothing was written. These rows may "
+            "not appear in this dataset in ANY form, redacted or not.\n"
+            + "\n".join("  " + x for x in hits[:10])
+            + (f"\n({len(hits)} rows total)" if len(hits) > 10 else ""))
+
+
+# SciCode's numeric eval targets live in test_data.h5, which is NOT covered by the
+# Apache-2.0 grant (BENCHMARK_LICENSES.md section 4). Apache-2.0 lets us ship SciCode
+# PROBLEM text, so the row-level policy is (True, True) -- the carve-out is per-FIELD
+# and needs its own mechanism. A long float is the shape a target value has; three or
+# more in one field is the shape a dumped target ARRAY has.
+_LONG_FLOAT = re.compile(r"-?\d+\.\d{6,}(?:[eE][-+]?\d+)?")
+SCICODE_TARGET_MIN_FLOATS = 3
+
+
+def gate_scicode_eval_targets(rows: Sequence[dict[str, Any]]) -> None:
+    """GATE 3c: no SciCode row may carry test_data.h5 target values.
+
+    Measured before writing this gate: over results/scicode/scaleup_all3.json (924 rows)
+    the ``stderr_tail`` field -- the only place a traceback could echo an expected array
+    -- produced ZERO rows at this threshold, so the gate is not silently rejecting the
+    corpus it is meant to protect. It is a guard against a future exporter that widens
+    what it emits, which is exactly when nobody re-reads the licence doc.
+    """
+    hits: list[str] = []
+    for i, r in enumerate(rows):
+        b = (r.get("benchmark") or "").strip().lower()
+        if b != "scicode":
+            continue
+        for f in S.REDISTRIBUTABLE_TEXT_FIELDS + ("stderr_tail", "error"):
+            v = r.get(f)
+            if not isinstance(v, str) or not v:
+                continue
+            n = len(_LONG_FLOAT.findall(v))
+            if n >= SCICODE_TARGET_MIN_FLOATS:
+                hits.append(
+                    f"row[{i}].{f}: {n} high-precision floats -- looks like test_data.h5 "
+                    f"target values, whose licence is unstated "
+                    f"(BENCHMARK_LICENSES.md section 4, checklist item 3)")
+    if hits:
+        raise GateFailure(
+            "GATE 3c (SciCode eval targets) FAILED -- nothing was written.\n"
+            + "\n".join("  " + x for x in hits[:20]))
+
+
+def gate_embargo_schema_helper(exported: Sequence[dict[str, Any]]) -> None:
+    """GATE 6: run the SCHEMA's own embargo helper over the rows about to be written.
+
+    ``schema.assert_content_redistributable`` is the ruling expressed as code. Its
+    docstring claimed "Called by the exporter BEFORE an upload is assembled"; measured
+    2026-09-30, its only callers were tests. A guard the release path never invokes is a
+    guard in name only, so this gate invokes it.
+
+    It is deliberately REDUNDANT with gate 3: gate 3 keys on the licence reference, this
+    keys on ``benchmark``. Two independent keys over one ruling is the point -- gate 0
+    proves they agree, and if it is ever removed, this still fires.
+    """
+    try:
+        S.assert_content_redistributable(exported)
+    except ValueError as exc:
+        raise GateFailure(
+            "GATE 6 (schema embargo helper) FAILED -- nothing was written.\n"
+            f"  {exc}") from exc
 
 
 def gate_exported_file_revalidates(path: Path, expected_rows: int) -> None:
@@ -496,6 +765,269 @@ def self_test(rows: Sequence[dict[str, Any]]) -> list[str]:
         raise AssertionError(f"SELF-TEST FAILED: Apache-2.0 source wrongly withheld {withheld}")
     log.append("PASS gate3-negative: Apache-2.0 source text is retained, not over-redacted")
 
+    # ================================================================== v0.3 / v0.4
+    # The two benchmarks about to ship. Until now every GATE 3 case used
+    # longmemeval_v1/v2, so the gates were not known to discriminate on SciCode or
+    # SWE-bench -- a verifier that has only ever met its home case.
+
+    def _swebench(**over: Any) -> dict[str, Any]:
+        return {**sample, "benchmark": "swebench_verified",
+                "license_source_reference": "swebench_verified:none_declared", **over}
+
+    def _scicode(**over: Any) -> dict[str, Any]:
+        return {**sample, "benchmark": "scicode",
+                "license_source_reference": "scicode:Apache-2.0", **over}
+
+    # -- (a) POSITIVE: a SWE-bench row carrying real issue text must be REFUSED.
+    #    The text is a verbatim fragment of the django issue bodies in
+    #    results/swebench/representations_v2.json -- the actual payload, not a
+    #    stand-in, so the gate is tested against what it will really meet.
+    leaky_sw = _swebench(
+        memory_text="Django 4.2 raises ValueError when using QuerySet.only() after "
+                    "select_related() on a reverse OneToOneField relation.",
+        future_task_text="django__django-15400: fix SimpleLazyObject __radd__")
+    try:
+        gate_license_exclusion([leaky_sw])
+        raise AssertionError("SELF-TEST FAILED: licence gate passed SWE-bench issue "
+                             "text whose corpus licence is UNDECLARED")
+    except GateFailure:
+        log.append("PASS gate3: un-redacted swebench_verified issue text was caught "
+                   "(corpus licence undeclared -- BENCHMARK_LICENSES.md section 5)")
+
+    # -- (a2) the SAME row must also be caught by the SCHEMA's helper, which keys on
+    #    `benchmark` rather than on the licence reference. Two independent keys.
+    try:
+        gate_embargo_schema_helper([leaky_sw])
+        raise AssertionError("SELF-TEST FAILED: schema embargo helper passed SWE-bench "
+                             "issue text")
+    except GateFailure:
+        log.append("PASS gate6: schema.assert_content_redistributable independently "
+                   "caught the same SWE-bench row (keyed on `benchmark`)")
+
+    # -- (a3) NEGATIVE: a correctly redacted SWE-bench row must be ACCEPTED, or v0.4
+    #    cannot ship at all. Before 2026-09-30 this was impossible: redaction wrote a
+    #    truthy sentinel and the schema helper read every truthy string as content.
+    sw_red, sw_wh = redact_row(_swebench())
+    if not sw_wh:
+        raise AssertionError("SELF-TEST FAILED: SWE-bench row withheld nothing")
+    gate_license_exclusion([sw_red])
+    gate_embargo_schema_helper([sw_red])
+    log.append(f"PASS gate3/6-negative: a redacted swebench_verified row is accepted, "
+               f"withholding {len(sw_wh)} fields (metrics-only release is possible)")
+
+    # -- (a4) POSITIVE: redacted, but NOT declared in text_fields_withheld. A consumer
+    #    filtering on that list would get the wrong rows.
+    sneaky = dict(sw_red); sneaky["text_fields_withheld"] = []
+    try:
+        gate_embargo_schema_helper([sneaky])
+        raise AssertionError("SELF-TEST FAILED: an undeclared withholding was accepted")
+    except GateFailure:
+        log.append("PASS gate6: a blanked field missing from text_fields_withheld was "
+                   "caught (withholding must be declared, not just performed)")
+
+    # -- (b) NEGATIVE: SciCode now PERMITS text. Apache-2.0 on both code and data
+    #    (BENCHMARK_LICENSES.md section 4). The stale PENDING entry would have shipped
+    #    v0.3 with every text field blanked -- over-redaction against a written finding.
+    sc_row = _scicode(memory_text="Compute the Fermi energy for a 2D electron gas.",
+                      future_task_text="Implement the density of states.")
+    sc_red, sc_wh = redact_row(sc_row)
+    if sc_wh:
+        raise AssertionError(
+            f"SELF-TEST FAILED: SciCode is Apache-2.0 on both code and data but "
+            f"redaction withheld {sc_wh} -- over-redacting against section 4")
+    if sc_red["memory_text"] != sc_row["memory_text"]:
+        raise AssertionError("SELF-TEST FAILED: SciCode memory_text was altered")
+    gate_license_exclusion([sc_red])
+    log.append("PASS gate3-negative: scicode text is RETAINED (Apache-2.0, section 4) "
+               "-- the stale PENDING entry would have blanked it")
+
+    # -- (b2) POSITIVE: the per-FIELD carve-out. Apache-2.0 does NOT reach test_data.h5,
+    #    so a row echoing target values is refused even though its row policy is (T,T).
+    targets = _scicode(memory_text="expected = [0.4472135954999579, 1.2247448713915890, "
+                                   "3.1415926535897931, 2.7182818284590451]")
+    try:
+        gate_scicode_eval_targets([targets])
+        raise AssertionError("SELF-TEST FAILED: SciCode test_data.h5 target values were "
+                             "accepted despite an unstated licence")
+    except GateFailure:
+        log.append("PASS gate3c: SciCode test_data.h5 target values refused even though "
+                   "the row's own policy permits text (per-field carve-out)")
+
+    # -- (b3) NEGATIVE: ordinary SciCode prose must NOT trip the target detector.
+    gate_scicode_eval_targets([sc_red])
+    log.append("PASS gate3c-negative: ordinary SciCode problem text is not mistaken "
+               "for eval targets (measured: 0/924 real rows trip it)")
+
+    # -- (c) POSITIVE: BEAM is REFUSED OUTRIGHT, not redacted. Three docs claimed this
+    #    control existed; measured 2026-09-30, a BEAM row was redacted and accepted.
+    beam_row = {**sample, "benchmark": "beam",
+                "license_source_reference": "beam:CC-BY-SA-4.0"}
+    beam_red, _ = redact_row(dict(beam_row))
+    try:
+        gate_license_exclusion([beam_red])
+        log.append("NOTE: a REDACTED beam row passes gate3 -- which is why refusal "
+                   "cannot be left to redaction; see gate3b below")
+    except GateFailure:
+        pass
+    try:
+        gate_benchmark_refusal([beam_row])
+        raise AssertionError("SELF-TEST FAILED: a BEAM row was not refused. Three "
+                             "documents state the exporter refuses BEAM rows.")
+    except GateFailure:
+        log.append("PASS gate3b: a BEAM row is REFUSED OUTRIGHT (CC BY-SA ShareAlike "
+                   "is infectious; redaction does not cure it)")
+
+    # -- (c2) NEGATIVE: refusal must not reject the benchmarks that DO ship.
+    gate_benchmark_refusal([_scicode(), _swebench(), sample])
+    log.append("PASS gate3b-negative: scicode / swebench_verified / longmemeval rows "
+               "are not refused by the BEAM gate")
+
+    # -- (d) POSITIVE: the two-namespace bypass. `benchmark` is not a schema enum, so
+    #    "swebench" (missing _verified) matched no embargo entry and carried raw django
+    #    text straight through with no error at all. Measured, not hypothesised.
+    bypass = {**sample, "benchmark": "swebench",
+              "license_source_reference": "swebench_verified:none_declared",
+              "memory_text": "raw django issue text"}
+    try:
+        gate_benchmark_license_agreement([bypass])
+        raise AssertionError("SELF-TEST FAILED: benchmark='swebench' disagreeing with "
+                             "license_source_reference='swebench_verified:...' was "
+                             "accepted -- this bypasses the embargo entirely")
+    except GateFailure:
+        log.append("PASS gate0: a benchmark/licence-reference mismatch is caught "
+                   "(the one-character 'swebench' vs 'swebench_verified' bypass)")
+
+    # -- (d1b) POSITIVE, the OTHER branch of gate 0. (d) above trips the
+    #    unknown-benchmark branch, so it passes even if the prefix comparison is
+    #    deleted -- found by mutation-testing this very self-test: disabling
+    #    `if prefix != want` left every assertion green. A recognised benchmark
+    #    pointed at the WRONG licence reference exercises the comparison itself.
+    crossed = {**sample, "benchmark": "scicode",
+               "license_source_reference": "longmemeval_v2:Apache-2.0",
+               "memory_text": "SciCode problem text billed to LongMemEval's licence"}
+    try:
+        gate_benchmark_license_agreement([crossed])
+        raise AssertionError("SELF-TEST FAILED: benchmark='scicode' with a "
+                             "longmemeval_v2 licence reference was accepted -- the "
+                             "prefix comparison is not running")
+    except GateFailure:
+        log.append("PASS gate0: a RECOGNISED benchmark pointed at the wrong licence "
+                   "reference is caught (exercises the prefix comparison, not just "
+                   "the unknown-name branch)")
+
+    # -- (d1c) POSITIVE: the reverse direction. An embargoed benchmark wearing a
+    #    permissive licence reference is the dangerous orientation -- it would redact
+    #    under Apache-2.0 and ship SWE-bench text.
+    disguised = {**sample, "benchmark": "swebench_verified",
+                 "license_source_reference": "scicode:Apache-2.0",
+                 "memory_text": "django issue text wearing SciCode's licence"}
+    try:
+        gate_benchmark_license_agreement([disguised])
+        raise AssertionError("SELF-TEST FAILED: a swebench_verified row wearing a "
+                             "scicode licence reference was accepted -- it would be "
+                             "redacted as Apache-2.0 and ship its issue text")
+    except GateFailure:
+        log.append("PASS gate0: an embargoed benchmark wearing a PERMISSIVE licence "
+                   "reference is caught (the orientation that would leak)")
+
+    # -- (d2) NEGATIVE: agreeing rows pass.
+    gate_benchmark_license_agreement([_scicode(), _swebench(), sample])
+    log.append("PASS gate0-negative: rows whose benchmark and licence reference agree "
+               "are accepted")
+
+    # -- (e) REGRESSION, the v0.4 blocker: a redacted row must pass SCHEMA VALIDATION.
+    #    memory_text is one of MEMORY_ID_KEYS, so blanking it after the id was minted
+    #    made every withheld row fail gate 4 with id_mismatch. v0.1/v0.2 withheld
+    #    nothing, so this could not fire until now.
+    rep_red = V.validate_dataset([sw_red])
+    if not rep_red.ok:
+        raise AssertionError(
+            "SELF-TEST FAILED: a correctly redacted row does not pass schema "
+            "validation, so GATE 4 would reject the whole release: "
+            + "; ".join(f"{e.code}:{e.field}" for e in rep_red.errors[:5]))
+    log.append("PASS gate1/4-regression: a redacted row passes the validator that GATE "
+               "4 runs on the written file (id_mismatch exemption is narrow)")
+
+    # -- (e2) POSITIVE CONTROL for that exemption: an ORDINARY edit to memory_text must
+    #    still trip id_mismatch. An exemption that swallows real corruption is worse
+    #    than the bug it fixed.
+    edited = dict(sample); edited["memory_text"] = "an ordinary edit, not a withholding"
+    codes = {e.code for e in V.validate_dataset([edited]).errors}
+    if "id_mismatch" not in codes:
+        raise AssertionError(
+            "SELF-TEST FAILED: the withholding exemption swallowed an ordinary edit to "
+            f"memory_text -- id_mismatch did not fire (got {sorted(codes)})")
+    log.append("PASS gate1-control: an ordinary (non-sentinel) edit to memory_text "
+               "still trips id_mismatch -- the exemption did not become a hole")
+
+    # -- (e3) POSITIVE CONTROL: the sentinel WITHOUT a declaration is still a mismatch.
+    undeclared = dict(sample); undeclared["memory_text"] = S.WITHHELD_SENTINEL
+    if "id_mismatch" not in {e.code for e in V.validate_dataset([undeclared]).errors}:
+        raise AssertionError("SELF-TEST FAILED: the sentinel alone bought an exemption "
+                             "without the row declaring the withholding")
+    log.append("PASS gate1-control: the sentinel alone does NOT buy an exemption -- the "
+               "row must also declare the field in text_fields_withheld")
+
+    # -- (e4) POSITIVE CONTROL on a WITHHELD row: the exemption must narrow to the ids
+    #    whose key set actually contains a blanked field. cell_id keys on memory_id,
+    #    not on memory_text, so a copied cell_id stays fully checked even here.
+    #    Found by mutation-testing: widening `hidden` to every blanked field left the
+    #    self-test green while a copied cell_id went unchecked on every withheld row.
+    copied = dict(sw_red)
+    copied["cell_id"] = "cell-someoneelse-000000000000000000000000"
+    if "id_mismatch" not in {e.code for e in V.validate_dataset([copied]).errors}:
+        raise AssertionError(
+            "SELF-TEST FAILED: on a WITHHELD row a copied cell_id was not caught. The "
+            "id exemption must skip only the ids whose own key set contains a blanked "
+            "field; cell_id keys on memory_id, not on memory_text.")
+    log.append("PASS gate1-control: on a withheld row a COPIED cell_id is still caught "
+               "-- the exemption narrows per-id, not per-row")
+
+    # -- (e5) POSITIVE CONTROL: a declared-but-not-blanked field must not buy an
+    #    exemption either. Mutation-testing showed that dropping the sentinel test
+    #    from the exemption left every assertion green.
+    claimed = dict(sample)
+    claimed["memory_text"] = "real text the row merely CLAIMS was withheld"
+    claimed["text_fields_withheld"] = ["memory_text"]
+    claimed["reconstruction_required"] = True
+    if "id_mismatch" not in {e.code for e in V.validate_dataset([claimed]).errors}:
+        raise AssertionError(
+            "SELF-TEST FAILED: a row that merely LISTS memory_text as withheld, while "
+            "the field still holds real text, was exempted from id_mismatch. The "
+            "exemption must require the sentinel to actually be present.")
+    log.append("PASS gate1-control: declaring a withholding that did not happen buys "
+               "no exemption -- the sentinel must actually be in the field")
+
+    # -- (f) the scanner must have met REAL source code, not only invented sentences.
+    for real in SECRET_SCAN_REAL_SOURCE_MATCHES:
+        if not scan_text_for_secrets(real, "real"):
+            raise AssertionError(
+                f"SELF-TEST FAILED: assigned_secret no longer matches real django "
+                f"source {real!r}. If the pattern was relaxed to quiet this, a genuine "
+                f"credential assignment is now invisible too.")
+    sw_note = _swebench(output_with_memory=SECRET_SCAN_REAL_SOURCE_MATCHES[0])
+    sw_note_red, sw_note_wh = redact_row(sw_note)
+    notes = gate_secret_scan_rows([sw_note], withheld_fields=[sw_note_wh])
+    if not notes:
+        raise AssertionError("SELF-TEST FAILED: a match inside a withheld field was "
+                             "neither raised nor recorded -- it was silently dropped")
+    gate_secret_scan_rows([sw_note_red])
+    log.append(f"PASS gate2-real-source: {len(SECRET_SCAN_REAL_SOURCE_MATCHES)} verbatim "
+               f"django strings still MATCH the pattern; in a withheld field they are "
+               f"recorded as not-shipped ({len(notes)} note) rather than suppressed")
+
+    # -- (f2) POSITIVE CONTROL: the same string in a field that SHIPS is a hard failure.
+    sc_secret = _scicode(output_with_memory="api_key=sk-abcdefghijklmnopqrstuvwxyz0123")
+    sc_secret_red, sc_secret_wh = redact_row(sc_secret)
+    try:
+        gate_secret_scan_rows([sc_secret], withheld_fields=[sc_secret_wh])
+        raise AssertionError("SELF-TEST FAILED: a secret in a SHIPPED field (SciCode "
+                             "retains its outputs) did not fail the build")
+    except GateFailure:
+        log.append("PASS gate2-control: the same class of match in a field that SHIPS "
+                   "is still a hard failure -- severity keys on the artifact, not the "
+                   "string")
+
     # -- GATE 1 positive: a malformed row must be rejected.
     bad = dict(sample); bad["reader_cluster"] = None
     try:
@@ -568,10 +1100,32 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
     if not skip_self_test:
         selftest_log = self_test(rows)
 
+    # Order matters and every one of these precedes the first byte written.
+    #  0  the two licence namespaces name the same source (else the rest is misapplied)
+    #  3b refusal: rows that may not be here AT ALL -- checked before we bother redacting
+    #  1  schema validation of the rows as collected
+    #  2  secret scan, on the PRE-redaction rows (a secret in a field we later blank is
+    #     still a secret that was in our ledger) and again on the POST-redaction rows
+    #     (the ones that actually ship)
+    #  3  licence exclusion, keyed on license_source_reference
+    #  3c SciCode's per-FIELD carve-out, which the per-row policy flag cannot express
+    #  6  the schema's own embargo helper, keyed independently on `benchmark`
+    gate_benchmark_license_agreement(rows)
+    gate_benchmark_refusal(rows)
     report = gate_validate(rows) if rows else V.Report()
-    gate_secret_scan_rows(rows)
-    exported = [redact_row(r)[0] for r in rows]
+    # Redact first so the pre-redaction scan can tell a secret that SHIPS from one that
+    # sits in a field the licence blanks. Nothing is written until every gate has run.
+    redacted = [redact_row(r) for r in rows]
+    exported = [e for e, _ in redacted]
+    secret_notes = gate_secret_scan_rows(rows, withheld_fields=[w for _, w in redacted])
     license_counts = gate_license_exclusion(exported)
+    gate_scicode_eval_targets(exported)
+    # Scan the redacted rows too. GATE 2 above runs pre-redaction, which is right for
+    # "was a secret ever in our ledger" but wrong for "does the artifact carry one":
+    # redaction REWRITES fields, and a check that never reads the rewritten value is a
+    # check on something other than what ships.
+    gate_secret_scan_rows(exported)
+    gate_embargo_schema_helper(exported)
 
     if staging.exists():
         shutil.rmtree(staging)
@@ -646,6 +1200,10 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
         "license_doc_sha256": license_doc_sha,
         "license_policy_counts": license_counts,
         "text_fields_withheld_counts": dict(withheld_counter),
+        # Secret-scan matches that were NOT release blockers because the licence policy
+        # blanks the field they live in. Recorded, not suppressed: a finding that only
+        # exists in a build log nobody keeps is a deleted finding.
+        "secret_scan_notes_not_shipped": secret_notes,
         "validation": {"errors": len(report.errors), "warnings": len(report.warnings),
                        "codes": sorted(report.codes())},
         # Gates 4 and 5 run AFTER this dict is built (they need the written file), so
@@ -653,8 +1211,12 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
         # actually run. A manifest that claimed PASS before the check ran would be a
         # provenance field nobody measured -- and the build raises rather than reaching
         # the stamp if either fails, so PENDING can never survive into a shipped file.
-        "gates": {"schema_validation": "PASS", "secret_scan": "PASS",
+        "gates": {"benchmark_license_agreement": "PASS",
+                  "benchmark_refusal": "PASS",
+                  "schema_validation": "PASS", "secret_scan": "PASS",
                   "license_exclusion": "PASS",
+                  "scicode_eval_targets": "PASS",
+                  "schema_embargo_helper": "PASS",
                   "written_file_revalidates": "PENDING",
                   "data_card_command_runs": "PENDING"},
         "self_test": ("SKIPPED -- gates are not known to fire for this build"
