@@ -116,13 +116,16 @@ def main() -> int:
       "**task-clustered** interval governs, because cells repeat within tasks "
       "and a cell-level interval would treat repeated views of one task as "
       "independent draws.\n")
-    w("> ⚠️ `docs/CONTRAST_FRAMING.md` motivates clustering with *\"a third of "
-      "all cells sit on ten tasks\"*. **That figure is pooled over the RANDOM "
-      "stratum and is not true of this cell set.** Re-derived on BEARING + "
-      "MATCHED_CONTROL: 285 cells over 126 tasks, the top ten tasks hold "
-      "**60 cells = 21.1%**, max 7 cells on any one task. Clustering still "
-      "governs — 4.75 cells per memory and up to 18 on one memory — but the "
-      "concentration here is milder than the pooled number implies.\n")
+    w("> ⚠️ **The 34.6% \"third of all cells on ten tasks\" figure is pooled "
+      "over RANDOM and is not true of this cell set.** `CONTRAST_FRAMING.md` "
+      "already makes that correction per stratum (BEARING 38.8%, "
+      "MATCHED_CONTROL 19.9%); re-derived on the two combined, which is the "
+      "set used here: 285 cells over 126 tasks, top ten tasks hold **60 cells "
+      "= 21.1%**, max 7 on any one task. Clustering still governs — 4.75 cells "
+      "per memory, up to 18 on one — but BEARING↔MC is close to robust to task "
+      "clustering by construction, and the honest statement is that the "
+      "clustered interval is reported because it is the conservative one, not "
+      "because this set is severely concentrated.\n")
 
     # ------------------------------------------------- the paper's quantity
     w("## The quantity the paper actually reports\n")
