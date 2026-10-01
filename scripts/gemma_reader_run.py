@@ -65,11 +65,23 @@ REPS = ("raw", "summary", "structured")
 
 #: One condition id per (representation, reader). NEVER a backfill of the
 #: gpt-oss condition: a new reader is a NEW ARM, labelled, never pooled.
-CONDITION_ID = {
-    "raw": "lmev2_raw_metis_gemma4_31B_readertransfer_v1",
-    "summary": "lmev2_summary_metis_gemma4_31B_readertransfer_v1",
-    "structured": "lmev2_structured_metis_gemma4_31B_readertransfer_v1",
-}
+#: 🔴 Derived from the ACTUAL reader arm, never hardcoded. A first version
+#: hardcoded "gemma4_31B" into all three ids; running --reader-arm
+#: gptoss_metis then produced rows whose condition_id said *gemma* while
+#: reader_model said *gpt-oss-120b*. The label and the measurement
+#: disagreed, which is precisely the arm-identity confusion the per-arm
+#: condition id exists to prevent. See DEFECT_REGISTER #27.
+_ARM_TAG = {"gptoss_metis": "gptoss120b", "gemma_metis": "gemma4_31B",
+            "gemma_sophia_failover": "gemma4_31B_sophia"}
+
+
+def condition_id_for(rep: str, reader_arm: str) -> str:
+    tag = _ARM_TAG.get(reader_arm)
+    if tag is None:                      # fail closed: an unlabelled arm is
+        raise KeyError(                  # worse than a crash
+            f"no condition-id tag for reader arm {reader_arm!r}; add one "
+            "rather than letting a run inherit another arm's label")
+    return f"lmev2_{rep}_metis_{tag}_readertransfer_v1"
 
 #: gpt-oss reader caches -- read ONLY for the context_sha256 they recorded.
 GPTOSS_CACHE = {
@@ -619,7 +631,7 @@ def main() -> int:
                         "seed": None},
                     **reader_fields,
                     reader_prompt_version=PROMPT_VERSION,
-                    condition_id=CONDITION_ID[rep],
+                    condition_id=condition_id_for(rep, args.reader_arm),
                     output_without_memory=oo, output_with_memory=ow,
                     reward_without_memory=reward_o, reward_with_memory=reward_w,
                     delta_utility=delta, robustness_confidence=None,
@@ -727,10 +739,19 @@ def main() -> int:
         "every_errored_row_has_null_reward": all(
             (r["reward_with_memory"] is None and r["reward_without_memory"] is None)
             for r in on_disk if r["error_code_if_any"]),
-        "reasoning_tokens_is_null_never_zero":
-            all(r["reasoning_tokens"] is None for r in on_disk),
-        "condition_ids_are_new_not_the_gptoss_ones":
-            all("gemma" in (r["condition_id"] or "") for r in on_disk),
+        # Keyed on the ARM's measured capability, not on a constant. Metis
+        # reports reasoning tokens for gpt-oss and NOT for Gemma -- the same
+        # cluster, two different answers (DEFECT_REGISTER #18). A model that
+        # does not report them must carry null, never 0 (an absence written
+        # as a measurement); a model that does must carry an int.
+        "reasoning_tokens_match_the_arms_capability": (
+            all(isinstance(r["reasoning_tokens"], int) for r in on_disk)
+            if arm.get("reports_reasoning_tokens")
+            else all(r["reasoning_tokens"] is None for r in on_disk)),
+        "condition_ids_name_THIS_arm_not_another": all(
+            r["condition_id"] == condition_id_for(
+                r["memory_representation"], args.reader_arm)
+            for r in on_disk),
         "replicates_per_cell_as_requested": (
             set(collections.Counter(
                 (r["provenance"]["pair_key"], r["memory_representation"])
