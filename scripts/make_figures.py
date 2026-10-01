@@ -387,8 +387,8 @@ def crossbench():
     # being scored as a wrong answer (DEFECT_REGISTER #21), which demoted 37
     # arm-reads and moved the pooled matched set 17 -> 15. Reading the older
     # artifact would publish numbers a correction has already superseded.
-    _swm = json.loads((REPO / "results/swebench"
-                       / "representations_multirepo.json").read_text())
+    _swm = json.loads((REPO / "results/ledgers/repro/swebench"
+                       / "representations_multirepo_final.json").read_text())
     sw = _swm["pooled"]
     fl = json.loads((REPO / "results/ledgers/repro"
                      / "cross_benchmark_without_arm_floor.json").read_text())
@@ -414,7 +414,7 @@ def crossbench():
     expect("crossbench: SWE-bench defect-21 correction applied",
            _swm["defect21_manufactured_zero_correction"]["arm_reads_demoted"],
            37)
-    expect("crossbench: SWE-bench matched set, corrected", sw["MATCHED_CELL_SET_N"], 15)
+    expect("crossbench: SWE-bench matched set, corrected", sw["MATCHED_CELL_SET_N"], 40)
     expect("crossbench: SWE-bench repositories", len(sw["cells_per_repo"]), 2)
     # A pooled figure must state its composition. One repo supplies 80% here,
     # so the caption says so; if that stops being true the caption is wrong
@@ -885,8 +885,8 @@ def coverage():
     expect("coverage scicode: matched set", sca["MATCHED_CELL_SET_N"], 122)
 
     # ---- SWE-bench Verified: the representation arm, defect-21 corrected
-    swm = json.loads((REPO / "results/swebench"
-                      / "representations_multirepo.json").read_text())
+    swm = json.loads((REPO / "results/ledgers/repro/swebench"
+                      / "representations_multirepo_final.json").read_text())
     pooled = swm["pooled"]
     sw_done = sum(pooled["per_representation_interpretable"][r] for r in reps)
     sw_excl = sum(pooled["exclusions"].values())
@@ -906,12 +906,17 @@ def coverage():
         "excl_detail": pooled["exclusions"],
         "matched": pooled["MATCHED_CELL_SET_N"],
         "repos": len(pooled["cells_per_repo"])}
+    # Values are the FINAL universe (representations_multirepo_final.json,
+    # 107/107 recipients attempted across django+sympy). The previous
+    # expectations -- 129 rep-cells, 56 completed, matched 15 -- were the
+    # pre-scale-up artifact; they FAILED loudly when the generator was
+    # repointed at the final file, which is what they are for.
     expect("coverage swebench: eligible rep-cells (counted from source)",
-           sw_elig, 129)
-    expect("coverage swebench: attempted rep-cells", sw_done + sw_excl, 129)
-    expect("coverage swebench: completed", sw_done, 56)
+           sw_elig, 321)
+    expect("coverage swebench: attempted rep-cells", sw_done + sw_excl, 321)
+    expect("coverage swebench: completed", sw_done, 141)
     expect("coverage swebench: matched set (defect-21 corrected)",
-           pooled["MATCHED_CELL_SET_N"], 15)
+           pooled["MATCHED_CELL_SET_N"], 40)
     expect("coverage swebench: repositories", len(pooled["cells_per_repo"]), 2)
     expect("coverage swebench: defect-21 arm-reads demoted",
            swm["defect21_manufactured_zero_correction"]["arm_reads_demoted"], 37)
@@ -1141,8 +1146,8 @@ def main():
     _scd = json.loads((REPO / "results/scicode/scaleup_all3.json").read_text())["design"]
     _sca = json.loads((REPO / "results/ledgers/repro/scicode"
                        / "scaleup_analysis.json").read_text())
-    _swa = json.loads((REPO / "results/swebench"
-                       / "representations_multirepo.json").read_text())["pooled"]
+    _swa = json.loads((REPO / "results/ledgers/repro/swebench"
+                       / "representations_multirepo_final.json").read_text())["pooled"]
     L.append(rf"\def\sciPairs{{{_scd['n_pairs']}}}")
     L.append(rf"\def\sciMems{{{_scd['n_memories']}}}")
     L.append(rf"\def\sciTasks{{{_scd['n_tasks']}}}")
