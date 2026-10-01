@@ -408,9 +408,11 @@ def main() -> int:
     w("## Controls — every null defended\n")
     w("| control | result |")
     w("|---|---|")
-    w(f"| gate 4 can FAIL (one byte appended to a user message) | aborts, exit 1 |")
-    w(f"| gate 5 can FAIL (one filler unit dropped, on `raw` where gate 4 is blind) | aborts, exit 1 |")
-    w(f"| gate 1 can FAIL (one byte changed in `memories.jsonl`) | aborts, exit 1 |")
+    w("| gate 4 can FAIL (one byte appended to a user message) | aborts, non-zero exit |")
+    w("| gate 5 can FAIL (one filler unit dropped, on `raw` where gate 4 is blind) | aborts, non-zero exit |")
+    w("| gate 1 can FAIL (one byte changed in `memories.jsonl`) | aborts, non-zero exit |")
+    w("| the analysis's memory-text check can FAIL (one byte planted) | aborts, exit 1 |")
+    w("| the analysis's reader-identity check can FAIL (a gpt-oss `reader_model` planted) | aborts, exit 1 |")
     if C:
         sep = C.get("cache_separation_reconfirmed_on_this_run", {})
         w(f"| cache separation, **positive control first** | gpt-oss key "

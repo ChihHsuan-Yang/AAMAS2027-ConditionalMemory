@@ -170,9 +170,11 @@ Only the reader changed. That is **asserted in code at run time**, not claimed i
 
 | control | result |
 |---|---|
-| gate 4 can FAIL (one byte appended to a user message) | aborts, exit 1 |
-| gate 5 can FAIL (one filler unit dropped, on `raw` where gate 4 is blind) | aborts, exit 1 |
-| gate 1 can FAIL (one byte changed in `memories.jsonl`) | aborts, exit 1 |
+| gate 4 can FAIL (one byte appended to a user message) | aborts, non-zero exit |
+| gate 5 can FAIL (one filler unit dropped, on `raw` where gate 4 is blind) | aborts, non-zero exit |
+| gate 1 can FAIL (one byte changed in `memories.jsonl`) | aborts, non-zero exit |
+| the analysis's memory-text check can FAIL (one byte planted) | aborts, exit 1 |
+| the analysis's reader-identity check can FAIL (a gpt-oss `reader_model` planted) | aborts, exit 1 |
 | cache separation, **positive control first** | gpt-oss key HIT → Gemma key MISS → gpt-oss key in Gemma cache MISS |
 | A/A determinism, gpt-oss (byte-identical requests, separate calls) | 248/248 identical |
 | A/A determinism, Gemma (byte-identical requests, separate calls) | 248/248 identical |
