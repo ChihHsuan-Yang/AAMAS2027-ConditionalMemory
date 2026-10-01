@@ -50,11 +50,37 @@ THREE THINGS THIS SCRIPT REFUSES TO DO
    nothing here is withheld for licence. A persistence gap and a licence embargo must
    never be spelled the same way.
 2. **It will not emit a summary or structured row.** All 68 writer calls succeeded, but
-   nothing persisted their text and ``memory_text`` is non-nullable. Re-running the
-   writers produces different bytes, so a re-derived text would be a different memory
-   wearing this run's rewards. 308 of 462 cells are therefore unexportable, and the
-   script EXITS NONZERO unless ``--acknowledge-unexportable`` says so out loud -- a
-   partial export that looks complete is the defect, not the missing rows.
+   nothing persisted their text and ``memory_text`` is non-nullable.
+
+   🔴 UPDATED 2026-09-30: "re-running the writers produces different bytes" was an
+   ASSUMPTION when this was written. It has now been MEASURED, and it is true.
+   ``scripts/scicode_recover_memories.py`` regenerated all 34 memories x 3
+   representations and tested identity against a number the run wrote down --
+   the server's ``prompt_tokens`` on every WITH arm-run, which is a function of
+   the exact prompt bytes and therefore of the memory text inside them:
+
+       raw          154/154 cells matched  -> RECOVERED (no model call: raw IS
+                                              the source segment, verbatim)
+       summary        5/154 cells matched  -> NOT recovered
+       structured     0/154 cells matched  -> NOT recovered
+
+   The direct proof is stronger than the token counts. ``results/repr_scaleup/
+   memories.jsonl`` holds 60 summary memories written by THESE writers on THIS
+   model with their TEXT; re-running them today reproduces **0 of 12**
+   byte-identically while the writer's own prompt_tokens matches **12 of 12**
+   -- the same prompt went out and a different answer came back. Within one
+   session the endpoint is stable (4/4); across sessions it is not. A
+   determinism probe that draws twice in one session measures the wrong
+   quantity and says "deterministic".
+
+   The 5/154 summary matches are CHANCE, not partial recovery: two independent
+   regenerations of the same segment differ in text 21/34 times and their token
+   counts coincide anyway 1/21 = 5%, which predicts ~2 spurious per-memory
+   verifications over 34. Exactly 2 were observed.
+
+   So 308 of 462 cells remain unexportable, and the script EXITS NONZERO unless
+   ``--acknowledge-unexportable`` says so out loud -- a partial export that looks
+   complete is the defect, not the missing rows.
 3. **It will not coerce a null reward to 0.0.** 106 arm-runs have ``reward=None``
    ("could not be scored"); 0.0 means "ran and got the wrong answer". Collapsing them
    manufactures harm, has shipped in this project twice, and is checked after the fact
@@ -140,11 +166,15 @@ NO_EMBEDDING_REASON = (
 FAITHFULNESS_TEXT_NOT_PERSISTED_NOTE = (
     "NOT SCORED, and the reason is neither tautology nor a failed write: the write "
     "SUCCEEDED and the memory text was never persisted. scripts/scicode_pilot.py holds "
-    "the written memories in process memory only -- there is no results/scicode/"
-    "memories.jsonl and no write cache -- so the exact bytes that were scored against "
-    "are unrecoverable. Re-running the writer would produce DIFFERENT bytes and "
-    "scoring those would describe a different memory than the one this row's rewards "
-    "were measured under."
+    "the written memories in process memory only, so the exact bytes that were scored "
+    "against are unrecoverable. Re-running the writer produces DIFFERENT bytes -- "
+    "MEASURED, not assumed: against memories whose original text IS on disk "
+    "(results/repr_scaleup/memories.jsonl) regeneration reproduces 0 of 12 "
+    "byte-identically while sending an identical writer prompt (12/12), and on this "
+    "artifact the regenerated summaries match the recorded prompt_tokens on only "
+    "5 of 154 cells (the coincidence null is ~5%). Scoring those would describe a "
+    "different memory than the one this row's rewards were measured under. "
+    "Evidence: results/scicode/memory_recovery_report.json."
 )
 
 # ---------------------------------------------------------------- error-code mapping
