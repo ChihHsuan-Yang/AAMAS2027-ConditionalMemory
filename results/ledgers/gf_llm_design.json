@@ -3,9 +3,9 @@
   "_why_rerun_everything": "21 of the 42 GF-LLM bearing cells already have a measurement, but spread across TWO sessions (screened + GF-LEX). DEFECT #25 forbids pooling across sessions, so the whole contrast is re-executed in one.",
   "cells_artifact": "data/manifests/gf_llm_cells.jsonl",
   "config": {
-    "cells_out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/data/manifests/gf_llm_cells.jsonl",
+    "cells_out": "data/manifests/gf_llm_cells.jsonl",
     "max_calls": 600,
-    "out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/ledgers/gf_llm_design.json",
+    "out": "results/ledgers/gf_llm_design.json",
     "replicates": 2,
     "root": "/tmp/lmev2",
     "seed": 20261001

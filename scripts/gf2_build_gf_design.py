@@ -50,6 +50,28 @@ def log(m: str) -> None:
     print(m, flush=True)
 
 
+def _rel_to_repo(p) -> str:
+    """Repo-relative path for an artifact field (DEFECT_REGISTER #23/#29).
+
+    An absolute /Users/<name>/ path in a tracked ledger de-anonymises a
+    double-blind submission and is invisible to a credential scanner. Never
+    write str(path) into an artifact -- including via a `vars(args)` dump,
+    which is how it got in here.
+    """
+    p = Path(p)
+    try:
+        return str(p.resolve().relative_to(REPO))
+    except Exception:
+        # Outside the repo. Returning only `.name` would turn "/tmp/lmev2" into
+        # "lmev2" -- losing the fact that it is a scratch root, which a reader
+        # needs to reproduce the run. Keep non-home absolute paths whole and
+        # redact only a home directory, which is the actual anonymity hazard.
+        s = str(p)
+        home = str(Path.home())
+        return s.replace(home, "~") if s.startswith(home) else s
+
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=Path("/tmp/lmev2"))
@@ -208,7 +230,7 @@ def main() -> int:
     write_json_atomic(args.out, {
         "_what": "GF2 gold-free two-stratum design. ZERO endpoint calls.",
         "_precommitment": "docs/GOLD_FREE_SCREEN_PRECOMMITMENT.md",
-        "config": {k: (str(v) if isinstance(v, Path) else v)
+        "config": {k: (_rel_to_repo(v) if isinstance(v, Path) else v)
                    for k, v in vars(args).items()},
         "n_cells": len(cells), "strata": dict(strat),
         "n_memories": len(bm),
@@ -226,7 +248,7 @@ def main() -> int:
             1 for c in cells if c["stratum"] == "GF_BEARING" and c["also_gold_bearing"]),
         "size_cap_dropped": {"n": len(dropped), "cap_tokens": cap},
         "planned_calls": calls,
-        "cells_artifact": str(args.cells_out.relative_to(REPO)),
+        "cells_artifact": _rel_to_repo(args.cells_out),
     })
     log(f"[wrote] {args.out}")
     return 0

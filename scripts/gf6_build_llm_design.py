@@ -33,6 +33,28 @@ def log(m: str) -> None:
     print(m, flush=True)
 
 
+def _rel_to_repo(p) -> str:
+    """Repo-relative path for an artifact field (DEFECT_REGISTER #23/#29).
+
+    An absolute /Users/<name>/ path in a tracked ledger de-anonymises a
+    double-blind submission and is invisible to a credential scanner. Never
+    write str(path) into an artifact -- including via a `vars(args)` dump,
+    which is how it got in here.
+    """
+    p = Path(p)
+    try:
+        return str(p.resolve().relative_to(REPO))
+    except Exception:
+        # Outside the repo. Returning only `.name` would turn "/tmp/lmev2" into
+        # "lmev2" -- losing the fact that it is a scratch root, which a reader
+        # needs to reproduce the run. Keep non-home absolute paths whole and
+        # redact only a home directory, which is the actual anonymity hazard.
+        s = str(p)
+        home = str(Path.home())
+        return s.replace(home, "~") if s.startswith(home) else s
+
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", type=Path, default=Path("/tmp/lmev2"))
@@ -178,7 +200,7 @@ def main() -> int:
                                  "(screened + GF-LEX). DEFECT #25 forbids pooling "
                                  "across sessions, so the whole contrast is "
                                  "re-executed in one.",
-        "config": {k: (str(v) if isinstance(v, Path) else v)
+        "config": {k: (_rel_to_repo(v) if isinstance(v, Path) else v)
                    for k, v in vars(args).items()},
         "judge_cache_verdicts": {"n_yes": len(judged_yes), "n_no": len(judged_no)},
         "n_cells": len(cells), "strata": dict(strat),
@@ -186,7 +208,7 @@ def main() -> int:
         "n_memory_family_groups_short": n_short,
         "deciding_stratum_llm_and_not_gold": {"n_cells": len(dec)},
         "planned_calls": calls,
-        "cells_artifact": str(args.cells_out.relative_to(REPO)),
+        "cells_artifact": _rel_to_repo(args.cells_out),
     })
     log(f"[wrote] {args.out}")
     return 0

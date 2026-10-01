@@ -42,10 +42,17 @@ def _rel_to_repo(p) -> str:
     de-anonymises a double-blind submission and a credential scanner is
     structurally blind to it.
     """
+    p = Path(p)
     try:
-        return str(Path(p).resolve().relative_to(REPO))
+        return str(p.resolve().relative_to(REPO))
     except Exception:
-        return Path(p).name
+        # Outside the repo. Returning only `.name` would turn "/tmp/lmev2" into
+        # "lmev2" -- losing the fact that it is a scratch root, which a reader
+        # needs to reproduce the run. Keep non-home absolute paths whole and
+        # redact only a home directory, which is the actual anonymity hazard.
+        s = str(p)
+        home = str(Path.home())
+        return s.replace(home, "~") if s.startswith(home) else s
 
 
 def cell_means(rows: list[dict]) -> dict[tuple, float]:

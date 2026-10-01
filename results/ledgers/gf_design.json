@@ -3,9 +3,9 @@
   "_what": "GF2 gold-free two-stratum design. ZERO endpoint calls.",
   "cells_artifact": "data/manifests/gf_cells.jsonl",
   "config": {
-    "cells_out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/data/manifests/gf_cells.jsonl",
+    "cells_out": "data/manifests/gf_cells.jsonl",
     "max_calls": 2000,
-    "out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/ledgers/gf_design.json",
+    "out": "results/ledgers/gf_design.json",
     "replicates": 2,
     "root": "/tmp/lmev2",
     "seed": 20261001,
