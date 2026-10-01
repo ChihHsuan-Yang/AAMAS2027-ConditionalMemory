@@ -138,6 +138,36 @@ Also: **1 replicate per cell** (LongMemEval has ≥2, satisfying prereg A1.3).
 **Verdict: SciCode full coverage DONE under the frozen lexical definition**,
 with the +10 union pairs recorded as a known, unexecuted alternative.
 
+### 🔴 EXECUTION coverage is 462 cells; EXPORTABLE coverage is 154 (added 2026-09-30)
+
+All 462 cells (154 pairs x 3 representations) were executed and scored. Only the
+**154 `raw`** cells can be published, and the distinction must be named every time
+a SciCode coverage figure is quoted — it is the same two-universes trap as
+LongMemEval's above.
+
+| | cells |
+|---|---:|
+| executed and scored | **462** |
+| exportable (memory text exists and is verified) | **154** (`raw`) |
+| **not exportable** | **308** (`summary` 154 + `structured` 154) |
+
+The run never persisted the model-written memory text, and it is **not
+recoverable**. That is a measurement, not an assumption:
+
+* regeneration vs. the server's recorded `prompt_tokens` matches **154/154** for
+  `raw` (no model call: raw IS the segment), **5/154** summary, **0/154** structured;
+* against ground truth on disk (`results/repr_scaleup/memories.jsonl`, 60 Summary
+  memories written by the same writers and model **with their text**), regeneration
+  reproduces **0 of 12** byte-identically while the writer prompt matches **12/12**;
+* the 5 summary matches sit at the measured coincidence null (~5-8%), i.e. chance.
+
+The rewards for those 308 cells are real and are kept in
+`results/scicode/scaleup_all3.json`; what cannot be shown is the memory whose
+utility they measure. Evidence: `results/scicode/memory_recovery_report.json`.
+
+**Consequence: SciCode is NOT representation-matched in the release**, while
+LongMemEval is. Any cross-benchmark representation comparison must say so.
+
 ---
 
 ## 3. SWE-bench Verified — the largest remaining gap

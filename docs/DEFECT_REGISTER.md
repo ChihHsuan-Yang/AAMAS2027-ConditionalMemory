@@ -142,6 +142,75 @@ assumption, and — for #17 — deliberately constructing the stored row the gua
 was supposed to reject. Each fix carries a regression test **verified to fail
 against the unfixed code** (three mutations, each caught).
 
+## Added 2026-09-30 (SciCode memory recovery) — a probe of the wrong quantity, and a gate that read the exit code
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 21 | **A determinism probe measured WITHIN-SESSION repeatability and was read as CROSS-SESSION reproducibility.** Drawing the same memory twice in one session returned 6/6 byte-identical, which licensed "the text is regenerable". It is not: the endpoint is stable inside a session and NOT across sessions | the `prompt_tokens` identity check, then a direct control against memories whose text is on disk | **308 regenerated SciCode memories published as the ones the run scored** — fluent, about the right segment, and wrong, with nothing downstream able to object |
+| 22 | **GATE 5 ran the data card's verification command and checked only its EXIT CODE.** The card's printed "expect: 5643 rows / 1129 warnings" was false against a 5,797-row release and the gate passed | building v0.3 and reading the card beside the output | a consumer following the README reads 5,643, sees 5,797, and concludes their download is **corrupt** |
+| 23 | **The export self-test's fixture could not be validated in isolation.** It took `rows[0]` and ran `validate_dataset([one_row])`; `num_replicates_mismatch` is a PER-CELL check, so a row from a 2-replicate cell fails by construction | running the self-test on the v0.2 input **as a control** before blaming the new rows | a true "a correctly redacted row cannot ship" alarm, chased in redaction where the bug was not |
+
+### Why #21 is the register's own shape in a new costume
+
+> **A check that was verified on its home case is not known to discriminate on an
+> unfamiliar one.** The determinism probe's home case is one session. The question
+> was about two.
+
+The premise was testable against ground truth the whole time and nobody looked:
+`results/repr_scaleup/memories.jsonl` stores 60 Summary memories written by the
+same writers, on the same model, **with their text**. Re-running them reproduces
+**0 of 12** byte-identically while the writer's own `prompt_tokens` matches
+**12 of 12** — the same prompt went out and a different answer came back.
+
+**What made this findable was a number the lost run had written down.** Every WITH
+arm-run recorded the server's `prompt_tokens`, which is a function of the exact
+prompt bytes and so of the memory text inside them. That is the difference between
+"the text is gone" and "the text is gone and here is how to tell whether you have
+got it back":
+
+| representation | cells matched | verdict |
+|---|---|---|
+| `raw` | **154/154** | recovered — and it involves **no model call**, so it was never at risk |
+| `summary` | 5/154 | not recovered |
+| `structured` | 0/154 | not recovered |
+
+**The 5 summary matches are chance and were shown to be.** Two independent
+regenerations of one segment differ in text, and their token counts coincide anyway
+~5–8% — predicting ~2–3 spurious per-memory "verifications" over 34 memories.
+Observed: 2. *A per-memory verdict at its own null rate is not evidence*, and the
+per-cell counts do not rescue it: the difference is CONSTANT across a memory's cells
+(0 of 68 varied), so a memory with 17 cells supplies **one** comparison, not 17.
+
+### The check's limits, measured rather than assumed
+
+Both directions were run, because a check is only informative if it can fail *and* pass:
+
+| control | result | reading |
+|---|---|---|
+| perturb a MATCHING memory | **2 of 6 detected**; **0 of 4 one-character** edits | a token count is **not a hash** — appending a period or changing a digit re-tokenises to the same length |
+| substitute a DIFFERENT memory | **0 of 3,003** matched | a match is genuinely informative |
+
+So "matched" means *same token count under every one of that memory's prompts*,
+which is strong evidence and **not** proof of byte identity — stated in the artifact
+rather than left for a reader to infer.
+
+⚠️ The positive control initially **refused to run**: its first subject was a
+`summary` cell that already mismatched, and it reported *"the unperturbed subject
+does not match, so a perturbation that 'fails' proves nothing."* That refusal was
+correct and is kept. **A control applied to a subject that is already failing is
+not a control.**
+
+### #22 and #23 share one shape with #3
+
+> **A check that inspects the wrong subject reports confidently.** #3 read an exit
+> code while a `ZeroDivisionError` ate the result; #22 read an exit code while the
+> card's own numbers were false; #23 read a per-cell check through a one-row window.
+
+#23 also carries the register's standing instruction about blame: the self-test
+failed on the v0.3 input, and the **first** action was to re-run it on the v0.2 input
+that had already shipped. It failed identically. Without that control the hour would
+have gone into the new SciCode rows, which were innocent.
+
 ## The pattern
 
 **Eleven of these produced a plausible number.** None announced itself as an error. The
