@@ -774,7 +774,7 @@ def main() -> int:
                              "max_workers", "reports_reasoning_tokens",
                              "truncation_is_always_an_error")},
         "reader_prompt_version": PROMPT_VERSION,
-        "condition_ids": {r: CONDITION_ID[r] for r in reps},
+        "condition_ids": {r: condition_id_for(r, args.reader_arm) for r in reps},
         "representations": reps, "replicates": args.replicates,
         "cells_per_representation": {r: len(chosen[r]) for r in reps},
         "eligible_pool_size": {r: len(eligible[r]) for r in reps},
