@@ -266,6 +266,13 @@ def main() -> int:
     w("")
     w("**Gate 4 is the decisive one** — it compares the bytes actually sent, "
       "which no amount of \"we used the same script\" establishes.\n")
+    w("**Gate 5 is not a formality.** `docs/POSITION_EFFECT.md` measured that "
+      "moving the target memory's position — same memory, same question, same "
+      "filler, same decoding — changed the answer in **8 of 12 cells**. A "
+      "reader comparison in which the two readers saw the memory at different "
+      "positions would be measuring position plus reader. Gate 5 checks the "
+      "recorded position and filler composition per cell against the gpt-oss "
+      "row, and is the only per-cell check `raw` has.\n")
     w("🔴 **Gate 4 cannot cover `raw`.** The screened cache was written under the "
       "**v1** key shape, which had no `context_sha256` field at all. Those "
       f"{g4.get('unverifiable_v1_key')} requests are counted as "
