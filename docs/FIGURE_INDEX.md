@@ -3,12 +3,23 @@
 **Created 2026-09-30 by SA-ARCHIVE.** Decisions live in `docs/FIGURE_PLAN.md`; this is the
 navigation table.
 
-> **Checked against `overleaf/main.tex` directly, not assumed.** At the time of writing —
-> Overleaf commit **`3c06d3a`** ("Abstract v5: lead with conditional utility and
-> sparsity", 2026-09-30 16:16 CDT) — `main.tex` contains **3 `figure` environments and 2
-> `table` environments**, and **no frontier figure and no cross-benchmark placeholder are
-> present yet**. SA-FIG2 is adding them under P1-C03/P1-C13. Re-run
-> `grep -n 'begin{figure}\|label{fig:' main.tex` before trusting this section.
+> 🔴 **RE-CHECKED 2026-10-01 by SA-SYNC against `overleaf/main.tex`. The paragraph that
+> stood here was STALE and is replaced.** It said `main.tex` held **3 figures / 2 tables**
+> with "no frontier figure and no cross-benchmark placeholder present yet". `main.tex` now
+> holds **5 `figure` environments and 3 `table` environments**:
+> `fig:pipeline` · `fig:bearing` · `fig:similarity` · **`fig:frontier`** (Figure 4, the
+> utility–efficiency frontier — it LANDED) · **`fig:readertransfer`** (Figure 6, reader
+> generalization, which this index never listed at all); tables `tab:coverage`,
+> **`tab:crossbench`** (the cross-benchmark slot — it was FILLED, as a table rather than a
+> forest plot) and `tab:screened`.
+> **`tab:flips` NO LONGER EXISTS** — T1 was removed on 2026-09-30 as a duplicate display of
+> Figure 2(b); the row below still describing it as ✅ DONE at `main.tex:1109` is wrong.
+> Every "in flight" row below is therefore superseded. Re-run
+> `grep -n 'begin{figure}\|begin{table}\|label{fig:\|label{tab:' main.tex` before
+> trusting any line-number or readiness claim in this file.
+>
+> **Also stale below:** "120 lines written" for `figdata.tex` — it is now **368 lines**,
+> and it feeds all five figures plus `tab:coverage` and `tab:crossbench`.
 
 ## The generator contract, which applies to every generated figure
 
@@ -24,7 +35,7 @@ generator passed. That near-miss is recorded in `docs/DEFECT_REGISTER.md`'s patt
 /Users/bellayang/miniconda3/bin/python3 scripts/make_figures.py
 ```
 
-I re-ran it on 2026-09-30: all checks `ok`, 120 lines written, and
+Re-run 2026-10-01 by SA-SYNC: all checks `ok`, **368 lines** written, and
 `git status` in `overleaf/` stayed **clean** — the committed `figdata.tex` is current.
 
 ---

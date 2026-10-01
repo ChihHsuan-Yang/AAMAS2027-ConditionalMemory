@@ -38,7 +38,7 @@ Results: [`READER_TRANSFER_RESULT.md`](READER_TRANSFER_RESULT.md) ·
 Then:
 
 ```bash
-/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py      # 129 checks, 16 sections
+/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py      # 218 checks, 21 sections
 /Users/bellayang/miniconda3/bin/python3 -m pytest -q                 # 638 tests
 /Users/bellayang/miniconda3/bin/python3 scripts/count_experiment_accounting.py
 ```
@@ -74,7 +74,7 @@ its diagnostic tree may still grow. Cite SA-SWE-FINAL's artifact and say *"as of
 | **manuscript** | `/Users/bellayang/Documents/2026/p1_memory_utility/overleaf` → `git.overleaf.com/6abbde4a9eb777031afef068` (`main`) |
 | **Overleaf HEAD** | **`1961825`** "Cite two figures the text never pointed at; tighten the reader paragraph" · working tree clean |
 | **HF dataset** | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
-| **HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**. Unauthenticated fetch → 401, verified. v0.1 tag `v0.1-lmev2-derived` retained. **v0.3 (SciCode) is being rebuilt by SA-HF right now** |
+| **HF version** | **v0.4 `swebench-metrics`** (commit `bc66629f`, == `main`) — **5,924 rows** (longmemeval_v2 5,643 / scicode 154 / swebench_verified 127), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, private. Frontmatter `license: other` + `license_name: mixed-per-row-see-data-card`. All four tags retained. Re-verified 2026-10-01 by SA-SYNC on the DOWNLOADED tags. 🔴 Known shipped defect: `docs/DATASET_INDEX.md` inside the **v0.3** tag still says "No SciCode row is in any published snapshot" while that tag ships 154 SciCode rows — fixed in v0.4, left published at v0.3 and recorded |
 | HF staging (**never committed, never uploaded from the repo**) | `/Users/bellayang/Documents/2026/p1_memory_utility/hf_staging/AAMAS2027-ConditionalMemory/` |
 | data card | `docs/hf_card/README.md` (byte-identical to the uploaded card) |
 | LongMemEval-V2 source | `/tmp/lmev2` (checksum-verified; `trajectories.jsonl` ~1.1 GiB, `questions.jsonl` 451 rows) |
@@ -255,7 +255,7 @@ sha256 in `MANIFEST.json`.
 
 | script | what |
 |---|---|
-| `scripts/audit_claims.py` | **129 checks in 16 sections; proven able to fail.** Run before any manuscript edit |
+| `scripts/audit_claims.py` | **218 checks in 21 sections; proven able to fail.** Run before any manuscript edit |
 | `scripts/make_figures.py` | recomputes every figure/caption number → `overleaf/figdata.tex`; **exits non-zero if it disagrees with the audit** |
 | `scripts/count_experiment_accounting.py` | regenerates every number in `EXPERIMENT_ACCOUNTING.md` |
 | `scripts/verify_figure_guards.py` | plants each forbidden figure claim and asserts the guard FAILS |
@@ -306,7 +306,7 @@ response cache**: if one dies, re-issue the same command.
 
 | what | owner | state |
 |---|---|---|
-| HF **v0.3** staging rebuild (`export_hf.py` → `hf_staging_v03_rebuild/`) | **SA-HF** | **RUNNING** (pid 12602 as of 12:23 CDT) |
+| HF **v0.3** then **v0.4** releases | **SA-HF** | **DONE** — both tags published and verified on the downloaded bytes |
 | `main.tex` page-budget edits | **SA-PAGE** | **RUNNING** |
 | new SWE-bench cells + `COVERAGE_MANIFEST` §3 | **SA-SWE-FINAL** | ✅ **coverage COMPLETE** at `bd25ad4` — 107/107, remaining 0 |
 | standing claim/evidence audit | **SA-FINAL-AUDIT** | **RUNNING** |

@@ -5,7 +5,7 @@
 > **What is this memory useful for?**
 
 Status: **analysis and write-up; the scientific scope is FROZEN**
-([`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md)). Initialized 2026-09-29. **29,775 real
+([`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md)). Initialized 2026-09-29. **30,159 real
 endpoint calls** across three benchmarks and two model backbones, **0 unrecoverable
 losses** — counted, not estimated, by
 [`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md). Jump to
@@ -76,7 +76,7 @@ A learned predictor appears only if the measurement survives a kill criterion.
 
 **Use `/Users/bellayang/miniconda3/bin/python3` (3.13).** The system `python3` is 3.9 and
 aborts pytest collection on a vendored file. `pip install -e .` per `pyproject.toml`, then
-`pytest -q` (**638 tests**) and `python3 scripts/audit_claims.py` (**129 checks in 16
+`pytest -q` (**638 tests**) and `python3 scripts/audit_claims.py` (**218 checks in 21
 sections**). Both green at `9f835a2`.
 
 ---
@@ -112,7 +112,7 @@ is the wrong object, for a different reason than we hypothesised.
 | **Current Overleaf commit** | **`1961825`** "Cite two figures the text never pointed at; tighten the reader paragraph" |
 | **Code repo** | `github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory` (`main`) |
 | **HF dataset** | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
-| **Current HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Verified by downloading the tag; unauthenticated fetch → 401. **v0.3 (SciCode) is being rebuilt by SA-HF now**; v0.4 (SWE-bench, metrics + ids ONLY) after it. |
+| **Current HF version** | **v0.4 `swebench-metrics`**, tag `v0.4-swebench-metrics` (commit `bc66629f`, == branch `main` byte-for-byte) — **5,924 rows** (longmemeval_v2 5,643 / scicode 154 / swebench_verified 127), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Licence frontmatter is `other` + `license_name: mixed-per-row-see-data-card`, NOT apache-2.0: the 127 SWE-bench rows are metrics-and-ids only. All four tags exist (v0.1/v0.2/v0.3/v0.4). **Re-verified 2026-10-01 by SA-SYNC by downloading every tag** — row counts, schema version, benchmark composition and withholding state all reproduce exactly. 🔴 The benchmark field spells `longmemeval_v2` / `scicode` / `swebench_verified`; a grep for `lmev2` or `swebench` returns a false zero. |
 | **Code repo HEAD** | **`9f835a2`** "docs: freeze the scientific scope", 2026-10-01 12:21 CDT · 227 commits |
 
 ### Main local paths
@@ -184,7 +184,7 @@ across models**. Evidence: [`docs/GEMMA_ENDPOINT_PROBE.md`](docs/GEMMA_ENDPOINT_
 | | status |
 |---|---|
 | **LongMemEval-V2** | ✅ **primary, complete** — 1,889 memory units, 1,157 evaluated cells, 5,198 calls, 0 errors, plus two earlier unscreened arms |
-| **SWE-bench Verified** | 🟡 **representation arms EXIST and are in flux (SA-SWE-FINAL owns).** Pairing is excellent (406 cells, 133 donors, **0.0% diagonal**, 0/406 temporal violations, real unit tests). The v1 arm asymmetry was **output-format imitation** (the reader copied the memory's diff fence), fixed by lossless `[added]`/`[removed]` re-encoding: apply-failure gap **0.375 → 0.000**, 8/8 arm-symmetric. v2 (django, 96 cells, 0 dirty) + sympy (33 cells) give matched **15** after the defect-21 correction; **every contrast `NOT_ESTABLISHED`** per-repo and pooled. The 32-cell presence pilot's 37.5% [22.9, 54.8] (p=0.125) is a **different cell set** and must not be inherited as the representation arm's gate. 🔴 **No licence is declared: metrics + ids ONLY.** `docs/BENCHMARK_C_DECISION.md`, `docs/SWEBENCH_MULTIREPO.md` |
+| **SWE-bench Verified** | ✅ **representation arms COMPLETE — 107/107 attempted, remaining 0.** Pairing is excellent (406 cells, 133 donors, **0.0% diagonal**, 0/406 temporal violations, real unit tests). The v1 arm asymmetry was **output-format imitation** (the reader copied the memory's diff fence), fixed by lossless `[added]`/`[removed]` re-encoding: apply-failure gap **0.375 → 0.000**, 8/8 arm-symmetric. v2 + the two v3 django chunks (288 django rep-cells) + sympy (33 rep-cells) give matched **40 CELLS** (django 37 + sympy 3) after the defect-21 correction — the superseded 15 was the pre-scale-up universe (`results/swebench/representations_multirepo.json`); canonical is `representations_multirepo_final.json`. **Every contrast `NOT_ESTABLISHED`** per-repo and pooled, family-wise. 🔴 **40 matched CELLS is a different unit from the 107 attempted / 37 valid ITEMS** in `docs/COVERAGE_MANIFEST.md` §3 — never compare the two. The 32-cell presence pilot's 37.5% [22.9, 54.8] (p=0.125) is a **different cell set** and must not be inherited as the representation arm's gate. 🔴 **No licence is declared: metrics + ids ONLY.** `docs/BENCHMARK_C_DECISION.md`, `docs/SWEBENCH_MULTIREPO.md` |
 | **SciCode** | ✅ **complete as a case study, never a main table.** The full **154-pair eligible pool** × 3 representations × 2 arms = **924 arm-runs**. Matched set **n=122**: raw −0.0082 · summary +0.0164 · structured +0.0246. 🔴 **All three contrasts cross zero → `ORDERING_VERDICT: NOT_ESTABLISHED`**, and the free control **F_exec = 5/135 = 0.0370 is LARGER than the biggest point estimate**. The defensible reading is that **the point-estimate ordering differs across benchmarks**; this is **not** an established "inversion" and two guards forbid that word, both verified by planting it. 🔴 **Ships raw-only (154 of 462 cells): the summary/structured memory TEXT was never persisted** and is not recoverable — a *persistence* gap, never the SWE-bench licence embargo. The rewards stay valid. `docs/SCICODE_RESULT.md` |
 | **BEAM** | ❌ **DROPPED, with the measured reason: 92.6% of cited turns are cited by exactly one question**, so BEAM cannot supply the multi-task-per-memory axis this paper needs. Secondary reason: **CC BY-SA 4.0** — ShareAlike is infectious and would force a separate dataset release. `docs/BENCHMARK_DECISIONS.md`, `docs/BENCHMARK_LICENSES.md` |
 | rejected replacements | **DS-1000** (CC BY-SA 4.0 — the same ShareAlike trap) · **SWE-Gym** (MIT, 1,868 multi-recipient donors, held in reserve, but it is agent *training* data so contamination argues against it) · **τ-bench** (HF API 401 — **UNRESOLVED**, not absent) |
@@ -276,7 +276,7 @@ rejected figures: [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md).
 | agent | owns | state |
 |---|---|---|
 | **SA-PAGE** | `overleaf/main.tex` | **RUNNING** |
-| **SA-HF** | HF releases, `docs/DATASET_INDEX.md`, `docs/hf_card/` | **RUNNING** — v0.3 staging rebuild in flight |
+| **SA-HF** | HF releases, `docs/DATASET_INDEX.md`, `docs/hf_card/` | **DONE** — v0.3 and v0.4 both shipped and verified on the downloaded tags |
 | **SA-SWE-FINAL** | new SWE-bench cells, `COVERAGE_MANIFEST.md` §3, `SWEBENCH_MULTIREPO.md` | **RUNNING** — 41 django cells remain |
 | **SA-FINAL-AUDIT** | the standing claim/evidence audit | **RUNNING** |
 | **SA-ARCHIVE** | `README.md`, `HANDOFF_CURRENT.md`, `RESULT_INDEX.md`, `FIGURE_INDEX.md`, `MODEL_ARMS.md`, `MASTER_TODO.md`, `EXPERIMENT_ACCOUNTING.md` | this section |
@@ -366,7 +366,7 @@ TODO 7 · RUNNING 1 · BLOCKED 1**, re-derived by running the page's own snippet
 |---|---|---|
 | **P1-C17** | TODO | the one genuinely open submission-critical item: final manuscript sync, compile, anonymity, citations |
 | ~~P1-C19~~ | **DONE** at `bd25ad4` | SWE-bench coverage complete: 107/107 attempted, remaining 0 |
-| **P1-C21** | RUNNING | HF v0.3 (SciCode) then v0.4 (SWE-bench, **metrics + ids ONLY**) |
+| **P1-C21** | **DONE** | HF v0.3 (SciCode) and v0.4 (SWE-bench, **metrics + ids ONLY**) both shipped; v0.4 is current |
 | **P1-C22** | TODO | three `main.tex` ↔ artifact inconsistencies, all retracted-number-still-circulating |
 | **P1-I11** | TODO | 🔴 **the representation scale-up slices are STILL untracked** — Contribution B's 1,124 rows exist on one laptop |
 | **P1-I13** | TODO | the efficiency ratios in `main.tex` (`5.2×` → **5.58×**; "roughly 5×" is wrong for Summary, which is **1.08×**) |
@@ -402,9 +402,12 @@ recomputes every figure number and **exits non-zero if it disagrees with the aud
 `scripts/count_experiment_accounting.py` regenerates every number in
 [`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md).
 
-**Counted 2026-10-01, not estimated: 29,775 real endpoint calls** across the three
-benchmarks (LongMemEval 27,803 + SciCode 1,340 + SWE-bench 632), ~506.9M input and ~4.36M
-output tokens, 130 truncations, 47 retried calls, **0 unrecoverable losses**.
+**Counted 2026-10-01, not estimated: 30,159 real endpoint calls** across the three
+benchmarks (LongMemEval 27,803 + SciCode 1,340 + SWE-bench **1,016**), ~508.1M input and
+~4.57M output tokens, 131 truncations, 47 retried calls, **0 unrecoverable losses**.
+Re-derive with `scripts/count_experiment_accounting.py`; the authoritative table is
+[`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md) §1. The earlier **29,775
+/ SWE-bench 632** figures predate the django v3 chunks (`bd25ad4`) and are superseded.
 
 ### Handoff — the entry point
 
@@ -429,7 +432,7 @@ chat history. Read, in this order:
 Then run, in order:
 
 ```bash
-/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py      # 129 checks, 16 sections
+/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py      # 218 checks, 21 sections
 /Users/bellayang/miniconda3/bin/python3 -m pytest -q                 # 638 tests
 /Users/bellayang/miniconda3/bin/python3 scripts/count_experiment_accounting.py
 ```

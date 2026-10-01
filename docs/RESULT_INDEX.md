@@ -5,7 +5,7 @@ truth. Each row points at the artifact, the script that made it, the doc that ru
 and where it currently sits in the manuscript.
 
 > **Standing rule.** Nothing here is a number you may quote without re-deriving it.
-> `scripts/audit_claims.py` re-derives **58 checks** from tracked artifacts and is proven
+> `scripts/audit_claims.py` re-derives **218 checks** from tracked artifacts and is proven
 > able to fail. Run it before any manuscript edit:
 > `/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py`
 

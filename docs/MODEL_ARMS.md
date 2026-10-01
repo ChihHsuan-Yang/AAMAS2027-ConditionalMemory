@@ -18,7 +18,7 @@ table is the human-readable index of them.
 | **A2** LongMemEval Summary | `gpt-oss-120b` | `gpt-oss-120b` | metis | `p1_deltau_raw_v1` | 0 | 512 | 16 | **DONE** |
 | **A3** LongMemEval Structured | `gpt-oss-120b` | `gpt-oss-120b` | metis | `p1_deltau_raw_v1` | 0 | 512 | 16 | **DONE** |
 | **B1–B3** SciCode Raw/Summary/Structured | deterministic / `gpt-oss-120b` | `gpt-oss-120b` | metis | `scicode_deltau_v1` | 0 | 1024 | 16 | **DONE** (154 pairs, full pool) |
-| **C1–C3** SWE-bench Raw/Summary/Structured | deterministic / `gpt-oss-120b` | `gpt-oss-120b` | metis | `swebench_v2_symmetric` | 0 | 2048 (reader) / 1024 (writer) | 16 (writer), sequential (reader) | **PARTIAL** — 32 cells, django only, 13 matched |
+| **C1–C3** SWE-bench Raw/Summary/Structured | deterministic / `gpt-oss-120b` | `gpt-oss-120b` | metis | `swebench_v2_symmetric` | 0 | 2048 (reader) / 1024 (writer) | 16 (writer), sequential (reader) | **DONE** — 321 rep-cells (django 288 + sympy 33) over 107/107 attempted items; **40 matched CELLS** (django 37 + sympy 3). `results/swebench/representations_multirepo_final.json` |
 
 Structured variant: `procedural` on SciCode, `general` on LongMemEval and
 SWE-bench.

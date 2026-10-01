@@ -863,6 +863,268 @@ if _mtex.is_file():
     check("manuscript quotes no harmful-memory rate",
           _hr.group(0) if _hr else None, None)
 
+print("== SA-SYNC: units, universes, and counts that must not be mixed ==")
+# ---------------------------------------------------------------------------
+# SA-SYNC, 2026-10-01. Every check here guards a DEFECT THAT WAS LIVE when the
+# section was written, not a hypothetical. Each is re-derived from the artifact
+# rather than compared against another document.
+# ---------------------------------------------------------------------------
+_swfin = REPO / "results/swebench/representations_multirepo_final.json"
+_swcov = REPO / "results/swebench/coverage_table_final.json"
+
+# -- 1. The SWE-bench ITEM funnel (attempted ITEMS, not rep-cells). The paper's
+# coverage prose and docs/COVERAGE_MANIFEST.md quote 107 = 37 + 70. Those are
+# ATTEMPTED ITEMS (runnable recipients), a DIFFERENT unit from the 321 rep-cells
+# Table 2's SWE-bench row is in. Assert the identity in its own unit so a later
+# edit cannot quietly merge the two.
+if _swcov.is_file():
+    _cv = json.loads(_swcov.read_text())["TOTAL"]
+    check("SWE item funnel: ATTEMPTED items", _cv["ATTEMPTED"], 107)
+    check("SWE item funnel: VALID_COMPLETED items", _cv["VALID_COMPLETED"], 37)
+    check("SWE item funnel: EXCLUDED items", _cv["EXCLUDED_total"], 70)
+    check("SWE item funnel closes in ITEM units",
+          _cv["VALID_COMPLETED"] + _cv["EXCLUDED_total"], _cv["ATTEMPTED"])
+    check("SWE eligible == attempted (nothing unattempted)",
+          _cv["ELIGIBLE_runnable_recipients"], _cv["ATTEMPTED"])
+
+# -- 2. The matched set is 40 CELLS and is NOT the 37 valid-completed ITEMS.
+# These two numbers are one apart in magnitude and in different units, and the
+# project has already mixed them once. Assert BOTH and assert they differ.
+if _swfin.is_file():
+    _sw = json.loads(_swfin.read_text())
+    check("SWE matched set (CELLS, final universe)",
+          _sw["pooled"]["MATCHED_CELL_SET_N"], 40)
+    check("SWE matched composition django", _sw["pooled"]["cells_per_repo"]["django/django"], 37)
+    check("SWE matched composition sympy", _sw["pooled"]["cells_per_repo"]["sympy/sympy"], 3)
+    if _swcov.is_file():
+        check("the 40 matched CELLS are not the 37 valid ITEMS",
+              _sw["pooled"]["MATCHED_CELL_SET_N"]
+              != json.loads(_swcov.read_text())["TOTAL"]["VALID_COMPLETED"], True)
+    # The superseded 15-cell universe must not be the one the paper reads.
+    _old = REPO / "results/swebench/representations_multirepo.json"
+    if _old.is_file():
+        check("the SUPERSEDED SWE artifact still says 15 (control: the check can see it)",
+              json.loads(_old.read_text())["pooled"]["MATCHED_CELL_SET_N"], 15)
+
+# -- 3. figdata.tex must read the FINAL SWE universe, not the superseded one.
+# A macro file is the only surface the manuscript can print from, so a stale
+# macro is a stale paper number even when every doc is right.
+_fig = REPO.parent / "overleaf" / "figdata.tex"
+if _fig.is_file():
+    _ft = _fig.read_text()
+    def _macro(name):
+        _m = re.search(r"\\def\\" + name + r"\{([^}]*)\}", _ft)
+        return _m.group(1) if _m else None
+    check("figdata \\sweMatched is the FINAL 40", _macro("sweMatched"), "40")
+    check("figdata \\xbSRSwN is the FINAL 40", _macro("xbSRSwN"), "40")
+    check("figdata \\xbTRSwN is the FINAL 40", _macro("xbTRSwN"), "40")
+    check("figdata \\sweDomRepoPct matches the final composition",
+          _macro("sweDomRepoPct"), "92")
+    check("figdata \\covSwMatched is the FINAL 40", _macro("covSwMatched"), "40")
+    # Positive control: the same reader DOES return a value for a macro that
+    # exists, so a None above is an absent macro and not a broken regex.
+    check("  macro reader positive control (\\sweRepos is readable)",
+          _macro("sweRepos"), "2")
+
+# -- 4. Table 2 (coverage) MIXES UNITS ACROSS ITS ROWS and must say so.
+# LongMemEval's 1,157 are (memory, task) cells at ONE representation -- the
+# screened design manifest carries no representation field and every executed
+# row is `raw`. SciCode's 462 and SWE-bench's 321 are (memory, task,
+# representation) REP-CELLS. 1,157 x 3 would be 3,471. A reader comparing the
+# three rows as like quantities is comparing a 1-representation count against
+# two 3-representation counts.
+_man = REPO / "data/manifests/k1_screened_cells.jsonl"
+_scr = REPO / "results/ledgers/repro/screened_cells_slim.jsonl"
+if _man.is_file() and _scr.is_file():
+    _mrows = [json.loads(l) for l in _man.read_text().splitlines() if l.strip()]
+    check("LongMemEval coverage row: design manifest size", len(_mrows), 1157)
+    check("LongMemEval design manifest carries NO representation axis",
+          any("representation" in r for r in _mrows), False)
+    _srows = [json.loads(l) for l in _scr.read_text().splitlines() if l.strip()]
+    _sreps = sorted({r["memory_representation"] for r in _srows})
+    check("LongMemEval coverage row is ONE representation", _sreps, ["raw"])
+    # Positive control: the SAME field on the representation scale-up rows DOES
+    # return more than one value, so ["raw"] above is a measurement of this
+    # universe and not a field that is constant everywhere.
+    _rsl = REPO / "results/ledgers/repro/repr_scaleup/cells_slim.jsonl"
+    if _rsl.is_file():
+        _rrows = [json.loads(l) for l in _rsl.read_text().splitlines() if l.strip()]
+        check("  control: the repr scale-up rows DO carry >1 representation",
+              len({r["memory_representation"] for r in _rrows}) > 1, True)
+if _swfin.is_file():
+    _elig = sum(len(json.loads((REPO / s).read_text())["cells"])
+                for s in json.loads(_swfin.read_text())["pooled"]["source_artifacts"])
+    check("SWE coverage row unit: rep-cells counted from source", _elig, 321)
+    check("SWE coverage row is 3 representations, LongMemEval's is 1",
+          _elig % 3, 0)
+# The caption must name the unit, since the rows are not in the same one.
+_mtex2 = REPO.parent / "overleaf" / "main.tex"
+if _mtex2.is_file():
+    _cb = re.search(r"\\caption\{Coverage.*?\}\s*\n?\\label\{tab:coverage\}",
+                    _mtex2.read_text(), re.S)
+    _capt = _cb.group(0) if _cb else ""
+    check("tab:coverage caption defines what a cell is",
+          "(memory, task, representation)" in _capt, True)
+
+# -- 5. n=550 is REPLICATE ROWS over 275 cells. A row is not a cell (2x).
+_rsm = REPO / "results/ledgers/repro/raw_session_matched/raw_session_matched_analysis.json"
+if _rsm.is_file():
+    _sm = json.loads(_rsm.read_text())
+    check("session-matched: replicate ROWS", _sm["n_matched"], 550)
+    check("session-matched: CELLS", _sm["n_cells"], 275)
+    check("session-matched: rows are exactly 2x cells",
+          _sm["n_matched"] == 2 * _sm["n_cells"], True)
+    check("session-matched: the artifact states the unit",
+          "REPLICATE ROWS" in _sm["_n_matched_UNIT"], True)
+    if _fig.is_file():
+        check("figdata \\rgSmN is the ROW count", _macro("rgSmN"), "550")
+        check("figdata \\rgSmCells is the CELL count", _macro("rgSmCells"), "275")
+    if _mtex2.is_file():
+        _b5 = "\n".join(l for l in _mtex2.read_text().split("\n")
+                        if not l.lstrip().startswith("%"))
+        # The manuscript must never print \rgSmN followed by the word "cells".
+        check("manuscript does not call the 550 replicate rows 'cells'",
+              re.search(r"\\rgSmN\$?\s*(?:\}|\$)?\s*cells", _b5), None)
+
+# -- 6. Hand-typed numbers that a generated macro already carries.
+# The standing rule is that no hand-typed number survives if it can be
+# generated. These three are typed in main.tex while figdata.tex holds the
+# same quantity, so the two can drift silently.
+if _mtex2.is_file() and _fig.is_file():
+    _b6 = "\n".join(l for l in _mtex2.read_text().split("\n")
+                    if not l.lstrip().startswith("%"))
+    for _mac, _val, _what in (("frRawDU", "+0.3174", "Raw paired dU"),
+                              ("frSumDU", "+0.0613", "Summary paired dU"),
+                              ("frStrDU", "-0.0498", "Structured paired dU"),
+                              ("frCells", "277", "frontier cell count")):
+        check(f"  figdata carries {_what} as \\{_mac}", _macro(_mac), _val)
+    # Typed occurrences of the SAME values in the body. Reported, not failed:
+    # SA-SCI-PAPER owns main.tex and this section must not block its edits.
+    _typed = [v for v in ("0.3174", "0.0613", "0.0498")
+              if re.search(r"(?<![\d.])" + re.escape(v), _b6)]
+    print(f"  NOTE  representation dU values typed in main.tex while a macro "
+          f"exists: {_typed or 'none'}  (rule: generated beats typed)")
+
+
+# -- 7. Compression ratios: the manuscript quotes 0.063 / 0.037 in the SAME
+# SENTENCE as the 277-cell scale-up result, but those are the n=8 PILOT
+# medians. The scale-up basis (60 summary / 57 structured memories, which is
+# what produced the 277 cells) gives 0.0384 and 0.0330. Both are correct of
+# their own basis; the sentence attributes the pilot's to the scale-up.
+# Registered defect shape: a number correct when measured, reused on a basis
+# it was not measured on.
+_pil = REPO / "results/ledgers/b6_pilot_representations_summary.json"
+_mem = REPO / "results/repr_scaleup/memories.jsonl"
+if _pil.is_file():
+    _pr = json.loads(_pil.read_text())["per_representation"]
+    check("PILOT (n=8) compression median, summary",
+          round(_pr["summary"]["compression_ratio"]["median"], 4), 0.0630)
+    check("PILOT (n=8) compression median, structured",
+          round(_pr["structured"]["compression_ratio"]["median"], 4), 0.0373)
+    check("  the pilot basis really is 8 segments",
+          _pr["summary"]["compression_ratio"]["n"], 8)
+if _mem.is_file():
+    _mr = [json.loads(l) for l in _mem.read_text().splitlines() if l.strip()]
+    _cr = collections.defaultdict(list)
+    for _r in _mr:
+        if _r.get("ok") and _r.get("compression_ratio") is not None:
+            _cr[_r["representation"]].append(_r["compression_ratio"])
+    check("SCALE-UP compression median, summary",
+          round(statistics.median(_cr["summary"]), 4), 0.0384)
+    check("SCALE-UP compression median, structured",
+          round(statistics.median(_cr["structured"]), 4), 0.0330)
+    check("  scale-up summary basis is 60 memories", len(_cr["summary"]), 60)
+    check("  scale-up structured basis is 57 (3 write failures)",
+          len(_cr["structured"]), 57)
+    # Positive control: raw's ratio is exactly 1.0 by construction, so the
+    # same reader returning a non-1.0 for the model-written arms is a real
+    # measurement and not a field that reads the same everywhere.
+    check("  control: raw's compression ratio is exactly 1.0",
+          statistics.median(_cr["raw"]), 1.0)
+    # The two bases DIFFER, which is the whole point of flagging the sentence.
+    check("the pilot and scale-up compression medians are NOT the same number",
+          round(statistics.median(_cr["summary"]), 4) != 0.0630, True)
+    if _mtex2.is_file():
+        _b7 = "\n".join(l for l in _mtex2.read_text().split("\n")
+                        if not l.lstrip().startswith("%"))
+        _near = re.search(r"277 cells.{0,600}?compression ratios of \$?([\d.]+)\$?"
+                          r"[^$]{0,20}\$?([\d.]+)\$?", _b7, re.S)
+        if _near:
+            print(f"  NOTE  main.tex attributes compression {_near.group(1)}/"
+                  f"{_near.group(2)} to the 277-cell scale-up; those are the "
+                  f"n=8 PILOT medians. Scale-up is 0.0384/0.0330.")
+
+# -- 8. The HF card's OWN compression figures reproduce from no basis at all.
+# docs/hf_card/README.md section 14 states median 0.0162 / 0.0151 "roughly 60x".
+# No subset of the released rows yields either value (verified by sweep).
+_card = REPO / "docs/hf_card/README.md"
+if _card.is_file():
+    _ct = _card.read_text()
+    _bad_cr = [v for v in ("0.0162", "0.0151") if v in _ct]
+    print(f"  NOTE  hf_card compression figures that reproduce from no basis: "
+          f"{_bad_cr or 'none'}  (actual scale-up medians 0.0384 / 0.0330)")
+    check("  control: the hf card is readable and non-trivial",
+          len(_ct) > 10000, True)
+
+
+# -- 9. 🔴 THE WORST ONE. main.tex's reader-transfer paragraph quotes the
+# SESSION-MATCHED effect (\rgSmDiff +0.0982 on 275 cells / 550 replicate rows)
+# and then explains it with \rgWithoutDelta, which is the CROSS-SESSION
+# decomposition (-0.0688, 276 cells, arms 11 h apart) -- the arm the same
+# paragraph calls superseded two sentences later. The session-matched
+# WITHOUT-arm change on the SAME 550 rows is -0.0364, and the WITHOUT share
+# is 37%, not 54%. The sentence attributes the retracted arm's decomposition
+# to the surviving arm's effect. Registered shape: a withdrawn number still
+# circulating inside its own correction's paragraph (MASTER_TODO P1-C22(2)).
+_rg_g = REPO / "results/ledgers/repro/raw_session_matched/raw_gemma_slim.jsonl"
+_rg_o = REPO / "results/ledgers/repro/raw_session_matched/raw_gptoss_slim.jsonl"
+_xs = REPO / "results/ledgers/gemma_reader/reader_transfer_analysis.json"
+if _rg_g.is_file() and _rg_o.is_file() and _xs.is_file():
+    def _rows(p):
+        return [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
+    def _k(r):
+        return ((r.get("provenance") or {}).get("memory_unit_locator"),
+                r["future_task_id"], r["replicate_id"])
+    _G = {_k(r): r for r in _rows(_rg_g)}
+    _O = {_k(r): r for r in _rows(_rg_o)}
+    _cm = {k for k in (set(_G) & set(_O))
+           if _G[k]["reward_with_memory"] is not None
+           and _O[k]["reward_with_memory"] is not None}
+    check("session-matched join size (replicate rows)", len(_cm), 550)
+    _gw = statistics.mean(_G[k]["reward_with_memory"] for k in _cm)
+    _gwo = statistics.mean(_G[k]["reward_without_memory"] for k in _cm)
+    _ow = statistics.mean(_O[k]["reward_with_memory"] for k in _cm)
+    _owo = statistics.mean(_O[k]["reward_without_memory"] for k in _cm)
+    check("session-matched WITHOUT-arm change", round(_gwo - _owo, 4), -0.0364)
+    check("session-matched WITH-arm change", round(_gw - _ow, 4), 0.0618)
+    check("session-matched paired diff reproduces +0.0982",
+          round((_gw - _gwo) - (_ow - _owo), 4), 0.0982)
+    _share_sm = abs(_gwo - _owo) / (abs(_gw - _ow) + abs(_gwo - _owo))
+    check("session-matched WITHOUT share (NOT 54%)", round(_share_sm, 4), 0.3704)
+    # The cross-session artifact -- a DIFFERENT universe (276 cells, 11 h apart).
+    _xd = json.loads(_xs.read_text())["deltaU_decomposed_by_arm"]["raw"]
+    check("CROSS-SESSION WITHOUT-arm change (the superseded arm)",
+          round(_xd["change_in_WITHOUT_arm"], 4), -0.0688)
+    check("CROSS-SESSION cell count is 276, not 275", _xd["n_cells"], 276)
+    check("the two decompositions are DIFFERENT numbers",
+          round(_xd["change_in_WITHOUT_arm"], 4) != round(_gwo - _owo, 4), True)
+    if _fig.is_file():
+        check("figdata \\rgWithoutDelta currently holds the CROSS-SESSION value",
+              _macro("rgWithoutDelta"), "-0.0688")
+        check("figdata \\rgWithoutShare currently holds the CROSS-SESSION share",
+              _macro("rgWithoutShare"), "54")
+    if _mtex2.is_file():
+        _b9 = "\n".join(l for l in _mtex2.read_text().split("\n")
+                        if not l.lstrip().startswith("%"))
+        _mix = re.search(r"\\rgSmDiff.{0,900}?\\rgWithoutDelta", _b9, re.S)
+        if _mix:
+            print("  NOTE  main.tex explains the SESSION-MATCHED \\rgSmDiff "
+                  "(+0.0982, 275 cells) with \\rgWithoutDelta (-0.0688), which "
+                  "is the CROSS-SESSION decomposition over 276 cells. The "
+                  "session-matched WITHOUT change is -0.0364 (share 37%, not "
+                  "54%). MIXED BASIS -- SA-SCI-PAPER owns main.tex; reported, "
+                  "not edited.")
+
 print("== Captions: counts must be named by the unit they are in ==")
 # SA-FINAL-AUDIT. \rgRows is a ROW count (1,694 = 847 cells x 2 replicates).
 # Figure 6's caption called it "cells". Re-derived from the slim rows so the
