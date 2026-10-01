@@ -61,8 +61,9 @@ with `git show --stat` every time.** See §10 trap 23; I hit this on 2026-10-01.
 | **SA-FINAL-AUDIT** | standing claim/evidence audit |
 | **SA-ARCHIVE** | `README.md`, `HANDOFF_CURRENT.md`, `RESULT_INDEX.md`, `FIGURE_INDEX.md`, `MODEL_ARMS.md`, `MASTER_TODO.md`, `EXPERIMENT_ACCOUNTING.md` |
 
-**SWE-bench numbers are in flux.** Cite SA-SWE-FINAL's artifact and say *"as of `<commit>`"*
-rather than freezing a figure you did not derive.
+**SWE-bench coverage is COMPLETE as of `bd25ad4`** (107/107 attempted, remaining 0), but
+its diagnostic tree may still grow. Cite SA-SWE-FINAL's artifact and say *"as of
+`<commit>`"* rather than freezing a figure you did not derive.
 
 ## 3. Identity, paths and remotes
 
@@ -185,8 +186,12 @@ cross-session. **Do not quote "about half the gain is a weaker reader."**
 - **Decomposition unidentifiable** — cause is **`F_exec = 0`**, not the crossing defect.
 - **SciCode:** matched n=122, all three contrasts cross zero → `ORDERING_VERDICT:
   NOT_ESTABLISHED`. F_exec = 0.0370 is **larger** than the biggest point estimate.
-- **SWE-bench:** every contrast `NOT_ESTABLISHED` per-repo and pooled. Coverage 66/107
-  across two repos answers the django-only criticism **on coverage grounds, not power**.
+- **SWE-bench:** coverage **COMPLETE, 107/107** at `bd25ad4`. Every contrast remains
+  `NOT_ESTABLISHED` per-repo and pooled — **tripling the matched set 15 → 40 separated
+  nothing family-wise**, which is a far stronger null than a coverage excuse. 🔴 django's
+  `structured − summary` is **nominally** +0.1081 [+0.027, +0.2162] but rests on 4 nonzero
+  cells of 37, appears in neither chunk alone, inverts in sympy, and **spans zero under
+  Bonferroni for the 3 contrasts**. The verdict is driven by the family-wise result.
 
 ## 6. Benchmark coverage, in one table
 
@@ -200,7 +205,7 @@ Authoritative definitions: [`COVERAGE_MANIFEST.md`](COVERAGE_MANIFEST.md). Count
 | LongMemEval-V2 — representation sub-universe (285 × 3) | 855 | 847 | 99.1% | 8 structured write failures |
 | LongMemEval-V2 — LLM-judged stratum | 156 q | 0 | 0% | **eligible, not excluded**, blocked on F_judge |
 | **SciCode** (lexical relatedness) | 154 | 154 | **100%** | **DONE** — raw-only in the release |
-| **SWE-bench Verified** (runnable universe) | 107 | 66 | 62% | **SA-SWE-FINAL owns; in flux** |
+| **SWE-bench Verified** (runnable universe) | 107 | **107** | **100%** | ✅ **COMPLETE** at `bd25ad4` — remaining 0; 37 valid completed + 70 excluded with reasons |
 
 🔴 **LongMemEval has TWO universes and neither percentage alone is honest.** The screened
 design is a **re-pairing**, not a subset: B ∩ A = **102**, B \ A = **1,055** (re-derived).
@@ -303,7 +308,7 @@ response cache**: if one dies, re-issue the same command.
 |---|---|---|
 | HF **v0.3** staging rebuild (`export_hf.py` → `hf_staging_v03_rebuild/`) | **SA-HF** | **RUNNING** (pid 12602 as of 12:23 CDT) |
 | `main.tex` page-budget edits | **SA-PAGE** | **RUNNING** |
-| new SWE-bench cells + `COVERAGE_MANIFEST` §3 | **SA-SWE-FINAL** | **RUNNING** |
+| new SWE-bench cells + `COVERAGE_MANIFEST` §3 | **SA-SWE-FINAL** | ✅ **coverage COMPLETE** at `bd25ad4` — 107/107, remaining 0 |
 | standing claim/evidence audit | **SA-FINAL-AUDIT** | **RUNNING** |
 
 **No endpoint-bound measurement job of SA-ARCHIVE's is in flight.**

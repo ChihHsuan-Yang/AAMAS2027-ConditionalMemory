@@ -15,8 +15,12 @@ never a plausible zero, which is this project's most common defect shape
 
 **If this page and the script disagree, the SCRIPT is right and this page is stale.**
 
-Counts here are **as of repo `9f835a2`** (2026-10-01 12:21 CDT). SWE-bench is owned by
-**SA-SWE-FINAL** and is actively growing; its rows are a snapshot, not a frozen total.
+Counts here are **as of repo `bd25ad4`** (2026-10-01 13:05 CDT), at which point
+**SA-SWE-FINAL declared SWE-bench coverage COMPLETE — 107/107 attempted, remaining 0.**
+The SWE-bench section is a snapshot of a tree that may still gain diagnostic artifacts;
+the script **discovers** `results/swebench/*.json` rather than hardcoding a list, so a new
+chunk cannot be silently missed (a hardcoded glob that stops matching is this project's
+*glob completeness is not tested by its hits* shape).
 `docs/COVERAGE_MANIFEST.md` is the authority on what *eligible* means for each benchmark;
 this page counts what was *executed*.
 
@@ -48,18 +52,18 @@ it in a join key returns **zero rows**, and an empty join has already been misre
 
 | quantity | count | basis |
 |---|---:|---|
-| **real endpoint calls, all benchmarks** | **29,775** | cache rows with snapshot copies removed + SciCode arm-runs + SWE-bench arm-runs |
+| **real endpoint calls, all benchmarks** | **30,159** | cache rows with snapshot copies removed + SciCode arm-runs + SWE-bench arm-runs |
 | cache rows on disk | 28,445 | every `results/**/*cache*.jsonl` line |
 | — of which snapshot copies of the same stored call | 642 | identical `(key_hash, written_at_utc)` in two files |
 | **LongMemEval real endpoint calls** | **27,803** | distinct `(key_hash, written_at_utc)` |
 | distinct request keys | 25,436 | distinct `key_hash` |
 | **deliberate re-runs of a byte-identical request** | **2,367** | same key, new timestamp — the session-matching work of defects #25/#28, not duplicates |
 | SciCode arm-runs (no response cache kept) | 1,340 | rows in the three SciCode result JSONs |
-| SWE-bench arm-runs | 632 | per-cell `arms` dicts across all seven SWE-bench artifacts |
-| **approximate prompt/input tokens** | **506,881,063** | LongMemEval 501,850,560 + SciCode 2,994,651 + SWE-bench 2,035,852 |
-| **approximate completion/output tokens** | **4,360,644** | LongMemEval 3,147,200 + SciCode 820,978 + SWE-bench 392,466 |
-| **reasoning tokens** | **1,787,087** + not recoverable | LongMemEval 1,592,213 + SWE-bench 194,874; **SciCode: not recoverable from logs** (never recorded per row), and Gemma reports none at all — an **absence, not a zero** |
-| truncations (`finish_reason == "length"`) | 130 | LongMemEval 19 + SciCode 107 + SWE-bench 4 |
+| SWE-bench arm-runs | **1,016** | per-cell `arms` dicts across all **nine** SWE-bench artifacts (v3 chunks a+b added at `bd25ad4`) |
+| **approximate prompt/input tokens** | **508,070,199** | LongMemEval 501,850,560 + SciCode 2,994,651 + SWE-bench 3,224,988 |
+| **approximate completion/output tokens** | **4,571,978** | LongMemEval 3,147,200 + SciCode 820,978 + SWE-bench 603,800 |
+| **reasoning tokens** | **1,896,228** + not recoverable | LongMemEval 1,592,213 + SWE-bench 304,015; **SciCode: not recoverable from logs** (never recorded per row), and Gemma reports none at all — an **absence, not a zero** |
+| truncations (`finish_reason == "length"`) | 131 | LongMemEval 19 + SciCode 107 + SWE-bench 5 |
 | empty `finish_reason` (quarantined Gemma truncations) | 14 | 7 quarantined + their 7 copies in the pre-fix snapshot |
 | calls that needed at least one retry | 47 | `retry_count > 0` in a cache row |
 | **hard failures that lost a measurement** | **0** | every retried call returned content; every unscorable arm-read is `reward: None` |
@@ -104,8 +108,15 @@ That is defect #26, not a missing pair. The script flags it on every run.
 
 ### 2.1 Canonical reader transfer
 
-> **SESSION-MATCHED: +0.0982 [+0.0247, +0.1730], n = 550 matched cells.**
+> **SESSION-MATCHED: +0.0982 [+0.0247, +0.1730], n = 550.**
 > `results/ledgers/raw_session_matched_analysis.json` · `VERDICT: SURVIVES_SESSION_MATCHING`
+
+⚠️ **What the 550 counts.** `raw_session_matched_analysis.py` joins on
+`(memory_unit_locator, future_task_id, replicate_id)`, so **n=550 is matched
+REPLICATE ROWS, over 275 distinct cells** (2 replicates each; 285 cells were run and 10
+lost a replicate to a void arm). I re-derived both: 550 rows, 275 cells. Quote "n=550"
+with the unit named — it is **not** 550 cells, and a reader who assumes cells will
+over-count the independent units by 2×. Every other table on this page counts cells.
 
 The **cross-session +0.1268 [+0.0511, +0.2050]** is **SUPERSEDED**. Its arms were 11 hours
 apart and defect #25 makes that a real confound. It stays visible as history — *retraction
@@ -234,13 +245,15 @@ and the commit, never a frozen total.
 | run | cells | arm-runs | runner `n_calls` | reward `None` | localizer misses | input tok | output tok | reasoning tok | pub-facing? |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | repr v2 (django) | 96 | 192 | 128 | 35 | 33 | 655,791 | 130,878 | 63,577 | **publication** |
+| **repr v3 django chunk a** | 96 | 192 | 128 | 66 | — | 590,496 | 98,703 | 52,897 | **publication** |
+| **repr v3 django chunk b** | 96 | 192 | 128 | 73 | — | 598,640 | 112,631 | 56,244 | **publication** |
 | repr sympy | 33 | 64 | 42 | 3 | 18 | 171,900 | 27,808 | 15,247 | **publication** |
 | repr v1 (django) | 96 | 190 | 126 | 30 | 33 | 644,623 | 132,151 | 64,377 | **SUPERSEDED by v2** |
 | floor pilot #2 | 55 | 110 | n/r | 21 | 23 | 387,026 | 68,862 | 36,287 | gate diagnostic |
 | floor pilot #1 | 10 | 20 | n/r | 6 | 3 | n/r | n/r | n/r | 🔴 **VOID** |
 | parity v2 | 14 | 28 | n/r | 28 | 6 | 90,136 | 20,138 | 9,561 | harness control |
 | parity v1 control | 14 | 28 | n/r | 28 | 6 | 86,376 | 12,629 | 5,825 | harness control |
-| **total** | **318** | **632** | — | **151** | — | **2,035,852** | **392,466** | **194,874** |
+| **total** | **510** | **1,016** | — | **290** | — | **3,224,988** | **603,800** | **304,015** |
 
 `n/r` = **not recoverable from logs** (the earlier runners stored no `n_calls` and the floor
 pilot #1 stored no per-arm token counts).
@@ -250,15 +263,29 @@ and shared across all three representations, so it cancels exactly in every pair
 
 ### Coverage ledger
 
+✅ **COMPLETE under the frozen protocol as of `bd25ad4`** — `remaining = 0` in both repos.
+SA-SWE-FINAL owns this ledger; `docs/COVERAGE_MANIFEST.md` §3 is authoritative.
+
 | stage | pairs |
 |---|---:|
 | manifest pairs | 406 |
-| survive `is_single_file_solvable` | 303 |
-| in a repo with a working runner | 239 |
-| **runnable universe** (after dedup-by-recipient) | **107** |
-| **executed** | **66** (django 55 + sympy 11) |
-| remaining runnable | **41** (django) |
-| matched, defect-21 corrected | django 12 · sympy 3 · **pooled 15** |
+| − multi-file gold fix | 103 |
+| − no runner | 64 |
+| − dedup-by-recipient | 132 |
+| **runnable universe** | **107** |
+| **attempted** | **107 (100%)** — django 96 + sympy 11 |
+| **remaining** | **0** |
+| valid completed | **37** (django 34 + sympy 3) |
+| excluded, with reasons | **70** — 39 localizer miss · 20 unapplicable edit (`reward: None`, never 0.0) · 10 scorer invalidity · 1 contagion-dirty · **0 not-yet-attempted** |
+| *sum check* | 37 + 70 = 107 ✅ |
+| matched analysis set | **40** (was 15 before the scale-up) |
+
+🔴 **Tripling the matched set separated no contrast family-wise.** `ORDERING_VERDICT:
+NOT_ESTABLISHED` in django, sympy and pooled. django's `structured − summary` is
+**nominally** +0.1081 [+0.027, +0.2162] but rests on **4 nonzero cells of 37**, appears in
+neither chunk alone, points the other way in sympy, and under Bonferroni for the 3
+contrasts spans zero. The analysis now emits `ci_familywise_bonferroni_3` beside every
+nominal interval and drives the verdict from the **family-wise** result.
 
 🔴 **Defect 21 — a pytest collection error is not a wrong answer.** `score_patched_file`
 returned `0.0` whenever F2P was not ok, ignoring `n_status_lines`. **37 arm-reads** (django

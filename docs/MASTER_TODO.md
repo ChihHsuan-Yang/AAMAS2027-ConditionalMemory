@@ -18,16 +18,16 @@ critical path** — they are not blockers and are not reported as such. Overleaf
 standard double-blind form: `Anonymous Author(s)`, no affiliations, no acknowledgements, no
 identifying paths.
 
-**Counts (mechanically re-derived 2026-10-01, see §5):** DONE 134 · DEFERRED 38 ·
-KILLED 16 · TODO 7 · RUNNING 2 · BLOCKED 1 — **198 distinct IDs**, every one carrying
-exactly one terminal state.
+**Counts (mechanically re-derived 2026-10-01 at `bd25ad4`, see §5):** DONE 135 ·
+DEFERRED 38 · KILLED 16 · TODO 7 · RUNNING 1 · BLOCKED 1 — **198 distinct IDs**, every one
+carrying exactly one terminal state.
 
-🔴 **The agent-actionable open set is SIX IDs:** `P1-C17` (final manuscript sync),
-`P1-C19` (SWE-bench coverage), `P1-C21` (HF v0.3/v0.4), `P1-C22` (three `main.tex` ↔
-artifact inconsistencies), `P1-I11` (🔴 the representation scale-up slices are still
-untracked), `P1-I13` (the efficiency ratios). `P1-C20` (page budget) is **blocked on the
-author by design**. §5 lists all ten open rows with what each waits on; §3 holds
-POST-SUBMISSION / FUTURE WORK.
+🔴 **The agent-actionable open set is FIVE IDs:** `P1-C17` (final manuscript sync),
+`P1-C21` (HF v0.3/v0.4), `P1-C22` (three `main.tex` ↔ artifact inconsistencies),
+`P1-I11` (🔴 the representation scale-up slices are still untracked), `P1-I13` (the
+efficiency ratios). `P1-C20` (page budget) is **blocked on the author by design**.
+`P1-C19` closed at `bd25ad4` with SWE-bench coverage COMPLETE. §5 lists every open row
+with what it waits on; §3 holds POST-SUBMISSION / FUTURE WORK.
 
 ---
 
@@ -53,7 +53,7 @@ POST-SUBMISSION / FUTURE WORK.
 | **P1-C16** | Claim/evidence audit | Master → **SA-FINAL-AUDIT** | **DONE** as a milestone; **standing** thereafter | `scripts/audit_claims.py` now prints **129 PASS / 0 FAIL across 16 sections** (counted 2026-10-01; the "38"/"58"/"123" in older docs are all stale). 638 tests pass. Proven able to fail: each guard is verified by planting the defect it forbids. Guards include the SciCode "inversion" wording, the absolute-home-path identity scan (with its own non-vacuity check), both printed CIs, and `make_figures.py`'s five Figure-5/SWE-bench guards |
 | **P1-C17** | Final manuscript sync + compile + anonymity + citation check | **SA-PAGE** | **TODO** | 🔴 **the one genuinely open submission-critical item.** Absorbs legacy P1-095 and P1-100. Overleaf `1961825` compiles to 10 pages; anonymity is audit-enforced (no absolute home path in `main.tex` or any tracked artifact). Blocking sub-items: the page budget (C20) and the three inconsistencies in C22 |
 | **P1-C18** | **AI-assistance disclosure section** (prompt + tool + version) | Master | **DONE** | ✅ `\section*{Use of AI-Assisted Technologies}` is **written** at `main.tex:1678` (~2,400 chars; verified non-stub by SA-ARCHIVE 2026-10-01). Discloses under the **stronger clause** because AI shaped experimental design, names the tool and version, and points prompts + defect register to supplementary. Source `docs/AI_ASSISTANCE_DISCLOSURE.md` |
-| **P1-C19** | **SWE-bench coverage completion** — run the remaining valid cells under the FROZEN eligible universe; mark the rest excluded with reasons | **SA-SWE-FINAL** | **RUNNING** | split out of C07 by SA-ARCHIVE so a growing arm does not keep an otherwise-finished item open. Executed **66 of 107** runnable (django 55 + sympy 11); **41 django remain**. 🔴 **Do not redefine "eligible" after seeing outcomes**, and do not relax `tasks_per_memory=4` in place — see §Killed, and `docs/COVERAGE_MANIFEST.md` §3 |
+| **P1-C19** | **SWE-bench coverage completion** — run the remaining valid cells under the FROZEN eligible universe; mark the rest excluded with reasons | **SA-SWE-FINAL** | **DONE** | ✅ **COMPLETE at `bd25ad4` (2026-10-01 13:05):** 107/107 attempted, **remaining 0** in both repos. The identity closes exactly: eligible 107 = 37 valid completed + 70 excluded (39 localizer miss · 20 unapplicable edit, `reward: None` never 0.0 · 10 scorer invalidity · 1 contagion-dirty · **0 not-yet-attempted**). 🔴 **The matched set tripled 15 → 40 and separated no contrast family-wise** — `ORDERING_VERDICT: NOT_ESTABLISHED` in django, sympy and pooled. django's nominal `structured − summary` +0.1081 [+0.027, +0.2162] rests on 4 nonzero cells of 37, appears in neither chunk alone, inverts in sympy, and spans zero under Bonferroni; the analysis now emits `ci_familywise_bonferroni_3` and drives the verdict from it. `tasks_per_memory=4` was **not** relaxed |
 | **P1-C20** | **Page budget** — the body runs ~5,400 chars onto p9 against an 8-page limit | **user decision**, executed by SA-PAGE | **BLOCKED** (on the author) | `docs/PAGE_BUDGET_DECISION.md` measures five options and their costs. Closing the gap now **removes content**, which is not an agent's call. Recommended: **C** (AI disclosure → supplementary, explicitly policy-permitted, loses no science) then **A** (Figure 1 → supplementary). 🔴 **B, D and E delete evidence and must not be used to buy space**, and no `\vspace` / geometry / font change — that is format gaming and reviewers check |
 | **P1-C21** | **HF v0.3** (SciCode, Apache-2.0, content OK) and **v0.4** (SWE-bench, 🔴 **metrics + ids ONLY**) | **SA-HF** | **RUNNING** | v0.3 staging rebuild in flight 2026-10-01 12:23 CDT. 🔴 **`export_hf.py` does NOT migrate schemas** — the ledgers are v1/v2 and it needs v3. The exporter must call `assert_content_redistributable` for SWE-bench. SciCode ships **raw-only, 154 of 462 cells**: the summary/structured memory text was never persisted |
 | **P1-C22** | **Three documented inconsistencies between `main.tex` and the artifacts** | **SA-PAGE** / SA-FINAL-AUDIT | **TODO** | found by SA-ARCHIVE 2026-10-01, each re-derived: (1) `main.tex:1664` quotes the **superseded** cross-session `+0.1268` as "the reader effect this apparatus did detect" three lines after the same paragraph correctly reports the session-matched `\rgSmDiff` = +0.0982 — a **retracted number still circulating in its own correction's paragraph**; (2) `\rgWithoutDelta` = −0.0688 is the **withdrawn** cross-session decomposition, printed at `main.tex:1640` and in Figure 6's caption constraint; (3) the efficiency ratios of **P1-I13**. None changes a conclusion; all three are retracted-number-still-circulating, this project's registered defect shape |
@@ -368,11 +368,11 @@ print(len(seen), collections.Counter(seen.values()))
 
 | state | count |
 |---|---:|
-| **DONE** | **134** |
+| **DONE** | **135** |
 | **DEFERRED** | **38** |
 | **KILLED** | **16** |
 | **TODO** | **7** |
-| **RUNNING** | **2** |
+| **RUNNING** | **1** |
 | **BLOCKED** | **1** |
 | **total distinct IDs** | **198** |
 
@@ -392,7 +392,7 @@ forbids. So `P1-095` (TODO) and its successor `P1-C17` (TODO) are two rows and t
 | ID | state | owner | waiting on |
 |---|---|---|---|
 | **P1-C17** | **TODO** | SA-PAGE | 🔴 the one genuinely open submission-critical item: final sync + compile + anonymity + citations |
-| **P1-C19** | **RUNNING** | SA-SWE-FINAL | 41 runnable django cells remain under the frozen universe |
+| ~~P1-C19~~ | **DONE** | SA-SWE-FINAL | ✅ closed at `bd25ad4` — 107/107, remaining 0 |
 | **P1-C20** | **BLOCKED** | **the author** | removing content is not an agent's decision (`PAGE_BUDGET_DECISION.md`) |
 | **P1-C21** | **RUNNING** | SA-HF | HF v0.3 staging rebuild in flight; v0.4 after it |
 | **P1-C22** | **TODO** | SA-PAGE | three `main.tex` ↔ artifact inconsistencies, all retracted-number-still-circulating |
@@ -402,8 +402,8 @@ forbids. So `P1-095` (TODO) and its successor `P1-C17` (TODO) are two rows and t
 | P1-100 | TODO | — | folds into C17; its concrete sub-item is I11 |
 | P1-106 | TODO | — | folds into C16 (green) and C17 |
 
-**Three of those ten are duplicate legacy IDs and one is a user decision**, so the real
-agent-actionable set is **six**: C17, C19, C21, C22, I11, I13. 🔴 **I11 is the only one
+**Three of those are duplicate legacy IDs and one is a user decision**, so the real
+agent-actionable set is **five**: C17, C21, C22, I11, I13. 🔴 **I11 is the only one
 that risks losing evidence** — Contribution B's row files exist on one laptop.
 
 ## 6. Killed this project, with the measured reason

@@ -242,15 +242,36 @@ def count_scicode() -> dict:
 # --------------------------------------------------------------------------
 # SWE-bench: cells carry per-arm dicts with the server's own token counts
 # --------------------------------------------------------------------------
-SWE_FILES = {
-    "swebench_repr_v2_django": "results/swebench/representations_v2.json",
-    "swebench_repr_sympy": "results/swebench/representations_sympy.json",
-    "swebench_repr_v1_django_SUPERSEDED": "results/swebench/representations_v1.json",
-    "swebench_floor_pilot_v2": "results/swebench/floor_pilot_v2.json",
-    "swebench_floor_pilot_v1_VOID": "results/swebench/floor_pilot.json",
-    "swebench_parity_v2": "results/swebench/parity_v2.json",
-    "swebench_parity_v1_control": "results/swebench/parity_v1_control.json",
-}
+# SA-SWE-FINAL owns these and adds files; discovered rather than hardcoded so a new
+# chunk cannot be silently missed.  A hardcoded list that stops matching is this
+# project's "glob completeness is not tested by its hits" shape.
+SWE_SKIP = {"representations_analysis.json", "representations_v2_analysis.json",
+            "representations_sympy_analysis.json", "representations_multirepo.json",
+            "representations_multirepo_final.json", "coverage_table_final.json",
+            "manufactured_zero_correction.json", "scorer_control.json",
+            "scorer_control_sympy.json", "scorer_control_django_ext.json",
+            "scorer_control_sympy_ext.json"}
+
+
+def swe_files() -> dict:
+    """Every SWE-bench artifact carrying per-cell `arms`, found on disk."""
+    out = {}
+    d = p("results/swebench")
+    if not os.path.isdir(d):
+        return out
+    for fn in sorted(os.listdir(d)):
+        if not fn.endswith(".json") or fn in SWE_SKIP or fn.endswith("_analysis.json"):
+            continue
+        try:
+            blob = json.load(open(os.path.join(d, fn)))
+        except Exception:
+            continue
+        if isinstance(blob, dict) and blob.get("cells"):
+            out[fn[:-5]] = f"results/swebench/{fn}"
+    return out
+
+
+SWE_FILES = swe_files()
 
 
 def count_swebench() -> dict:

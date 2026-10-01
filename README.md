@@ -143,16 +143,19 @@ Authoritative definitions: [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.
 | LongMemEval-V2 (representation sub-universe, 285 × 3) | 855 | 847 | 99.1% | both | both | all three | 8 structured write failures |
 | LongMemEval-V2 (LLM-judged stratum) | 156 q | 0 | 0% | — | — | — | **eligible, not excluded**, blocked on F_judge |
 | **SciCode** | 154 | 154 | **100%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **DONE** — raw-only in the release |
-| **SWE-bench Verified** (runnable universe) | 107 | **66** | **62%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **PARTIAL — django + sympy; SA-SWE-FINAL owns, in flux** |
+| **SWE-bench Verified** (runnable universe) | 107 | **107** | **100%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | ✅ **COMPLETE** at `bd25ad4` — django 96 + sympy 11, remaining 0 |
 
 🔴 **LongMemEval has two universes and neither percentage alone is honest.** The
 screened design is a **re-pairing**, not a subset of the frozen universe —
 B ∩ A = **102**, B \ A = **1,055**. Always name the universe when quoting a coverage %.
 
-✅ **SWE-bench is no longer django-only.** sympy ran clean (11 cells, arm complete under
-the shipped manifest), taking coverage 55/107 all-django → **66/107 across two repos**.
-⚠️ sympy's own scorer control is **8/8**, not 20/20 — the 20/20 is the **union** with
-django's 12/12, which is what the gate reads. **41 django cells remain runnable.**
+✅ **SWE-bench coverage is COMPLETE** (`bd25ad4`): 107/107 attempted, **remaining 0**,
+across django (96) and sympy (11). The identity closes exactly — 37 valid completed + 70
+excluded with reasons (39 localizer miss · 20 unapplicable edit · 10 scorer invalidity ·
+1 contagion-dirty · **0 not-yet-attempted**). 🔴 **Tripling the matched set 15 → 40
+separated no contrast family-wise**: `ORDERING_VERDICT: NOT_ESTABLISHED` in django, sympy
+and pooled. ⚠️ sympy's own scorer control is **8/8**, not 20/20 — the 20/20 is the
+**union** with django's 12/12, which is what the gate reads.
 
 | Arm | Writer | Reader | Cluster | Prompt | Temp | Max output | Workers |
 |---|---|---|---|---|---:|---:|---:|
@@ -353,16 +356,16 @@ Full evidence base, with who found each and what it would have cost:
 [`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md). Every count behind these:
 [`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md).
 
-### Current TODO — six agent-actionable items
+### Current TODO — five agent-actionable items
 
 Authoritative, with terminal states for all **198** IDs:
-[`docs/MASTER_TODO.md`](docs/MASTER_TODO.md). **DONE 134 · DEFERRED 38 · KILLED 16 ·
-TODO 7 · RUNNING 2 · BLOCKED 1**, re-derived by running the page's own snippet.
+[`docs/MASTER_TODO.md`](docs/MASTER_TODO.md). **DONE 135 · DEFERRED 38 · KILLED 16 ·
+TODO 7 · RUNNING 1 · BLOCKED 1**, re-derived by running the page's own snippet.
 
 | ID | state | what it waits on |
 |---|---|---|
 | **P1-C17** | TODO | the one genuinely open submission-critical item: final manuscript sync, compile, anonymity, citations |
-| **P1-C19** | RUNNING | 41 runnable django SWE-bench cells remain under the frozen universe |
+| ~~P1-C19~~ | **DONE** at `bd25ad4` | SWE-bench coverage complete: 107/107 attempted, remaining 0 |
 | **P1-C21** | RUNNING | HF v0.3 (SciCode) then v0.4 (SWE-bench, **metrics + ids ONLY**) |
 | **P1-C22** | TODO | three `main.tex` ↔ artifact inconsistencies, all retracted-number-still-circulating |
 | **P1-I11** | TODO | 🔴 **the representation scale-up slices are STILL untracked** — Contribution B's 1,124 rows exist on one laptop |
