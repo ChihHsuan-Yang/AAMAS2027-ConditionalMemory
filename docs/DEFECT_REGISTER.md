@@ -581,6 +581,7 @@ describe.
 |---|---|---|---|
 | 26 | **Gemma compressed two DIFFERENT 3,979-token segments to byte-identical 68-token summaries.** `memory_id` and `row_id` are content hashes, so the two memories got the **same id** and the schema validator reported 12 `duplicate_row_id` errors on an otherwise clean 2,248-row file. gpt-oss kept the same two segments distinct (524 and 457 tokens) | `validate_file` on the new rows — a step that is easy to skip once the run's own artifact checks have all passed | on this analysis, **nothing**: the join is on `(memory_unit_locator, future_task_id)`, which is positional and cannot collide, and the matched set is 274 rather than 272 — verified, not assumed. On any analysis joining by `memory_id` it would have **silently merged two experiences into one cell** |
 | 27 | **A runner hardcoded one arm's identity, so a second arm produced rows whose label contradicted their own measurement.** `gemma_reader_run.py` held a constant `CONDITION_ID` table spelling `gemma4_31B`, and an artifact check asserting `"gemma" in condition_id`. Run with `--reader-arm gptoss_metis` it emitted 570 rows reading `condition_id=lmev2_raw_metis_gemma4_31B_...` beside `reader_model=gpt-oss-120b`. A sibling check, `reasoning_tokens_is_null_never_zero`, asserted Gemma's behaviour as universal and **correctly FAILED the run** — gpt-oss legitimately reports counts | the runner's own artifact gate (`VERDICT: RUN_FAILED`), then me, tracing why | **the 570 rows were VOID and are kept as `results/raw_session_matched_VOID_mislabelled/`.** Had only the condition-id bug existed, the run would have passed and the mislabelled arm could have been pooled with Gemma's. Fixed: `condition_id_for(rep, arm)` derives the label and **fails closed on an unknown arm**; the reasoning-tokens check now keys on `READER_ARMS[...].reports_reasoning_tokens` — defect #18's shape a third time, a model property asserted as a universal one |
+| 28 | **The paper's largest recent correction had no machine check, and my first attempt to add one was unreachable code.** SA-FINAL-AUDIT planted `+0.5000 [+0.4000, +0.6000]` as the session-matched reader effect and **both** `audit_claims.py` and `make_figures.py` stayed green: the former never read that paragraph, the latter never reads `main.tex` prose. I then added three guards to `make_figures.py` — and appended to `FAIL` from the **emit block at line ~1144, after the `if FAIL:` exit at line 955**. Two of the three were dead code and passed every plant silently; only the one using `expect()` fired | SA-FINAL-AUDIT found the missing guard; I found the dead code by planting all three defects rather than assuming the new guards worked | the canonical reader-generalization number was **typed and unverifiable**, and a repair that *looks* present is worse than a known gap. Now generated as `\rgSmDiff` etc. from the artifact, with the guards inside `crossbench()` which runs before the exit; all three re-verified by planting |
 
 **It is a result, not only a defect.** The ΔU contrasts cannot see it: both
 cells scored identically, so no mean moved. But "the terser writer sometimes
@@ -602,3 +603,84 @@ Note also the near-miss in the opposite direction: the first instinct on seeing
 produced 2,240 distinct ids. Checking *which field* collided, rather than
 assuming a double-write, is what turned an apparent plumbing bug into a finding
 about the model.
+
+## Added 2026-10-01 (session-scope sweep) — one assumption surviving two corrections
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| 28 | **The reader-transfer arm compared two readers executed in DIFFERENT SESSIONS, and no document said so.** `READER_TRANSFER_RESULT.md` and `READER_TRANSFER_PRECOMMITMENT.md` do not contain the word *session*. Re-derived from each cache's `written_at_utc`: the gpt-oss **raw** comparator is **2026-09-29**, gpt-oss **summary/structured** are **2026-09-30**, every Gemma cell is **2026-10-01**. The published decomposition — *"about half of the gain is a weaker reader"*, `\rgWithoutDelta = -0.0688`, printed in the manuscript — rests on a WITHOUT-arm change whose session component was never separated | the session-scope sweep, after defect #25 | the manuscript attributed to *the reader* a baseline shift that is **half the day**. Settled by a session-matched re-run: WITHOUT splits **−0.0327 session / −0.0364 reader**, and ΔU still rises **+0.0982** of the published **+0.1236** — so **the headline survives and only its decomposition was inflated**, by about 2× |
+| 29 | **The fix for #25 reproduced #23.** Recording *which row file* a drift figure came from wrote `str(args.oss_rows)` — an absolute `/Users/<name>/` path — into `results/ledgers/`, which is git-tracked and which `README.md` advertises as the reviewer-facing repro slice. Re-scanning found **9 tracked ledger files already carrying 15 such paths**, one inside `results/ledgers/repro/` itself | writing the fix, then scanning the tree the fix wrote into | a **double-blind failure in the artifact tree a reviewer is explicitly pointed at** — #23's exact cost from #23's exact blind spot, one day after #23 was closed |
+
+### #28: a defect closed where it was noticed is not closed
+
+#25 was found, named here, and fixed **by re-running the factorial's comparator
+arms in one session**. This register recorded the shape as *"the stale
+assumption was not in any one line of code, it was in the choice of which files
+to use as a comparator."* The reader-transfer arm had made exactly that choice
+two days earlier, and the repair never reached it.
+
+> **#21 → #25 → #28 is one assumption surviving two corrections**, each locally
+> complete. The fix for a defect of *scope* has to be a sweep, not a patch at
+> the site.
+
+What makes #28 recoverable rather than fatal is that the re-run was cheap and
+the result is **reassuring in the direction that matters**: the Gemma arm
+reproduced its published numbers to four decimals (expected — Gemma is the
+cross-session-stable model), so only the gpt-oss column moved, and the transfer
+effect is 79% reader. **A confound that is sized is a caveat; a confound that
+is unnamed is a wrong sentence.**
+
+### #29: the pattern was right, its SUBJECT was too narrow
+
+#23's lesson was recorded as *"a credential scanner is structurally blind to a
+home path"* and the fix was a **new pattern**. The pattern was never the
+problem — re-verified: `scan_text_for_identity` **fires** on all the real
+pre-fix strings and is **silent** on every sanitised one.
+`gate_identity_scan_tree` had simply only ever been pointed at the HF staging
+tree.
+
+> **Same shape as #16 and #18 — a check verified on its home case is not known
+> to discriminate elsewhere. For a *scanner*, "elsewhere" is a different TREE,
+> not a different string.**
+
+Fixed at source (7 emitters now write repo-relative paths; `tokenizer_provenance`
+redacts the home prefix), in the 9 existing artifacts, and in the gate:
+`audit_claims.py` now scans `results/ledgers`, `docs/hf_card`, `docs/submission`
+and the manuscript. **All four are 0 hits.**
+
+🔴 **The fix is bounded and the remainder is counted, not glossed.** A full-tree
+scan still finds **47** occurrences in internal working documents (30 `docs/`,
+16 `scripts/`, 1 `src/`), nearly all `PY=/Users/<name>/...` lines in
+`Reproduce:` blocks. They do not reach the release or the manuscript, but they
+are in the repository and would de-anonymise it if the repo were handed to a
+reviewer. Recorded as an open item: **"the gate passes" and "the tree is
+clean" are different claims**, and conflating them is how #23 happened.
+
+**Both new gates are proven able to fail.** Planting the shipped string into
+`results/ledgers/repro/k3_screened_analysis.json` makes the audit exit **1**
+naming the file; restoring it returns **0**. And because a clean scan over zero
+files is indistinguishable from a clean scan over many, the gate asserts
+`_scanned > 20`: mutating `_SCAN_ROOTS` to a nonexistent tree fails as
+*"not a vacuous glob"* rather than passing with an empty `[]`. The sanitisation
+re-read **every numeric value** in all 9 files before and after (9,504 in the
+largest) to prove a path rewrite moved no measurement.
+
+⚠️ Three of my own near-misses, kept because each is this register's standing shapes:
+**(a)** my first mutation test wrote the mutant to `/tmp`, which also moved
+`REPO` (derived from `__file__`), so its exit 1 came from a missing artifact
+rather than from the guard — *a control must hold one variable*; it was re-run
+from inside `scripts/`. **(b)** The audit's first pass recorded the raw
+comparator as unrepairable because `results/raw_session_matched/` was an **empty
+directory** — it was empty at that instant because the first attempt had just
+been voided (#27) and the re-run had not yet written. *An empty directory is a
+timestamp, not a verdict.*
+**(c)** I wrote "+0.0982 of the published +0.1236, so 79% reader" into the
+manuscript and two docs. Both numbers are real and they sit on **different
+cell sets** — +0.1268 is the 2-way join (n=276) the paper reports, +0.1236 the
+3-way join (n=275) my table needed — so the ratio is *"a single column built
+on two different bases"*, the register's own entry, committed by the person
+auditing for it. Caught on cross-check against the peer artifact, which quoted
++0.1268 where I had +0.1236. Replaced everywhere by the session-matched
+estimate **with its own interval** (`+0.0982`, task-clustered
+`[+0.0247, +0.1730]`, excludes zero), which needs no cross-basis division.
+

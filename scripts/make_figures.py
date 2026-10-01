@@ -381,8 +381,15 @@ def crossbench():
                      / "r3_representation_analysis.json").read_text())
     sc = json.loads((REPO / "results/ledgers/repro/scicode"
                      / "scaleup_analysis.json").read_text())
-    sw = json.loads((REPO / "results/ledgers/repro/swebench"
-                     / "representations_v2_analysis.json").read_text())
+    # 🔴 The MULTI-REPO, DEFECT-21-CORRECTED analysis, not the django-only
+    # v2 one. Two changes land together and both must: sympy ran (so the
+    # figure is no longer single-repo), and a pytest collection error was
+    # being scored as a wrong answer (DEFECT_REGISTER #21), which demoted 37
+    # arm-reads and moved the pooled matched set 17 -> 15. Reading the older
+    # artifact would publish numbers a correction has already superseded.
+    _swm = json.loads((REPO / "results/swebench"
+                       / "representations_multirepo.json").read_text())
+    sw = _swm["pooled"]
     fl = json.loads((REPO / "results/ledgers/repro"
                      / "cross_benchmark_without_arm_floor.json").read_text())
     lpc = lm["Q1_paired_delta_utility"]["paired_contrasts"]
@@ -401,6 +408,21 @@ def crossbench():
             "swebench": (wv["mean"], wv["ci95_task_clustered"][0],
                          wv["ci95_task_clustered"][1], sw["MATCHED_CELL_SET_N"]),
         }
+    # Guard: the defect-21 correction must still be applied. If the artifact
+    # is ever regenerated without it, 37 manufactured zeros re-enter and the
+    # matched set returns to 17 -- a retracted number back in a figure.
+    expect("crossbench: SWE-bench defect-21 correction applied",
+           _swm["defect21_manufactured_zero_correction"]["arm_reads_demoted"],
+           37)
+    expect("crossbench: SWE-bench matched set, corrected", sw["MATCHED_CELL_SET_N"], 15)
+    expect("crossbench: SWE-bench repositories", len(sw["cells_per_repo"]), 2)
+    # A pooled figure must state its composition. One repo supplies 80% here,
+    # so the caption says so; if that stops being true the caption is wrong
+    # in the other direction and must still be rewritten.
+    if sw.get("DOMINATED_BY") is None:
+        FAIL.append("crossbench: SWE-bench is no longer dominated by one "
+                    "repo; the caption discloses that it is and must be "
+                    "rewritten")
     # Guard: the two analyses must agree on what the contrast MEANS.
     expect("crossbench: LongMemEval contrast basis is the common-cell join",
            lm["Q1_paired_delta_utility"]["n_common_cells"], 277)
@@ -412,6 +434,25 @@ def crossbench():
         FAIL.append("crossbench: SciCode ORDERING_VERDICT changed -- the "
                     "figure's caption asserts every SciCode interval crosses "
                     "zero and must be rewritten before this passes")
+    # The session-matched reader transfer is the CANONICAL reader-generalization
+    # result and had no machine check of any kind: planting +0.5000 left both
+    # audit_claims.py and make_figures.py green. These live HERE, inside a
+    # function called before the `if FAIL:` exit -- a first version appended to
+    # FAIL from the emit block at line ~1144, long AFTER that exit at line 955,
+    # so two of the three guards were unreachable and passed every plant.
+    _smg = json.loads((REPO / "results/ledgers/repro/raw_session_matched"
+                       / "raw_session_matched_analysis.json").read_text())
+    expect("session-matched reader arms: matched cell count",
+           _smg["n_matched"], 550)
+    if _smg.get("VERDICT") != "SURVIVES_SESSION_MATCHING":
+        FAIL.append("session-matched verdict changed to "
+                    f"{_smg.get('VERDICT')!r} -- the manuscript says the "
+                    "effect survives session matching")
+    _slo, _shi = _smg["ci95_task_clustered"]
+    if not (_slo > 0 or _shi < 0):
+        FAIL.append(f"session-matched interval [{_slo}, {_shi}] no longer "
+                    "excludes zero; the reader-transfer claim is now false")
+
     if sw["ORDERING_VERDICT"] != "NOT_ESTABLISHED":
         FAIL.append("crossbench: SWE-bench ORDERING_VERDICT changed -- the "
                     "caption asserts its intervals cross zero too")
@@ -435,6 +476,464 @@ def crossbench():
                     "is 0 by construction (one shared call) and must not be "
                     "quoted beside measured floors")
     return out
+
+
+# ---------------------------------------------------------------------------
+# FIGURE 6 -- READER GENERALIZATION: does memory utility survive a new reader?
+# ---------------------------------------------------------------------------
+# PLANT-VERIFIED GUARDS. Each `_rg_guard` below was checked by planting its
+# defect in a COPY of the artifact and confirming the build fails. A guard
+# only ever observed passing is not known to discriminate -- three of this
+# project's defects were in guards.
+GEMMA_READER_ID = "gemma-4-31B-it"      # capital B: the lowercase id resolves
+GPTOSS_READER_ID = "gpt-oss-120b"       # silently at the endpoint (defect #19)
+
+
+def _rg_cell_mean(rows, n_rep=2):
+    """Mean dU over the first n_rep replicates, or None if any is unscorable.
+
+    reward None means COULD NOT BE SCORED and is never 0.0. A cell with an
+    unscorable replicate drops out rather than contributing a fabricated zero.
+    """
+    rows = sorted(rows, key=lambda r: r.get("replicate_id", 0))[:n_rep]
+    vals = []
+    for r in rows:
+        w, o = r.get("reward_with_memory"), r.get("reward_without_memory")
+        if w is None or o is None:
+            return None
+        vals.append(w - o)
+    return statistics.mean(vals) if vals else None
+
+
+def _rg_boot_cluster(units, n_boot=10000, seed=20260930):
+    """Task-clustered percentile bootstrap, resampling CLUSTERS not rows.
+
+    Deliberately re-implements scripts/gemma_reader_analyze.py::boot_cluster
+    rather than importing it: two independent computations that must agree
+    bit-for-bit is the check. n_boot and seed match the analysis exactly, so
+    the comparison below is an equality, not a tolerance.
+    """
+    import numpy as np
+    keys = sorted(units, key=str)
+    flat = [v for k in keys for v in units[k]]
+    rng = np.random.default_rng(seed)
+    draws = []
+    for _ in range(n_boot):
+        pick = [keys[i] for i in rng.integers(0, len(keys), size=len(keys))]
+        vals = [v for k in pick for v in units[k]]
+        if vals:
+            draws.append(float(np.mean(vals)))
+    return (float(np.mean(flat)),
+            float(np.percentile(draws, 2.5)),
+            float(np.percentile(draws, 97.5)))
+
+
+def _rg_pearson(x, y):
+    import numpy as np
+    a, b = np.asarray(x, float), np.asarray(y, float)
+    if a.size < 2 or a.std() == 0 or b.std() == 0:
+        return None
+    return float(np.corrcoef(a, b)[0, 1])
+
+
+def _rg_locator(r):
+    pr = r.get("provenance") or {}
+    return pr.get("memory_unit_locator") or (
+        r.get("source_episode_metadata") or {}).get("memory_unit_locator")
+
+
+def reader_generalization(_gemma_rows=None, _analysis=None):
+    """Figure 6 + the cross-model correlation element.
+
+    THE JOIN IS THE WHOLE DIFFICULTY, and the house rules name all three traps:
+      * `memory_id` is a per-representation CONTENT HASH -> joins to nothing;
+      * `condition_id` EMBEDS the representation AND the reader -> zero rows
+        across readers, by construction;
+      * the only key that crosses is
+        (memory_unit_locator, future_task_id, memory_representation).
+    Each wrong join is RUN below and asserted to return zero, so the non-empty
+    matched set is evidence the key is right rather than a hope.
+
+    MATCHED-SET RULE: a cell enters only if it is interpretable under BOTH
+    readers at the same replicate depth. Denominators differ per reader
+    (Gemma loses 9/11/8 cells to truncation), and a mean over different cells
+    compares different cells.
+    """
+    import numpy as np
+    gem = _gemma_rows if _gemma_rows is not None else load(
+        "results/ledgers/repro/gemma_reader/transfer_cells_slim.jsonl")
+    oss = load("results/deltau_screened/cells.jsonl") + load(
+        "results/repr_scaleup/cells.jsonl")
+    ana = _analysis if _analysis is not None else json.loads(
+        (REPO / "results/ledgers/gemma_reader"
+         / "reader_transfer_analysis.json").read_text())
+
+    # ---- guard A: reader identity. The whole experiment is "only the reader
+    # changed", so a row carrying the wrong reader invalidates the figure.
+    g_readers = {r.get("reader_model") for r in gem}
+    if g_readers != {GEMMA_READER_ID}:
+        FAIL.append(f"reader-gen: Gemma rows carry reader_model {g_readers}, "
+                    f"expected exactly {{{GEMMA_READER_ID!r}}} -- the figure's "
+                    "caption says only the reader changed")
+    o_readers = {r.get("reader_model") for r in oss}
+    if o_readers != {GPTOSS_READER_ID}:
+        FAIL.append(f"reader-gen: comparator rows carry reader_model "
+                    f"{o_readers}, expected exactly {{{GPTOSS_READER_ID!r}}}")
+    if g_readers & o_readers:
+        FAIL.append("reader-gen: the two reader sets OVERLAP; this is not a "
+                    "reader comparison")
+
+    # ---- guard B: reasoning_tokens is None on every Gemma row, NEVER 0.
+    # Metis/Gemma returns no completion_tokens_details at all. A 0 would be an
+    # absence written as a measurement, and would make the frontier figure's
+    # cost axis silently poolable across models. It must not be.
+    bad_rt = sum(1 for r in gem if r.get("reasoning_tokens") is not None)
+    if bad_rt:
+        FAIL.append(f"reader-gen: {bad_rt} Gemma rows carry a non-null "
+                    "reasoning_tokens; the model reports none, so a value "
+                    "there is an absence written as a measurement (and the "
+                    "frontier's cost axis must stay model-separated)")
+
+    # ---- guard C: the WRONG joins must return ZERO. Positive-control every
+    # null -- an empty join has to be PROVEN an artefact of the key.
+    o_by_cond = {(r.get("condition_id"), r["future_task_id"]) for r in oss}
+    g_by_cond = {(r.get("provenance", {}).get("gptoss_comparator_condition_id"),
+                  r["future_task_id"]) for r in gem}
+    # the Gemma rows' OWN condition_id, which is the trap:
+    g_own_cond = {(r.get("condition_id"), r["future_task_id"]) for r in gem}
+    n_cond_join = len(o_by_cond & g_own_cond)
+    if n_cond_join != 0:
+        FAIL.append(f"reader-gen: the condition_id join returned {n_cond_join} "
+                    "rows; it embeds the reader and MUST return zero, so this "
+                    "demonstration of the trap is no longer valid")
+    o_mem = {r["memory_id"] for r in oss}
+    g_mem = {r["memory_id"] for r in gem}
+    n_mem_join = len(o_mem & g_mem)
+
+    # ---- the correct join
+    O, G = collections.defaultdict(list), collections.defaultdict(list)
+    for r in oss:
+        pr = r.get("provenance") or {}
+        if pr.get("stratum") not in ("BEARING", "MATCHED_CONTROL"):
+            continue
+        O[(_rg_locator(r), r["future_task_id"],
+           r["memory_representation"])].append(r)
+    for r in gem:
+        pr = r.get("provenance") or {}
+        if pr.get("stratum") not in ("BEARING", "MATCHED_CONTROL"):
+            continue
+        G[(pr.get("memory_unit_locator"), r["future_task_id"],
+           r["memory_representation"])].append(r)
+
+    out, corr = {}, {}
+    for rep in ("raw", "summary", "structured"):
+        ko = {k for k in O if k[2] == rep}
+        kg = {k for k in G if k[2] == rep}
+        a = {k: _rg_cell_mean(O[k]) for k in ko}
+        b = {k: _rg_cell_mean(G[k]) for k in kg}
+        matched = sorted(k for k in (ko & kg)
+                         if a[k] is not None and b[k] is not None)
+        bt = collections.defaultdict(list)
+        for k in matched:
+            bt[k[1]].append(b[k] - a[k])
+        point, lo, hi = _rg_boot_cluster(bt)
+        xs = [a[k] for k in matched]
+        ys = [b[k] for k in matched]
+        nz = [i for i in range(len(matched)) if xs[i] != 0 or ys[i] != 0]
+        both = [i for i in range(len(matched)) if xs[i] != 0 and ys[i] != 0]
+        agree = sum(1 for i in both
+                    if (xs[i] > 0) == (ys[i] > 0) and (xs[i] < 0) == (ys[i] < 0))
+        out[rep] = {
+            "n": len(matched), "n_tasks": len(bt),
+            "oss": statistics.mean(xs), "gem": statistics.mean(ys),
+            "diff": point, "lo": lo, "hi": hi,
+            "excl0": bool(lo > 0 or hi < 0),
+            "nz": sum(1 for k in matched if abs(b[k] - a[k]) > 1e-12),
+        }
+        corr[rep] = {
+            "label_k": ana["label_agreement"][rep]["agreement"]["k"],
+            "label_n": ana["label_agreement"][rep]["agreement"]["n"],
+            "r_all": _rg_pearson(xs, ys), "n_all": len(matched),
+            "r_nz": _rg_pearson([xs[i] for i in nz], [ys[i] for i in nz]),
+            "n_nz": len(nz),
+            "zero_both": len(matched) - len(nz),
+            "sign_k": agree, "sign_n": len(both),
+        }
+        # ---- guard D: the correct join must be NON-EMPTY, and the wrong ones
+        # above were just shown to be empty. Together that is evidence.
+        if not matched:
+            FAIL.append(f"reader-gen: the locator join returned ZERO cells for "
+                        f"{rep}; with the wrong joins also at zero this cannot "
+                        "distinguish a key error from a real absence")
+
+    # ---- guard E: every value must EQUAL the analysis artifact bit-for-bit.
+    # The computation above is independent (own loader, own estimator, same
+    # seed), so equality is the cross-check; a tolerance would hide a drift.
+    for rep in ("raw", "summary", "structured"):
+        ref = ana["per_representation_matched"][rep]
+        rtc = ref["paired_difference_task_clustered"]
+        expect(f"reader-gen {rep}: matched cells", out[rep]["n"],
+               ref["n_matched_cells"])
+        expect(f"reader-gen {rep}: tasks", out[rep]["n_tasks"], ref["n_tasks"])
+        expect(f"reader-gen {rep}: dU gpt-oss", round(out[rep]["oss"], 6),
+               round(ref["deltaU_gptoss"]["mean"], 6))
+        expect(f"reader-gen {rep}: dU Gemma", round(out[rep]["gem"], 6),
+               round(ref["deltaU_gemma"]["mean"], 6))
+        expect(f"reader-gen {rep}: paired diff", round(out[rep]["diff"], 6),
+               round(rtc["mean"], 6))
+        expect(f"reader-gen {rep}: clustered CI lower",
+               round(out[rep]["lo"], 6), round(rtc["ci_lower"], 6))
+        expect(f"reader-gen {rep}: clustered CI upper",
+               round(out[rep]["hi"], 6), round(rtc["ci_upper"], 6))
+        la = ana["label_agreement"][rep]["agreement"]
+        expect(f"reader-gen {rep}: label-agreement denominator", la["n"],
+               ref["n_matched_cells"])
+        sc = ana["sign_and_correlation"][rep]
+        expect(f"reader-gen {rep}: r over ALL cells",
+               round(corr[rep]["r_all"], 6),
+               round(sc["correlation"]["pearson"], 6))
+        expect(f"reader-gen {rep}: r over non-zero-under-either",
+               round(corr[rep]["r_nz"], 6),
+               round(sc["correlation_on_cells_nonzero_under_either"]["pearson"], 6))
+        expect(f"reader-gen {rep}: n non-zero under either",
+               corr[rep]["n_nz"],
+               sc["correlation_on_cells_nonzero_under_either"]["n"])
+        expect(f"reader-gen {rep}: sign agreement, both non-zero",
+               f"{corr[rep]['sign_k']}/{corr[rep]['sign_n']}",
+               f"{sc['sign_agreement_both_nonzero']['k']}/"
+               f"{sc['sign_agreement_both_nonzero']['n']}")
+
+    # ---- guard F0: the figure draws the interval on the DIFFERENCE anchored
+    # at the gpt-oss point. That is only legitimate because the mean of the
+    # per-cell differences equals the difference of the means on a paired
+    # set. Asserted EXACTLY, not to a tolerance: if the matched sets ever
+    # stop being identical between the two readers the identity breaks and
+    # the drawing would silently misplace every whisker.
+    for rep in ("raw", "summary", "structured"):
+        gap = out[rep]["gem"] - out[rep]["oss"]
+        if abs(gap - out[rep]["diff"]) > 1e-12:
+            FAIL.append(
+                f"reader-gen {rep}: the paired difference {out[rep]['diff']!r} "
+                f"is not the gap between the reader means {gap!r}; the figure "
+                "anchors the interval at the gpt-oss point and that drawing "
+                "is only valid while the two are the same number")
+
+    # ---- guard F: the CAPTION's claims, asserted against the data.
+    # Each of these is a sentence in the figure caption. If the artifact stops
+    # supporting it the BUILD FAILS rather than the caption going quietly
+    # false -- which is this project's named "derived figures go stale" shape.
+    if not out["raw"]["excl0"]:
+        FAIL.append("reader-gen: Raw's paired interval no longer excludes "
+                    "zero -- the caption and the prose call Raw a POSITIVE "
+                    "transfer result and must be rewritten before this passes")
+    if out["raw"]["diff"] <= 0:
+        FAIL.append("reader-gen: Raw's paired difference is no longer "
+                    "positive; the caption says Gemma measures a LARGER "
+                    "effect on Raw")
+    for rep in ("summary", "structured"):
+        if out[rep]["excl0"]:
+            FAIL.append(f"reader-gen: {rep}'s interval now EXCLUDES zero; the "
+                        "caption says only Raw separates, and the prose "
+                        "forbids stating summary/structured as findings")
+    # the ordering claim
+    order_o = sorted(("raw", "summary", "structured"),
+                     key=lambda r: -out[r]["oss"])
+    order_g = sorted(("raw", "summary", "structured"),
+                     key=lambda r: -out[r]["gem"])
+    expect("reader-gen: gpt-oss ordering", order_o,
+           ["raw", "summary", "structured"])
+    expect("reader-gen: Gemma ordering", order_g,
+           ["raw", "summary", "structured"])
+    if order_o != order_g:
+        FAIL.append("reader-gen: the representation orderings no longer "
+                    "agree; the caption states they do")
+
+    # ---- guard G: the correlation honesty claim. The caption says the
+    # all-cells r is INFLATED by tied zeros and the non-zero r is the honest
+    # one. That is only true while the tied zeros dominate and r actually
+    # falls. Assert BOTH halves.
+    if corr["raw"]["zero_both"] <= corr["raw"]["n_nz"]:
+        FAIL.append("reader-gen: tied zeros no longer dominate the raw cell "
+                    "set, so the caption's explanation of why the all-cells r "
+                    "is inflated no longer holds")
+    if not (corr["raw"]["r_nz"] < corr["raw"]["r_all"]):
+        FAIL.append("reader-gen: restricting to non-zero cells no longer "
+                    "LOWERS r on raw; the caption says the all-cells figure "
+                    "is the inflated one")
+
+    # ---- guard H: the decomposition. Roughly half of Gemma's larger raw dU
+    # is a weaker no-memory baseline, not a more useful memory. The caption
+    # says so; if the artifact stops saying it, fail.
+    dec = ana["deltaU_decomposed_by_arm"]["raw"]
+    share = dec["share_of_deltaU_change_from_the_WITHOUT_arm"]
+    if share is None or not (0.0 < share < 1.0):
+        FAIL.append("reader-gen: the WITHOUT-arm share of raw's dU change is "
+                    f"{share!r}; the caption quotes it as a fraction")
+    expect("reader-gen: WITHOUT-arm share of raw's change", round(share, 4),
+           0.5429)
+    if dec["change_in_WITHOUT_arm"] >= 0:
+        FAIL.append("reader-gen: Gemma's raw WITHOUT arm no longer sits BELOW "
+                    "gpt-oss's; the caption attributes half the gap to a "
+                    "weaker unaided reader")
+
+    # ---- guard I: the design invariant. 1,694 rows, memory text byte-
+    # identical to the gpt-oss run. Without this the figure is not a reader
+    # comparison at all, and the number is quoted in the caption.
+    bi = ana["memory_text_byte_identity"]
+    expect("reader-gen: memory text compared", bi["compared"], 1694)
+    expect("reader-gen: memory text byte-identical", bi["identical"], 1694)
+    expect("reader-gen: memory text differing", bi["differ"], 0)
+    if not bi["_positive_control"]["detects_one_byte_change"]:
+        FAIL.append("reader-gen: the byte-identity check's own positive "
+                    "control does not fire, so 1694/1694 proves only that the "
+                    "comparison ran")
+
+    return out, corr, {"n_mem_join": n_mem_join, "n_cond_join": n_cond_join,
+                       "n_gemma_rows": len(gem)}
+
+
+# ---------------------------------------------------------------------------
+# TABLE 2 -- coverage: eligible / attempted / completed / exclusions
+# ---------------------------------------------------------------------------
+def coverage():
+    """Per-benchmark coverage, every figure recomputed from the artifacts.
+
+    THE UNIVERSE MUST BE NAMED. docs/COVERAGE_MANIFEST.md's central finding is
+    that a bare coverage percentage is FALSE against one of two universes on
+    LongMemEval (15,112 frozen pairs vs the 1,157-cell screened design the
+    paper reports). The table therefore reports the design the paper reports
+    and names it, and the identity
+
+        eligible = completed + excluded
+
+    is ASSERTED per row rather than described, so a row that stops summing
+    fails the build.
+    """
+    rows = {}
+
+    # ---- LongMemEval-V2: the screened design (the universe the paper reports)
+    #
+    # 🔴 EVERY TERM IS COUNTED FROM ITS OWN SOURCE. `eligible` comes from the
+    # pre-committed design MANIFEST (one line per planned cell), `attempted`
+    # and `completed` from the executed ROW file, and `excluded` from the rows
+    # that could not be scored. Deriving any of the three from the others
+    # makes the closing identity VACUOUS: it cannot then fail, and a silently
+    # lost cell closes as neatly as a complete run. An earlier version of this
+    # function derived `excluded = eligible - completed` and was found vacuous
+    # by planting a changed eligible count and watching the identity hold.
+    scr = load("results/deltau_screened/cells.jsonl")
+    cells = collections.defaultdict(list)
+    for r in scr:
+        cells[(_rg_locator(r), r["future_task_id"])].append(r)
+    done = sum(1 for v in cells.values()
+               if all(x.get("reward_with_memory") is not None for x in v))
+    unscored = sum(1 for v in cells.values()
+                   if any(x.get("reward_with_memory") is None for x in v))
+    manifest = load("data/manifests/k1_screened_cells.jsonl")
+    planned = {(x["memory_unit_locator"], x["task_id"]) for x in manifest}
+    eligible = len(planned)
+    never_run = len(planned - set(cells))
+    design = json.loads((REPO / "results/ledgers"
+                         / "k1_screened_design.json").read_text())["design"]
+    rows["lmev"] = {"eligible": eligible, "attempted": len(cells),
+                    "completed": done, "excluded": unscored + never_run,
+                    "excl_detail": {"unscorable": unscored,
+                                    "never attempted": never_run}}
+    expect("coverage lmev: eligible cells (from the design manifest)",
+           eligible, 1157)
+    expect("coverage lmev: attempted (from the row file)", len(cells), 1157)
+    expect("coverage lmev: completed", done, 1157)
+    expect("coverage lmev: unscorable", unscored, 0)
+    expect("coverage lmev: planned but never attempted", never_run, 0)
+    expect("coverage lmev: the design artifact agrees with the manifest",
+           design["n_cells"], eligible)
+    expect("coverage lmev: strata sum to the design",
+           sum(design["strata"].values()), eligible)
+
+    # ---- SciCode: the lexical-relatedness pool, run whole
+    sca = json.loads((REPO / "results/ledgers/repro/scicode"
+                      / "scaleup_analysis.json").read_text())
+    scd = json.loads((REPO / "results/scicode"
+                      / "scaleup_all3.json").read_text())
+    n_pairs = scd["design"]["n_pairs"]
+    reps = ("raw", "summary", "structured")
+    sc_elig = n_pairs * len(reps)
+    sc_done = sum(sca["per_representation_interpretable"][r] for r in reps)
+    # Counted from the arm-run ROWS, not inferred as eligible - completed.
+    # reward None is COULD NOT BE SCORED; a cell is excluded if EITHER arm is
+    # None, which is the same rule the analysis applies.
+    _scells = collections.defaultdict(dict)
+    for _row in scd["rows"]:
+        _scells[(_row["memory_id"], _row["task_id"],
+                 _row["representation"])][_row["arm"]] = _row.get("reward")
+    sc_attempted = len(_scells)
+    sc_unscored = sum(1 for v in _scells.values()
+                      if any(x is None for x in v.values())
+                      or len(v) < 2)
+    rows["scicode"] = {
+        "eligible": sc_elig, "attempted": sc_attempted, "completed": sc_done,
+        "excluded": sc_unscored,
+        "excl_detail": {"unscorable execution": sc_unscored},
+        "matched": sca["MATCHED_CELL_SET_N"]}
+    expect("coverage scicode: eligible rep-cells (pairs x representations)",
+           sc_elig, 462)
+    expect("coverage scicode: attempted (counted from the arm-run rows)",
+           sc_attempted, 462)
+    expect("coverage scicode: completed", sc_done, 391)
+    expect("coverage scicode: unscorable (counted from the rows)",
+           sc_unscored, 71)
+    expect("coverage scicode: matched set", sca["MATCHED_CELL_SET_N"], 122)
+
+    # ---- SWE-bench Verified: the representation arm, defect-21 corrected
+    swm = json.loads((REPO / "results/swebench"
+                      / "representations_multirepo.json").read_text())
+    pooled = swm["pooled"]
+    sw_done = sum(pooled["per_representation_interpretable"][r] for r in reps)
+    sw_excl = sum(pooled["exclusions"].values())
+    # 🔴 ELIGIBLE IS COUNTED FROM THE SOURCE ARTIFACTS, not from
+    # completed + excluded. Deriving it from the two terms it is checked
+    # against makes the closing identity VACUOUS -- it could never fail, and
+    # a vanished exclusion category would close just as neatly as a complete
+    # one. Found by planting exactly that (an exclusion key deleted) and
+    # watching the identity still pass. A control that cannot bind is not a
+    # control; this counts the rows independently so the identity can fail.
+    sw_elig = sum(len(json.loads(
+        (REPO / src).read_text())["cells"])
+        for src in pooled["source_artifacts"])
+    rows["swebench"] = {
+        "eligible": sw_elig, "attempted": sw_elig,
+        "completed": sw_done, "excluded": sw_excl,
+        "excl_detail": pooled["exclusions"],
+        "matched": pooled["MATCHED_CELL_SET_N"],
+        "repos": len(pooled["cells_per_repo"])}
+    expect("coverage swebench: eligible rep-cells (counted from source)",
+           sw_elig, 129)
+    expect("coverage swebench: attempted rep-cells", sw_done + sw_excl, 129)
+    expect("coverage swebench: completed", sw_done, 56)
+    expect("coverage swebench: matched set (defect-21 corrected)",
+           pooled["MATCHED_CELL_SET_N"], 15)
+    expect("coverage swebench: repositories", len(pooled["cells_per_repo"]), 2)
+    expect("coverage swebench: defect-21 arm-reads demoted",
+           swm["defect21_manufactured_zero_correction"]["arm_reads_demoted"], 37)
+
+    # ---- the identity, asserted per row. A table whose rows do not close is
+    # a table that has lost cells silently.
+    for name, r in rows.items():
+        if r["completed"] + r["excluded"] != r["eligible"]:
+            FAIL.append(f"coverage {name}: completed {r['completed']} + "
+                        f"excluded {r['excluded']} != eligible "
+                        f"{r['eligible']}; the row does not close")
+        if r["attempted"] > r["eligible"]:
+            FAIL.append(f"coverage {name}: attempted exceeds eligible")
+
+    # ---- the ordering verdicts the caption depends on
+    if sca["ORDERING_VERDICT"] != "NOT_ESTABLISHED":
+        FAIL.append("coverage: SciCode ORDERING_VERDICT changed; the caption "
+                    "calls both secondary benchmarks boundary evidence")
+    if pooled["ORDERING_VERDICT"] != "NOT_ESTABLISHED":
+        FAIL.append("coverage: SWE-bench ORDERING_VERDICT changed; the caption "
+                    "calls both secondary benchmarks boundary evidence")
+    return rows
 
 
 def _boot_mean_ci(xs, n_boot=200000, seed=20260929, alpha=0.05):
@@ -467,6 +966,10 @@ def main():
     front, reuse, formation = frontier()
     print("== cross-benchmark paired contrasts (fig. 5) ==")
     xb = crossbench()
+    print("== reader generalization (fig. 6) ==")
+    rg, rgcorr, rgmeta = reader_generalization()
+    print("== coverage table (tab. 2) ==")
+    cov = coverage()
 
     if FAIL:
         print("\nFIGURE DATA FAILED TO REPRODUCE:")
@@ -480,7 +983,7 @@ def main():
     # happens in LaTeX, so a figure cannot drift from the artifact by a typo
     # in a coordinate.
     PANEL_W = 104.0   # pt, drawable width of the left panel's value axis
-    BAR_MAX = 46.0    # pt, height of the tallest bar
+    BAR_MAX = 33.0    # pt, height of the tallest bar
 
     counts = [dist.get(k, 0) for k in range(0, 10)]
     top = max(counts)
@@ -539,7 +1042,7 @@ def main():
     L.append("")
 
     # ---- figure 3: similarity sextiles vs the content screen ----
-    SIM_W, SIM_H = 100.0, 40.0
+    SIM_W, SIM_H = 100.0, 28.0
     DU_MAX = 0.40       # tallest plotted series value is BEARING's 0.3453
     def sy(v):
         return SIM_H * v / DU_MAX
@@ -571,7 +1074,7 @@ def main():
     # Raw off at the edge -- the reader could not see the two compressed arms are
     # different at all. Both panels share ONE x transform and ONE y transform, so
     # a point's movement between panels is the cost accounting and nothing else.
-    FR_W, FR_H = 96.0, 52.0      # pt, drawable area of each panel
+    FR_W, FR_H = 88.0, 38.0      # pt, drawable area of each panel
     FR_XLO, FR_XHI = 2.0, 4.1    # log10 tokens: 100 .. ~12,600
     FR_YLO, FR_YHI = -0.20, 0.50 # paired dU; covers every whisker end
 
@@ -638,8 +1141,8 @@ def main():
     _scd = json.loads((REPO / "results/scicode/scaleup_all3.json").read_text())["design"]
     _sca = json.loads((REPO / "results/ledgers/repro/scicode"
                        / "scaleup_analysis.json").read_text())
-    _swa = json.loads((REPO / "results/ledgers/repro/swebench"
-                       / "representations_v2_analysis.json").read_text())
+    _swa = json.loads((REPO / "results/swebench"
+                       / "representations_multirepo.json").read_text())["pooled"]
     L.append(rf"\def\sciPairs{{{_scd['n_pairs']}}}")
     L.append(rf"\def\sciMems{{{_scd['n_memories']}}}")
     L.append(rf"\def\sciTasks{{{_scd['n_tasks']}}}")
@@ -651,7 +1154,22 @@ def main():
     L.append(rf"\def\sweLocMiss{{{_swa['exclusions'].get('raw:localizer_miss', 0)}}}")
     _sr = _swa["both_arms_fail_matched"]["raw"]
     L.append(rf"\def\sweBafRaw{{{_sr['k']}/{_sr['n']}}}")
-    L.append(rf"\def\sweRepos{{{len(_swa['repos_present'])}}}")
+    L.append(rf"\def\sweRepos{{{len(_swa['cells_per_repo'])}}}")
+    L.append(rf"\def\sweDomRepoPct{{{100.0 * _swa['DOMINATED_BY']['share']:.0f}}}")
+    # Session-matched reader transfer -- the CANONICAL reader-generalization
+    # result. It was typed into main.tex and no guard read it: planting
+    # +0.5000 left both audit_claims.py and make_figures.py green, because
+    # the former never read that paragraph and the latter never reads prose.
+    _sm = json.loads((REPO / "results/ledgers/repro/raw_session_matched"
+                      / "raw_session_matched_analysis.json").read_text())
+    _lo, _hi = _sm["ci95_task_clustered"]
+    L.append(rf"\def\rgSmDiff{{{_sm['paired_diff_gemma_minus_gptoss']:+.4f}}}")
+    L.append(rf"\def\rgSmLo{{{_lo:+.4f}}}")
+    L.append(rf"\def\rgSmHi{{{_hi:+.4f}}}")
+    L.append(rf"\def\rgSmN{{{_sm['n_matched']}}}")
+    L.append(rf"\def\rgSmOss{{{_sm['deltaU_gptoss']:+.4f}}}")
+    L.append(rf"\def\rgSmGem{{{_sm['deltaU_gemma']:+.4f}}}")
+
     for tag, bk in (("Lm", "lmev"), ("Sc", "scicode")):
         f = xb["_floors"][bk]
         L.append(rf"\def\xbFloor{tag}{{{f['rate']:.3f}}}")
@@ -659,6 +1177,92 @@ def main():
         L.append(rf"\def\xbFloor{tag}N{{{f['denominator']}}}")
     L.append(rf"\def\xbAxisW{{{_XBW:.1f}pt}}")
     L.append(rf"\def\xbAxisMax{{{_XBS:.2f}}}")
+    L.append("")
+
+    # ---- figure 6: reader generalization ---------------------------------
+    # Per representation, the two readers' dU side by side with the paired
+    # interval. The geometry is computed HERE; TikZ draws what it is given.
+    RG_W, RG_H = 104.0, 36.0     # pt, drawable area
+    RG_LO, RG_HI = -0.10, 0.70   # dU axis; covers every whisker end
+
+    def rgx(v):
+        return RG_W * (v - RG_LO) / (RG_HI - RG_LO)
+
+    L.append("%% --- reader generalization (fig 6): gpt-oss vs Gemma readers ---")
+    L.append("%% Matched cells only: interpretable under BOTH readers at the")
+    L.append("%% same replicate depth. Memory text is byte-identical across")
+    L.append("%% the two runs (1694/1694 verified), so only the reader differs.")
+    for rep, tag in (("raw", "Raw"), ("summary", "Sum"), ("structured", "Str")):
+        d = rg[rep]
+        L.append(rf"\def\rg{tag}N{{{d['n']}}}")
+        L.append(rf"\def\rg{tag}Tasks{{{d['n_tasks']}}}")
+        L.append(rf"\def\rg{tag}Oss{{{d['oss']:+.4f}}}")
+        L.append(rf"\def\rg{tag}Gem{{{d['gem']:+.4f}}}")
+        L.append(rf"\def\rg{tag}Diff{{{d['diff']:+.4f}}}")
+        L.append(rf"\def\rg{tag}Lo{{{d['lo']:+.4f}}}")
+        L.append(rf"\def\rg{tag}Hi{{{d['hi']:+.4f}}}")
+        L.append(rf"\def\rg{tag}XOss{{{rgx(d['oss']):.2f}pt}}")
+        L.append(rf"\def\rg{tag}XGem{{{rgx(d['gem']):.2f}pt}}")
+        L.append(rf"\def\rg{tag}XLo{{{rgx(d['lo']):.2f}pt}}")
+        L.append(rf"\def\rg{tag}XHi{{{rgx(d['hi']):.2f}pt}}")
+        L.append(rf"\def\rg{tag}XDiff{{{rgx(d['diff']):.2f}pt}}")
+        # The paired difference is EXACTLY the gap between the two readers'
+        # means -- the mean of per-cell differences equals the difference of
+        # means on a paired set -- which is asserted, not assumed, below. So
+        # the interval on the difference can be drawn on the SAME dU axis,
+        # anchored at the gpt-oss point: it then excludes zero precisely when
+        # the whisker does not cover that point. One panel, nothing dropped.
+        L.append(rf"\def\rg{tag}XCiLo{{{rgx(d['oss'] + d['lo']):.2f}pt}}")
+        L.append(rf"\def\rg{tag}XCiHi{{{rgx(d['oss'] + d['hi']):.2f}pt}}")
+        L.append(rf"\def\rg{tag}Excl{{{'yes' if d['excl0'] else 'no'}}}")
+        c = rgcorr[rep]
+        L.append(rf"\def\rg{tag}RAll{{{c['r_all']:+.3f}}}")
+        L.append(rf"\def\rg{tag}RNz{{{c['r_nz']:+.3f}}}")
+        L.append(rf"\def\rg{tag}NNz{{{c['n_nz']}}}")
+        L.append(rf"\def\rg{tag}ZeroBoth{{{c['zero_both']}}}")
+        L.append(rf"\def\rg{tag}SignK{{{c['sign_k']}}}")
+        L.append(rf"\def\rg{tag}SignN{{{c['sign_n']}}}")
+        L.append(rf"\def\rg{tag}LabK{{{c['label_k']}}}")
+        L.append(rf"\def\rg{tag}LabN{{{c['label_n']}}}")
+    for v, nm in ((0.0, "Zero"), (0.2, "Two"), (0.4, "Four"), (0.6, "Six")):
+        L.append(rf"\def\rgTick{nm}{{{rgx(v):.2f}pt}}")
+    L.append(rf"\def\rgZeroX{{{rgx(0.0):.2f}pt}}")
+    L.append(rf"\def\rgW{{{RG_W:.2f}pt}}")
+    L.append(rf"\def\rgH{{{RG_H:.2f}pt}}")
+    L.append(rf"\def\rgRows{{{rgmeta['n_gemma_rows']:,}}}".replace(",", "{,}"))
+    # the within-memory BEARING-control contrast, the quantity Sec. 8 reports
+    _bmc = json.loads((REPO / "results/ledgers/gemma_reader"
+                       / "reader_transfer_analysis.json").read_text())
+    for rep, tag in (("raw", "Raw"),):
+        _r = _bmc["per_representation_matched"][rep]
+        for who, wtag in (("gptoss", "Oss"), ("gemma", "Gem")):
+            _b = _r[f"within_memory_bearing_minus_control_{who}"]
+            L.append(rf"\def\rgBmc{tag}{wtag}{{{_b['mean']:+.4f}}}")
+            L.append(rf"\def\rgBmc{tag}{wtag}Lo{{{_b['ci_lower']:+.4f}}}")
+            L.append(rf"\def\rgBmc{tag}{wtag}Hi{{{_b['ci_upper']:+.4f}}}")
+            L.append(rf"\def\rgBmc{tag}{wtag}Mem{{{_b['n_memories']}}}")
+    _dec = _bmc["deltaU_decomposed_by_arm"]["raw"]
+    L.append(rf"\def\rgWithoutShare{{{100.0 * _dec['share_of_deltaU_change_from_the_WITHOUT_arm']:.0f}}}")
+    L.append(rf"\def\rgWithDelta{{{_dec['change_in_WITH_arm']:+.4f}}}")
+    L.append(rf"\def\rgWithoutDelta{{{_dec['change_in_WITHOUT_arm']:+.4f}}}")
+    L.append("")
+
+    # ---- table 2: coverage ------------------------------------------------
+    L.append("%% --- coverage (tab 2): eligible / attempted / completed ---")
+    for bk, tag in (("lmev", "Lm"), ("scicode", "Sc"), ("swebench", "Sw")):
+        c = cov[bk]
+        L.append(rf"\def\cov{tag}Elig{{{c['eligible']:,}}}".replace(",", "{,}"))
+        L.append(rf"\def\cov{tag}Att{{{c['attempted']:,}}}".replace(",", "{,}"))
+        L.append(rf"\def\cov{tag}Done{{{c['completed']:,}}}".replace(",", "{,}"))
+        L.append(rf"\def\cov{tag}Excl{{{c['excluded']:,}}}".replace(",", "{,}"))
+        L.append(rf"\def\cov{tag}Pct{{{100.0 * c['completed'] / c['eligible']:.1f}}}")
+    L.append(rf"\def\covScMatched{{{cov['scicode']['matched']}}}")
+    L.append(rf"\def\covSwMatched{{{cov['swebench']['matched']}}}")
+    L.append(rf"\def\covSwRepos{{{cov['swebench']['repos']}}}")
+    _swx = cov["swebench"]["excl_detail"]
+    L.append(rf"\def\covSwLocMiss{{{sum(v for k, v in _swx.items() if 'localizer' in k)}}}")
+    L.append(rf"\def\covSwUnscored{{{sum(v for k, v in _swx.items() if 'unapplicable' in k)}}}")
+    L.append(rf"\def\covSwUnavail{{{sum(v for k, v in _swx.items() if 'unavailable' in k)}}}")
     L.append("")
 
     dest = OVERLEAF / "figdata.tex"
