@@ -701,18 +701,63 @@ def _pick_isolation_safe_sample(rows: Sequence[dict[str, Any]]) -> dict[str, Any
     when that row really is its cell's only replicate. Returns the first row with
     ``num_replicates`` in (None, 1); falls back to the synthetic row rather than
     silently using a multi-replicate one and blaming redaction for the failure.
+
+    🔴 AND IT MUST NOT ALREADY BE WITHHELD. Several controls below *construct* a
+    withholding on the fixture and require the validator to object -- e.g. (e3)
+    sets ``memory_text`` to the sentinel WITHOUT declaring it and demands
+    ``id_mismatch``. On a row that is *already* withheld and *already* declares
+    it, that assignment changes nothing: the row stays legitimately exempt, no
+    error fires, and the control reports SELF-TEST FAILED about a gate that is
+    working perfectly.
+
+    Measured 2026-10-01: with ``--results <a longmemeval ledger> <the swebench
+    ledger>`` the picker returned a SWE-bench row (``num_replicates`` is None
+    there, so it was the first match) and the self-test failed with *"the
+    sentinel alone bought an exemption"*. The gates were fine; the FIXTURE was
+    already in the state the plant was supposed to create. A SWE-bench-only
+    release would have hit this on every build and sent someone to debug
+    redaction, where the bug is not.
+
+    This is the register's own rule about controls -- *a control applied to a
+    subject that is already failing is not a control* -- and it is the same
+    shape as defect #23, which this function was written to fix: that time the
+    fixture was unvalidatable in isolation, this time it is un-plantable.
     """
     if not rows:
         return _synthetic_row()
-    for r in rows:
-        if r.get("num_replicates") in (None, 1):
+
+    def _already_withheld(r: dict[str, Any]) -> bool:
+        declared = r.get("text_fields_withheld")
+        if isinstance(declared, list) and declared:
+            return True
+        return any(_field_is_withheld_value(r.get(f))
+                   for f in S.REDISTRIBUTABLE_TEXT_FIELDS)
+
+    singles = [r for r in rows if r.get("num_replicates") in (None, 1)]
+    if not singles:
+        # No single-replicate row exists: say so rather than returning a row that
+        # will fail in isolation for a reason that has nothing to do with the gates.
+        raise AssertionError(
+            "SELF-TEST CANNOT RUN: every input row belongs to a multi-replicate cell, "
+            "so no row can be validated in isolation and the per-cell checks would "
+            "fire for a reason unrelated to any gate. Pass a single-replicate row.")
+    for r in singles:
+        if not _already_withheld(r):
             return dict(r)
-    # No single-replicate row exists: say so rather than returning a row that
-    # will fail in isolation for a reason that has nothing to do with the gates.
     raise AssertionError(
-        "SELF-TEST CANNOT RUN: every input row belongs to a multi-replicate cell, "
-        "so no row can be validated in isolation and the per-cell checks would "
-        "fire for a reason unrelated to any gate. Pass a single-replicate row.")
+        "SELF-TEST CANNOT RUN: every isolation-safe row is ALREADY a withheld row "
+        "(text_fields_withheld non-empty, or a text field holding the withholding "
+        "marker). The controls that plant a withholding would then change nothing "
+        "and 'fail' about a gate that is working. Pass at least one unwithheld "
+        "single-replicate row -- e.g. include a LongMemEval or SciCode ledger "
+        "alongside a metrics-only one.")
+
+
+def _field_is_withheld_value(value: Any) -> bool:
+    """True when a field already holds a withholding marker (either shape)."""
+    if value == WITHHELD:
+        return True
+    return isinstance(value, dict) and value.get("__withheld__") is True
 
 
 def self_test(rows: Sequence[dict[str, Any]]) -> list[str]:
