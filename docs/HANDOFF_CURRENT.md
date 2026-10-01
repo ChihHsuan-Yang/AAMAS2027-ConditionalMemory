@@ -611,3 +611,46 @@ repair of an invalid run, or a validity-critical gap** may still be run. Deferre
 than killed: additional benchmarks, Jev, learned gate, RL memory manager, new retrieval
 architectures, semantic-type redesign, new representation families, any backbone beyond
 gpt-oss-120b and gemma-4-31B-it. Five sub-agents were dispatched against that freeze.
+
+
+---
+
+## 🔴 OVERLEAF GIT ACCESS IS DOWN — 2026-10-01 ~18:10 CDT
+
+`git push` and `git fetch` to `git.overleaf.com/6abbde4a9eb777031afef068` both
+return:
+
+```
+fatal: remote error: no git access
+This Overleaf project currently has no git access, either because
+the project does not exist, or because git access is not enabled
+for the project.
+```
+
+**Fetch fails too, so this is the remote, not the stored token.** Retried after
+20 s with the same result.
+
+### What this means for the work
+
+- **Nothing is lost.** The manuscript is committed locally at **`a320c74`**
+  ("Story 1 support: a screen that never sees gold finds the same effect"),
+  one commit **ahead of** `origin/main` (`650a911`).
+- A flat copy of `main.tex`, `figdata.tex`, `main.pdf` and `p1refs.bib` is in
+  **`/Users/bellayang/Documents/2026/p1_memory_utility/overleaf_backup/`** in
+  case the local git directory is disturbed.
+
+### What a successor must do
+
+1. **Do not re-apply the gold-free paragraph.** It is already in `main.tex`.
+   Check with `grep -c 'never sees the gold answer' main.tex` → expect 1.
+2. Re-try `git push origin main` from the overleaf directory. If access is
+   restored it will go through unchanged.
+3. If access stays down, the content can be pasted into the Overleaf web
+   editor from the backup copy — but then the local git history and the web
+   project will have diverged, and the local repo must be re-cloned afterwards
+   rather than merged.
+
+**This is a tooling outage, not a scientific blocker.** Every number in the
+unpushed commit is generated from a tracked artifact in the GitHub repo, so the
+manuscript is reconstructible from `scripts/make_figures.py` + `figdata.tex`
+even if this copy were lost entirely.
