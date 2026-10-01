@@ -37,9 +37,10 @@ configs:
 >
 > Adds **154 SciCode rows** (Apache-2.0, content permitted) to v0.2's 5,643
 > LongMemEval-V2 rows. 🔴 **SciCode ships `raw` ONLY — 154 of its 462 cells.**
-> The 308 Summary and Structured cells are **withheld because their memory text
-> was never persisted and is NOT recoverable**; see §SciCode below. A partial
-> export that looks complete is the defect, so the gap is stated here first.
+> The 308 Summary and Structured cells are **absent because their memory text was
+> never persisted and is NOT recoverable** — a PERSISTENCE gap, not a licence
+> withholding (SciCode is Apache-2.0 and withholds nothing); see §19.14. A
+> partial export that looks complete is the defect, so the gap is stated first.
 >
 > *(v0.2 was: 5,643 rows, LongMemEval-V2 only, three representations.)*
 > LongMemEval-V2 only, now in **three matched memory representations**: the 4,519 Raw
@@ -495,8 +496,31 @@ so source text **is** redistributed, with attribution and a NOTICE of modificati
 
 Withheld fields would carry the literal `__WITHHELD_SEE_LICENSE__` with
 `text_fields_withheld` and `reconstruction_required` recorded per row — **a withholding is
-visible, never silent.** In this release nothing is withheld, because everything is
-Apache-2.0.
+visible, never silent.** In this release **nothing is withheld**, because everything is
+Apache-2.0: `text_fields_withheld` is `[]` on all 5,797 rows.
+
+### 🔴 Two different sentinels, which must never be read as the same thing
+
+A field can be empty for two unrelated reasons, and this release uses **two
+distinct literals** so a consumer can tell them apart without guessing:
+
+| literal | means | appears in v0.3 |
+|---|---|---|
+| `__WITHHELD_SEE_LICENSE__` | *The text exists and we may not redistribute it.* A **licence** restriction. Always accompanied by the field's name in `text_fields_withheld`. | **nowhere** — 0 of 5,797 rows |
+| `__OUTPUT_NOT_RETAINED_BY_THE_RUN__` | *The text was never written down, by anyone. No licence is involved.* A **persistence** gap in the runner. | `output_with_memory` and `output_without_memory` on all **154 SciCode** rows |
+
+So on a SciCode row, `memory_text` carries its **real content** (Apache-2.0
+permits it) while the two reader-output fields carry
+`__OUTPUT_NOT_RETAINED_BY_THE_RUN__`: the SciCode harness scored each completion
+and recorded `provenance.response_chars_*` but did not keep the string. The
+sentinel is **not** a digest — a digest would claim "here is a fingerprint of the
+text", and this claims "there is no text to fingerprint". The validator accepts
+it **only** on a row that proves the completion was non-empty by carrying a
+measured `response_chars_* > 0`, so it cannot be used to paper over an
+empty-output failure.
+
+**Reading `__OUTPUT_NOT_RETAINED_BY_THE_RUN__` as a licence withholding would be
+a false statement about SciCode, which withholds nothing.**
 
 ## 18. Models, clusters, and version provenance
 
@@ -624,6 +648,15 @@ Each of these is a **measured** constraint with a command behind it.
 
 ## 19.14 🔴 SciCode ships 154 of 462 cells — the other 308 are NOT recoverable
 
+> 🔴 **SciCode ships RAW ONLY — 154 of 462 cells.** The summary/structured memory
+> TEXT was never persisted (the runner recorded `response_chars` and discarded
+> content; the client had no `cache=`). It **CANNOT be reconstructed**:
+> cross-session regeneration at fully matched settings is **0/8 byte-identical**
+> while within-session is **3/3** (defect 22). Their reward measurements remain
+> **VALID and are not retracted**. No text was fabricated or regenerated and
+> presented as the original. **SciCode is therefore NOT representation-matched
+> where LongMemEval is.**
+
 **v0.3 adds SciCode, and it adds only its `raw` arm. State this before using the
 benchmark comparison: the SciCode rows are not representation-matched, and the
 LongMemEval rows are.**
@@ -692,6 +725,23 @@ per-memory matches over 34 memories. That is what was observed.
 Evidence: `results/scicode/memory_recovery_report.json` (per-cell verdicts, the
 positive control, and both nulls).
 
+### The two cross-session numbers are two measurements, not one quoted twice
+
+`0/8` and `0/12` appear above and they are **different subjects measured on
+different corpora**. They corroborate each other only because they were taken
+independently; neither is a restatement of the other, and they must not be
+pooled into "0/20".
+
+| figure | subject | settings | source |
+|---|---|---|---|
+| **0/8** byte-identical, vs **3/3** within-session | 8 ground-truth LongMemEval summaries | fully matched: `max_tokens=512`, temp 0, `reasoning_effort=low`, segments rebuilt with `r1`'s own `load_segments` | `docs/DEFECT_REGISTER.md` defect 22 (not re-run for this release; quoted with its date) |
+| **0/12** byte-identical, `prompt_tokens` matching **12/12**, vs **4/4** within-session | 12 Summary memories in `results/repr_scaleup/memories.jsonl` whose text is on disk | the writers' own production settings | `results/scicode/memory_recovery_report.json` → `cross_session_reproduction_control` |
+
+The first was the measurement that **stopped** the regeneration; the second is
+the control the recovery script runs and **raises on** if reproduction ever
+succeeds, because a control that has stopped discriminating cannot support a
+refusal.
+
 ### Honest limit of the identity check
 
 A token count is not a hash. On the real subject, **0 of 4 one-character
@@ -707,7 +757,7 @@ evidence and not proof of byte identity. The opposite null is clean: substitutin
 | version | date | contents |
 |---|---|---|
 | **v0.1 `lmev2-derived`** | 2026-09-30 | First upload. 4,519 rows / 2,117 cells from three LongMemEval-V2 arms (screened, pilot, official-prompt). All `raw`. Schema v2, 97 fields. |
-| **v0.3 `scicode-derived`** | 2026-09-30 | **+154 rows**: SciCode `raw` only (Apache-2.0, content ships). **5,797 rows total**, 98 fields, two benchmarks. 🔴 SciCode's Summary and Structured arms (308 cells) are **withheld as unrecoverable** — the memory text was never persisted and regeneration is NOT byte-reproducible across sessions (measured: 0/12 against ground truth on disk). Adds §19.14 and GATE 5b. |
+| **v0.3 `scicode-derived`** | 2026-09-30 | **+154 rows**: SciCode `raw` only (Apache-2.0, content ships). **5,797 rows total**, 98 fields, two benchmarks. 🔴 SciCode's Summary and Structured arms (308 cells) are **absent as unrecoverable** — a PERSISTENCE gap, never a licence withholding: the memory text was never persisted and regeneration is NOT byte-reproducible across sessions (measured: 0/8 at fully matched settings, and 0/12 against ground truth on disk). Adds §19.14 and GATE 5b. |
 | **v0.2 `repr-derived`** | 2026-09-30 | **+1,124 rows**: the matched Summary (570) and Structured (554) arms over the same memories, tasks and reader. **5,643 rows total.** Schema **v3**, **98 fields** (`faithfulness_detail` added). `faithfulness_check` and `parent_memory_id` are now populated on the new rows (§7.1). Adds §12.1 (compression destroys the effect), §14.1 (the cost ranking reverses once formation is charged) and §19.13 (cross-session drift between the arms). |
 | v0.3 *(planned)* | — | SciCode-derived rows. Run in flight at v0.2; **not** included, and no claim is made about it here. |
 | v0.4 *(planned)* | — | SWE-bench Verified rows. Run in flight at v0.2; a localized pilot found an arm asymmetry that must be resolved first. |
