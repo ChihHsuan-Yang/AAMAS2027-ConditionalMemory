@@ -159,6 +159,16 @@ def main() -> int:
       "answer changes agrees trivially. The column above is restricted to cells "
       "non-zero under **both**; the inflated all-cells rate is in the artifact "
       "and is reported there with that caveat attached.\n")
+    w("The zeros are **structural, and their cause is already measured**: "
+      "`docs/BEARING_SCARCITY.md` finds that a naturally occurring memory bears "
+      "on a **median of one future task out of hundreds**, so most "
+      "(memory, task) cells cannot move regardless of reader. Under gpt-oss at "
+      "two replicates the exact-zero counts on these strata are **217/285 raw, "
+      "254/285 summary, 250/277 structured** — fixed in "
+      "`results/gemma_reader/gptoss_sign_baseline.json` before the Gemma "
+      "deltas were inspected. A reader-agreement rate computed over all cells "
+      "is therefore mostly a measurement of bearing scarcity, not of reader "
+      "transfer.\n")
 
     w("### Useful / neutral / harmful agreement\n")
     w("Each reader is labelled under the pre-registered §4 rule against **its "
