@@ -79,5 +79,23 @@
   "script": "scripts/raw_session_matched_analysis.py",
   "_falsifiers_committed_before_data": "8763fb8",
   "_what": "settles whether the published +0.1268 raw reader effect was session drift. Both arms re-run 14 minutes apart; memory_text byte-identical 550/550."
+ },
+ "repr_scaleup_cells": {
+  "full_artifact_path": "results/repr_scaleup/cells.jsonl",
+  "full_artifact_sha256": "e6abf51b1c2c4b5d7f90c7053c860c4a3688b9e821756ba257bc35d9b54d9eb3",
+  "full_artifact_bytes": 7032868,
+  "full_artifact_tracked": false,
+  "slim_slice": "results/ledgers/repro/repr_scaleup/cells_slim.jsonl",
+  "n_rows": 1124,
+  "_why": "P1-I11: these rows carry CONTRIBUTION C (the representation result) and existed ONLY on one laptop, untracked and absent from this manifest, while every other arm had a tracked slice. Closed 2026-10-01."
+ },
+ "repr_scaleup_memories": {
+  "full_artifact_path": "results/repr_scaleup/memories.jsonl",
+  "full_artifact_sha256": "b342151c7f3cac5aa34ddd6d09981dd0272584343870a1c32994ae42a5f7ce5a",
+  "full_artifact_bytes": 2298504,
+  "full_artifact_tracked": false,
+  "slim_slice": "results/ledgers/repro/repr_scaleup/memories_slim.jsonl",
+  "n_rows": 180,
+  "_why": "P1-I11: these rows carry CONTRIBUTION C (the representation result) and existed ONLY on one laptop, untracked and absent from this manifest, while every other arm had a tracked slice. Closed 2026-10-01."
  }
 }
