@@ -118,6 +118,46 @@ is the wrong object, for a different reason than we hypothesised.
 **Python: `/Users/bellayang/miniconda3/bin/python3` (3.13).** The system `python3` is 3.9
 and aborts pytest collection on a vendored file — a healthy suite looks broken.
 
+### Coverage and model identity — read these two tables first
+
+Authoritative definitions: [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md)
+(what "full coverage" means) and [`docs/MODEL_ARMS.md`](docs/MODEL_ARMS.md)
+(which model produced which result).
+
+| Benchmark | Eligible pool | Executed | Coverage | Reader | Writer | Representation | Status |
+|---|---:|---:|---:|---|---|---|---|
+| **LongMemEval-V2** (screened design — what the paper reports) | 1,157 | 1,157 | **100%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **DONE** |
+| LongMemEval-V2 (frozen 8-task pairing universe) | 15,112 | 574 | 3.8% | gpt-oss-120b | — | raw | partial |
+| LongMemEval-V2 (LLM-judged stratum) | 156 q | 0 | 0% | — | — | — | **eligible, blocked on F_judge** |
+| **SciCode** | 154 | 154 | **100%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **DONE** |
+| **SWE-bench Verified** (runnable universe) | 107 | 55 | **51%** | gpt-oss-120b | deterministic + gpt-oss | raw / summary / structured | **PARTIAL — all django** |
+
+🔴 **LongMemEval has two universes and neither percentage alone is honest.** The
+screened design is a **re-pairing**, not a subset of the frozen universe
+(intersection 102 of 1,157). Always name the universe when quoting a coverage %.
+
+🔴 **SWE-bench is django-only, and that is not a harness limit.** sympy has a
+working runner and a passing scorer control (20/20, negative control 20/20) and
+has never been run — 11 pairs are runnable today.
+
+| Arm | Writer | Reader | Cluster | Prompt | Temp | Max output | Workers |
+|---|---|---|---|---|---:|---:|---:|
+| LongMemEval raw/summary/structured | deterministic / gpt-oss-120b | **gpt-oss-120b** | metis | `p1_deltau_raw_v1` | 0 | 512 | 16 |
+| SciCode raw/summary/structured | deterministic / gpt-oss-120b | **gpt-oss-120b** | metis | `scicode_deltau_v1` | 0 | 1024 | 16 |
+| SWE-bench raw/summary/structured | deterministic / gpt-oss-120b | **gpt-oss-120b** | metis | `swebench_v2_symmetric` | 0 | 2048 | 16 / sequential |
+| **Reader-only replication** | *unchanged* (gpt-oss memories, byte-identical) | **gemma-4-31B-it** | metis | as above | 0 | TBD | **16** (measured, not inherited) |
+| Writer × Reader factorial | + gemma-4-31B-it | both | metis | TBD | 0 | TBD | TBD |
+
+**Gemma is verified live** at `metis/gemma-4-31B-it` (capital B) — the *same*
+cluster as gpt-oss, so a reader comparison does not become a cluster
+comparison. Measured, not assumed: 16 workers (252/252 clean; 25% 429s at 24,
+72% at 32), 74.0 completed/min at 24k context against gpt-oss's 169.9/min.
+`reasoning_effort` is **accepted but inert** on Gemma (byte-identical output
+across low/medium/high, with a gpt-oss positive control showing 58/118/473
+reasoning tokens — so the probe can see the effect when it exists), and Gemma
+reports **no** `reasoning_tokens` at all. Cost is therefore **not poolable
+across models**. Evidence: [`docs/GEMMA_ENDPOINT_PROBE.md`](docs/GEMMA_ENDPOINT_PROBE.md).
+
 ### Benchmarks
 
 | | status |
