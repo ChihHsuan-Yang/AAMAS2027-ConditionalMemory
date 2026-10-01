@@ -1,0 +1,28 @@
+{
+  "_undecided_policy": "undecided is never counted as NO",
+  "_what": "GF7: judge verdicts on same-memory/same-family CONTROL candidates",
+  "_why": "gf5 only showed the judge lexically-similar cells, so 24 of 42 bearing cells had no same-family judge-NO control. A control must be a cell the judge SAW and REJECTED, not one it never saw.",
+  "cache": "results/gf_llm/judge_cache.jsonl",
+  "judge_control": {
+    "PASS": true,
+    "_cache": "judge_cache.jsonl",
+    "_what": "the judge must be able to say YES and NO; a judge that never fires makes an empty firing set uninterpretable",
+    "cases": {
+      "negative": {
+        "expected": "NO",
+        "parsed": false,
+        "raw": "NO"
+      },
+      "positive": {
+        "expected": "YES",
+        "parsed": true,
+        "raw": "YES"
+      }
+    }
+  },
+  "n_candidates": 126,
+  "n_no": 125,
+  "n_undecided": 0,
+  "n_yes": 1,
+  "wall_clock_s": 18.7
+}

@@ -1,0 +1,29 @@
+{
+  "_what": "GF6 GF-LLM two-stratum design. ZERO endpoint calls.",
+  "_why_rerun_everything": "21 of the 42 GF-LLM bearing cells already have a measurement, but spread across TWO sessions (screened + GF-LEX). DEFECT #25 forbids pooling across sessions, so the whole contrast is re-executed in one.",
+  "cells_artifact": "data/manifests/gf_llm_cells.jsonl",
+  "config": {
+    "cells_out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/data/manifests/gf_llm_cells.jsonl",
+    "max_calls": 600,
+    "out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/ledgers/gf_llm_design.json",
+    "replicates": 2,
+    "root": "/tmp/lmev2",
+    "seed": 20261001
+  },
+  "deciding_stratum_llm_and_not_gold": {
+    "n_cells": 32
+  },
+  "judge_cache_verdicts": {
+    "n_no": 924,
+    "n_yes": 43
+  },
+  "n_bearing_memories": 28,
+  "n_cells": 84,
+  "n_memory_family_groups_short": 0,
+  "n_with_control": 28,
+  "planned_calls": 336,
+  "strata": {
+    "GFLLM_BEARING": 42,
+    "GFLLM_MATCHED_CONTROL": 42
+  }
+}

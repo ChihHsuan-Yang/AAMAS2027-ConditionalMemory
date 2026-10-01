@@ -1,0 +1,178 @@
+{
+  "_precommitment": "docs/GOLD_FREE_SCREEN_PRECOMMITMENT.md",
+  "_what": "GF1 gold-free bearing screen (GF-LEX). NO gold answer, NO reward, NO model output, NO endpoint call.",
+  "boilerplate_terms": {
+    "enterprise": [
+      "a",
+      "am",
+      "answer",
+      "be",
+      "boxed",
+      "final",
+      "i",
+      "in",
+      "mark",
+      "more",
+      "one",
+      "or",
+      "our",
+      "phrases",
+      "portal",
+      "servicenow",
+      "short",
+      "should",
+      "the",
+      "with",
+      "working",
+      "your"
+    ],
+    "web": [
+      "a",
+      "am",
+      "and",
+      "answer",
+      "based",
+      "be",
+      "boxed",
+      "custom",
+      "final",
+      "i",
+      "in",
+      "magento",
+      "on",
+      "our",
+      "page",
+      "shopping",
+      "should",
+      "the",
+      "to",
+      "using",
+      "website",
+      "wrapped",
+      "your"
+    ]
+  },
+  "config": {
+    "boilerplate_q_frac": 0.5,
+    "max_df": 8,
+    "max_pool_hits": 8,
+    "min_df": 1,
+    "normalizer": "p1mem.adapters.leakage.normalize_text (INHERITED from the gold screen)",
+    "seed": 20261001
+  },
+  "controls": {
+    "C1_can_fire_can_stay_silent": {
+      "PASS": true,
+      "_what": "C1: detector must FIRE on a plant and STAY SILENT on a baseline asserted clean; a partial plant must NOT fire; an empty anchor set must NOT fire vacuously",
+      "anchors": [
+        "zzqxanchoralpha",
+        "zzqxanchorbeta"
+      ],
+      "fires_on_clean_baseline": false,
+      "fires_on_empty_anchor_set": false,
+      "fires_on_partial_plant": false,
+      "fires_on_plant": true,
+      "n_anchors": 2
+    },
+    "C2_plant_the_defect": {
+      "PASS": true,
+      "_finding_the_bound_is_non_binding_here": "at the operating point the bound excludes 0 tasks: under the all-anchors fire rule NO task fires on more than 8 pool memories. The GOLD screen has 205 of 295 tasks over the same bound. GF-LEX's discriminativeness comes from the conjunction of rare anchors, not from the threshold. The bound is KEPT (same shape as the gold screen's) and shown able to fire by the relaxed-rule mutation.",
+      "_what": "C2: planted defects must MOVE the yield; and the discriminativeness bound must be shown ABLE to exclude",
+      "baseline": {
+        "edges": 218,
+        "tasks": 54,
+        "tasks_excluded_by_the_bound": 0
+      },
+      "mutation_anchors_emptied": {
+        "edges": 0,
+        "must_be_zero": true,
+        "tasks": 0
+      },
+      "mutation_bound_exercised_under_relaxed_fire_rule": {
+        "cover": 0.5,
+        "edges": 450,
+        "must_exceed_zero": true,
+        "tasks": 130,
+        "tasks_excluded_by_the_bound": 20
+      },
+      "mutation_df_band_widened": {
+        "edges": 0,
+        "must_differ_from_baseline": true,
+        "tasks": 0
+      }
+    },
+    "C3_join_keys": {
+      "PASS": true,
+      "_trap": "memory_id is a per-representation content hash in the design manifest and mem-<traj>-<hash> in the rows; an overlap of 0 from that key would be a BAD JOIN, not a finding",
+      "_what": "C3: the locator join is the real one; memory_id returns zero",
+      "design_locators_all_in_units_manifest": true,
+      "join_on_memory_id_matches": 0,
+      "join_on_memory_unit_locator_matches": 60,
+      "n_design_memories": 60
+    },
+    "C4_gold_manifest_rederived": {
+      "PASS": true,
+      "_what": "C4: the GOLD manifest re-derived from raw text on a sample",
+      "_why_fires_reported": "a control with zero positives cannot fail",
+      "detector_self_controls_pass": true,
+      "n_agree": 1731,
+      "n_cells_checked": 1731,
+      "n_disagree": 0,
+      "n_recomputed_fires": 765,
+      "n_self_controls": 17,
+      "n_units_sampled": 12
+    }
+  },
+  "fires_artifact": "data/manifests/gf_lex_bearing.jsonl",
+  "overlap_cell_level": {
+    "_nonvacuous": true,
+    "both_bearing": 7,
+    "frac_of_gf_also_gold": 0.03211009174311927,
+    "frac_of_gold_also_gf": 0.02631578947368421,
+    "gf_only": 211,
+    "gold_only": 259,
+    "jaccard": 0.014675052410901468,
+    "n_gf_bearing": 218,
+    "n_gold_bearing": 266,
+    "n_universe_cells": 277594,
+    "neither": 277117
+  },
+  "overlap_memory_level": {
+    "both": 40,
+    "gf_memories": 116,
+    "gf_only": 76,
+    "gold_memories": 165,
+    "gold_only": 125
+  },
+  "overlap_task_level": {
+    "both": 9,
+    "gf_discriminative": 54,
+    "gf_only": 45,
+    "gold_discriminative": 75,
+    "gold_only": 66
+  },
+  "pool_size_per_domain": {
+    "enterprise": 1024,
+    "web": 865
+  },
+  "wall_clock_s": 28.3,
+  "yield": {
+    "_gold_screen_for_contrast": {
+      "n_bearing_edges": 266,
+      "n_discriminative_tasks": 75,
+      "n_memories_with_any_bearing_task": 165
+    },
+    "anchors_per_task": {
+      "max": 12,
+      "min": 0,
+      "n_tasks_with_zero_anchors": 37
+    },
+    "n_bearing_edges": 218,
+    "n_deterministic_tasks": 295,
+    "n_discriminative_tasks": 54,
+    "n_memories_with_any_bearing_task": 116,
+    "n_memories_with_ge2": 35,
+    "n_source_episodes_with_ge2": 20,
+    "n_universe_cells": 277594
+  }
+}

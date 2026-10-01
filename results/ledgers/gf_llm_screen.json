@@ -1,0 +1,77 @@
+{
+  "_precommitment": "docs/GOLD_FREE_SCREEN_PRECOMMITMENT.md \u00a73",
+  "_what": "GF5 GF-LLM secondary gold-free screen. NO gold answer in any prompt; proven per-prompt by assert_prompt_is_gold_free.",
+  "_why_needed": "95% of GF-LEX firings rest on a SINGLE anchor term, and the most productive anchors are generic words that are merely rare in the pool (five, two, typically, whenever). A null from GF-LEX alone could not separate 'gold-free bearing has no effect' from 'this detector does not identify bearing'.",
+  "fires_artifact": "data/manifests/gf_llm_bearing.jsonl",
+  "judge": {
+    "cluster": "metis",
+    "max_tokens": 256,
+    "model": "gpt-oss-120b",
+    "prompt_version": "gf_bearing_judge_v1",
+    "reasoning_effort": "low",
+    "system_prompt": "You judge whether a stored memory is RELEVANT to a question. You are not answering the question and you are not told the answer.",
+    "temperature": 0.0,
+    "template": "Below is a QUESTION and a MEMORY recorded from an earlier session.\n\nDecide: does the MEMORY contain the specific information this QUESTION asks about?\n\nAnswer YES only if someone reading this memory would find the particular fact,\nvalue, label or step the question is asking for. Answer NO if the memory is\nmerely about a similar topic, mentions the same words, or is about the same\nwebsite or system without containing what is asked for.\n\n--- QUESTION ---\n{question}\n\n--- MEMORY ---\n{memory}\n\nReply with exactly one word: YES or NO."
+  },
+  "judge_control": {
+    "PASS": true,
+    "_cache": "judge_cache.jsonl",
+    "_what": "the judge must be able to say YES and NO; a judge that never fires makes an empty firing set uninterpretable",
+    "cases": {
+      "negative": {
+        "expected": "NO",
+        "parsed": false,
+        "raw": "NO"
+      },
+      "positive": {
+        "expected": "YES",
+        "parsed": true,
+        "raw": "YES"
+      }
+    }
+  },
+  "judging": {
+    "_undecided_policy": "an error or an unparseable verdict is UNDECIDED, never a NO",
+    "n_errors": 0,
+    "n_unparseable": 0
+  },
+  "n_tasks_whose_question_contains_its_own_gold": {
+    "_history": "the first version of assert_prompt_is_gold_free tested for the gold SUBSTRING and aborted the run on task ca8e070b ('...true or false?' / gold 'false'). The check was testing the wrong proposition and was replaced by a byte-exact template reconstruction.",
+    "_what": "a property of LongMemEval-V2's questions, not of either screen: true/false items and items whose answer is a word in the prompt. The question is a LEGITIMATE input to a gold-free screen -- a deployable retriever reads it too -- so this is disclosed, not corrected.",
+    "n": 69,
+    "of": 295
+  },
+  "overlap_vs_gf_lex": {
+    "both": 15,
+    "frac_of_lex_also_llm": 0.06880733944954129,
+    "frac_of_llm_also_lex": 0.35714285714285715,
+    "lex_only": 203,
+    "llm_only": 27,
+    "n_lex": 218,
+    "n_llm": 42
+  },
+  "overlap_vs_gold": {
+    "both": 10,
+    "frac_of_gold_also_llm": 0.03759398496240601,
+    "frac_of_llm_also_gold": 0.23809523809523808,
+    "gold_only": 256,
+    "llm_only": 32,
+    "n_gold": 266,
+    "n_llm": 42
+  },
+  "recall_stage": {
+    "_exactness": "recall is EXHAUSTIVE over the pool and the LLM stage can only shrink it, so the composite's full-pool firing set is exact and the 1<=k<=8 constraint is enforced in the same shape, not approximated",
+    "fraction_of_anchors_required": 0.3333333333333333,
+    "n_candidates": 841,
+    "n_excluded_by_size_cap": 372,
+    "size_cap_tokens": 20000
+  },
+  "wall_clock_s": 130.8,
+  "yield": {
+    "n_bearing_cells": 42,
+    "n_discriminative_tasks": 23,
+    "n_judge_yes": 42,
+    "n_memories": 28,
+    "n_universe_cells": 277594
+  }
+}
