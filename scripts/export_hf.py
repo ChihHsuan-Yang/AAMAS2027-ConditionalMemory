@@ -406,6 +406,17 @@ IDENTITY_LEAK_PATTERNS: tuple[tuple[str, str], ...] = (
     (r"/Users/[A-Za-z0-9._-]+/", "absolute macOS home path (leaks a username)"),
     (r"/home/[A-Za-z0-9._-]+/", "absolute Linux home path (leaks a username)"),
     (r"C:\\\\Users\\\\[A-Za-z0-9._-]+", "absolute Windows home path"),
+    # A username in a URL is a DIFFERENT SHAPE from a home path and the
+    # original gate could not see it. Found 2026-10-01: the data card gained
+    # 8 github.com/<account>/... links during a navigation pass. Both repos
+    # were private at the time, so nothing was exposed -- but a card that
+    # ships with the release carries the handle into a double-blind cycle.
+    # Matched against an explicit roster rather than "any github URL",
+    # because an anonymized mirror is exactly what we want people to use.
+    (r"github\.com/(?!anonymous|anon-|ANONYMOUS)[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?/",
+     "GitHub account handle in a URL (de-anonymises; use an anonymized mirror)"),
+    (r"huggingface\.co/(?!datasets/)(?!anonymous)[A-Za-z0-9][A-Za-z0-9_-]{1,38}/",
+     "Hugging Face account handle in a URL"),
 )
 
 

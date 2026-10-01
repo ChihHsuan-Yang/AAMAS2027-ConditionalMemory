@@ -25,19 +25,18 @@ configs:
   - Every number below is either MEASURED (a command was run on the released file) or
     marked **pending**. Never write a plausible number. If you do not have it, the word
     is "pending".
-  - 🔴 ANONYMITY. The GitHub links added at this revision contain the string
-    `ChihHsuan-Yang`, which NAMES AN AUTHOR of a DOUBLE-BLIND AAMAS submission.
-    This is safe ONLY while both repositories are private -- verified 2026-10-01:
-    an unauthenticated GET of the GitHub repo returns 404 and of this dataset
-    returns 401 (positive control: github.com/python/cpython returns 200).
-    **GATE 2b CANNOT SEE THIS.** Its pattern list is three home-path regexes
-    (`/Users/<name>/`, `/home/<name>/`, `C:\Users\<name>`); a username inside a
-    URL has no home-path shape, so the identity scan returns a CLEAN ZERO on this
-    file -- re-run and confirmed, with planted macOS and Linux paths proving the
-    scanner still fires. **BEFORE making this dataset public, or sharing it with a
-    reviewer, either remove these links or point them at an anonymized mirror.**
-    An allowlist names a string; this gate names a shape, and this leak has a
-    different shape.
+  - ✅ ANONYMITY, RESOLVED 2026-10-01. A navigation pass added GitHub links
+    carrying an author's account handle to this card. Nothing was exposed --
+    both repositories were private (unauthenticated GET: GitHub 404, this
+    dataset 401, against a 200 positive control) -- but a card ships with the
+    release, so the handle would have travelled into a double-blind cycle.
+    The links are now `<anonymized-for-review>` placeholders.
+    **GATE 2b was blind to this** and is no longer: its pattern list matched
+    only home-path shapes (`/Users/<name>/`, `/home/<name>/`, `C:\Users\<name>`),
+    and a handle inside a URL is a different shape. It now also matches GitHub
+    and Hugging Face account handles in URLs, while deliberately permitting an
+    anonymized mirror -- verified by planting both forms. Restore the real
+    links only after the review cycle.
   - 🔴 `license:` is `other`, NOT `apache-2.0`, and that changed at v0.4. Through
     v0.3 every row was Apache-2.0 (LongMemEval-V2 5,643 + SciCode 154, verified by
     license_source_reference) and the flat tag was true. v0.4 adds 127 SWE-bench
@@ -95,13 +94,13 @@ Memory"**.
 
 | | |
 |---|---|
-| 💻 **Code** | <https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory> — adapters, writers, runners, scorers, the exporter that built this release, and the full test suite |
+| 💻 **Code** | `<anonymized-for-review>/AAMAS2027-ConditionalMemory` (GitHub; de-anonymised link withheld during review) — adapters, writers, runners, scorers, the exporter that built this release, and the full test suite |
 | 📄 **Paper** | *What Is This Memory Useful For? Measuring Task-Conditioned Utility in Long-Term Agent Memory*, AAMAS 2027 |
 | 📐 **Schema** | `code/p1mem/schema.py` and `code/p1mem/validate.py`, **shipped inside this release**; field-by-field reasons for every null are in §7 below |
-| 🗺️ **Paper → artifact map** | [`docs/PAPER_ARTIFACT_MAP.md`](https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory/blob/main/docs/PAPER_ARTIFACT_MAP.md) — every figure and table with its generator, canonical input, and the exact **unit and universe** of each table row |
-| 🔍 **Trace availability** | [`docs/TRACE_AVAILABILITY.md`](https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory/blob/main/docs/TRACE_AVAILABILITY.md) — what still exists per result, including what is **unavailable forever** |
-| 📊 **Coverage** | [`docs/COVERAGE_MANIFEST.md`](https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory/blob/main/docs/COVERAGE_MANIFEST.md) — the authoritative universes; a bare coverage percentage is false against one of two on LongMemEval |
-| 🏷️ **Version notes** | §20 below, and [`docs/DATASET_INDEX.md`](https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory/blob/main/docs/DATASET_INDEX.md) (one row per snapshot, with its known limitations) — also shipped in this release at `docs/DATASET_INDEX.md` |
+| 🗺️ **Paper → artifact map** | `docs/PAPER_ARTIFACT_MAP.md` — every figure and table with its generator, canonical input, and the exact **unit and universe** of each table row |
+| 🔍 **Trace availability** | `docs/TRACE_AVAILABILITY.md` — what still exists per result, including what is **unavailable forever** |
+| 📊 **Coverage** | `docs/COVERAGE_MANIFEST.md` — the authoritative universes; a bare coverage percentage is false against one of two on LongMemEval |
+| 🏷️ **Version notes** | §20 below, and `docs/DATASET_INDEX.md` (one row per snapshot, with its known limitations) — also shipped in this release at `docs/DATASET_INDEX.md` |
 | ⚖️ **Licences** | §17 below; authoritative document `docs/BENCHMARK_LICENSES.md`, shipped here |
 
 🔴 **The `benchmark` field spells `longmemeval_v2`, `scicode` and `swebench_verified`.**
@@ -547,7 +546,7 @@ instance ids. The validator reports this as `id_unverifiable_withheld_input` (12
 warnings) rather than passing silently. See §19.15.
 
 **Every snapshot is reproducible from the GitHub code at a named commit**
-(<https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory>); the authoritative value
+(`<anonymized-for-review>/AAMAS2027-ConditionalMemory` (GitHub; de-anonymised link withheld during review)); the authoritative value
 is `release_commit` in this snapshot's own `MANIFEST.json`, which travels with the data.
 
 ## 17. Licenses and redistribution
@@ -1038,7 +1037,7 @@ agent's**, which needs a receiver identity P1 has no value for.
 
 **Cite the paper:** *What Is This Memory Useful For? Measuring Task-Conditioned Utility in
 Long-Term Agent Memory* (AAMAS 2027). **Code:**
-<https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory>.
+`<anonymized-for-review>/AAMAS2027-ConditionalMemory` (GitHub; de-anonymised link withheld during review).
 
 Derived from **LongMemEval-V2** (Wu, Ji, Kawatkar, Kwan, Gu, Peng, Chang; UCLA; arXiv
 2605.12493), used under Apache-2.0 at commit `2cc8c540bdb87fe6761629b585e727e1c4704520`.
