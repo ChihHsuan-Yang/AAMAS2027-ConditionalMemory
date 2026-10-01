@@ -1,0 +1,430 @@
+{
+ "analysis_version": "swebench_multirepo_v2_defect21_corrected",
+ "GOVERNING": "task_clustered",
+ "defect21_manufactured_zero_correction": {
+  "_what": "DEFECT_REGISTER #21: an arm-read whose test suite printed no verdict (status_lines=0) carried a manufactured 0.0. Demoted to None = could not be scored. A real 0.0 is untouched.",
+  "arm_reads_demoted": 37,
+  "by_repo": {
+   "django/django": 27,
+   "sympy/sympy": 10
+  }
+ },
+ "basis": "matched cells only -- interpretable under ALL THREE representations. reward None (unapplicable edit / truncated completion) is an EXCLUSION, never 0.0. Per-repo and pooled figures are reported together and every pooled figure states its per-repo composition.",
+ "protocol_identity": {
+  "fields_checked": [
+   "mode",
+   "prompt_version",
+   "patch_format",
+   "prompt_variant",
+   "model",
+   "cluster",
+   "temperature",
+   "reasoning_effort",
+   "max_tokens",
+   "writer_max_tokens",
+   "structured_variant",
+   "benchmark_version",
+   "WITHOUT_shared_across_representations"
+  ],
+  "disagreements": {},
+  "poolable": true,
+  "pinned_values": {
+   "mode": "representation",
+   "prompt_version": "swebench_v2_symmetric",
+   "patch_format": "defanged",
+   "prompt_variant": "v2_symmetric",
+   "model": "gpt-oss-120b",
+   "cluster": "metis",
+   "temperature": 0.0,
+   "reasoning_effort": "low",
+   "max_tokens": 2048,
+   "writer_max_tokens": 1024,
+   "structured_variant": "general",
+   "benchmark_version": "swebench_verified@princeton-nlp",
+   "WITHOUT_shared_across_representations": true
+  }
+ },
+ "per_repo": {
+  "django/django": {
+   "label": "django/django",
+   "n_repos": 1,
+   "cells_per_repo": {
+    "django/django": 12
+   },
+   "MATCHED_CELL_SET_N": 12,
+   "distinct_tasks_matched": 12,
+   "distinct_memories_matched": 9,
+   "per_representation_interpretable": {
+    "raw": 14,
+    "summary": 14,
+    "structured": 17
+   },
+   "exclusions": {
+    "raw:localizer_miss": 11,
+    "raw:unapplicable_or_unscored": 7,
+    "structured:localizer_miss": 11,
+    "structured:unapplicable_or_unscored": 4,
+    "summary:localizer_miss": 11,
+    "summary:unapplicable_or_unscored": 7
+   },
+   "delta_u_matched": {
+    "raw": {
+     "mean": 0.1667,
+     "ci95_task_clustered": [
+      0.0,
+      0.4167
+     ],
+     "helped": 2,
+     "hurt": 0,
+     "tied": 10,
+     "n": 12
+    },
+    "summary": {
+     "mean": 0.0,
+     "ci95_task_clustered": [
+      -0.25,
+      0.25
+     ],
+     "helped": 1,
+     "hurt": 1,
+     "tied": 10,
+     "n": 12
+    },
+    "structured": {
+     "mean": 0.0833,
+     "ci95_task_clustered": [
+      0.0,
+      0.25
+     ],
+     "helped": 1,
+     "hurt": 0,
+     "tied": 11,
+     "n": 12
+    }
+   },
+   "paired_contrasts": {
+    "structured_minus_raw": {
+     "mean": -0.0833,
+     "ci95_task_clustered": [
+      -0.25,
+      0.0
+     ],
+     "n_pairs": 12,
+     "separates_from_zero": false
+    },
+    "summary_minus_raw": {
+     "mean": -0.1667,
+     "ci95_task_clustered": [
+      -0.4167,
+      0.0
+     ],
+     "n_pairs": 12,
+     "separates_from_zero": false
+    },
+    "structured_minus_summary": {
+     "mean": 0.0833,
+     "ci95_task_clustered": [
+      0.0,
+      0.25
+     ],
+     "n_pairs": 12,
+     "separates_from_zero": false
+    }
+   },
+   "both_arms_fail_matched": {
+    "raw": {
+     "k": 4,
+     "n": 12,
+     "rate": 0.3333,
+     "ci95_wilson": [
+      0.1381,
+      0.6094
+     ]
+    },
+    "summary": {
+     "k": 5,
+     "n": 12,
+     "rate": 0.4167,
+     "ci95_wilson": [
+      0.1933,
+      0.6805
+     ]
+    },
+    "structured": {
+     "k": 5,
+     "n": 12,
+     "rate": 0.4167,
+     "ci95_wilson": [
+      0.1933,
+      0.6805
+     ]
+    }
+   },
+   "ORDERING_VERDICT": "NOT_ESTABLISHED",
+   "source_artifacts": [
+    "results/swebench/representations_v2.json"
+   ],
+   "rep_cells_in_source": 96,
+   "localizer_recall_rep_cells": {
+    "k": 63,
+    "n": 96
+   }
+  },
+  "sympy/sympy": {
+   "label": "sympy/sympy",
+   "n_repos": 1,
+   "cells_per_repo": {
+    "sympy/sympy": 3
+   },
+   "MATCHED_CELL_SET_N": 3,
+   "distinct_tasks_matched": 3,
+   "distinct_memories_matched": 3,
+   "per_representation_interpretable": {
+    "raw": 3,
+    "summary": 4,
+    "structured": 4
+   },
+   "exclusions": {
+    "raw:localizer_miss": 5,
+    "raw:memory_unavailable_or_contagion_dirty": 2,
+    "raw:unapplicable_or_unscored": 1,
+    "structured:localizer_miss": 6,
+    "structured:unapplicable_or_unscored": 1,
+    "summary:localizer_miss": 6,
+    "summary:unapplicable_or_unscored": 1
+   },
+   "delta_u_matched": {
+    "raw": {
+     "mean": 0.0,
+     "ci95_task_clustered": [
+      0.0,
+      0.0
+     ],
+     "helped": 0,
+     "hurt": 0,
+     "tied": 3,
+     "n": 3
+    },
+    "summary": {
+     "mean": 0.0,
+     "ci95_task_clustered": [
+      0.0,
+      0.0
+     ],
+     "helped": 0,
+     "hurt": 0,
+     "tied": 3,
+     "n": 3
+    },
+    "structured": {
+     "mean": -0.6667,
+     "ci95_task_clustered": [
+      -1.0,
+      0.0
+     ],
+     "helped": 0,
+     "hurt": 2,
+     "tied": 1,
+     "n": 3
+    }
+   },
+   "paired_contrasts": {
+    "structured_minus_raw": {
+     "mean": -0.6667,
+     "ci95_task_clustered": [
+      -1.0,
+      0.0
+     ],
+     "n_pairs": 3,
+     "separates_from_zero": false
+    },
+    "summary_minus_raw": {
+     "mean": 0.0,
+     "ci95_task_clustered": [
+      0.0,
+      0.0
+     ],
+     "n_pairs": 3,
+     "separates_from_zero": false
+    },
+    "structured_minus_summary": {
+     "mean": -0.6667,
+     "ci95_task_clustered": [
+      -1.0,
+      0.0
+     ],
+     "n_pairs": 3,
+     "separates_from_zero": false
+    }
+   },
+   "both_arms_fail_matched": {
+    "raw": {
+     "k": 0,
+     "n": 3,
+     "rate": 0.0,
+     "ci95_wilson": [
+      0.0,
+      0.5615
+     ]
+    },
+    "summary": {
+     "k": 0,
+     "n": 3,
+     "rate": 0.0,
+     "ci95_wilson": [
+      0.0,
+      0.5615
+     ]
+    },
+    "structured": {
+     "k": 0,
+     "n": 3,
+     "rate": 0.0,
+     "ci95_wilson": [
+      0.0,
+      0.5615
+     ]
+    }
+   },
+   "ORDERING_VERDICT": "NOT_ESTABLISHED",
+   "source_artifacts": [
+    "results/swebench/representations_sympy.json"
+   ],
+   "rep_cells_in_source": 33,
+   "localizer_recall_rep_cells": {
+    "k": 15,
+    "n": 33
+   }
+  }
+ },
+ "pooled": {
+  "label": "POOLED",
+  "n_repos": 2,
+  "cells_per_repo": {
+   "django/django": 12,
+   "sympy/sympy": 3
+  },
+  "MATCHED_CELL_SET_N": 15,
+  "distinct_tasks_matched": 15,
+  "distinct_memories_matched": 12,
+  "per_representation_interpretable": {
+   "raw": 17,
+   "summary": 18,
+   "structured": 21
+  },
+  "exclusions": {
+   "raw:localizer_miss": 16,
+   "raw:memory_unavailable_or_contagion_dirty": 2,
+   "raw:unapplicable_or_unscored": 8,
+   "structured:localizer_miss": 17,
+   "structured:unapplicable_or_unscored": 5,
+   "summary:localizer_miss": 17,
+   "summary:unapplicable_or_unscored": 8
+  },
+  "delta_u_matched": {
+   "raw": {
+    "mean": 0.1333,
+    "ci95_task_clustered": [
+     0.0,
+     0.3333
+    ],
+    "helped": 2,
+    "hurt": 0,
+    "tied": 13,
+    "n": 15
+   },
+   "summary": {
+    "mean": 0.0,
+    "ci95_task_clustered": [
+     -0.2,
+     0.2
+    ],
+    "helped": 1,
+    "hurt": 1,
+    "tied": 13,
+    "n": 15
+   },
+   "structured": {
+    "mean": -0.0667,
+    "ci95_task_clustered": [
+     -0.2667,
+     0.1333
+    ],
+    "helped": 1,
+    "hurt": 2,
+    "tied": 12,
+    "n": 15
+   }
+  },
+  "paired_contrasts": {
+   "structured_minus_raw": {
+    "mean": -0.2,
+    "ci95_task_clustered": [
+     -0.4,
+     0.0
+    ],
+    "n_pairs": 15,
+    "separates_from_zero": false
+   },
+   "summary_minus_raw": {
+    "mean": -0.1333,
+    "ci95_task_clustered": [
+     -0.3333,
+     0.0
+    ],
+    "n_pairs": 15,
+    "separates_from_zero": false
+   },
+   "structured_minus_summary": {
+    "mean": -0.0667,
+    "ci95_task_clustered": [
+     -0.2667,
+     0.1333
+    ],
+    "n_pairs": 15,
+    "separates_from_zero": false
+   }
+  },
+  "both_arms_fail_matched": {
+   "raw": {
+    "k": 4,
+    "n": 15,
+    "rate": 0.2667,
+    "ci95_wilson": [
+     0.109,
+     0.5195
+    ]
+   },
+   "summary": {
+    "k": 5,
+    "n": 15,
+    "rate": 0.3333,
+    "ci95_wilson": [
+     0.1518,
+     0.5829
+    ]
+   },
+   "structured": {
+    "k": 5,
+    "n": 15,
+    "rate": 0.3333,
+    "ci95_wilson": [
+     0.1518,
+     0.5829
+    ]
+   }
+  },
+  "DOMINATED_BY": {
+   "repo": "django/django",
+   "cells": 12,
+   "share": 0.8
+  },
+  "_composition_sentence": "pooled over 2 repos, django/django 12, sympy/sympy 3 = 15 matched cells; django/django supplies 80.0% -- this pooled number is dominated by one repo",
+  "ORDERING_VERDICT": "NOT_ESTABLISHED",
+  "source_artifacts": [
+   "results/swebench/representations_sympy.json",
+   "results/swebench/representations_v2.json"
+  ],
+  "_pooled_equals_union_of_per_repo_matched": true
+ }
+}

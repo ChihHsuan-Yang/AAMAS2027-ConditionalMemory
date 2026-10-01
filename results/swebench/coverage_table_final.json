@@ -1,0 +1,208 @@
+{
+ "_what": "eligible -> attempted -> valid completed -> excluded, summing exactly per repo and overall. Every figure is re-derived here from the manifest, the parquet and the named artifacts; none is quoted from a document.",
+ "_exclusion_taxonomy": {
+  "runner_absence": "repo has no working test runner",
+  "licensing": "removed by exclude_copyleft at manifest build",
+  "protocol": "multi-file gold fix, or dedup-by-recipient",
+  "localizer_miss": "ran; the region the gold patch edits was never shown",
+  "unapplicable_edit": "ran; the edit did not apply or the completion truncated -- reward None, NEVER 0.0",
+  "scorer_invalidity": "ran; no verdict printed (status_lines=0), or the scorer is not known to discriminate on that instance",
+  "memory_unavailable_or_contagion_dirty": "the memory body failed the contagion screen",
+  "not_yet_attempted": "eligible and runnable, not run"
+ },
+ "sources": [
+  "results/swebench/representations_sympy.json",
+  "results/swebench/representations_v2.json",
+  "results/swebench/representations_v3_django_a.json",
+  "results/swebench/representations_v3_django_b.json"
+ ],
+ "scorer_controls": [
+  "results/swebench/scorer_control_django_ext.json",
+  "results/swebench/scorer_control_sympy_ext.json"
+ ],
+ "per_repo": {
+  "astropy/astropy": {
+   "manifest_pairs": 2,
+   "single_file_solvable_pairs": 2,
+   "has_runner": false,
+   "ELIGIBLE_runnable_recipients": 0,
+   "ATTEMPTED": 0,
+   "VALID_COMPLETED": 0,
+   "EXCLUDED": {},
+   "EXCLUDED_total": 0,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 2,
+    "removed_multi_file_gold_fix_protocol": 0,
+    "removed_no_runner": 2,
+    "removed_dedup_by_recipient_protocol": 0,
+    "runnable": 0,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 0
+  },
+  "django/django": {
+   "manifest_pairs": 303,
+   "single_file_solvable_pairs": 227,
+   "has_runner": true,
+   "ELIGIBLE_runnable_recipients": 96,
+   "ATTEMPTED": 96,
+   "VALID_COMPLETED": 34,
+   "EXCLUDED": {
+    "localizer_miss": 33,
+    "scorer_invalidity": 9,
+    "unapplicable_edit": 20
+   },
+   "EXCLUDED_total": 62,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 303,
+    "removed_multi_file_gold_fix_protocol": 76,
+    "removed_no_runner": 0,
+    "removed_dedup_by_recipient_protocol": 131,
+    "runnable": 96,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 73
+  },
+  "matplotlib/matplotlib": {
+   "manifest_pairs": 10,
+   "single_file_solvable_pairs": 10,
+   "has_runner": false,
+   "ELIGIBLE_runnable_recipients": 0,
+   "ATTEMPTED": 0,
+   "VALID_COMPLETED": 0,
+   "EXCLUDED": {},
+   "EXCLUDED_total": 0,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 10,
+    "removed_multi_file_gold_fix_protocol": 0,
+    "removed_no_runner": 10,
+    "removed_dedup_by_recipient_protocol": 0,
+    "runnable": 0,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 0
+  },
+  "psf/requests": {
+   "manifest_pairs": 4,
+   "single_file_solvable_pairs": 4,
+   "has_runner": false,
+   "ELIGIBLE_runnable_recipients": 0,
+   "ATTEMPTED": 0,
+   "VALID_COMPLETED": 0,
+   "EXCLUDED": {},
+   "EXCLUDED_total": 0,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 4,
+    "removed_multi_file_gold_fix_protocol": 0,
+    "removed_no_runner": 4,
+    "removed_dedup_by_recipient_protocol": 0,
+    "runnable": 0,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 0
+  },
+  "pydata/xarray": {
+   "manifest_pairs": 22,
+   "single_file_solvable_pairs": 9,
+   "has_runner": false,
+   "ELIGIBLE_runnable_recipients": 0,
+   "ATTEMPTED": 0,
+   "VALID_COMPLETED": 0,
+   "EXCLUDED": {},
+   "EXCLUDED_total": 0,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 22,
+    "removed_multi_file_gold_fix_protocol": 13,
+    "removed_no_runner": 9,
+    "removed_dedup_by_recipient_protocol": 0,
+    "runnable": 0,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 0
+  },
+  "pytest-dev/pytest": {
+   "manifest_pairs": 4,
+   "single_file_solvable_pairs": 2,
+   "has_runner": false,
+   "ELIGIBLE_runnable_recipients": 0,
+   "ATTEMPTED": 0,
+   "VALID_COMPLETED": 0,
+   "EXCLUDED": {},
+   "EXCLUDED_total": 0,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 4,
+    "removed_multi_file_gold_fix_protocol": 2,
+    "removed_no_runner": 2,
+    "removed_dedup_by_recipient_protocol": 0,
+    "runnable": 0,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 0
+  },
+  "sphinx-doc/sphinx": {
+   "manifest_pairs": 48,
+   "single_file_solvable_pairs": 37,
+   "has_runner": false,
+   "ELIGIBLE_runnable_recipients": 0,
+   "ATTEMPTED": 0,
+   "VALID_COMPLETED": 0,
+   "EXCLUDED": {},
+   "EXCLUDED_total": 0,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 48,
+    "removed_multi_file_gold_fix_protocol": 11,
+    "removed_no_runner": 37,
+    "removed_dedup_by_recipient_protocol": 0,
+    "runnable": 0,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 0
+  },
+  "sympy/sympy": {
+   "manifest_pairs": 13,
+   "single_file_solvable_pairs": 12,
+   "has_runner": true,
+   "ELIGIBLE_runnable_recipients": 11,
+   "ATTEMPTED": 11,
+   "VALID_COMPLETED": 3,
+   "EXCLUDED": {
+    "localizer_miss": 6,
+    "memory_unavailable_or_contagion_dirty": 1,
+    "scorer_invalidity": 1
+   },
+   "EXCLUDED_total": 8,
+   "identity_holds": true,
+   "pair_funnel": {
+    "pairs": 13,
+    "removed_multi_file_gold_fix_protocol": 1,
+    "removed_no_runner": 0,
+    "removed_dedup_by_recipient_protocol": 1,
+    "runnable": 11,
+    "funnel_closes": true
+   },
+   "scorer_valid_instances": 11
+  }
+ },
+ "TOTAL": {
+  "manifest_pairs": 406,
+  "single_file_solvable_pairs": 303,
+  "ELIGIBLE_runnable_recipients": 107,
+  "ATTEMPTED": 107,
+  "VALID_COMPLETED": 37,
+  "EXCLUDED_total": 70,
+  "EXCLUDED": {
+   "localizer_miss": 39,
+   "memory_unavailable_or_contagion_dirty": 1,
+   "scorer_invalidity": 10,
+   "unapplicable_edit": 20
+  },
+  "identity_holds": true
+ }
+}

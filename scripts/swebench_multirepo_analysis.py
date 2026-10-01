@@ -42,6 +42,7 @@ import collections
 import json
 import math
 import random
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -85,7 +86,7 @@ def _boot(vals: list[float], tasks: list[str], n: int = 20000,
 
 
 def _boot_diff(A: list[float], B: list[float], tasks: list[str],
-               n: int = 20000, seed: int = 11) -> list[float]:
+               n: int = 20000, seed: int = 11, alpha: float = 0.05) -> list[float]:
     """Task-clustered bootstrap of a PAIRED difference of means."""
     if not A:
         return [float("nan"), float("nan")]
@@ -101,7 +102,7 @@ def _boot_diff(A: list[float], B: list[float], tasks: list[str],
             s += byt[rng.choice(keys)]
         out.append(sum(p[0] for p in s) / len(s) - sum(p[1] for p in s) / len(s))
     out.sort()
-    return [round(out[int(0.025 * n)], 4), round(out[int(0.975 * n)], 4)]
+    return [round(out[int(alpha / 2 * n)], 4), round(out[int((1 - alpha / 2) * n)], 4)]
 
 
 def _wilson(k: int, n: int, z: float = 1.959963985) -> list[float] | None:
@@ -118,6 +119,50 @@ def _wilson(k: int, n: int, z: float = 1.959963985) -> list[float] | None:
 # -------------------------------------------------------------------------
 # loading
 # -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# defect #21: a test suite that printed NO verdict was scored 0.0
+# -------------------------------------------------------------------------
+
+# ``status_lines=N`` is written into every arm's ``test_detail`` by
+# ``score_patched_file``. ``N == 0`` means the suite printed no verdict at all
+# -- an import error, a collection error, a missing test id. The harness never
+# asked the question, so 0.0 records "the model's fix was wrong" where the
+# truth is "no evidence exists". That is an ERROR VALUE BECOMING A REAL NUMBER,
+# and on this benchmark it manufactures harm out of a collection error.
+#
+# The scorer is fixed (DEFECT_REGISTER #21), but these artifacts were WRITTEN
+# BEFORE the fix. Re-running them is days of compute; the detail string records
+# the fact, so the correction is applied on read. Any artifact produced after
+# the scorer fix already carries ``reward: None`` on these arm-reads and this
+# pass is a no-op on it -- which is itself asserted by control [7].
+_STATUS_LINES_ZERO = re.compile(r"status_lines=0\b")
+
+
+def demote_manufactured_zeros(cells: list[dict]) -> dict[str, Any]:
+    """Set ``reward = None`` on any arm-read whose suite printed no verdict.
+
+    Returns a ledger of what moved. NEVER the reverse: a real 0.0 (the tests
+    ran and failed, ``status_lines >= 1``) is left exactly as it is.
+    """
+    n = 0
+    by_repo: collections.Counter = collections.Counter()
+    for c in cells:
+        for arm in c.get("arms", {}).values():
+            if arm.get("reward") is None:
+                continue
+            if _STATUS_LINES_ZERO.search(arm.get("test_detail") or ""):
+                arm["reward"] = None
+                arm["_demoted_manufactured_zero"] = True
+                n += 1
+                by_repo[c.get("repo", "?")] += 1
+    return {"_what": ("DEFECT_REGISTER #21: an arm-read whose test suite "
+                      "printed no verdict (status_lines=0) carried a "
+                      "manufactured 0.0. Demoted to None = could not be "
+                      "scored. A real 0.0 is untouched."),
+            "arm_reads_demoted": n,
+            "by_repo": dict(sorted(by_repo.items()))}
+
 
 def load_source(path: str) -> dict[str, Any]:
     f = Path(path)
@@ -236,15 +281,39 @@ def describe(du: dict[str, dict], matched: list, label: str,
         A = [du[x][k] for k in matched]
         B = [du[y][k] for k in matched]
         ci = _boot_diff(A, B, tasks)
+        # 🔴 THREE contrasts are tested on one matched set, so a nominal 95%
+        # interval is a per-contrast statement, not a family-wise one. The
+        # Bonferroni-adjusted interval is emitted BESIDE it so a single
+        # separating contrast cannot be read as a finding without the reader
+        # having to remember how many were tried. This is the project's rule
+        # that a selected subgroup inflates, applied to a selected CONTRAST.
+        ci_fw = _boot_diff(A, B, tasks, alpha=0.05 / 3)
         out["paired_contrasts"][f"{x}_minus_{y}"] = {
             "mean": round(sum(p - q for p, q in zip(A, B)) / len(A), 4),
             "ci95_task_clustered": ci,
             "n_pairs": len(A),
             "separates_from_zero": bool(ci[0] > 0 or ci[1] < 0),
+            "ci_familywise_bonferroni_3": ci_fw,
+            "separates_familywise": bool(ci_fw[0] > 0 or ci_fw[1] < 0),
+            "n_nonzero_cells": sum(1 for p, q in zip(A, B) if p != q),
         }
     anysep = any(v["separates_from_zero"]
                  for v in out["paired_contrasts"].values())
-    out["ORDERING_VERDICT"] = "SEPARATED" if anysep else "NOT_ESTABLISHED"
+    anysep_fw = any(v["separates_familywise"]
+                    for v in out["paired_contrasts"].values())
+    # The governing verdict is the FAMILY-WISE one. A contrast that separates
+    # nominally but not family-wise is recorded as exactly that -- neither
+    # promoted to a finding nor hidden.
+    out["ORDERING_VERDICT"] = "SEPARATED" if anysep_fw else "NOT_ESTABLISHED"
+    out["ORDERING_VERDICT_nominal_uncorrected"] = (
+        "SEPARATED" if anysep else "NOT_ESTABLISHED")
+    if anysep and not anysep_fw:
+        out["_multiplicity_note"] = (
+            "At least one contrast separates at a nominal 95% interval but "
+            "NOT after Bonferroni correction for the three contrasts tested "
+            "on this one matched set. The governing verdict is "
+            "NOT_ESTABLISHED. Reporting the nominal result alone would be "
+            "selecting the contrast after seeing it.")
     return out
 
 
@@ -387,6 +456,62 @@ def self_test() -> int:
     print(f"  [6] Wilson non-degenerate at k=0 and k=n, None at n=0: "
           f"0/13{w0} 13/13{wn}  {'PASS' if good else 'FAIL'}")
 
+    # --- control 7: the defect-21 demotion must MOVE a manufactured zero,
+    # must NOT move a real one, and must be IDEMPOTENT -------------------
+    # Verified by planting the defect in both directions. A pass that only
+    # ever saw a clean input would not be known to discriminate.
+    plant = [
+        # (a) the defect: suite printed no verdict, reward is a 0.0
+        mkcell("mA", "tA", "raw", "x/x", 0.0, 0.0),
+        # (b) the look-alike: tests RAN and failed. 0.0 is real. Must survive.
+        mkcell("mB", "tB", "raw", "x/x", 0.0, 0.0),
+        # (c) a 1.0 that happens to carry status_lines=0 in a P2P tail: the
+        # rule is about evidence, not about the value, so it must move too.
+        mkcell("mC", "tC", "raw", "x/x", 1.0, 1.0),
+    ]
+    plant[0]["arms"]["WITH"]["test_detail"] = "F2P rc=1 status_lines=0 :: ImportError"
+    plant[0]["arms"]["WITHOUT"]["test_detail"] = "F2P rc=1 status_lines=4 :: FAILED"
+    plant[1]["arms"]["WITH"]["test_detail"] = "F2P rc=1 status_lines=3 :: FAILED"
+    plant[1]["arms"]["WITHOUT"]["test_detail"] = "F2P rc=1 status_lines=12 :: FAILED"
+    plant[2]["arms"]["WITH"]["test_detail"] = (
+        "F2P rc=0 status_lines=2 :: P2P rc=1 status_lines=0 collection error")
+    plant[2]["arms"]["WITHOUT"]["test_detail"] = "F2P rc=0 status_lines=9 :: ok"
+
+    led = demote_manufactured_zeros(plant)
+    moved_defect = plant[0]["arms"]["WITH"]["reward"] is None
+    kept_real = (plant[1]["arms"]["WITH"]["reward"] == 0.0
+                 and plant[1]["arms"]["WITHOUT"]["reward"] == 0.0)
+    moved_one = plant[2]["arms"]["WITH"]["reward"] is None
+    kept_clean = plant[2]["arms"]["WITHOUT"]["reward"] == 1.0
+    good = (led["arm_reads_demoted"] == 2 and moved_defect and kept_real
+            and moved_one and kept_clean)
+    ok &= good
+    print(f"  [7] defect-21 demotion moves the manufactured 0.0 ({moved_defect}), "
+          f"leaves a REAL 0.0 ({kept_real}), moves a 1.0 with no P2P verdict "
+          f"({moved_one}), leaves a clean read ({kept_clean}) : "
+          f"{'PASS' if good else 'FAIL'}")
+    # idempotent: a second pass over already-corrected cells must move nothing,
+    # so running this on a post-fix artifact cannot double-count.
+    led2 = demote_manufactured_zeros(plant)
+    idem = led2["arm_reads_demoted"] == 0
+    ok &= idem
+    print(f"  [7b] and is idempotent on an already-corrected artifact      : "
+          f"{'PASS' if idem else 'FAIL'}")
+    # the correction must CHANGE a reported number, or applying it is vacuous
+    pre = [mkcell(f"n{i}", f"u{i}", r, "x/x", 0.0, 1.0)
+           for i in range(4) for r in REPS]
+    for c in pre:
+        for arm in c["arms"].values():
+            arm["test_detail"] = "F2P rc=0 status_lines=5 :: ok"
+    pre[0]["arms"]["WITH"]["test_detail"] = "F2P rc=1 status_lines=0 :: ImportError"
+    n_before = len(matched_of(extract(pre)[0]))
+    demote_manufactured_zeros(pre)
+    n_after = len(matched_of(extract(pre)[0]))
+    moved_n = (n_before == 4 and n_after == 3)
+    ok &= moved_n
+    print(f"  [7c] and SHRINKS the matched set it governs: {n_before} -> "
+          f"{n_after}  {'PASS' if moved_n else 'FAIL'}")
+
     print(f"\n{'ALL CONTROLS PASS' if ok else 'CONTROL FAILURE'}")
     return 0 if ok else 1
 
@@ -409,6 +534,14 @@ def main() -> int:
     prot = assert_poolable(sources)
     print(f"GATE protocol identity : PASS -- {len(PROTOCOL_FIELDS)} pinned "
           f"fields agree across {len(sources)} artifacts")
+
+    # DEFECT #21 correction, applied on read because these artifacts predate
+    # the scorer fix. Runs BEFORE extract(), so a demoted arm-read becomes an
+    # exclusion rather than a 0.0 entering a mean.
+    demotion = demote_manufactured_zeros(
+        [c for d in sources.values() for c in d["cells"]])
+    print(f"GATE defect-21 demotion: {demotion['arm_reads_demoted']} arm-reads "
+          f"with status_lines=0 -> reward None  {demotion['by_repo']}")
 
     # per-repo: a source may in principle contain >1 repo, so group by the
     # cell's OWN repo field rather than by which file it came from.
@@ -456,8 +589,9 @@ def main() -> int:
         sorted(pooled_matched) == union)
 
     out = {
-        "analysis_version": "swebench_multirepo_v1",
+        "analysis_version": "swebench_multirepo_v2_defect21_corrected",
         "GOVERNING": "task_clustered",
+        "defect21_manufactured_zero_correction": demotion,
         "basis": ("matched cells only -- interpretable under ALL THREE "
                   "representations. reward None (unapplicable edit / truncated "
                   "completion) is an EXCLUSION, never 0.0. Per-repo and pooled "

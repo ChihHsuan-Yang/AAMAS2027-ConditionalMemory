@@ -1,0 +1,1950 @@
+{
+ "summary": {
+  "mode": "representation",
+  "prompt_version": "swebench_v2_symmetric",
+  "patch_format": "defanged",
+  "prompt_variant": "v2_symmetric",
+  "model": "gpt-oss-120b",
+  "cluster": "metis",
+  "temperature": 0.0,
+  "reasoning_effort": "low",
+  "max_tokens": 2048,
+  "writer_max_tokens": 1024,
+  "structured_variant": "general",
+  "benchmark_version": "swebench_verified@princeton-nlp",
+  "n_cells_selected": 11,
+  "n_calls": 42,
+  "n_memories": 5,
+  "contagion_dirty_excluded": 1,
+  "write_failures": 0,
+  "dirty_detail": [
+   {
+    "memory_id": "sympy__sympy-14248",
+    "representation": "raw",
+    "n_diff_marker_lines": 1,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": false
+   }
+  ],
+  "write_fail_detail": [],
+  "WITHOUT_shared_across_representations": true
+ },
+ "cells": [
+  {
+   "memory_id": "sympy__sympy-11618",
+   "task_id": "sympy__sympy-17655",
+   "repo": "sympy/sympy",
+   "path": "sympy/geometry/point.py",
+   "representation": "raw",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n=======\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n\n    def __rmul__(self, factor):\n        \"\"\"Allow multiplication with the scalar on the left.\"\"\"\n        return self.__mul__(factor)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "9528521e658a2d166c96ac8583a1b6a72e8ff2fdf47f729987e29f0aad61fbc6",
+     "input_tokens": 3493,
+     "output_tokens": 606,
+     "reasoning_tokens": 114,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/geometry/point.py\", line 250\nE       >>> from sympy.geometry.point import Point\nE       ^\nE   SyntaxError: invalid syntax"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the scale method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n=======\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the scale method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n\n    def __rmul__(self, factor):\n        \"\"\"Allow multiplication with the scalar on the left.\"\"\"\n        return self.__mul__(factor)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "95d09cc4fb696a5adb71186b67e18ab6670a0d153f539e854f84e1164d0ef2bc",
+     "input_tokens": 3877,
+     "output_tokens": 542,
+     "reasoning_tokens": 54,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/geometry/point.py\", line 250\nE       >>> from sympy.geometry.point import Point\nE       ^\nE   SyntaxError: invalid syntax"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-11618",
+   "task_id": "sympy__sympy-17655",
+   "repo": "sympy/sympy",
+   "path": "sympy/geometry/point.py",
+   "representation": "summary",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n=======\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n\n    def __rmul__(self, factor):\n        \"\"\"Allow multiplication with the scalar on the left.\"\"\"\n        return self.__mul__(factor)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "9528521e658a2d166c96ac8583a1b6a72e8ff2fdf47f729987e29f0aad61fbc6",
+     "input_tokens": 3493,
+     "output_tokens": 606,
+     "reasoning_tokens": 114,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/geometry/point.py\", line 250\nE       >>> from sympy.geometry.point import Point\nE       ^\nE   SyntaxError: invalid syntax"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n=======\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n\n    __rmul__ = __mul__\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "c256acf84433d2db719b37ac752fa0748109cd0ce83c252275bc1c137c7ad5a9",
+     "input_tokens": 3731,
+     "output_tokens": 659,
+     "reasoning_tokens": 187,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/geometry/point.py\", line 250\nE       >>> from sympy.geometry.point import Point\nE       ^\nE   SyntaxError: invalid syntax"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-11618",
+   "task_id": "sympy__sympy-17655",
+   "repo": "sympy/sympy",
+   "path": "sympy/geometry/point.py",
+   "representation": "structured",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n=======\n    def __mul__(self, factor):\n        \"\"\"Multiply point's coordinates by a factor.\n\n        Notes\n        =====\n\n        >>> from sympy.geometry.point import Point\n\n        When multiplying a Point by a floating point number,\n        the coordinates of the Point will be changed to Floats:\n\n        >>> Point(1, 2)*0.1\n        Point2D(0.1, 0.2)\n\n        If this is not desired, the `scale` method can be used or\n        else only multiply or divide by integers:\n\n        >>> Point(1, 2).scale(1.1, 1.1)\n        Point2D(11/10, 11/5)\n        >>> Point(1, 2)*11/10\n        Point2D(11/10, 11/5)\n\n        See Also\n        ========\n\n        sympy.geometry.point.Point.scale\n        \"\"\"\n        factor = sympify(factor)\n        coords = [simplify(x*factor) for x in self.args]\n        return Point(coords, evaluate=False)\n\n    def __rmul__(self, factor):\n        \"\"\"Allow multiplication with the scalar on the left.\"\"\"\n        return self.__mul__(factor)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "9528521e658a2d166c96ac8583a1b6a72e8ff2fdf47f729987e29f0aad61fbc6",
+     "input_tokens": 3493,
+     "output_tokens": 606,
+     "reasoning_tokens": 114,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/geometry/point.py\", line 250\nE       >>> from sympy.geometry.point import Point\nE       ^\nE   SyntaxError: invalid syntax"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        try:\n            s, o = Point._normalize_dimension(self, Point(other, evaluate=False))\n        except TypeError:\n            raise GeometryError(\"Don't know how to add {} and a Point object\".format(other))\n=======\n        try:\n            s, o = Point._normalize_dimension(self, Point(other, evaluate=False))\n        except TypeError:\n            # If `other` is a Mul containing a Point (e.g. scalar*Point),\n            # extract the Point and the scalar factor and perform the addition.\n            from sympy import Mul\n            if isinstance(other, Mul):\n                for arg in other.args:\n                    if isinstance(arg, Point):\n                        # other = factor * arg\n                        factor = other / arg\n                        # Convert the Mul into a proper Point by scaling\n                        other_point = arg * factor\n                        try:\n                            s, o = Point._normalize_dimension(self, other_point)\n                            coords = [simplify(a + b) for a, b in zip(s, o)]\n                            return Point(coords, evaluate=False)\n                        except Exception:\n                            pass\n            raise GeometryError(\"Don't know how to add {} and a Point object\".format(other))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "3f625eaff1f2a63e13c2b8e7de895646a3fac87a46b8a32a643b9fa41a7fe549",
+     "input_tokens": 3658,
+     "output_tokens": 645,
+     "reasoning_tokens": 393,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 :: =========================== short test summary info ============================\nFAILED sympy/geometry/tests/test_point.py::test_point - TypeError: unsupporte...\nFAILED sympy/geometry/tests/test_point.py::test_point3D - TypeError: unsuppor...\n2 failed, 1 warning in 1.00s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-11618",
+   "task_id": "sympy__sympy-22714",
+   "repo": "sympy/sympy",
+   "path": "sympy/geometry/point.py",
+   "representation": "raw",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 2,
+     "misses": [
+      "absent:'        if any(a.is_number and im(a) for a in coords):\\n     '"
+     ],
+     "response": "<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE\n<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "e85f9f195718cfbd83f51689f3856ae335ce06c13aa7110d7f9ea3e5dbe02f54",
+     "input_tokens": 4414,
+     "output_tokens": 321,
+     "reasoning_tokens": 186,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.11s :: P2P rc=0     warnings.warn(message)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 1 warning in 1.07s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 2,
+     "misses": [
+      "absent:'        if any(a.is_number and im(a) for a in coords):\\n     '"
+     ],
+     "response": "<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE\n=======\n<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "8ad196acf1cb1b65336c6b7d136ae29bd0d9ba367f67801739586992a75f36c6",
+     "input_tokens": 4798,
+     "output_tokens": 635,
+     "reasoning_tokens": 499,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.11s :: P2P rc=0     warnings.warn(message)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 1 warning in 1.09s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-11618",
+   "task_id": "sympy__sympy-22714",
+   "repo": "sympy/sympy",
+   "path": "sympy/geometry/point.py",
+   "representation": "summary",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 2,
+     "misses": [
+      "absent:'        if any(a.is_number and im(a) for a in coords):\\n     '"
+     ],
+     "response": "<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE\n<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "e85f9f195718cfbd83f51689f3856ae335ce06c13aa7110d7f9ea3e5dbe02f54",
+     "input_tokens": 4414,
+     "output_tokens": 321,
+     "reasoning_tokens": 186,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.11s :: P2P rc=0     warnings.warn(message)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 1 warning in 1.07s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "2f98a8459c4455e6be368e9707d5d0887629e71a7f167cd67bd0b8293d7df0d8",
+     "input_tokens": 4652,
+     "output_tokens": 978,
+     "reasoning_tokens": 907,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.11s :: P2P rc=0     warnings.warn(message)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 1 warning in 1.02s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-11618",
+   "task_id": "sympy__sympy-22714",
+   "repo": "sympy/sympy",
+   "path": "sympy/geometry/point.py",
+   "representation": "structured",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 2,
+     "misses": [
+      "absent:'        if any(a.is_number and im(a) for a in coords):\\n     '"
+     ],
+     "response": "<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE\n<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if evaluate and any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "e85f9f195718cfbd83f51689f3856ae335ce06c13aa7110d7f9ea3e5dbe02f54",
+     "input_tokens": 4414,
+     "output_tokens": 321,
+     "reasoning_tokens": 186,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.11s :: P2P rc=0     warnings.warn(message)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 1 warning in 1.07s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        if any(a.is_number and im(a) for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n=======\n        if any(a.is_number and im(a) != 0 for a in coords):\n            raise ValueError('Imaginary coordinates are not permitted.')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "481d55e9b5ed525f272b016eedbe518e736eb4c71d2cf51f04d25f5b38b6f014",
+     "input_tokens": 4579,
+     "output_tokens": 792,
+     "reasoning_tokens": 720,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/geometry/tests/test_point.py::test_issue_22684 - ValueError: Ima...\n1 failed in 0.15s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-13757",
+   "repo": "sympy/sympy",
+   "path": "sympy/polys/polytools.py",
+   "representation": "raw",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n=======\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n\n    def __rmul__(self, other):\n        \"\"\"\n        Allow multiplication with a scalar or expression on the left.\n\n        This ensures that expressions like ``x*Poly(y)`` are evaluated\n        correctly by delegating to ``__mul__``.\n        \"\"\"\n        return self.__mul__(other)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "0be5417a55e26592068c5c4bc3ff7b4bcbd6a1d871ce726dfc76a9dbcb971954",
+     "input_tokens": 1130,
+     "output_tokens": 713,
+     "reasoning_tokens": 332,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/polys/polytools.py\", line 2379\nE       >>> from sympy import Poly\nE       ^\nE   SyntaxError: invalid syntax"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "search_miss",
+     "reward": null,
+     "n_blocks": 1,
+     "misses": [
+      "absent:'    def __rmul__(self, other):\\n        return NotImplemented'"
+     ],
+     "response": "<<<<<<< SEARCH\n    def __rmul__(self, other):\n        return NotImplemented\n=======\n    def __rmul__(self, other):\n        \"\"\"\n        Right multiplication for ``Poly`` objects.\n\n        This allows expressions like ``expr * Poly(...)`` to be evaluated\n        correctly by delegating to ``Poly.__mul__``.\n        \"\"\"\n        return self.__mul__(other)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "938216f289705ad7c9fc4a18c43d1acc88f3756ad824ff2808cbfd9aac27f15f",
+     "input_tokens": 6277,
+     "output_tokens": 556,
+     "reasoning_tokens": 467,
+     "finish_reason": "stop",
+     "test_detail": ""
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-13757",
+   "repo": "sympy/sympy",
+   "path": "sympy/polys/polytools.py",
+   "representation": "summary",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n=======\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n\n    def __rmul__(self, other):\n        \"\"\"\n        Allow multiplication with a scalar or expression on the left.\n\n        This ensures that expressions like ``x*Poly(y)`` are evaluated\n        correctly by delegating to ``__mul__``.\n        \"\"\"\n        return self.__mul__(other)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "0be5417a55e26592068c5c4bc3ff7b4bcbd6a1d871ce726dfc76a9dbcb971954",
+     "input_tokens": 1130,
+     "output_tokens": 713,
+     "reasoning_tokens": 332,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/polys/polytools.py\", line 2379\nE       >>> from sympy import Poly\nE       ^\nE   SyntaxError: invalid syntax"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        raise PolynomialError(\"not a polynomial over a Galois field\")\n=======\n        raise PolynomialError(\"not a polynomial over a Galois field\")\n\n# add right\u2011multiplication support for Poly objects\ndef _poly_rmul(self, other):\n    \"\"\"\n    Implements ``other * Poly`` by delegating to ``Poly.__mul__``.\n    This allows expressions like ``x*Poly(x)`` to be evaluated correctly.\n    \"\"\"\n    return self.__mul__(other)\n\n# attach the method to the Poly class\nPoly.__rmul__ = _poly_rmul\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "cebffe25c6cb4e66933345039c1e70464fdf3d417ae976473529c2ca07ef639f",
+     "input_tokens": 1713,
+     "output_tokens": 823,
+     "reasoning_tokens": 691,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 ::     from . import polytools\nE     File \"/private/tmp/swebench/sympy/sympy/polys/polytools.py\", line 529\nE       def _eval_subs(f, old, new):\nE   IndentationError: unexpected indent"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-13757",
+   "repo": "sympy/sympy",
+   "path": "sympy/polys/polytools.py",
+   "representation": "structured",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n=======\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n\n    def __rmul__(self, other):\n        \"\"\"\n        Allow multiplication with a scalar or expression on the left.\n\n        This ensures that expressions like ``x*Poly(y)`` are evaluated\n        correctly by delegating to ``__mul__``.\n        \"\"\"\n        return self.__mul__(other)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "0be5417a55e26592068c5c4bc3ff7b4bcbd6a1d871ce726dfc76a9dbcb971954",
+     "input_tokens": 1130,
+     "output_tokens": 713,
+     "reasoning_tokens": 332,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/polys/polytools.py\", line 2379\nE       >>> from sympy import Poly\nE       ^\nE   SyntaxError: invalid syntax"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n=======\n    def __call__(f, *values):\n        \"\"\"\n        Evaluate ``f`` at the give values.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly\n        >>> from sympy.abc import x, y, z\n\n        >>> f = Poly(2*x*y + 3*x + y + 2*z, x, y, z)\n\n        >>> f(2)\n        Poly(5*y + 2*z + 6, y, z, domain='ZZ')\n        >>> f(2, 5)\n        Poly(2*z + 31, z, domain='ZZ')\n        >>> f(2, 5, 7)\n        45\n\n        \"\"\"\n        return f.eval(values)\n\n    def __rmul__(self, other):\n        \"\"\"\n        Right multiplication to allow expressions like ``expr * Poly(...)`` to\n        evaluate correctly. Delegates to ``__mul__`` which handles the actual\n        multiplication logic.\n\n        Examples\n        ========\n\n        >>> from sympy import Poly, symbols\n        >>> x = symbols('x')\n        >>> Poly(x) * x\n        Poly(x**2, x, domain='ZZ')\n        >>> x * Poly(x)\n        Poly(x**2, x, domain='ZZ')\n        \"\"\"\n        return self.__mul__(other)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "dd7a5ad352a6041ed4f9f391f4fe6bd8c5acff641fab099e229af692cb86b46f",
+     "input_tokens": 1384,
+     "output_tokens": 621,
+     "reasoning_tokens": 180,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=0 :: E     File \"/private/tmp/swebench/sympy/sympy/polys/polytools.py\", line 2379\nE       >>> from sympy import Poly\nE       ^\nE   SyntaxError: invalid syntax"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-14711",
+   "repo": "sympy/sympy",
+   "path": "sympy/physics/vector/vector.py",
+   "representation": "raw",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n=======\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        if other == 0:\n            return self\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "faaa07a96cfb2ea02ce30b33ab0d7f893c305e27cd520092eb66198f7872bb0b",
+     "input_tokens": 1565,
+     "output_tokens": 203,
+     "reasoning_tokens": 107,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     if len(base_split) is not 1:\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 6 warnings in 0.27s :: P2P rc=0     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.39s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n=======\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        if other == 0:\n            return self\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "659e2656e64c5fb4b5ba5f1ea73e5c073d8b0f4070d71ed11341c67547813335",
+     "input_tokens": 6712,
+     "output_tokens": 277,
+     "reasoning_tokens": 181,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 4 warnings in 0.24s :: P2P rc=0     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.40s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-14711",
+   "repo": "sympy/sympy",
+   "path": "sympy/physics/vector/vector.py",
+   "representation": "summary",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n=======\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        if other == 0:\n            return self\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "faaa07a96cfb2ea02ce30b33ab0d7f893c305e27cd520092eb66198f7872bb0b",
+     "input_tokens": 1565,
+     "output_tokens": 203,
+     "reasoning_tokens": 107,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     if len(base_split) is not 1:\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 6 warnings in 0.27s :: P2P rc=0     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.39s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n=======\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        # Allow addition with zero (or any object that sympifies to 0) by returning self\n        if other == 0:\n            return self\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "662934d848f2d1af45bcc2528c3f4795c8b3176dc32065c0f4d87b09bc80779e",
+     "input_tokens": 2148,
+     "output_tokens": 164,
+     "reasoning_tokens": 46,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 4 warnings in 0.23s :: P2P rc=0     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.39s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-14711",
+   "repo": "sympy/sympy",
+   "path": "sympy/physics/vector/vector.py",
+   "representation": "structured",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n=======\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        if other == 0:\n            return self\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "faaa07a96cfb2ea02ce30b33ab0d7f893c305e27cd520092eb66198f7872bb0b",
+     "input_tokens": 1565,
+     "output_tokens": 203,
+     "reasoning_tokens": 107,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     if len(base_split) is not 1:\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 6 warnings in 0.27s :: P2P rc=0     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.39s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n=======\n    def __add__(self, other):\n        \"\"\"The add operator for Vector. \"\"\"\n        if other == 0:\n            return self\n        other = _check_vector(other)\n        return Vector(self.args + other.args)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "3d91d5d656561dcf60279310bc5901012ba1c10ba3e2b1477c5aa791fe3c4168",
+     "input_tokens": 1819,
+     "output_tokens": 286,
+     "reasoning_tokens": 190,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 4 warnings in 0.23s :: P2P rc=0     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 4 warnings in 0.40s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-20801",
+   "repo": "sympy/sympy",
+   "path": "sympy/core/numbers.py",
+   "representation": "raw",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        return _sympify(other).__lt__(self)\n=======\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        # Ensure symmetric comparison for booleans and floats\n        if isinstance(other, Boolean) and isinstance(self, Float):\n            return bool(self) > bool(other)\n        return _sympify(other).__lt__(self)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "a7608592ee1b94b903942e09738c1dcf6d33763eda6145586bc88202551c4733",
+     "input_tokens": 964,
+     "output_tokens": 421,
+     "reasoning_tokens": 254,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_zero_not_false - assert (0.0 ==...\n1 failed, 1 warning in 0.69s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "search_miss",
+     "reward": null,
+     "n_blocks": 1,
+     "misses": [
+      "absent:'    def __eq__(self, other):\\n        try:\\n            other '"
+     ],
+     "response": "<<<<<<< SEARCH\n    def __eq__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            return False\n        if isinstance(other, Float):\n            return self._cmp(other) == 0\n        if isinstance(other, (int, Integer)):\n            return self._cmp(Float(other)) == 0\n        return self._cmp(other) == 0\n=======\n    def __eq__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            return NotImplemented\n        # If the other object is a Boolean, defer to the Boolean's __eq__\n        # implementation to avoid asymmetric results.\n        from sympy.logic.boolalg import Boolean\n        if isinstance(other, Boolean):\n            return NotImplemented\n        if isinstance(other, Float):\n            return self._cmp(other) == 0\n        if isinstance(other, (int, Integer)):\n            return self._cmp(Float(other)) == 0\n        return self._cmp(other) == 0\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "fe178190ae765f912d2159ed64080149cb25d3cddf08a6e2ce8bea8288de2536",
+     "input_tokens": 6111,
+     "output_tokens": 1215,
+     "reasoning_tokens": 985,
+     "finish_reason": "stop",
+     "test_detail": ""
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-20801",
+   "repo": "sympy/sympy",
+   "path": "sympy/core/numbers.py",
+   "representation": "summary",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        return _sympify(other).__lt__(self)\n=======\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        # Ensure symmetric comparison for booleans and floats\n        if isinstance(other, Boolean) and isinstance(self, Float):\n            return bool(self) > bool(other)\n        return _sympify(other).__lt__(self)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "a7608592ee1b94b903942e09738c1dcf6d33763eda6145586bc88202551c4733",
+     "input_tokens": 964,
+     "output_tokens": 421,
+     "reasoning_tokens": 254,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_zero_not_false - assert (0.0 ==...\n1 failed, 1 warning in 0.69s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "search_miss",
+     "reward": null,
+     "n_blocks": 1,
+     "misses": [
+      "absent:'    def __eq__(self, other):\\n        try:\\n            other '"
+     ],
+     "response": "<<<<<<< SEARCH\n    def __eq__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            return False\n        return self.equals(other)\n=======\n    def __eq__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            return False\n        # If the other object is a Boolean, defer to the Boolean's __eq__\n        # implementation so that SymPy's logical rules are respected.\n        from sympy.logic.boolalg import Boolean\n        if isinstance(other, Boolean):\n            return NotImplemented\n        return self.equals(other)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "ae6cab6bcc952e52cc7d87b24c681eda53f3f1fcf655157191f167f16fc89bb7",
+     "input_tokens": 1547,
+     "output_tokens": 955,
+     "reasoning_tokens": 811,
+     "finish_reason": "stop",
+     "test_detail": ""
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-20801",
+   "repo": "sympy/sympy",
+   "path": "sympy/core/numbers.py",
+   "representation": "structured",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        return _sympify(other).__lt__(self)\n=======\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        # Ensure symmetric comparison for booleans and floats\n        if isinstance(other, Boolean) and isinstance(self, Float):\n            return bool(self) > bool(other)\n        return _sympify(other).__lt__(self)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "a7608592ee1b94b903942e09738c1dcf6d33763eda6145586bc88202551c4733",
+     "input_tokens": 964,
+     "output_tokens": 421,
+     "reasoning_tokens": 254,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_zero_not_false - assert (0.0 ==...\n1 failed, 1 warning in 0.69s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        return _sympify(other).__lt__(self)\n=======\n    def __gt__(self, other):\n        try:\n            other = _sympify(other)\n        except SympifyError:\n            raise TypeError(\"Invalid comparison %s > %s\" % (self, other))\n        # Use NotImplemented to allow reflected comparison for unsupported types\n        result = _sympify(other).__lt__(self)\n        return result if result is not NotImplemented else NotImplemented\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "dee756da80f179619774aa427a95d02237d4fded3519f830778a2d8c6a9722fc",
+     "input_tokens": 1218,
+     "output_tokens": 883,
+     "reasoning_tokens": 723,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_zero_not_false - assert (0.0 ==...\n1 failed, 1 warning in 0.67s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-24562",
+   "repo": "sympy/sympy",
+   "path": "sympy/core/numbers.py",
+   "representation": "raw",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(int(max_denominator))))\n=======\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(int(max_denominator)))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "450d58544bfd7acc5ed15c8f0e8794c1b91d123ef9fa65670e47761f2c0ba2ce",
+     "input_tokens": 753,
+     "output_tokens": 454,
+     "reasoning_tokens": 387,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_issue_24543 - TypeError: invali...\n1 failed in 0.81s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(int(max_denominator))))\n=======\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(int(max_denominator), 1)))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "b510e56881661c1008068a01f6dac37c884424081bd6fa4d58aad35f1fd508a2",
+     "input_tokens": 5900,
+     "output_tokens": 669,
+     "reasoning_tokens": 595,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_issue_24543 - TypeError: invali...\n1 failed in 0.77s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-24562",
+   "repo": "sympy/sympy",
+   "path": "sympy/core/numbers.py",
+   "representation": "summary",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(int(max_denominator))))\n=======\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(int(max_denominator)))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "450d58544bfd7acc5ed15c8f0e8794c1b91d123ef9fa65670e47761f2c0ba2ce",
+     "input_tokens": 753,
+     "output_tokens": 454,
+     "reasoning_tokens": 387,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_issue_24543 - TypeError: invali...\n1 failed in 0.81s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(int(max_denominator))))\n=======\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(int(max_denominator)))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "33696a15b082f304cddd300d8e1ffaf6eedd3d0c97d27cb9057da69af0c192a6",
+     "input_tokens": 1336,
+     "output_tokens": 324,
+     "reasoning_tokens": 257,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_issue_24543 - TypeError: invali...\n1 failed in 0.80s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13091",
+   "task_id": "sympy__sympy-24562",
+   "repo": "sympy/sympy",
+   "path": "sympy/core/numbers.py",
+   "representation": "structured",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(int(max_denominator))))\n=======\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(int(max_denominator)))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "450d58544bfd7acc5ed15c8f0e8794c1b91d123ef9fa65670e47761f2c0ba2ce",
+     "input_tokens": 753,
+     "output_tokens": 454,
+     "reasoning_tokens": 387,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_issue_24543 - TypeError: invali...\n1 failed in 0.81s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(int(max_denominator))))\n=======\n        f = fractions.Fraction(self.p, self.q)\n        return Rational(f.limit_denominator(fractions.Fraction(max_denominator)))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "7ab81bdd1a3208869ccbd52fa095048b14a03c6dee8483f3207cf1b529f8b6f3",
+     "input_tokens": 1007,
+     "output_tokens": 144,
+     "reasoning_tokens": 74,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_issue_24543 - TypeError: invali...\n1 failed in 0.78s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13798",
+   "task_id": "sympy__sympy-18763",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/latex.py",
+   "representation": "raw",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        return r'\\left. %s \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n=======\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        # Wrap the expression in parentheses to ensure proper grouping\n        return r'\\left. \\left(%s\\right) \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "7fedcc5267cea3802bc77874a9c217b80b293ca52e8c2b654964cc6c0d1ce222",
+     "input_tokens": 5816,
+     "output_tokens": 340,
+     "reasoning_tokens": 64,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.86s :: P2P rc=0     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n20 passed, 1 warning in 0.23s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        return r'\\left. %s \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n=======\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        # Wrap the expression in parentheses to ensure proper grouping\n        return r'\\left. \\left(%s\\right) \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "65da01b1be313245da61a47f89bc6fb553fe75566226dfe2e0d729e0d9f651c2",
+     "input_tokens": 6432,
+     "output_tokens": 320,
+     "reasoning_tokens": 64,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.72s :: P2P rc=0     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n20 passed, 1 warning in 0.24s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13798",
+   "task_id": "sympy__sympy-18763",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/latex.py",
+   "representation": "summary",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        return r'\\left. %s \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n=======\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        # Wrap the expression in parentheses to ensure proper grouping\n        return r'\\left. \\left(%s\\right) \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "7fedcc5267cea3802bc77874a9c217b80b293ca52e8c2b654964cc6c0d1ce222",
+     "input_tokens": 5816,
+     "output_tokens": 340,
+     "reasoning_tokens": 64,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.86s :: P2P rc=0     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n20 passed, 1 warning in 0.23s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        return r'\\left. %s \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n=======\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        # Parenthesize the expression to ensure correct grouping in LaTeX output\n        return r'\\left. \\left(%s\\right) \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "969cc8fe83ffc6af93f9626d99e1ab2aaf2b167bc592935f245d629494ff8a65",
+     "input_tokens": 6242,
+     "output_tokens": 354,
+     "reasoning_tokens": 73,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.74s :: P2P rc=0     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n20 passed, 1 warning in 0.24s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-13798",
+   "task_id": "sympy__sympy-18763",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/latex.py",
+   "representation": "structured",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 1.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        return r'\\left. %s \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n=======\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        # Wrap the expression in parentheses to ensure proper grouping\n        return r'\\left. \\left(%s\\right) \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "7fedcc5267cea3802bc77874a9c217b80b293ca52e8c2b654964cc6c0d1ce222",
+     "input_tokens": 5816,
+     "output_tokens": 340,
+     "reasoning_tokens": 64,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.86s :: P2P rc=0     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n20 passed, 1 warning in 0.23s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        return r'\\left. %s \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n=======\n    def _print_Subs(self, subs):\n        expr, old, new = subs.args\n        latex_expr = self._print(expr)\n        latex_old = (self._print(e) for e in old)\n        latex_new = (self._print(e) for e in new)\n        latex_subs = r'\\\\ '.join(\n            e[0] + '=' + e[1] for e in zip(latex_old, latex_new))\n        # Parenthesize the expression to avoid ambiguity in LaTeX output\n        return r'\\left. \\left( %s \\right) \\right|_{\\substack{ %s }}' % (latex_expr,\n                                                         latex_subs)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "ae2fa35299af151b43a7c623bb2af38a366bc22ea53eb3de7925ef066892ba82",
+     "input_tokens": 6001,
+     "output_tokens": 339,
+     "reasoning_tokens": 58,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_latex.py::test_latex_subs - AssertionError: ...\n1 failed, 1 warning in 0.78s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14248",
+   "task_id": "sympy__sympy-14531",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/str.py",
+   "representation": "raw",
+   "localizer_recall": true,
+   "excluded": true,
+   "exclusion_reason": "memory unavailable or contagion-dirty",
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 2,
+     "misses": [
+      "absent:'    p = StrPrinter(settings)'"
+     ],
+     "response": "<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE\n<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "8fb6b5038ac262f0a80e4f2fb36bdec8ccf01c626238e6aac71ca8ba0800cfc4",
+     "input_tokens": 1336,
+     "output_tokens": 182,
+     "reasoning_tokens": 129,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=1 :: ERROR sympy/printing/tests/test_str.py - TypeError: __init__() got an unexpec...\n5 warnings, 1 error in 0.40s\nERROR: not found: /private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational\n(no name '/private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational' in any of [<Module test_str.py>])"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14248",
+   "task_id": "sympy__sympy-14531",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/str.py",
+   "representation": "summary",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 2,
+     "misses": [
+      "absent:'    p = StrPrinter(settings)'"
+     ],
+     "response": "<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE\n<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "8fb6b5038ac262f0a80e4f2fb36bdec8ccf01c626238e6aac71ca8ba0800cfc4",
+     "input_tokens": 1336,
+     "output_tokens": 182,
+     "reasoning_tokens": 129,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=1 :: ERROR sympy/printing/tests/test_str.py - TypeError: __init__() got an unexpec...\n5 warnings, 1 error in 0.40s\nERROR: not found: /private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational\n(no name '/private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational' in any of [<Module test_str.py>])"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "72cabe594d3499748ecadd1dec73f966dfcbc84a64956b6a74217ffae251002b",
+     "input_tokens": 1814,
+     "output_tokens": 121,
+     "reasoning_tokens": 91,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=1 :: ERROR sympy/printing/tests/test_str.py - TypeError: __init__() got an unexpec...\n4 warnings, 1 error in 0.38s\nERROR: not found: /private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational\n(no name '/private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational' in any of [<Module test_str.py>])"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14248",
+   "task_id": "sympy__sympy-14531",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/str.py",
+   "representation": "structured",
+   "localizer_recall": true,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 2,
+     "misses": [
+      "absent:'    p = StrPrinter(settings)'"
+     ],
+     "response": "<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE\n<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "8fb6b5038ac262f0a80e4f2fb36bdec8ccf01c626238e6aac71ca8ba0800cfc4",
+     "input_tokens": 1336,
+     "output_tokens": 182,
+     "reasoning_tokens": 129,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=1 :: ERROR sympy/printing/tests/test_str.py - TypeError: __init__() got an unexpec...\n5 warnings, 1 error in 0.40s\nERROR: not found: /private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational\n(no name '/private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational' in any of [<Module test_str.py>])"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    p = StrPrinter(settings)\n=======\n    p = StrPrinter(**settings)\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "e7af5b8cecf8fc395f52bcca126ef389242248c28949ad5da34121d1d52bb6a5",
+     "input_tokens": 1581,
+     "output_tokens": 178,
+     "reasoning_tokens": 148,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=4 status_lines=1 :: ERROR sympy/printing/tests/test_str.py - TypeError: __init__() got an unexpec...\n4 warnings, 1 error in 0.38s\nERROR: not found: /private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational\n(no name '/private/tmp/swebench/sympy/sympy/printing/tests/test_str.py::test_Rational' in any of [<Module test_str.py>])"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14248",
+   "task_id": "sympy__sympy-21612",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/str.py",
+   "representation": "raw",
+   "localizer_recall": false,
+   "excluded": true,
+   "exclusion_reason": "memory unavailable or contagion-dirty",
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Atom\"], strict=True)\n            return numer + \"/\" + denom\n=======\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            # Use Mul precedence for denominator to ensure proper parentheses\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Mul\"], strict=True)\n            return numer + \"/\" + denom\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "5594ddb668117f8532ec09ce3f27cb162860d92cd46bfcc70a72a06e0782bc6e",
+     "input_tokens": 2963,
+     "output_tokens": 303,
+     "reasoning_tokens": 110,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_str.py::test_Mul - AssertionError: assert 'x...\n1 failed, 1 warning in 0.49s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14248",
+   "task_id": "sympy__sympy-21612",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/str.py",
+   "representation": "summary",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Atom\"], strict=True)\n            return numer + \"/\" + denom\n=======\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            # Use Mul precedence for denominator to ensure proper parentheses\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Mul\"], strict=True)\n            return numer + \"/\" + denom\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "5594ddb668117f8532ec09ce3f27cb162860d92cd46bfcc70a72a06e0782bc6e",
+     "input_tokens": 2963,
+     "output_tokens": 303,
+     "reasoning_tokens": 110,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_str.py::test_Mul - AssertionError: assert 'x...\n1 failed, 1 warning in 0.49s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Atom\"], strict=True)\n            return numer + \"/\" + denom\n=======\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Mul\"], strict=True)\n            return numer + \"/\" + denom\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "fddf432ff0c713ebe964e49af9b033c1bfaa9fb1cf5a703853182762e7e7ddc8",
+     "input_tokens": 3441,
+     "output_tokens": 281,
+     "reasoning_tokens": 100,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_str.py::test_Mul - AssertionError: assert 'x...\n1 failed, 1 warning in 0.41s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14248",
+   "task_id": "sympy__sympy-21612",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/str.py",
+   "representation": "structured",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Atom\"], strict=True)\n            return numer + \"/\" + denom\n=======\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            # Use Mul precedence for denominator to ensure proper parentheses\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Mul\"], strict=True)\n            return numer + \"/\" + denom\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "5594ddb668117f8532ec09ce3f27cb162860d92cd46bfcc70a72a06e0782bc6e",
+     "input_tokens": 2963,
+     "output_tokens": 303,
+     "reasoning_tokens": 110,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_str.py::test_Mul - AssertionError: assert 'x...\n1 failed, 1 warning in 0.49s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Atom\"], strict=True)\n            return numer + \"/\" + denom\n=======\n    def _print_FracElement(self, frac):\n        if frac.denom == 1:\n            return self._print(frac.numer)\n        else:\n            numer = self.parenthesize(frac.numer, PRECEDENCE[\"Mul\"], strict=True)\n            denom = self.parenthesize(frac.denom, PRECEDENCE[\"Mul\"], strict=True)\n            return numer + \"/\" + denom\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "9c6b81cd1f771e80f56253e5457309930c3bc855582ed4e194b3702d0a2e9133",
+     "input_tokens": 3208,
+     "output_tokens": 375,
+     "reasoning_tokens": 194,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_str.py::test_Mul - AssertionError: assert 'x...\n1 failed, 1 warning in 0.41s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14976",
+   "task_id": "sympy__sympy-16766",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/pycode.py",
+   "representation": "raw",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n=======\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n\n    def _print_Indexed(self, expr):\n        base, *indices = expr.args\n        return \"{}[{}]\".format(self._print(base), \", \".join(self._print(i) for i in indices))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "11ab6637514dc3a56e70476d0405f6b0eeb0bc2478f1f348c55f40eaea7ecdd7",
+     "input_tokens": 1040,
+     "output_tokens": 294,
+     "reasoning_tokens": 110,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed, 6 warnings in 0.05s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n=======\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n\n    def _print_Indexed(self, expr):\n        base, *indices = expr.args\n        # Join multiple indices with commas, each printed recursively\n        printed_indices = \", \".join(self._print(ind) for ind in indices)\n        return f\"{self._print(base)}[{printed_indices}]\"\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "46308eca4e548045d4e812b81b5367602e04191da5783d313ef138c2c2900e72",
+     "input_tokens": 1482,
+     "output_tokens": 284,
+     "reasoning_tokens": 83,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed, 1 warning in 0.05s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14976",
+   "task_id": "sympy__sympy-16766",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/pycode.py",
+   "representation": "summary",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n=======\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n\n    def _print_Indexed(self, expr):\n        base, *indices = expr.args\n        return \"{}[{}]\".format(self._print(base), \", \".join(self._print(i) for i in indices))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "11ab6637514dc3a56e70476d0405f6b0eeb0bc2478f1f348c55f40eaea7ecdd7",
+     "input_tokens": 1040,
+     "output_tokens": 294,
+     "reasoning_tokens": 110,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed, 6 warnings in 0.05s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n=======\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n\n    def _print_Indexed(self, expr):\n        base, *indices = expr.args\n        # Join multiple indices with commas, handling each index recursively\n        index_str = \", \".join(self._print(ind) for ind in indices)\n        return f\"{self._print(base)}[{index_str}]\"\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "e618317c8230e8cb19ad8440da0ba93c3723e9eb00a684090c0cfc7d872c8080",
+     "input_tokens": 1358,
+     "output_tokens": 294,
+     "reasoning_tokens": 92,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed, 1 warning in 0.05s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14976",
+   "task_id": "sympy__sympy-16766",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/pycode.py",
+   "representation": "structured",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n=======\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n\n    def _print_Indexed(self, expr):\n        base, *indices = expr.args\n        return \"{}[{}]\".format(self._print(base), \", \".join(self._print(i) for i in indices))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "11ab6637514dc3a56e70476d0405f6b0eeb0bc2478f1f348c55f40eaea7ecdd7",
+     "input_tokens": 1040,
+     "output_tokens": 294,
+     "reasoning_tokens": 110,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed, 6 warnings in 0.05s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n=======\n    def _print_Pow(self, expr):\n        if expr.exp == 0.5:\n            return '{0}({1})'.format(self._module_format('numpy.sqrt'), self._print(expr.base))\n        else:\n            return super(NumPyPrinter, self)._print_Pow(expr)\n\n    def _print_Indexed(self, expr):\n        base, *indices = expr.args\n        return \"{}[{}]\".format(self._print(base), \", \".join([self._print(ind) for ind in indices]))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "cb3b551e1cc8d7c175d1a348784bab125f549d6e2e67f06844252a387e7c6696",
+     "input_tokens": 1307,
+     "output_tokens": 531,
+     "reasoning_tokens": 346,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed, 1 warning in 0.05s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14976",
+   "task_id": "sympy__sympy-22914",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/pycode.py",
+   "representation": "raw",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n=======\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    def _print_Min(self, expr):\n        return \"min({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Max(self, expr):\n        return \"max({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "b38540e1a546c10afed897b08c4056406606daff100cc3059d573d8cf61733e1",
+     "input_tokens": 853,
+     "output_tokens": 298,
+     "reasoning_tokens": 93,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed in 0.20s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    def _print_Pow(self, expr, rational=False):\n        return self._hprint_Pow(expr, rational=rational, sqrt='sympy.sqrt')\n=======\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    # Support for Min and Max functions\n    def _print_Min(self, expr):\n        return \"min({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Max(self, expr):\n        return \"max({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Pow(self, expr, rational=False):\n        return self._hprint_Pow(expr, rational=rational, sqrt='sympy.sqrt')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "810c9e8aa24942469bce5bf0785f171d96d4ab9dd87d98b29f91a2c1e2d17953",
+     "input_tokens": 1295,
+     "output_tokens": 473,
+     "reasoning_tokens": 193,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed in 0.13s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14976",
+   "task_id": "sympy__sympy-22914",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/pycode.py",
+   "representation": "summary",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n=======\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    def _print_Min(self, expr):\n        return \"min({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Max(self, expr):\n        return \"max({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "b38540e1a546c10afed897b08c4056406606daff100cc3059d573d8cf61733e1",
+     "input_tokens": 853,
+     "output_tokens": 298,
+     "reasoning_tokens": 93,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed in 0.20s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    def _print_Pow(self, expr, rational=False):\n        return self._hprint_Pow(expr, rational=rational, sqrt='sympy.sqrt')\n=======\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    def _print_Min(self, expr):\n        return \"min({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Max(self, expr):\n        return \"max({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Pow(self, expr, rational=False):\n        return self._hprint_Pow(expr, rational=rational, sqrt='sympy.sqrt')\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "081962e8ddb7b082587a6cce1fabe99874f24f2aa347e66a55bff515b3a8aa0b",
+     "input_tokens": 1171,
+     "output_tokens": 357,
+     "reasoning_tokens": 86,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed in 0.13s"
+    }
+   }
+  },
+  {
+   "memory_id": "sympy__sympy-14976",
+   "task_id": "sympy__sympy-22914",
+   "repo": "sympy/sympy",
+   "path": "sympy/printing/pycode.py",
+   "representation": "structured",
+   "localizer_recall": false,
+   "excluded": false,
+   "memory_contagion": {
+    "n_diff_marker_lines": 0,
+    "n_hunk_headers": 0,
+    "has_diff_fence": false,
+    "clean": true
+   },
+   "arms": {
+    "WITHOUT": {
+     "arm": "WITHOUT",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n=======\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    def _print_Min(self, expr):\n        return \"min({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Max(self, expr):\n        return \"max({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "b38540e1a546c10afed897b08c4056406606daff100cc3059d573d8cf61733e1",
+     "input_tokens": 853,
+     "output_tokens": 298,
+     "reasoning_tokens": 93,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed in 0.20s"
+    },
+    "WITH": {
+     "arm": "WITH",
+     "edit_status": "ok",
+     "reward": 0.0,
+     "n_blocks": 1,
+     "misses": [],
+     "response": "<<<<<<< SEARCH\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n=======\n    def _print_Function(self, expr):\n        mod = expr.func.__module__ or ''\n        return '%s(%s)' % (self._module_format(mod + ('.' if mod else '') + expr.func.__name__),\n                           ', '.join(map(lambda arg: self._print(arg), expr.args)))\n\n    def _print_Min(self, expr):\n        # Use Python's built\u2011in min function\n        return \"min({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n\n    def _print_Max(self, expr):\n        # Use Python's built\u2011in max function\n        return \"max({})\".format(\", \".join(self._print(arg) for arg in expr.args))\n>>>>>>> REPLACE",
+     "contagion": {
+      "has_search_marker": true,
+      "has_separator": true,
+      "has_replace_marker": true,
+      "n_diff_marker_lines": 0,
+      "n_hunk_headers": 0
+     },
+     "prompt_sha256": "0b2bace0f2ea0965b97fcf27b8ec40a0c4e825d8d25bb0c7fbcb7c5e77e96f72",
+     "input_tokens": 1120,
+     "output_tokens": 328,
+     "reasoning_tokens": 101,
+     "finish_reason": "stop",
+     "test_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed in 0.13s"
+    }
+   }
+  }
+ ]
+}

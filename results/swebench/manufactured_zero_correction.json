@@ -1,0 +1,9 @@
+{
+ "note": "manufactured-zero-corrected",
+ "matched_n": 15,
+ "per_repo": {
+  "django/django": 12,
+  "sympy/sympy": 3
+ },
+ "demoted_arm_reads": 12
+}

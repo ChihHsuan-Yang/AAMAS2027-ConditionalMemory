@@ -684,3 +684,28 @@ auditing for it. Caught on cross-check against the peer artifact, which quoted
 estimate **with its own interval** (`+0.0982`, task-clustered
 `[+0.0247, +0.1730]`, excludes zero), which needs no cross-basis division.
 
+
+---
+
+## Added 2026-10-01 (SA-SWE-FINAL, completing SWE-bench coverage)
+
+| # | defect | found by | consequence |
+|---|---|---|---|
+| 30 | **The negative control was partly passing on the defect it exists to catch.** `swebench_scorer_control.py` corrupts a gold patch and requires the corruption to score **0.0**. Before DEFECT #21 was fixed, a corrupted patch whose suite printed **no verdict** (`status_lines=0`) *also* returned 0.0 — so "the corruption was detected" and "the tests never ran" were the same observation. Re-running the identical 20 shipped control instances under the fixed scorer flips **6** of them from `corrupt→0.0` to `corrupt→None` (django-11555, -13028, -12713; sympy-24562, -18763, -14531). The shipped artifacts' "negative control 20/20" was **12/20 measured and 6/20 unmeasured**, with 2 escalated | me, by re-running the control rather than reading its stored verdict | the scorer's *discrimination* was never affected — gold/base reproduced **20/20 exactly** — so no reported number moves. But the register's most-repeated shape is here in its sharpest form: **the instrument that proves a check can fail was itself returning an error value as a pass.** A control is not validated by its own stored output; it has to be re-run after any change to the thing it calls |
+| 31 | **A positive control run on 12 of 96 instances was read as a property of the runner.** The django scorer control covered 12 recipients and the project treated "the django scorer passes" as settled. Extended to **all 96** (no model calls, ~9 min), the scorer discriminates on **73/96** — on 23 django instances the gold patch does not score 1.0 and/or the base does not score 0.0, so a model's 0.0 there is not evidence its fix was wrong. All 12 original instances reproduced exactly, so this is resolution, not contradiction | me, before running the remaining cells rather than after | **no published number changes** — all 34 django cells that reach a reported number sit on scorer-valid instances, and every contrast is identical whether the 3 non-valid matched cells are kept or dropped. The lesson is the scope of a control's claim: *12/12 licenses a statement about 12 instances, not about a runner.* It is also now the binding constraint on any SWE-bench scale-up — a larger universe adds cells the instrument may not be able to read, so the control must be extended **before** the arm, not after |
+| 32 | **A nominally separating contrast, one of three tested on one matched set.** With coverage complete, django's `structured − summary` is +0.1081, 95% CI [+0.027, +0.2162] — excluding zero, the first SWE-bench contrast ever to do so. It is **4 nonzero cells out of 37**, it appears in neither chunk alone (n=13 and n=12, both NOT_ESTABLISHED), it points the opposite way in sympy, and under Bonferroni for the 3 contrasts the interval is [0.0000, +0.2432] | me, on seeing a verdict flip to SEPARATED after a scale-up | caught before it reached a document as a finding. The fix is mechanical rather than remembered: `swebench_multirepo_analysis.py` now emits `ci_familywise_bonferroni_3`, `separates_familywise` and `n_nonzero_cells` beside every nominal interval, and `ORDERING_VERDICT` is driven by the **family-wise** result, with the nominal one preserved as `ORDERING_VERDICT_nominal_uncorrected`. The family-wise interval is positively controlled to still separate on a planted +1.0 signal, so the correction is not a way of never reporting anything |
+
+### The shape all three share with the register's older entries
+
+#30 and #31 are both **a check whose claim is narrower than the use it was put
+to** — #30 narrower in *kind* (it could not distinguish detection from
+silence), #31 narrower in *scope* (12 instances, not 96). #32 is
+**selection after seeing the outcome**, the same shape as *selected subgroups
+inflate*, applied to a contrast rather than to a subgroup.
+
+🔴 **A deliberate non-change.** The extended controls are **not** wired into
+`check_scorer_control`. The frozen gate still reads the shipped 20/20
+artifacts, because changing a gate's input after seeing results is the thing
+`SCICODE_SCALEUP_PRECOMMITMENT.md` exists to prevent. The extended artifacts
+are a *per-instance diagnostic* that feeds the coverage table's exclusion
+classifier, and the two are kept apart on purpose.

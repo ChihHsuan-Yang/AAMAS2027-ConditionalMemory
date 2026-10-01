@@ -95,6 +95,18 @@ def main() -> int:
     ap.add_argument("--parquet", default="/tmp/swebench/swebv.parquet")
     ap.add_argument("--cells", type=int, default=32)
     ap.add_argument("--repo", default="")
+    ap.add_argument("--skip-tasks", default="",
+                    help="comma-separated recipient task ids to exclude, or "
+                         "@path to a JSON list. Used to EXTEND an existing arm "
+                         "without re-running its cells. 🔴 select_cells "
+                         "deduplicates by recipient FIRST-WINS over the "
+                         "manifest's order, so skipping a recipient could in "
+                         "principle let a different donor win for a recipient "
+                         "that remains. That is a re-pairing, not an "
+                         "extension, and it is asserted against below rather "
+                         "than assumed -- see DEFECT_REGISTER on "
+                         "tasks_per_memory: a subset at one stage becomes a "
+                         "re-pairing at the next.")
     ap.add_argument("--top-k", type=int, default=5)
     ap.add_argument("--max-lines", type=int, default=120)
     ap.add_argument("--max-tokens", type=int, default=2048)
@@ -124,7 +136,34 @@ def main() -> int:
     rows = pq.read_table(a.parquet).to_pylist()
     mems = {m.instance_id: m for m in build_memory_units(rows)}
     tasks = {t.instance_id: t for t in build_future_tasks(rows)}
-    chosen, skipped = select_cells(a.manifest, tasks, a.cells, a.repo, frozenset())
+    skip_raw = a.skip_tasks
+    if skip_raw.startswith("@"):
+        skip_raw = ",".join(json.loads(Path(skip_raw[1:]).read_text()))
+    skip = frozenset(x for x in skip_raw.split(",") if x)
+
+    # 🔴 RE-PAIRING GUARD. Build the universe with NO skip, then with the
+    # skip, and require that every recipient common to both keeps the SAME
+    # donor. If a skip silently re-paired a recipient, these cells would
+    # carry an existing task_id against a different memory_id and would be
+    # pooled with the earlier arm as though they were the same cells.
+    full, _ = select_cells(a.manifest, tasks, 10 ** 9, a.repo, frozenset())
+    pair_full = {c["task_id"]: c["memory_id"] for c in full}
+    chosen, skipped = select_cells(a.manifest, tasks, a.cells, a.repo, skip)
+    repaired = {c["task_id"]: (pair_full.get(c["task_id"]), c["memory_id"])
+                for c in chosen
+                if pair_full.get(c["task_id"]) != c["memory_id"]}
+    print(f"GATE re-pairing      : {'PASS' if not repaired else 'FAIL'} -- "
+          f"{len(repaired)} of {len(chosen)} selected recipients would change "
+          f"donor relative to the unskipped universe")
+    if repaired:
+        for t, (was, now) in sorted(repaired.items())[:10]:
+            print(f"    RE-PAIRED {t}: donor {was} -> {now}")
+        print("REFUSING to measure: this would extend the arm with cells that "
+              "share a task_id with executed cells but are not the same cell.")
+        return 2
+    if skip:
+        print(f"  skip list: {len(skip)} recipients excluded "
+              f"({len(skip & set(pair_full))} of them in this repo's universe)")
     print(f"  selected {len(chosen)} cells (skipped {skipped} multi-file gold fixes)")
 
     client = P1Client(cluster="metis", model="gpt-oss-120b")
@@ -267,6 +306,9 @@ def main() -> int:
             "structured_variant": "general",
             "benchmark_version": BENCHMARK_VERSION,
             "n_cells_selected": len(chosen), "n_calls": calls,
+            "skip_tasks_n": len(skip),
+            "skip_tasks": sorted(skip),
+            "repairing_guard_passed": True,
             "n_memories": len(written),
             "contagion_dirty_excluded": len(dirty),
             "write_failures": len(write_fail),

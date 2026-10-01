@@ -1,0 +1,167 @@
+{
+  "summary": {
+    "n_cells_selected": 11,
+    "n_attempted": 11,
+    "n_error": 0,
+    "n_pass": 11,
+    "n_gold_scored_1": 11,
+    "n_base_scored_0": 11,
+    "negative_control_attempted": 11,
+    "negative_control_pass": 6,
+    "negative_control_needed_escalation": 1,
+    "claim": "gold must score 1.0 AND base must score 0.0 on the same cell",
+    "repos": [
+      "sympy/sympy"
+    ],
+    "runner_kinds": [
+      "pytest"
+    ]
+  },
+  "cells": [
+    {
+      "task_id": "sympy__sympy-17655",
+      "repo": "sympy/sympy",
+      "path": "sympy/geometry/point.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 1 warning in 1.17s :: P2P rc=0 status_lines=1     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs",
+      "base_detail": "F2P rc=1 status_lines=1 :: =========================== short test summary info ============================\nFAILED sympy/geometry/tests/test_point.py::test_point - TypeError: unsupporte...\nFAILED sympy/geometry/tests/test_point.py::test_point3D - TypeError: unsuppor...\n2 failed, 1 warning in 1.07s",
+      "pass_": true,
+      "corrupt_gold_reward": 0.0,
+      "corruption_level": 1,
+      "negative_control_pass": true
+    },
+    {
+      "task_id": "sympy__sympy-22714",
+      "repo": "sympy/sympy",
+      "path": "sympy/geometry/point.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.12s :: P2P rc=0 status_lines=1     warnings.warn(message)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n11 passed, 1 warning in 1.18s",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/geometry/tests/test_point.py::test_issue_22684 - ValueError: Ima...\n1 failed in 0.16s",
+      "pass_": true,
+      "corrupt_gold_reward": 0.0,
+      "corruption_level": 1,
+      "negative_control_pass": true
+    },
+    {
+      "task_id": "sympy__sympy-13757",
+      "repo": "sympy/sympy",
+      "path": "sympy/polys/polytools.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 4 warnings in 1.24s :: P2P rc=0 status_lines=1     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.h",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/polys/tests/test_polytools.py::test_issue_13079 - AssertionError...\n1 failed, 3 warnings in 1.23s",
+      "pass_": true,
+      "corrupt_gold_reward": 0.0,
+      "corruption_level": 1,
+      "negative_control_pass": true
+    },
+    {
+      "task_id": "sympy__sympy-14711",
+      "repo": "sympy/sympy",
+      "path": "sympy/physics/vector/vector.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     if len(base_split) is not 1:\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 6 warnings in 0.28s :: P2P rc=0 status_lines=1     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/physics/vector/tests/test_vector.py::test_Vector - TypeError: A ...\n1 failed, 4 warnings in 0.27s",
+      "pass_": true,
+      "corrupt_gold_reward": 0.0,
+      "corruption_level": 1,
+      "negative_control_pass": true
+    },
+    {
+      "task_id": "sympy__sympy-20801",
+      "repo": "sympy/sympy",
+      "path": "sympy/core/numbers.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.67s :: P2P rc=0 status_lines=1     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_zero_not_false - assert (0.0 ==...\n1 failed, 1 warning in 0.75s",
+      "pass_": true,
+      "corrupt_gold_reward": 1.0,
+      "corruption_level": 3,
+      "corrupt_gold_reward_level2": 1.0,
+      "corrupt_gold_reward_level3": null,
+      "negative_control_pass": false
+    },
+    {
+      "task_id": "sympy__sympy-24562",
+      "repo": "sympy/sympy",
+      "path": "sympy/core/numbers.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.76s :: P2P rc=0 status_lines=1 ....................                                                     [100%]\n20 passed in 0.17s",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/core/tests/test_numbers.py::test_issue_24543 - TypeError: invali...\n1 failed in 0.84s",
+      "pass_": true,
+      "corrupt_gold_reward": null,
+      "corruption_level": 1,
+      "negative_control_pass": false
+    },
+    {
+      "task_id": "sympy__sympy-18763",
+      "repo": "sympy/sympy",
+      "path": "sympy/printing/latex.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.86s :: P2P rc=0 status_lines=1     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_latex.py::test_latex_subs - AssertionError: ...\n1 failed, 1 warning in 0.81s",
+      "pass_": true,
+      "corrupt_gold_reward": null,
+      "corruption_level": 1,
+      "negative_control_pass": false
+    },
+    {
+      "task_id": "sympy__sympy-14531",
+      "repo": "sympy/sympy",
+      "path": "sympy/printing/str.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 5 warnings in 0.42s :: P2P rc=0 status_lines=1     from collections import Callable\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.h",
+      "base_detail": "F2P rc=1 status_lines=1 :: =========================== short test summary info ============================\nFAILED sympy/printing/tests/test_python.py::test_python_relational - assert '...\nFAILED sympy/printing/tests/test_str.py::test_Rational - AssertionError: asse...\n2 failed, 4 warnings in 0.42s",
+      "pass_": true,
+      "corrupt_gold_reward": null,
+      "corruption_level": 1,
+      "negative_control_pass": false
+    },
+    {
+      "task_id": "sympy__sympy-21612",
+      "repo": "sympy/sympy",
+      "path": "sympy/printing/str.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 1 warning in 0.51s :: P2P rc=0 status_lines=1     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_str.py::test_Mul - AssertionError: assert 'x...\n1 failed, 1 warning in 0.42s",
+      "pass_": true,
+      "corrupt_gold_reward": null,
+      "corruption_level": 1,
+      "negative_control_pass": false
+    },
+    {
+      "task_id": "sympy__sympy-16766",
+      "repo": "sympy/sympy",
+      "path": "sympy/printing/pycode.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 ::     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 6 warnings in 0.03s :: P2P rc=0 status_lines=1     self._warn_or_fail_if_strict(f\"Unknown config option: {key}\\n\")\n\n-- Doc",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed, 1 warning in 0.05s",
+      "pass_": true,
+      "corrupt_gold_reward": 0.0,
+      "corruption_level": 1,
+      "negative_control_pass": true
+    },
+    {
+      "task_id": "sympy__sympy-22914",
+      "repo": "sympy/sympy",
+      "path": "sympy/printing/pycode.py",
+      "gold_reward": 1.0,
+      "base_reward": 0.0,
+      "gold_detail": "F2P rc=0 status_lines=1 :: .                                                                        [100%]\n1 passed in 0.18s :: P2P rc=0 status_lines=1 .................                                                        [100%]\n17 passed in 0.06s",
+      "base_detail": "F2P rc=1 status_lines=1 ::                                 DO *NOT* COMMIT!                                \n=========================== short test summary info ============================\nFAILED sympy/printing/tests/test_pycode.py::test_PythonCodePrinter - Assertio...\n1 failed in 0.14s",
+      "pass_": true,
+      "corrupt_gold_reward": 0.0,
+      "corruption_level": 1,
+      "negative_control_pass": true
+    }
+  ]
+}

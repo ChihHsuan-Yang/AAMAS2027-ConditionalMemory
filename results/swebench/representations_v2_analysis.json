@@ -1,0 +1,104 @@
+{
+ "analysis_version": "swebench_representation_v1",
+ "source_artifact": "results/swebench/representations_v2.json",
+ "GOVERNING": "task_clustered",
+ "basis": "matched cells only -- interpretable under ALL THREE representations; reward None (unapplicable edit) is an exclusion, never 0.0",
+ "per_representation_interpretable": {
+  "raw": 16,
+  "summary": 15,
+  "structured": 18
+ },
+ "exclusions": {
+  "raw:localizer_miss": 11,
+  "summary:localizer_miss": 11,
+  "structured:localizer_miss": 11,
+  "summary:unapplicable_or_unscored": 6,
+  "raw:unapplicable_or_unscored": 5,
+  "structured:unapplicable_or_unscored": 3
+ },
+ "MATCHED_CELL_SET_N": 13,
+ "repos_present": [
+  "django/django"
+ ],
+ "contagion_dirty_excluded": 0,
+ "write_failures": 0,
+ "delta_u_matched": {
+  "raw": {
+   "mean": 0.1538,
+   "ci95_task_clustered": [
+    0.0,
+    0.3846
+   ],
+   "helped": 2,
+   "hurt": 0,
+   "tied": 11,
+   "n": 13
+  },
+  "summary": {
+   "mean": 0.0,
+   "ci95_task_clustered": [
+    -0.2308,
+    0.2308
+   ],
+   "helped": 1,
+   "hurt": 1,
+   "tied": 11,
+   "n": 13
+  },
+  "structured": {
+   "mean": 0.0769,
+   "ci95_task_clustered": [
+    0.0,
+    0.2308
+   ],
+   "helped": 1,
+   "hurt": 0,
+   "tied": 12,
+   "n": 13
+  }
+ },
+ "paired_contrasts": {
+  "structured_minus_raw": {
+   "mean": -0.0769,
+   "ci95_task_clustered": [
+    -0.2308,
+    0.0
+   ],
+   "separates_from_zero": false
+  },
+  "summary_minus_raw": {
+   "mean": -0.1538,
+   "ci95_task_clustered": [
+    -0.3846,
+    0.0
+   ],
+   "separates_from_zero": false
+  },
+  "structured_minus_summary": {
+   "mean": 0.0769,
+   "ci95_task_clustered": [
+    0.0,
+    0.2308
+   ],
+   "separates_from_zero": false
+  }
+ },
+ "both_arms_fail_matched": {
+  "raw": {
+   "k": 5,
+   "n": 13,
+   "rate": 0.3846
+  },
+  "summary": {
+   "k": 6,
+   "n": 13,
+   "rate": 0.4615
+  },
+  "structured": {
+   "k": 6,
+   "n": 13,
+   "rate": 0.4615
+  }
+ },
+ "ORDERING_VERDICT": "NOT_ESTABLISHED"
+}

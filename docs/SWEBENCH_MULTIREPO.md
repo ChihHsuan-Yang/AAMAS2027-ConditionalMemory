@@ -1,29 +1,169 @@
-# SWE-bench beyond django — the sympy arm, and the cap that bounds the universe
+# SWE-bench beyond django — full coverage, and what it did and did not buy
 
-**Written 2026-09-30 (SA-SWE-FULL).** Every number below was re-derived from an
-executed artifact in this session; none is quoted from the manifest or from a
-prior report without re-computation. Where my re-derivation disagreed with a
-prior figure, the disagreement is recorded rather than smoothed.
+**Updated 2026-10-01 (SA-SWE-FINAL).** The remaining 64 django recipients were
+run under the frozen protocol. **SWE-bench Verified is now 107/107 attempted.**
+Every number below was re-derived from an executed artifact in this session.
+The earlier SA-SWE-FULL text is kept beneath, with its superseded figures
+labelled rather than deleted — a retracted number must stay readable.
 
 ## 0. Headline
 
-**django-only was never a harness constraint, and it is now over.** sympy ran
-end-to-end on the first attempt: 11 cells × 3 representations = **33 rep-cells,
-42 model calls, zero write failures**. SWE-bench is now a **two-repo** result.
+**Coverage is complete; the verdict did not change.**
 
-But the arm is **still underpowered, and more so than the cell count suggests**:
+| | matched cells (was) | matched cells (now) | ordering verdict |
+|---|---:|---:|---|
+| django/django | 12 | **37** | NOT_ESTABLISHED |
+| sympy/sympy | 3 | **3** | NOT_ESTABLISHED |
+| **pooled** | **15** | **40** | **NOT_ESTABLISHED** |
 
-| | matched cells | ordering verdict |
+Tripling the django matched set did not separate any contrast family-wise.
+That is the honest outcome and it is reported as such.
+
+### 🔴 One contrast separates nominally and must not be read as a finding
+
+On django, `structured − summary` is **+0.1081, 95% CI [+0.027, +0.2162]** —
+it excludes zero. It is reported here, and it is **not** a result:
+
+* **Three contrasts are tested on one matched set.** Under Bonferroni the
+  interval is **[0.0000, +0.2432]**, which touches zero. The artifact now
+  emits `ci_familywise_bonferroni_3` and `separates_familywise` beside every
+  nominal interval, and `ORDERING_VERDICT` is driven by the **family-wise**
+  result, so a reader cannot be handed the nominal one alone.
+* **It is 4 cells.** `n_nonzero_cells = 4 / 37` — django-13028, -12276,
+  -15382, -14771, each +1.0. At that n the rate is not the finding.
+* **It does not appear in either chunk alone** (both NOT_ESTABLISHED at n=13
+  and n=12), nor in sympy, where the same contrast points the *other* way
+  (−0.6667).
+* It survives restricting to scorer-valid instances (+0.1176, n=34), so it is
+  not an artefact of the instrument — it is simply too small for this n.
+
+**ORDERING_VERDICT: NOT_ESTABLISHED, in both repos and pooled.**
+
+## 0b. Coverage, and the three things completing it uncovered
+
+| | django | sympy | total |
+|---|---:|---:|---:|
+| eligible (runnable) | 96 | 11 | **107** |
+| attempted | **96** | **11** | **107 (100%)** |
+| valid completed (matched) | 34 | 3 | **37** |
+| excluded | 62 | 8 | **70** |
+
+`107 = 37 + 70` ✅. Full classification in `COVERAGE_MANIFEST.md` §3.
+
+**1. The django scorer discriminates on only 73 of 96 instances.** The shipped
+control covered 12. Extended to all 96, 23 instances fail to separate gold
+from base, so a 0.0 there is not evidence the fix was wrong. All 12 original
+instances reproduced exactly. sympy is 11/11.
+
+**2. Six negative controls were themselves manufactured zeros.** Under the
+fixed scorer, 6 of the 20 shipped control instances flip `corrupt→0.0` to
+`corrupt→None`: the corrupted gold printed **no verdict**, recorded as
+"corruption detected". Honest counts: django 38/73, sympy 6/11 corruptions
+provably detected, and **zero** scored 1.0 — the direction that would indicate
+a blind scorer.
+
+**3. The two new chunks contain no manufactured zeros at all.** 0 arm-reads
+with `status_lines=0` carrying a number, against 81 correctly returned as
+`UNSCORABLE` (31 in chunk A, 50 in chunk B) — the DEFECT #21 fix doing its job
+at write time rather than on read.
+
+## 0c. What was run
+
+```
+scripts/swebench_representations.py --repo django/django --cells 32 \
+    --skip-tasks @<executed ids> --out results/swebench/representations_v3_django_a.json   # then _b
+```
+
+`--skip-tasks` is new, and it ships with the guard that makes it safe: the
+runner builds the universe **with and without** the skip and refuses to measure
+if any selected recipient would change donor. Skipping a recipient could in
+principle let a different donor win for one that remains — a **re-pairing**,
+not an extension, which would give new cells the same `task_id` as executed
+ones. Measured: **0 of 32 re-paired in each chunk**, and the guard is
+positively controlled (it fires on a planted displacement, stays silent on the
+real skip list).
+
+Both chunks: gates passed (scorer control 20/20, apply parity +0.000,
+re-pairing 0), 3 representations × 32 cells, 128 calls, 0 write failures,
+0 contagion-dirty, identity fields consistent on every row (DEFECT #27),
+WITHOUT shared byte-identically 32/32.
+
+## 0d. Final contrasts, task-clustered
+
+**django (n=37)**
+
+| rep | ΔU | CI95 |
 |---|---:|---|
-| django/django | **13** | NOT_ESTABLISHED |
-| sympy/sympy | **4** | NOT_ESTABLISHED |
-| **pooled** | **17** | **NOT_ESTABLISHED** |
+| raw | −0.0541 | [−0.1892, +0.0811] |
+| summary | −0.1622 | [−0.2973, −0.0270] |
+| structured | −0.0541 | [−0.1622, +0.0541] |
 
-**No representation contrast separates from zero in either repo or pooled.**
-Adding sympy did not rescue the comparison; it widened the basis and left the
-verdict unchanged. That is the honest outcome and it is reported as such.
+| contrast | mean | CI95 nominal | CI Bonferroni | separates? |
+|---|---:|---|---|---|
+| structured − raw | +0.0000 | [−0.1081, +0.1081] | [−0.1351, +0.1351] | no |
+| summary − raw | −0.1081 | [−0.2432, 0.0000] | [−0.2703, +0.0270] | no |
+| structured − summary | +0.1081 | [+0.0270, +0.2162] | **[0.0000, +0.2432]** | **no** (nominal only) |
+
+**sympy (n=3)** — raw +0.0000 [0,0], summary +0.0000 [0,0], structured
+−0.6667 [−1.0, 0.0]. No contrast separates.
+
+**pooled (n=40) — django 37 + sympy 3; django supplies 92.5%, and the artifact
+says so mechanically (`DOMINATED_BY`).**
+
+| rep | ΔU | CI95 |
+|---|---:|---|
+| raw | −0.0500 | [−0.1750, +0.0750] |
+| summary | −0.1500 | [−0.2750, −0.0250] |
+| structured | −0.1000 | [−0.2250, 0.0000] |
+
+| contrast | mean | CI95 nominal | CI Bonferroni | separates? |
+|---|---:|---|---|---|
+| structured − raw | −0.0500 | [−0.1750, +0.0750] | [−0.2000, +0.1000] | no |
+| summary − raw | −0.1000 | [−0.2250, 0.0000] | [−0.2500, +0.0250] | no |
+| structured − summary | +0.0500 | [−0.0750, +0.1750] | [−0.1000, +0.2000] | no |
+
+🔴 **The pooled set is 92.5% django** — worse than the 76.5% the earlier text
+flagged, because only django grew. Pooling here adds django cells; it does not
+broaden the basis.
+
+**Both-arms-fail, matched set:** django raw 13/37, summary 14/37, structured
+14/37; sympy 0/3 all three; pooled raw 13/40 = 32.5% [0.201, 0.480], summary
+and structured 14/40 = 35.0% [0.221, 0.505].
+
+## 0e. Reproduce
+
+```bash
+PY=/Users/bellayang/miniconda3/bin/python3
+$PY scripts/swebench_scorer_control.py --repo django/django --cells 96 \
+    --negative-control --out results/swebench/scorer_control_django_ext.json
+$PY scripts/swebench_scorer_control.py --repo sympy/sympy --cells 11 \
+    --negative-control --out results/swebench/scorer_control_sympy_ext.json
+$PY scripts/swebench_multirepo_analysis.py --self-test
+$PY scripts/swebench_coverage_table.py --self-test
+$PY scripts/swebench_multirepo_analysis.py \
+    --src results/swebench/representations_v2.json \
+    --src results/swebench/representations_v3_django_a.json \
+    --src results/swebench/representations_v3_django_b.json \
+    --src results/swebench/representations_sympy.json \
+    --out results/swebench/representations_multirepo_final.json
+$PY scripts/swebench_coverage_table.py \
+    --src results/swebench/representations_v2.json \
+    --src results/swebench/representations_v3_django_a.json \
+    --src results/swebench/representations_v3_django_b.json \
+    --src results/swebench/representations_sympy.json \
+    --scorer-control results/swebench/scorer_control_django_ext.json \
+    --scorer-control results/swebench/scorer_control_sympy_ext.json \
+    --out results/swebench/coverage_table_final.json
+$PY -m pytest tests/ -q      # 638 passed
+```
 
 ---
+
+# ARCHIVE — SA-SWE-FULL, 2026-09-30
+
+🔴 **Superseded where it states coverage or matched-set sizes.** Its "41 django
+pairs remain" and its 13/4/17 matched counts are pre-defect-21 and pre-scale-up.
+Its §5 analysis of `tasks_per_memory` stands unchanged and still governs.
 
 ## 1. Task 1 — the sympy claim, verified before acting on it
 

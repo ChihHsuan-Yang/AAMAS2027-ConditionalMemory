@@ -1,0 +1,104 @@
+{
+ "analysis_version": "swebench_representation_v1",
+ "source_artifact": "results/swebench/representations_v3_django_b.json",
+ "GOVERNING": "task_clustered",
+ "basis": "matched cells only -- interpretable under ALL THREE representations; reward None (unapplicable edit) is an exclusion, never 0.0",
+ "per_representation_interpretable": {
+  "raw": 14,
+  "summary": 13,
+  "structured": 13
+ },
+ "exclusions": {
+  "summary:unapplicable_or_unscored": 11,
+  "raw:localizer_miss": 8,
+  "summary:localizer_miss": 8,
+  "structured:localizer_miss": 8,
+  "raw:unapplicable_or_unscored": 10,
+  "structured:unapplicable_or_unscored": 11
+ },
+ "MATCHED_CELL_SET_N": 12,
+ "repos_present": [
+  "django/django"
+ ],
+ "contagion_dirty_excluded": 0,
+ "write_failures": 0,
+ "delta_u_matched": {
+  "raw": {
+   "mean": -0.1667,
+   "ci95_task_clustered": [
+    -0.4167,
+    0.0
+   ],
+   "helped": 0,
+   "hurt": 2,
+   "tied": 10,
+   "n": 12
+  },
+  "summary": {
+   "mean": -0.3333,
+   "ci95_task_clustered": [
+    -0.5833,
+    -0.0833
+   ],
+   "helped": 0,
+   "hurt": 4,
+   "tied": 8,
+   "n": 12
+  },
+  "structured": {
+   "mean": -0.1667,
+   "ci95_task_clustered": [
+    -0.4167,
+    0.0
+   ],
+   "helped": 0,
+   "hurt": 2,
+   "tied": 10,
+   "n": 12
+  }
+ },
+ "paired_contrasts": {
+  "structured_minus_raw": {
+   "mean": 0.0,
+   "ci95_task_clustered": [
+    -0.25,
+    0.25
+   ],
+   "separates_from_zero": false
+  },
+  "summary_minus_raw": {
+   "mean": -0.1667,
+   "ci95_task_clustered": [
+    -0.4167,
+    0.0
+   ],
+   "separates_from_zero": false
+  },
+  "structured_minus_summary": {
+   "mean": 0.1667,
+   "ci95_task_clustered": [
+    0.0,
+    0.4167
+   ],
+   "separates_from_zero": false
+  }
+ },
+ "both_arms_fail_matched": {
+  "raw": {
+   "k": 5,
+   "n": 12,
+   "rate": 0.4167
+  },
+  "summary": {
+   "k": 5,
+   "n": 12,
+   "rate": 0.4167
+  },
+  "structured": {
+   "k": 5,
+   "n": 12,
+   "rate": 0.4167
+  }
+ },
+ "ORDERING_VERDICT": "NOT_ESTABLISHED"
+}
