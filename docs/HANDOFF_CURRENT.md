@@ -1,437 +1,589 @@
 # P1 — Current Handoff
 
-**Updated 2026-09-30 17:45 CDT by the Master Agent (live, mid-run).** The detailed state.
+**Restructured 2026-10-01 12:45 CDT by SA-ARCHIVE.** Current state is at the **TOP**;
+the dated history is in **Part II** below, preserved verbatim in substance. Where the two
+disagree, **Part I is current**.
+
+A Master Agent should be able to take over from this file alone.
 `README.md` §Current Project State is the short version;
-[`docs/RESULT_INDEX.md`](RESULT_INDEX.md) and [`docs/FIGURE_INDEX.md`](FIGURE_INDEX.md)
-are the lookup tables. **Update this at every milestone.**
+[`EXPERIMENT_ACCOUNTING.md`](EXPERIMENT_ACCOUNTING.md) is every count,
+[`RESULT_INDEX.md`](RESULT_INDEX.md) and [`FIGURE_INDEX.md`](FIGURE_INDEX.md) are the
+lookup tables.
 
 ---
 
-## Paths and remotes
+# PART I — CURRENT STATE
+
+## 1. Read these, in this order
+
+1. **This file, Part I.**
+2. [`SCOPE_FREEZE.md`](SCOPE_FREEZE.md) — what is in scope. The scope is **frozen**.
+3. [`EXPERIMENT_ACCOUNTING.md`](EXPERIMENT_ACCOUNTING.md) — every cell, call and token, counted.
+4. [`RESULT_INDEX.md`](RESULT_INDEX.md) **§F** — the open disagreements between sources of
+   truth. Also [`FIGURE_INDEX.md`](FIGURE_INDEX.md) before touching any figure.
+5. [`THE_HONEST_HEADLINE.md`](THE_HONEST_HEADLINE.md), then
+   [`DEFECT_REGISTER.md`](DEFECT_REGISTER.md), then [`MASTER_TODO.md`](MASTER_TODO.md).
+
+Pre-commitments, each written **before** the data they govern existed:
+[`ANALYSIS_PREREGISTRATION.md`](ANALYSIS_PREREGISTRATION.md) ·
+[`READER_TRANSFER_PRECOMMITMENT.md`](READER_TRANSFER_PRECOMMITMENT.md) ·
+[`WRITER_FACTORIAL_PRECOMMITMENT.md`](WRITER_FACTORIAL_PRECOMMITMENT.md) ·
+[`SCICODE_SCALEUP_PRECOMMITMENT.md`](SCICODE_SCALEUP_PRECOMMITMENT.md).
+Results: [`READER_TRANSFER_RESULT.md`](READER_TRANSFER_RESULT.md) ·
+[`WRITER_FACTORIAL_RESULT.md`](WRITER_FACTORIAL_RESULT.md) ·
+[`REPRESENTATION_RESULT.md`](REPRESENTATION_RESULT.md) ·
+[`SCICODE_RESULT.md`](SCICODE_RESULT.md) · [`SCREENED_RESULT.md`](SCREENED_RESULT.md) ·
+[`SESSION_DETERMINISM_AUDIT.md`](SESSION_DETERMINISM_AUDIT.md).
+
+Then:
+
+```bash
+/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py      # 129 checks, 16 sections
+/Users/bellayang/miniconda3/bin/python3 -m pytest -q                 # 638 tests
+/Users/bellayang/miniconda3/bin/python3 scripts/count_experiment_accounting.py
+```
+
+**If the audit fails, stop and find out why before anything else.** Both were green at
+`9f835a2` (2026-10-01 12:21 CDT).
+
+## 2. Who is working right now — DO NOT EDIT THEIR FILES
+
+Five agents work this repo concurrently. `git add -A` has mis-attributed files **twice**.
+**Stage explicit paths and verify with `git show --stat`.**
+
+| agent | owns |
+|---|---|
+| **SA-PAGE** | `overleaf/main.tex` |
+| **SA-HF** | HF releases, `docs/DATASET_INDEX.md`, `docs/hf_card/` |
+| **SA-SWE-FINAL** | new SWE-bench cells, `docs/COVERAGE_MANIFEST.md` §3, `docs/SWEBENCH_MULTIREPO.md` |
+| **SA-FINAL-AUDIT** | standing claim/evidence audit |
+| **SA-ARCHIVE** | `README.md`, `HANDOFF_CURRENT.md`, `RESULT_INDEX.md`, `FIGURE_INDEX.md`, `MODEL_ARMS.md`, `MASTER_TODO.md`, `EXPERIMENT_ACCOUNTING.md` |
+
+**SWE-bench numbers are in flux.** Cite SA-SWE-FINAL's artifact and say *"as of `<commit>`"*
+rather than freezing a figure you did not derive.
+
+## 3. Identity, paths and remotes
 
 | what | where |
 |---|---|
-| code repo | `/Users/bellayang/Documents/2026/p1_memory_utility/repo` → `github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory` (`main`) |
-| **repo HEAD** | **`027be3c`** "docs: pre-commit the SciCode scale-up design", 2026-09-30 17:42 CDT · **174 commits** |
-| Overleaf | `/Users/bellayang/Documents/2026/p1_memory_utility/overleaf` → `git.overleaf.com/6abbde4a9eb777031afef068` (`main`) |
-| **Overleaf HEAD** | **`604e2b3`** · working tree clean, compiles, body in 8 pages, anonymity verified |
-| HF dataset | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
-| **HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private** (unauthenticated fetch → 401, verified). v0.1 tag `v0.1-lmev2-derived` retained. **v0.3 (SciCode) and v0.4 (SWE-bench) not yet cut.** |
+| **code repo** | `/Users/bellayang/Documents/2026/p1_memory_utility/repo` → `github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory` (`main`) |
+| **repo HEAD** | **`9f835a2`** "docs: freeze the scientific scope", 2026-10-01 12:21 CDT · **227 commits** |
+| **manuscript** | `/Users/bellayang/Documents/2026/p1_memory_utility/overleaf` → `git.overleaf.com/6abbde4a9eb777031afef068` (`main`) |
+| **Overleaf HEAD** | **`1961825`** "Cite two figures the text never pointed at; tighten the reader paragraph" · working tree clean |
+| **HF dataset** | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**) |
+| **HF version** | **v0.2 `repr-derived`**, tag `v0.2-repr-derived` — 5,643 rows (raw 4,519 / summary 570 / structured 554), schema `p1mem_conditional_memory_utility_v3`, **98 fields**. Unauthenticated fetch → 401, verified. v0.1 tag `v0.1-lmev2-derived` retained. **v0.3 (SciCode) is being rebuilt by SA-HF right now** |
 | HF staging (**never committed, never uploaded from the repo**) | `/Users/bellayang/Documents/2026/p1_memory_utility/hf_staging/AAMAS2027-ConditionalMemory/` |
 | data card | `docs/hf_card/README.md` (byte-identical to the uploaded card) |
-| LongMemEval-V2 | `/tmp/lmev2` (checksum-verified; `trajectories.jsonl` ~1.1 GiB, `questions.jsonl` 451 rows) |
+| LongMemEval-V2 source | `/tmp/lmev2` (checksum-verified; `trajectories.jsonl` ~1.1 GiB, `questions.jsonl` 451 rows) |
 | LongMemEval V1 | `data/lmev1/` |
 | ALCF auth | `/Users/bellayang/Documents/2026/iclr_receiver_conditional_communication/inference_auth_token.py` |
-| sub-agent reports | `../subagent_*_report.md` (A, A2, B, C, C2, D, E, FIG, G, H, HF, J, K, N, R, ARCHIVE) |
+| sub-agent reports | `../subagent_*_report.md` |
+| **venue** | AAMAS 2027 main track — abstract 1 Oct AoE, **paper 8 Oct AoE** |
 
-**Python: `/Users/bellayang/miniconda3/bin/python3` (3.13). The system `python3` is 3.9 and
-aborts pytest collection on a vendored file — a healthy suite looks broken.**
+**Python: `/Users/bellayang/miniconda3/bin/python3` (3.13).** The system `python3` is 3.9
+and aborts pytest collection on a vendored file — **a healthy suite looks broken**. Scripts
+importing `p1mem` directly need `PYTHONPATH=src` unless the package is installed `-e`.
 
-## Frozen configuration — do not drift
+## 4. Frozen configuration — a change is a NEW ARM, never a backfill
+
+Machine-readable: `src/p1mem/schema.py::READER_ARMS`. A runner asks for an arm **by name**
+and `reader_row_fields()` splats all five identity fields, so a script cannot fill four and
+leave the fifth null.
 
 ```text
-reader + writer : metis / gpt-oss-120b (BARE name; Sophia wants openai/gpt-oss-120b)
 endpoint        : https://inference-api.alcf.anl.gov/resource_server/metis/api/v1
-reasoning_effort: low      temperature: 0      max_tokens: 512      concurrency: 16
 embeddings      : Salesforce/SFR-Embedding-Mistral on Sophia, dim 4096
-                  ⚠️ 2,000-Qwen-token budget with halving retry; 98.5% of units truncated
+                  2,000-Qwen-token budget with halving retry; 98.5% of units truncated
 memory unit     : page visit (maximal run of states sharing one URL), median 7,261 tok
-prompt version  : p1_deltau_raw_v1
+tokenizer       : Qwen/Qwen3.5-9B
 ```
 
-Cluster and prompt version are **experimental identity**. A change is a new arm, never a
-backfill.
+### Readers
 
-## Result artifacts
+| arm | model | cluster | reasoning_effort | temp | max_tokens | workers | reports reasoning tok | truncation = error |
+|---|---|---|---|---:|---:|---:|---|---|
+| `gptoss_metis` | `gpt-oss-120b` (BARE name) | metis | `low` | 0 | 512 | **16** | **yes** | no |
+| `gemma_metis` | `gemma-4-31B-it` (capital B) | metis | **field OMITTED**, recorded `none:not_applicable` | 0 | 512 | **16** | **no** | **yes** |
+| `gemma_sophia_failover` | `google/gemma-4-31B-it` | sophia | omitted | 0 | 512 | 16 ⚠️ **inherited, NOT measured** | no | yes |
 
-Full per-result provenance is in [`docs/RESULT_INDEX.md`](RESULT_INDEX.md); every path
-there was checked to exist on 2026-09-30.
+**Gemma's 16 workers are measured, not inherited:** 252/252 clean at ≤16, **25.00%** 429s at
+24, **71.88%** at 32. Throughput 74.0 completed/min at the real 25,176-token shape against
+gpt-oss's 169.9/min. `reasoning_effort` is **accepted but verifiably inert** on Gemma
+(byte-identical output across omitted/low/medium/high, with a gpt-oss positive control
+showing 58/118/473 reasoning tokens — the probe can see the effect when it exists).
+**Cost is NOT poolable across models.** Evidence: [`GEMMA_ENDPOINT_PROBE.md`](GEMMA_ENDPOINT_PROBE.md).
 
-| run | path | calls | tracked? |
-|---|---|---|---|
-| **screened main** | `results/deltau_screened/cells.jsonl` (2,599 rows / 1,157 cells) | 5,198, 0 errors | no |
-| screened analysis | `results/deltau_screened/analysis/k3_screened_analysis.json`, `k4_tables.md` | — | via repro copy |
-| **representation scale-up** | `results/repr_scaleup/cells.jsonl`, `memories.jsonl`, `analysis/r3_representation_analysis.json`, `write_summary.json`, `eval_summary.json` | 2,368 | **no — nothing tracked** |
-| drift probes | `results/repr_scaleup/cross_session_probe.json` (12), `raw_resample.json` (100) | 112 | no |
-| pilot arm | `results/deltau_pilot/cells.jsonl` | 1,918 | via slim slice |
-| official-prompt arm | `results/deltau_official/cells.jsonl` | 1,920 | via slim slice |
-| reader diagnostic | `results/j2_escalation/needle_summary.json` + `results/ledgers/j2*.json` | ~516 | ledgers only |
-| **SWE-bench floor pilot** | `results/swebench/floor_pilot.json` | 20 | **yes** |
-| tracked slim slices | `results/ledgers/repro/` (+ `MANIFEST.json` with sha256) | — | **yes** |
-| design manifest | `data/manifests/k1_screened_cells.jsonl` | — | **yes** |
-| bearing structure | `data/manifests/lmev2_leakage_small.jsonl` | — | **yes** |
-| SWE-bench pairs | `data/manifests/swebench_pairs_file_seed20261008.jsonl` | — | **yes** |
+### Writers
 
-**`results/**` is gitignored except `results/ledgers/**`.** ⚠️ **The whole representation
-scale-up — Contribution B's evidence base — is currently untracked and exists on this
-laptop only.** Slim slices for it should be force-added the way the ΔU arms were.
+| representation | writer | model calls | prompt version |
+|---|---|---:|---|
+| **Raw** | `RawExtractiveWriter`, deterministic span | **0** | — |
+| **Summary** | `gpt-oss-120b` or `gemma-4-31B-it` | 1/memory | `summary_v1@1.0.0+6ee16b28b818` |
+| **Structured** | `gpt-oss-120b` or `gemma-4-31B-it` | 1/memory | `structured_v1@1.0.0+163d4cd3eb70` |
 
-## Scripts
+🔴 **Raw has no writer axis.** "Writer gpt-oss raw" and "writer Gemma raw" are the **same
+bytes**, so Raw is absent from the factorial by construction, not by omission.
+
+### Reader prompts
+
+| benchmark | prompt version | max output |
+|---|---|---:|
+| LongMemEval-V2 | `p1_deltau_raw_v1` | 512 |
+| LongMemEval-V2 (official-prompt arm) | `p1_deltau_raw_official_v1` | 512 |
+| SciCode | `scicode_deltau_v1` | 1024 |
+| SWE-bench | `swebench_v2_symmetric` | 2048 (reader) / 1024 (writer) |
+
+**Cluster and prompt version are experimental identity.**
+
+## 5. Current conclusions — state these consistently everywhere
+
+### 5.1 Reader transfer — the CANONICAL value
+
+> ✅ **SESSION-MATCHED: +0.0982, task-clustered [+0.0247, +0.1730], n = 550.**
+> `VERDICT: SURVIVES_SESSION_MATCHING` · `results/ledgers/raw_session_matched_analysis.json`
+
+Both arms re-run **14 minutes apart** on 2026-10-01; `memory_text` byte-identical 550/550;
+sign agreement 110/116. Each mean lies inside the other's CI.
+
+⚠️ **n=550 is matched REPLICATE ROWS over 275 distinct cells** (I re-derived both). Name
+the unit when you quote it.
+
+🔴 **The cross-session +0.1268 [+0.0511, +0.2050] is SUPERSEDED.** Its arms were 11 hours
+apart and defect #25 makes that a real confound. It stays visible as history — *retraction
+is labelling, not deletion* — but **never leads**.
+
+🔴 **The WITHOUT-arm decomposition did NOT survive**: −0.0364 session-matched vs −0.0688
+cross-session. **Do not quote "about half the gain is a weaker reader."**
+
+### 5.2 Everything else
+
+- **Screening the pairing makes the effect measurable.** Both-arms-fail **0.7007 → 0.5252**;
+  the pre-committed rule passed on data it had never seen.
+- **Paired within-memory effect +0.3349** over 60 memories (**35 non-zero contributors**;
+  contributors-only **+0.5740**), p = 5e-5, episode-clustered interval excludes zero.
+  The artifact says **[+0.1974, +0.4736]**, memory bootstrap **[+0.2085, +0.4606]** — and
+  `audit_claims.py` now asserts the manuscript prints **those two**, so F1 is closed in the
+  **artifact's** direction. ⚠️ The older **[+0.1989, +0.4758]** / **[+0.2138, +0.4622]**
+  pair that `docs/SCREENED_RESULT.md` still prints appears in **no artifact on disk** — do
+  not reintroduce it. `docs/RESULT_INDEX.md` §F1 holds the full history.
+- **Bearing is scarce:** 165/1,889 units bear on any task, **46** on ≥2, from **23** episodes.
+- **Founding hypothesis unsupported:** 0 sign flips / 35 bearing memories, bounded ≤9.9%;
+  flips concentrate in RANDOM (17/60); **the additive-null excess is negative in all strata**.
+- **Compression destroys the effect:** only Raw's paired B−MC interval excludes zero.
+- **The cost ranking reverses once formation is charged:** uncharged Summary ≈**5.58×** Raw
+  (`docs/REPRESENTATION_RESULT.md` says **5.6×**, consistent); charged, Raw/Summary
+  ≈**1.08×** — **no advantage** — and Raw/Structured **4.85×**. Raw is bit-identical across
+  both columns (the A1.5 correctness test). ⚠️ `main.tex` still says **5.2×** and "roughly
+  5×" — wrong for Summary, which is the representation that sentence is about. Open as
+  **P1-I13**; `RESULT_INDEX.md` §F3.
+- **Similarity barely predicts utility:** per-cell ρ = **+0.0868** overall, **+0.0061** in
+  RANDOM, **+0.1644** in BEARING.
+- **The reader is not the bottleneck:** 22/22 on a planted needle in the real ~27k context.
+- **No same-family writer–reader advantage:** all four factorial contrasts span zero.
+- **Decomposition unidentifiable** — cause is **`F_exec = 0`**, not the crossing defect.
+- **SciCode:** matched n=122, all three contrasts cross zero → `ORDERING_VERDICT:
+  NOT_ESTABLISHED`. F_exec = 0.0370 is **larger** than the biggest point estimate.
+- **SWE-bench:** every contrast `NOT_ESTABLISHED` per-repo and pooled. Coverage 66/107
+  across two repos answers the django-only criticism **on coverage grounds, not power**.
+
+## 6. Benchmark coverage, in one table
+
+Authoritative definitions: [`COVERAGE_MANIFEST.md`](COVERAGE_MANIFEST.md). Counts:
+[`EXPERIMENT_ACCOUNTING.md`](EXPERIMENT_ACCOUNTING.md).
+
+| benchmark / universe | eligible | executed | coverage | status |
+|---|---:|---:|---:|---|
+| **LongMemEval-V2 — screened design** (what the paper reports) | 1,157 | 1,157 | **100%** | **DONE** |
+| LongMemEval-V2 — frozen 8-task pairing universe | 15,112 | 574 | 3.8% | partial |
+| LongMemEval-V2 — representation sub-universe (285 × 3) | 855 | 847 | 99.1% | 8 structured write failures |
+| LongMemEval-V2 — LLM-judged stratum | 156 q | 0 | 0% | **eligible, not excluded**, blocked on F_judge |
+| **SciCode** (lexical relatedness) | 154 | 154 | **100%** | **DONE** — raw-only in the release |
+| **SWE-bench Verified** (runnable universe) | 107 | 66 | 62% | **SA-SWE-FINAL owns; in flux** |
+
+🔴 **LongMemEval has TWO universes and neither percentage alone is honest.** The screened
+design is a **re-pairing**, not a subset: B ∩ A = **102**, B \ A = **1,055** (re-derived).
+Always name the universe.
+
+## 7. Result artifacts and where they live
+
+`results/**` is gitignored **except `results/ledgers/**`**. Full row files exist **on this
+laptop only**; clone-reproducible slim slices are under `results/ledgers/repro/` with
+sha256 in `MANIFEST.json`.
+
+| run | path | cells | real calls | tracked? |
+|---|---|---:|---:|---|
+| **screened main** | `results/deltau_screened/cells.jsonl` (2,599 rows) + `analysis/k3_screened_analysis.json`, `k4_tables.md` | 1,157 | 5,198 | slim slice |
+| representation scale-up | `results/repr_scaleup/cells.jsonl`, `memories.jsonl`, `analysis/r3_representation_analysis.json`, `write_summary.json`, `eval_summary.json` | 562 | 2,248 reads + 120 writes = **2,368** | 🔴 **no — see §9** |
+| drift probes | `results/repr_scaleup/cross_session_probe.json` (12), `raw_resample.json` (100) | — | 112 | no |
+| **reader transfer (Gemma)** | `results/gemma_reader/transfer_cells.jsonl` | 847 | 3,294 | `results/ledgers/repro/gemma_reader/` |
+| **session-matched raw** | `results/raw_session_matched/raw_{gemma,gptoss}.jsonl` | 285 each | 1,110 + 1,138 | `results/ledgers/repro/raw_session_matched/` |
+| writer × reader factorial | `results/writer_factorial/factorial_cells_{gemma,gptoss}.jsonl` | 562 each × 2 readers | 8,860 + 120 writes | summaries + controls |
+| unscreened arm 1 (pilot) | `results/deltau_pilot/cells.jsonl` | 480 | 1,918 | slim slice |
+| unscreened arm 2 (official prompt) | `results/deltau_official/cells.jsonl` | 480 | 1,920 | slim slice |
+| SciCode scale-up | `results/scicode/scaleup_all3.json`; recovery `results/scicode/memories.jsonl` | 154 pairs | 924 arm-runs | `results/ledgers/repro/scicode/` |
+| SWE-bench repr v2 / sympy | `results/swebench/representations_v2.json`, `representations_sympy.json`, `representations_analysis.json` | 96 / 33 | 128 / 42 | `results/ledgers/repro/swebench/` |
+| SWE-bench gates | `results/swebench/parity_v2.json`, `floor_pilot.json`, `scorer_control*.json` | 14 / 10 | 28 / 20 | floor pilot **tracked** |
+| cross-benchmark floor | `results/ledgers/repro/cross_benchmark_without_arm_floor.json` | — | — | **tracked** |
+| reader diagnostic | `results/j2_escalation/needle_summary.json` + `results/ledgers/j2*.json` | — | ~516 | ledgers only |
+| design manifest | `data/manifests/k1_screened_cells.jsonl` (1,157 rows) | — | — | **tracked** |
+| bearing structure | `data/manifests/lmev2_leakage_small.jsonl` | — | — | **tracked** |
+| frozen pairing universe | `data/manifests/lmev2_pairs_small_seed20261008.jsonl` (15,112) | — | — | **tracked** |
+| SWE-bench pairs | `data/manifests/swebench_pairs_file_seed20261008.jsonl` | — | — | **tracked** |
+| **repro slices + sha256** | `results/ledgers/repro/` + `MANIFEST.json` | — | — | **tracked** |
+
+### Caches
+
+| cache | calls | note |
+|---|---:|---|
+| `results/deltau_screened/cache.jsonl` | 5,198 | 🔴 readable only by the **pre-`5330158` 12-field key shape** |
+| `results/writer_factorial/factorial_cache.jsonl` | 8,860 | 13-field key incl. `context_sha256` |
+| `results/gemma_reader/transfer_cache.jsonl` | 3,294 | `.PRE_TRUNCATION_FIX.jsonl` (642) is a **snapshot copy**, not extra calls |
+| `results/raw_session_matched/raw_{gptoss,gemma}_cache.jsonl` | 1,138 / 1,110 | the canonical session-matched arms |
+| `results/raw_session_matched_VOID_mislabelled/` | 1,201 | 🔴 **VOID** (defect #27). Kept so it cannot re-circulate |
+
+**Cache separation across readers is proven behaviourally**, not assumed:
+`results/gemma_reader/cache_separation_proof.json`, `VERDICT: CACHE_SEPARATION_PROVEN`.
+
+## 8. Scripts — what to run
 
 | script | what |
 |---|---|
-| `scripts/audit_claims.py` | **re-derives 58 checks in 10 sections; proven able to fail.** Run before any manuscript edit |
+| `scripts/audit_claims.py` | **129 checks in 16 sections; proven able to fail.** Run before any manuscript edit |
 | `scripts/make_figures.py` | recomputes every figure/caption number → `overleaf/figdata.tex`; **exits non-zero if it disagrees with the audit** |
+| `scripts/count_experiment_accounting.py` | regenerates every number in `EXPERIMENT_ACCOUNTING.md` |
+| `scripts/verify_figure_guards.py` | plants each forbidden figure claim and asserts the guard FAILS |
 | `scripts/k1_build_screened_design.py` → `k2_run_screened.py` → `k3_analyze_screened.py` → `k4_report_tables.py` | the screened main run |
 | `scripts/r1_write_representations.py` → `r2_run_representations.py` → `r3_analyze_representations.py`, `r2b_raw_resample.py` | the representation scale-up |
-| `scripts/swebench_floor_pilot.py`, `src/p1mem/adapters/swebench.py` | Benchmark C |
-| `scripts/audit_leakage.py`, `scripts/run_deltau_pilot.py`, `scripts/h_compare_prompt_arms.py`, `scripts/j2_escalate_reader.py`, `scripts/export_hf.py`, `scripts/migrate_schema_v2.py` | audits, earlier arms, reader probe, release |
+| `gemma_reader_run.py` → `gemma_reader_analyze.py` → `gemma_reader_report.py`, `gemma_reader_controls.py` | the reader-transfer arm |
+| `raw_session_matched_analysis.py` | the **canonical** session-matched raw contrast |
+| `w1_write_gemma_memories.py` → `w2_run_factorial.py` → `w3_analyze_factorial.py` → `w4…w7` | the writer × reader factorial |
+| `scicode_pilot.py`, `scicode_to_schema.py`, `scicode_recover_memories.py`, `scicode_controls.py` | SciCode |
+| `swebench_representations.py`, `swebench_analyze_representations.py`, `swebench_multirepo_analysis.py`, `swebench_scorer_control.py`, `swebench_floor_pilot.py`, `src/p1mem/adapters/swebench.py` | SWE-bench (**SA-SWE-FINAL owns**) |
+| `scripts/export_hf.py`, `scripts/migrate_schema_v2.py` | release (**SA-HF owns**) |
+| `scripts/audit_leakage.py`, `probe_determinism.py`, `probe_gemma.py`, `scripts/j2_escalate_reader.py`, `scripts/run_deltau_pilot.py`, `scripts/h_compare_prompt_arms.py` | audits, probes, earlier arms |
 
-## Last verified conclusions
-
-Re-derived on 2026-09-30 unless noted.
-
-- **Screen worked:** both-arms-fail **0.7007 → 0.5252**; the pre-committed rule passed.
-- **Paired within-memory effect +0.3349** over 60 memories (**35 non-zero contributors**;
-  contributors-only **+0.5740**), p = 5e-5, episode-clustered interval excludes zero.
-  ⚠️ **Two CI values circulate** — `docs/RESULT_INDEX.md` §F1. The artifact says
-  **[+0.1974, +0.4736]**; `SCREENED_RESULT.md` and the manuscript say **[+0.1989, +0.4758]**.
-- **Founding hypothesis unsupported:** 0 sign flips / 35 bearing memories, bounded ≤9.9%;
-  flips concentrate in RANDOM (17/60); **the additive-null excess is negative in all strata**.
-- **Bearing is scarce:** 165/1,889 units bear on any task, **46** on ≥2, from **23** episodes.
-- **Compression destroys the effect:** only Raw's paired B−MC interval excludes zero.
-- **The cost ranking reverses once formation is charged:** uncharged Summary ≈5.6× Raw;
-  charged, Raw/Summary ≈1.08× — **no advantage** — and Structured 4.85× worse. Raw is
-  bit-identical across both columns (the A1.5 correctness test).
-- **Similarity barely predicts utility:** per-cell ρ = **+0.0868** overall, **+0.0061** in
-  RANDOM, **+0.1644** in BEARING (I recomputed all three).
-- **The reader is not the bottleneck:** 22/22 on a planted needle in the real ~27k context.
-- **Decomposition unidentifiable** — cause is **`F_exec = 0`**, not the crossing defect.
-- **SWE-bench not cleared:** floor pilot 4/7 = 57.1%, above the gate, from an
-  arm-asymmetric apply failure rather than task difficulty.
-
-## 🔴 Known traps — do not repeat
-
-**The original ten, kept verbatim in substance:**
-
-1. **Advertised ≠ live.** 4 endpoints were advertised and dead. Prove with a real POST.
-2. **HF `auth-check` returns 200 for repos you cannot write.** Only an empty-body commit POST discriminates; always use a negative control.
-3. **`memory_id` means two things.** Rows use a content hash; some manifests use a positional locator. Join on the **locator**, or check the referent. Two agents hit this independently.
-4. **A guard only observed passing is not known to fail.** Three defects were *in guards*. One printed a correct verdict from an empty input.
-5. **A zero from `.get(default)` is not a measurement.**
-6. **Exit code 0 is not success** — a stage crashed while a script exited 0.
-7. **Pooled rates hide the structure that matters** — leakage by answer length, both-arms-fail by stratum, concentration by stratum. Split before quoting.
-8. **Matching counts are not corroboration.** Two 35s named different sets (overlap 25).
-9. **Throughput is prompt-length dependent** — 341/min at 4k is ~106/min at 24k.
-10. `datascience_collab` expires **2026-10-01**; use AuroraGPT. Aurora is allocated but unused (gateway-bound).
-
-**Added since, from the docs:**
-
-11. **`F_empty` is `null`, not 0.000.** Both `01_noise_floors.json` artifacts carry
-    `point: null` with flag `WITHOUT_ARM_REUSED:254 group(s)` — the WITHOUT arm was served
-    from cache, so its spread is zero **by construction**. Report **UNMEASURED**. Same
-    rule as the robust−naive gap (`ROBUST_NAIVE_GAP_STATUS = NOT_MEASURABLE`).
-12. **The endpoint drifted between 2026-09-29 and 2026-09-30.** Byte-identical prompts
-    differ in text on 53% of rows across days, in reward on 2.46%. A cache-disabled probe
-    settles it as a serving change, not sampling noise: same-minute repeats 6/6 identical,
-    reproducing 09-30 6/6 and 09-29 2/6. It is **mean-preserving** on a 100-cell resample
-    (0.3100 → 0.3100, 7 up / 7 down), but **every cross-day comparison carries a per-cell
-    noise term a same-session one would not.**
-13. **`ok=True` did not mean the writer finished.** 7 of 60 summaries were truncated
-    mid-sentence and admitted as valid; the module's own docstring named the hazard and the
-    guard it pointed at checked a different condition.
-14. **Malformed-JSON rates need two denominators.** 3/60 over all structured writes,
-    **0/57** over writes that finished, 3/3 over writes that hit the cap. The n=8 pilot
-    never met the cap, so "0/8 malformed" could not have observed this.
-15. **Unapplicable edits must be `reward: None`, never `0.0`.** On SWE-bench, scoring the
-    three WITH-arm apply failures as zeros would have shown memory *harming* (2/7 vs 3/7),
-    manufactured entirely by an edit-format artifact.
-16. **A positive control on the scorer caught four harness defects that each produced a
-    plausible `0.0`.** The gold-patch control went 0/6 → 3/6 → 10/10. Without it, SWE-bench
-    would have been killed on bugs in its own harness.
-17. **`git add -A` is a mis-attribution generator in this repo.** Concurrent agents; it has
-    already swept other agents' in-progress files into the wrong commit, in both directions.
-    **Stage explicit paths, then check `git show --stat`.**
-18. **The screened cache is readable only by the pre-`5330158` 12-field key shape.**
-19. **A post-hoc restriction is not a result.** The 0.2424 flip rate on "cells that can
-    move" conditions on an outcome; it is a diagnostic of why a null is uninformative.
-20. **Do not quote the withdrawn embedding figure.** "120 units / 6.4%" was computed against
-    the withdrawn 3,400-token cap; the adopted 2,000-token budget gives **29 units / 1.5%**.
-
-## Invalid / superseded runs
-
-- `results/runs/noise_floor/` — an early probe, one arbitrary memory per task, 2/92 accuracy. **Superseded.**
-- Both unscreened arms are **valid but floor-limited** (~78.5% / 83.75% both-arms-fail) — keep as the dilution comparator, never quote as the effect.
-- The official-prompt arm **refuted its own hypothesis**: accuracy fell 5.7 pts because 128 correct guesses became abstentions. Do **not** re-run another prompt wording.
-- "variance shares all 0.0000" — 🔴 **RETRACTED, never measured.**
-- SWE-bench floor pilot **#1 is VOID** (the model was shown the wrong 90 lines); **#2 stopped at the gate.**
-- The n=8 representation pilot is **superseded for every rate**; keep only its compression ratios.
-
-## Currently running (2026-09-30 17:45 CDT) — LIVE
-
-**Phase 3 sub-agents are all finished and integrated.** The Master Agent is now executing
-directly. One job is in flight:
-
-| what | how to check | state |
-|---|---|---|
-| **SciCode representation SCALE-UP** — the full 154-pair candidate pool × 3 representations (raw/summary/structured) × 2 arms = 924 calls | `results/scicode/scaleup_all3.json` appears on completion; `logs/scicode_scaleup.log` (**stdout is block-buffered — an empty log is NOT a stall**) | **RUNNING**, pid 90620, launched 17:37 CDT |
-
-Command, verbatim and re-runnable:
+### Re-runnable commands
 
 ```bash
+# the canonical session-matched raw reader contrast
+/Users/bellayang/miniconda3/bin/python3 scripts/gemma_reader_run.py \
+  --reader-arm gptoss_metis --representations raw --out-dir results/raw_session_matched
+/Users/bellayang/miniconda3/bin/python3 scripts/gemma_reader_run.py \
+  --reader-arm gemma_metis  --representations raw --out-dir results/raw_session_matched
+/Users/bellayang/miniconda3/bin/python3 scripts/raw_session_matched_analysis.py
+
+# SciCode, whole eligible pool (--tasks-per-memory 99 makes sampling INERT; max pool is 17)
 /Users/bellayang/miniconda3/bin/python3 scripts/scicode_pilot.py \
   --n-cells 999 --tasks-per-memory 99 --relatedness lexical \
   --representations raw,summary,structured \
-  --workdir /tmp/sci_harness/scaleup \
-  --out results/scicode/scaleup_all3.json
-```
+  --workdir /tmp/sci_harness/scaleup --out results/scicode/scaleup_all3.json
 
-Design pre-committed **before** it ran: [`docs/SCICODE_SCALEUP_PRECOMMITMENT.md`](SCICODE_SCALEUP_PRECOMMITMENT.md).
-`--tasks-per-memory 99` makes sampling **inert** (max pool is 17), so the design is the
-entire pool, not a knob I tuned after seeing the pilot direction.
-
-**How to tell it is alive** (this laptop, endpoint-bound work):
-`lsof -p <pid> | grep -c ESTABLISHED` → expect **16** (the bound concurrency).
-**CPU%% is near zero and is NOT a liveness signal for this workload.**
-
-If it died: the run is idempotent through the response cache; re-issue the same command.
-Nothing downstream has consumed its output yet.
-
-**Next, not yet started:** SWE-bench Raw/Summary/Structured representation arms. Parity is
-fixed (`results/swebench/parity_v2.json`, gap 0.000, 8/8 symmetric) but the existing
-SWE-bench cells carry **no `memory_representation` field** — they vary memory *presence*,
-not representation. That arm must be built before cross-benchmark Figure 5 can be filled.
-
-**No batch or cluster job is queued.** Everything runs on this laptop against the ALCF
-gateway. Aurora is allocated but gateway-bound and unused.
-
-## Active TODOs
-
-Authoritative, with terminal states: [`docs/MASTER_TODO.md`](MASTER_TODO.md).
-
-Submission-critical and **not yet DONE**: P1-C01 (abstract, in review), P1-C03 (frontier
-figure), P1-C04/C15 (HF v0.2 + card), P1-C05→C07 (SWE-bench parity → pilot → run),
-P1-C08→C10 (SciCode), P1-C11 (cross-benchmark synthesis, blocked), P1-C13 (figures/tables),
-P1-C16 (claim audit, ongoing), P1-C17 (manuscript sync), **P1-C18 (AI-assistance
-disclosure — AAMAS requires it and the section is still empty)**.
-
-## Handoff instructions
-
-1. Read this file, then [`docs/RESULT_INDEX.md`](RESULT_INDEX.md) §F (the open
-   disagreements), then [`docs/THE_HONEST_HEADLINE.md`](THE_HONEST_HEADLINE.md), then
-   [`docs/DEFECT_REGISTER.md`](DEFECT_REGISTER.md).
-2. Run `/Users/bellayang/miniconda3/bin/python3 scripts/audit_claims.py` — **if it fails,
-   stop and find out why before anything else.**
-3. Run the suite with the 3.13 interpreter (`pytest -q`, **593 tests**).
-4. Before touching a figure, run `scripts/make_figures.py`; a stale `figdata.tex` cannot
-   silently ship, but a *missing* regeneration can leave you editing the wrong number.
-5. **Never quote a number you have not re-derived from an artifact.**
-6. **Never `git add -A`.** Stage explicit paths and verify with `git show --stat`.
-
----
-
-## Live addendum — 2026-09-30 ~18:20 CDT (Master Agent, mid-session)
-
-Appended rather than rewritten so the section above keeps its structure. Where
-the two disagree, **this addendum is newer**.
-
-### Finished since the block above
-
-| what | artifact | verdict |
-|---|---|---|
-| **SciCode representation scale-up** | `results/scicode/scaleup_all3.json` (untracked, sha256 in MANIFEST) · slim slice + analysis tracked at `results/ledgers/repro/scicode/` | 154 pairs / 924 arm-runs. Matched n=122. **All contrasts cross zero → `ORDERING_VERDICT: NOT_ESTABLISHED`.** F_exec = 0.0370 is **larger** than the biggest point estimate |
-| **Figure 5, populated** | `main.tex` + `figdata.tex` at Overleaf `5bba778` | Paired per-cell representation contrast, task-clustered — the one quantity both benchmarks define identically. LongMemEval + SciCode rows real; SWE-bench row **visibly empty and labelled** |
-| **SWE-bench representation arm, v1** | `results/swebench/representations_v1.json` + `representations_analysis.json` | 126 calls, 96 rep-cells. Matched n=12, all contrasts cross zero. ⚠️ **superseded by v2** (see below) |
-| **SWE-bench content embargo** | `docs/BENCHMARK_LICENSES.md` §5 · `p1mem.schema.CONTENT_EMBARGOED_BENCHMARKS` | 🔴 **SWE-bench declares NO licence.** Metrics + ids only. Enforced in code, 4 tests |
-
-### Running right now
-
-| what | how to check | state |
-|---|---|---|
-| **SWE-bench representation arm, v2** | `results/swebench/representations_v2.json`; log `logs/swebench_repr2.log` (**block-buffered — empty ≠ stalled**) | pid **75561**, launched ~18:06 CDT |
-
-```bash
+# SWE-bench representation arm  (SA-SWE-FINAL owns this; coordinate before running)
 /Users/bellayang/miniconda3/bin/python3 scripts/swebench_representations.py \
   --cells 32 --out results/swebench/representations_v2.json
-# then:
 /Users/bellayang/miniconda3/bin/python3 scripts/swebench_analyze_representations.py \
   --src results/swebench/representations_v2.json \
   --out results/swebench/representations_v2_analysis.json
 ```
 
-**Why v2 exists:** v1's contagion screen flagged one *raw* memory as dirty.
-Investigated instead of reported — the defanged patch contributed **zero** diff
-lines; the six offending lines were `+---+` **ASCII table borders in the issue
-text**. The screen was wrong, not the defanging. `_is_diff_line` now excludes
-table rules while still failing closed on ambiguous cases (`- item one` still
-counts as dirty). v2 re-runs with the corrected screen.
+**Every run on this project executed on this laptop against the ALCF gateway.** No batch or
+cluster job is queued. Aurora is allocated but **gateway-bound and unused**.
 
-### Known limits a new agent must not overstate
+**Liveness for endpoint-bound work:** `lsof -p <pid> | grep -c ESTABLISHED` → expect the
+bound concurrency (16). 🔴 **CPU% near zero is NOT a stall**, and **stdout is
+block-buffered — an empty log is NOT a stall either** (`logs/scicode_scaleup.log`,
+`logs/swebench_repr2.log` are the precedents). Every runner is **idempotent through its
+response cache**: if one dies, re-issue the same command.
 
-- **SWE-bench is django-only and small.** v1 matched **12** cells of 32 selected.
-  The dominant loss is the **localizer** (11/32 miss the region), then
-  unapplicable edits. Its both-arms-fail is re-derived on the matched set, never
-  inherited from the presence pilot's 37.5% — a different cell set is a
-  different gate.
-- **"Inversion" is forbidden** for the SciCode/LongMemEval difference. Two
-  independent guards enforce it (`audit_claims.py`, `make_figures.py`), **both
-  verified by planting the defect**. Permitted: *"the point-estimate ordering
-  differs across benchmarks."*
-- **Figure 5 plots contrasts, not per-representation ΔU.** The benchmarks have
-  different execution floors (0 vs 0.0370); the contrast differences them out.
-  Do not add a bar chart of raw ΔU across benchmarks.
+## 9. Running right now, and what is next
 
-### Next, in order
-
-1. Analyse SWE-bench v2 on the matched basis; fill or keep-empty the Figure 5 row
-   **by what the analysis says**, not by the fact that the run finished.
-2. HF **v0.3** (SciCode, Apache-2.0, content OK) and **v0.4** (SWE-bench,
-   **metrics + ids only** — the embargo guard must run in the exporter).
-3. Standing claim/evidence audit before any manuscript freeze.
-
-
-### Addendum 2 — 2026-09-30 ~18:45 CDT
-
-**Nothing is running.** All dispatched work has landed.
-
-| what | artifact | verdict |
+| what | owner | state |
 |---|---|---|
-| **SWE-bench representation arm v2** | `results/swebench/representations_v2.json`; slim + analysis tracked at `results/ledgers/repro/swebench/` | 128 calls, **0 dirty memories**, matched **n=13** (django only). summary−raw −0.1538 [−0.3846, 0.0] · structured−raw −0.0769 [−0.2308, 0.0]. **Both cross zero → NOT_ESTABLISHED** |
-| **Figure 5 complete** | Overleaf `4c2832a` | All three benchmark rows are real data |
-| **Cross-benchmark floor artifact** | `results/ledgers/repro/cross_benchmark_without_arm_floor.json` | LongMemEval 7/285=0.0246 · SciCode 5/135=0.0370 · SWE-bench **not measurable by design** |
+| HF **v0.3** staging rebuild (`export_hf.py` → `hf_staging_v03_rebuild/`) | **SA-HF** | **RUNNING** (pid 12602 as of 12:23 CDT) |
+| `main.tex` page-budget edits | **SA-PAGE** | **RUNNING** |
+| new SWE-bench cells + `COVERAGE_MANIFEST` §3 | **SA-SWE-FINAL** | **RUNNING** |
+| standing claim/evidence audit | **SA-FINAL-AUDIT** | **RUNNING** |
 
-#### 🔴 A correction future readers must not undo
+**No endpoint-bound measurement job of SA-ARCHIVE's is in flight.**
 
-An earlier Figure 5 caption said the benchmarks have "different execution
-floors (0 and 0.037)". **Those were two different quantities.** LongMemEval's
-`F_exec` is paired re-execution of the *same* prompt within one run; SciCode's
-0.037 was the WITHOUT arm compared *across representations*. And LongMemEval's
-**`F_empty` is UNMEASURED, not zero** — `k3_screened_analysis.json` records
-`WITHOUT_ARM_REUSED` for 108 groups because the cache served that arm. A cached
-zero is not a measured zero.
+### Open, submission-critical
 
-The caption now quotes one construction for both, emitted as macros from
-`cross_benchmark_without_arm_floor.json`.
+`MASTER_TODO.md` is authoritative. Still open: **P1-C17** final manuscript sync,
+**P1-C13** figures/tables placement, **P1-C16** standing audit, **P1-C03** frontier figure,
+**P1-I11** (🔴 **the representation scale-up's row files are still untracked** — Contribution
+B's evidence base exists on this laptop only; the ΔU arms got slim slices, the repr arm did
+not), **P1-I13** the efficiency ratios in `main.tex`.
 
-#### Two join traps now recorded, both of which produced a confident zero
+## 10. 🔴 KNOWN TRAPS — a successor must not repeat these
 
-1. **`condition_id` embeds the representation name** (`lmev2_summary_..._v1`),
-   so including it in a join key returns **zero rows**. My first attempt read
-   that empty join as "not measurable". Correct key:
-   `(memory_unit_locator, future_task_id)` → 285/285.
-2. `memory_id` is a per-representation content hash (the pre-existing trap,
-   hit three times). Use `memory_unit_locator`.
+### The joins
 
-**Always positive-control a join before believing its null.**
+1. **`memory_id` is a per-representation CONTENT HASH.** Join on **`memory_unit_locator`**.
+   This has produced a silent zero **three** times.
+2. **`condition_id` EMBEDS the representation name** (`lmev2_summary_..._v1`). Including it
+   in a join key returns **ZERO rows** — and an empty join was once read as "not measurable".
+   Correct key: `(memory_unit_locator, future_task_id)` → 285/285.
+3. **`cell_id` is also a content hash and CAN collide.** Gemma compressed two different
+   3,979-token segments to byte-identical 68-token summaries, so 283 ids cover 285 cells
+   (defect #26). **Always positive-control a join before believing its null.**
 
-#### SWE-bench has no WITHOUT-arm floor, by design and on purpose
+### The models
 
-The runner issues the WITHOUT call **once per cell** and shares it across
-representations, so the term cancels exactly in every paired contrast. A `0`
-there would be an artefact of the design, not a measurement.
-`make_figures.py` **fails the build** if that number is ever emitted beside the
-two measured floors.
+4. **`gpt-oss-120b` is deterministic WITHIN a session, NOT ACROSS.** 554 of 1,124
+   byte-identical WITHOUT-arm requests returned different text in a later session
+   (reward differs on 82; mean change −0.0303). **Compare only session-matched arms**
+   (defect #25). Gemma: 0/1,124 — stable across sessions. The earlier 09-29→09-30 probe
+   agrees: text differs on **53%** of rows, reward on **2.46%**, and it is **mean-preserving**
+   on a 100-cell resample (0.3100 → 0.3100, 7 up / 7 down). A cache-disabled probe settles
+   it as a **serving change**, not sampling noise: same-minute repeats 6/6 identical,
+   reproducing 09-30 6/6 and 09-29 2/6. **Every cross-day comparison carries a per-cell
+   noise term a same-session one would not.**
+5. **Temperature 0 is not a persistence strategy.** Any arm that discards model-written
+   text is **unrecoverable** (defect #22). SciCode's summary/structured memory text is gone
+   for this reason — `scicode_pilot.py` recorded `response_chars` and discarded `content`,
+   with no `cache=` — and its rewards remain valid.
+6. **Advertised ≠ live.** Four endpoints were advertised and dead in one day. Prove every
+   model dependency with a real POST **and a negative control**.
+7. **`reasoning_effort` is inert on Gemma and Gemma reports no reasoning tokens.** A zero in
+   that column is an **absence**, not a measurement. Cost is **not poolable across models**.
+8. **Throughput is prompt-length dependent** — 341/min at 4k is ~106/min at 24k.
 
-#### Guard inventory — every one verified by planting its defect
+### The instruments
 
-`audit_claims.py`: SciCode "inversion" wording. `make_figures.py`: SciCode
-verdict, SciCode intervals, SWE-bench verdict, SWE-bench intervals, SWE-bench
-acquiring a floor. `schema.py`: content-embargoed benchmarks.
+9. **Exit code 0 is not success.** A stage crashed while its script returned 0.
+10. **A zero from `.get(default)` is not a measurement.** This project's most common defect.
+11. **A guard only observed passing is not known to fail.** One printed a correct verdict —
+    "0 of 0" — from a key that does not exist. **Positive-control every null.**
+12. **Pooled rates hide the structure that matters.** Split before quoting.
+13. **Matching counts are not corroboration.** Two 35s named different sets (overlap 25).
+14. **`ok=True` did not mean the writer finished.** 7 truncated summaries were admitted.
+15. **Malformed-JSON rates need two denominators:** 3/60 over all structured writes,
+    **0/57** over writes that finished, 3/3 over writes that hit the cap.
+16. **Unapplicable edits must be `reward: None`, never `0.0`.** On SWE-bench, scoring the
+    three WITH-arm apply failures as zeros would have shown memory *harming*.
+17. **A pytest collection error is not a wrong answer** (defect #21). `score_patched_file`
+    returned `0.0` whenever F2P was not ok, **ignoring `n_status_lines`** — the field that
+    exists precisely to separate *tests ran and failed* from *tests never ran*. 37 arm-reads
+    carried a manufactured `0.0`, now `None` with detail prefixed `UNSCORABLE`; matched n
+    fell 17 → 15. **Quote the corrected numbers.**
+18. **A post-hoc restriction is not a result.** The 0.2424 flip rate conditions on an outcome.
 
-#### Next
+### The release
 
-1. HF **v0.3** (SciCode — Apache-2.0, content redistributable).
-2. HF **v0.4** (SWE-bench — 🔴 **metrics + instance ids ONLY**; the exporter
-   must call `assert_content_redistributable`).
-3. Standing claim/evidence audit before any manuscript freeze.
+19. **An absolute `/Users/<name>/` path de-anonymises, and a credential scanner is blind to
+    it** (defect #23). 9 tracked ledger files once carried 15 such paths, one inside
+    `results/ledgers/repro/` — the tree `README.md` points reviewers at. `audit_claims.py`
+    now scans for this and the scan is proven non-vacuous.
+20. **`export_hf.py` does NOT migrate schemas.** The ledgers are **v1/v2** and it needs
+    **v3**. Migrate first.
+21. **HF `auth-check` returns 200 for repos you cannot write.** Only an empty-body commit
+    POST discriminates (400 vs 403).
+22. **SWE-bench declares NO licence.** Metrics + instance ids ONLY; the exporter must call
+    `assert_content_redistributable`. Enforced in
+    `p1mem.schema.CONTENT_EMBARGOED_BENCHMARKS` with 4 tests; findings in
+    `docs/BENCHMARK_LICENSES.md` §5.
+23. **🔴 NEVER `git add -A`.** Concurrent agents; it has already swept other agents'
+    in-progress files into the wrong commit, **in both directions**.
 
+### The numbers
+
+24. **`F_empty` is `null`, not 0.000.** Both `01_noise_floors.json` artifacts carry
+    `point: null` with flag `WITHOUT_ARM_REUSED:254 group(s)` — the WITHOUT arm was
+    cache-served, so its spread is zero **by construction**. Report **UNMEASURED**. Same
+    rule as the robust−naive gap (`ROBUST_NAIVE_GAP_STATUS = NOT_MEASURABLE`).
+25. **Never quote a variance / interaction share.** The fit is unidentified; the audit fails
+    if one appears.
+26. **"Inversion" is forbidden** for the SciCode/LongMemEval difference. Two guards enforce
+    it, both verified by planting the sentence. Permitted: *"the point-estimate ordering
+    differs across benchmarks."*
+27. **Do not quote the withdrawn "120 units / 6.4%" embedding figure** — it was computed
+    against the withdrawn **3,400**-token cap, which failed 10/10 on real text. The adopted
+    2,000-token budget gives **29 units / 1.5%**.
+28. **SWE-bench has no WITHOUT-arm floor, by design.** The WITHOUT call is issued once per
+    cell and shared, so the term cancels exactly. `make_figures.py` **fails the build** if
+    that number is emitted beside the two measured floors.
+29. **Figure 5 plots contrasts, not per-representation ΔU.** The benchmarks have different
+    execution floors; the contrast differences them out. Do not add a raw-ΔU bar chart.
+30. **`tasks_per_memory=4` on SWE-bench is binding and must not be relaxed in place.**
+    Relaxing grows pairs 406→**552** but the *runnable* universe only 107→117 (**+10, not
+    +146** — quoting +146 as available work overstates it 14×). Worse, `select_cells` dedups
+    by recipient first-wins over locator-sorted order, so newly admitted earlier donors
+    **displace incumbents**: 26 django recipients change donor and **13 are among the
+    already-executed cells** — they would silently become different cells under the same
+    `task_id`. *A subset at one stage becomes a re-pairing at the next.* Any uncapped
+    universe needs a **new pre-committed manifest under a new filename**.
+31. `datascience_collab` expired **2026-10-01**; use AuroraGPT.
+
+Full evidence base: [`DEFECT_REGISTER.md`](DEFECT_REGISTER.md).
+
+## 11. Invalid, void and superseded — kept, never quoted
+
+| run / claim | verdict |
+|---|---|
+| `results/raw_session_matched_VOID_mislabelled/` (570 rows, 1,201 calls) | 🔴 **VOID** (defect #27): a hardcoded `CONDITION_ID` labelled gpt-oss rows `gemma4_31B`. The runner's own gate caught it (`VERDICT: RUN_FAILED`) |
+| cross-session reader transfer **+0.1268** | ⚠️ **SUPERSEDED** by the session-matched +0.0982. History, never the lead |
+| the "about half the gain is a weaker reader" decomposition | 🔴 **WITHDRAWN** — inflated ~2× by the session confound |
+| SWE-bench repr **v1** (`results/swebench/representations_v1.json`, 190 arm-runs) | ⚠️ **SUPERSEDED by v2** — v1's contagion screen misfired on `+---+` **ASCII table borders in the issue text**. The screen was wrong, not the defanging |
+| SWE-bench floor pilot **#1** (`results/swebench/floor_pilot.json`, 20 arm-runs, `scripts/swebench_floor_pilot.py`) | ❌ **VOID, and SA-N said so unprompted** — the model saw only the first 90 lines of each file and 4 of 5 gold patches edit code outside that window, so `search_miss` was the only reachable outcome. Numbers kept, not deleted |
+| SWE-bench floor pilot #2 | ⚠️ **stopped at the gate, not cleared** (57.1% > ~50%). The later 32-cell presence pilot cleared at **37.5%** [22.9, 54.8], ΔU not significant (exact p=0.125) |
+| `results/runs/noise_floor/` | ❌ **superseded** — one arbitrary memory per task, 2/92 |
+| representation pilot (n=8) | ⚠️ **superseded for every rate**; keep only its compression ratios |
+| both unscreened arms | ⚠️ **valid but floor-limited** (~78.5% / 83.75%). Dilution comparator, never the effect |
+| the official-prompt "fix" | ❌ **refuted its own hypothesis** — accuracy fell **5.7 pts** because 128 correct guesses became abstentions and the harness scores an abstention as wrong (McNemar p = 1.12e-9). **Do not re-run another prompt wording** |
+| "variance shares all 0.0000" | 🔴 **RETRACTED — never measured.** A `ZeroDivisionError` crashed the stage *while the script exited 0*, and `.get(c, 0.0)` over the empty dict produced a plausible zero. The reporter now prints UNMEASURED and a test forbids a number from a failed fit |
+| variance decomposition (all attempts) | ❌ **unidentifiable**; cause is `F_exec = 0` |
+| semantic-type axis | ❌ **killed** — κ = 0.000, the native pass labelled all 8 segments `episodic` |
+| `Mistral-Large-3-675B`, `gpt-oss-120b` on Minerva, Sophia's embedding model | ❌ **advertised but dead** (404 / 503 / 502) |
+
+## 12. Known gaps, stated so they are not rediscovered
+
+- **No F_exec for SWE-bench, in either repo.** The WITHOUT arm is byte-identical across all
+  three representations (11/11 sympy, 32/32 django), so the design contains no A/A
+  replicate. Fixing this needs a deliberate replicate arm, not another repo.
+- **SciCode memory text was never persisted** and is **not recoverable**: regeneration vs
+  the server's recorded `prompt_tokens` matches 154/154 raw, **5/154 summary, 0/154
+  structured**, and the 5 sit at the measured coincidence null. A **persistence** gap, never
+  to be conflated with the SWE-bench licence embargo.
+- **SciCode's `dep OR lex` union would add +10 eligible pairs** (164 vs 154). Unexecuted.
+- **F_judge = 0/240 is endpoint determinism, not rubric robustness** (temp 1.0 gives 8/8
+  distinct texts). Honest statement: **≤1.5% for this judge under greedy decoding**.
+- **64 SFS SWE-bench pairs sit in 6 repos with no runner**; sphinx (37, pure Python) is the
+  cheapest unlock. 12 are genuinely blocked by C builds on arm64.
+- **The cross-session floor has never been measured** as its own quantity.
+- **Per-cell reader agreement is weak**: restricted to cells non-zero under either reader,
+  raw Pearson r falls to 0.2129 (n=109) and structured to −0.0699 (n=35). The readers agree
+  on **ordering and direction**, not cell by cell. Reported as a limitation.
+
+## 13. Verification posture
+
+- `scripts/audit_claims.py` — **129 PASS/FAIL checks across 16 sections**, re-derived from
+  tracked artifacts, **proven able to fail** (a single flipped reward trips four checks;
+  each new guard is verified by planting the defect it forbids and watching it FAIL).
+- **638 tests pass** under the 3.13 interpreter.
+- `scripts/make_figures.py` independently recomputes every figure number and **exits
+  non-zero if it disagrees with the audit**.
+- Guard inventory, each verified by planting its defect: `audit_claims.py` (SciCode
+  "inversion" wording; absolute-path identity scan; both printed CIs), `make_figures.py`
+  (SciCode verdict and intervals, SWE-bench verdict and intervals, SWE-bench acquiring a
+  floor), `schema.py` (content-embargoed benchmarks).
 
 ---
 
-## Addendum 3 — 2026-10-01 ~00:30 CDT · the model-generalization expansion
+# PART II — HISTORY
 
-Newest section wins where it conflicts with anything above.
+Preserved so no fact is lost. **Part I is current where these disagree.** Each block is
+dated; nothing below has been edited except to mark what Part I supersedes.
 
-### ✅ The headline result of this phase: memory utility TRANSFERS across readers — **CONFIRMED session-matched**
+## H1 — 2026-09-30 17:45 CDT (Master Agent, mid-run)
 
-> ✅ **Resolved 2026-10-01 04:55.** The arms below were 11 h apart and defect 25
-> made that a real confound, so both were **re-run 14 minutes apart**: raw,
-> 550 matched cells, `memory_text` byte-identical 550/550.
-> **Session-matched: +0.0982 [+0.0247, +0.1730], excludes zero.** Each mean
-> lies inside the other's CI; sign agreement 110/116.
-> `VERDICT: SURVIVES_SESSION_MATCHING` against criteria committed before the
-> data existed.
-> **What did not survive** is the WITHOUT-arm decomposition: −0.0364
-> session-matched vs −0.0688 cross-session. Quote the transfer result; do
-> **not** quote "about half the gain is a weaker reader".
+The repo was at `027be3c` / 174 commits; Overleaf at `604e2b3`. HF v0.2 was current and
+v0.3/v0.4 were uncut.
 
-`docs/READER_TRANSFER_RESULT.md` · artifacts `results/gemma_reader/` · slim slice
-and analysis tracked under `results/ledgers/repro/gemma_reader/`
+**Conclusions as stated then** — all still current except where §5 above corrects them:
+screen worked (0.7007 → 0.5252); paired within-memory +0.3349 over 60 memories with 35
+non-zero contributors, contributors-only +0.5740; 0 sign flips / 35; bearing scarce
+(165/1,889, 46 on ≥2, 23 episodes); compression destroys the effect; cost ranking reverses
+once formation is charged; similarity barely predicts utility; the reader is not the
+bottleneck (22/22 needle); decomposition unidentifiable because `F_exec = 0`.
 
-**1,694 LongMemEval cells re-read by `gemma-4-31B-it`, reusing the gpt-oss
-memories.** The design invariant is *verified, not assumed*: all 1,694 rows
-carry `memory_text` **byte-identical** to the gpt-oss run (match 1694, mismatch
-0, no counterpart 0), joined on `(memory_unit_locator, future_task_id,
-memory_representation)`. **Only the reader differs.**
+**SWE-bench was not cleared:** floor pilot 4/7 = 57.1%, above the gate, from an
+arm-asymmetric apply failure rather than task difficulty.
+
+**In flight:** the SciCode representation scale-up (pid 90620, launched 17:37 CDT),
+pre-committed in `SCICODE_SCALEUP_PRECOMMITMENT.md`, with `--tasks-per-memory 99` making
+sampling **inert** (max pool is 17) so the design is the entire pool, not a knob tuned after
+seeing the pilot direction.
+
+**The ten original traps**, kept verbatim in substance, are traps 6, 21, 1, 11, 10, 9, 12,
+13, 8 and the `datascience_collab` expiry in Part I §10.
+
+## H2 — 2026-09-30 ~18:20 CDT (addendum 1)
+
+**Landed:** the SciCode scale-up (154 pairs / 924 arm-runs, matched n=122, all contrasts
+cross zero, `ORDERING_VERDICT: NOT_ESTABLISHED`, F_exec 0.0370 larger than the biggest
+point estimate); **Figure 5 populated** at Overleaf `5bba778` with LongMemEval and SciCode
+real and the SWE-bench row **visibly empty and labelled**; **SWE-bench representation arm
+v1** (126 calls, 96 rep-cells, matched n=12 — later superseded); the **SWE-bench content
+embargo** (`BENCHMARK_LICENSES.md` §5 + `schema.CONTENT_EMBARGOED_BENCHMARKS`, 4 tests).
+
+**Why v2 exists.** v1's contagion screen flagged one *raw* memory as dirty. Investigated
+rather than reported: the defanged patch contributed **zero** diff lines; the six offending
+lines were `+---+` **ASCII table borders in the issue text**. `_is_diff_line` now excludes
+table rules while still failing closed on ambiguous cases (`- item one` still counts dirty).
+
+## H3 — 2026-09-30 ~18:45 CDT (addendum 2)
+
+**Landed:** SWE-bench repr **v2** (128 calls, **0 dirty memories**, matched **n=13**, django
+only; summary−raw −0.1538 [−0.3846, 0.0], structured−raw −0.0769 [−0.2308, 0.0], both cross
+zero); **Figure 5 complete** at Overleaf `4c2832a`; the cross-benchmark floor artifact
+(`results/ledgers/repro/cross_benchmark_without_arm_floor.json`: LongMemEval 7/285 = 0.0246,
+SciCode 5/135 = 0.0370, SWE-bench **not measurable by design**).
+
+### 🔴 A correction future readers must not undo
+
+An earlier Figure 5 caption said the benchmarks have "different execution floors (0 and
+0.037)". **Those were two different quantities.** LongMemEval's `F_exec` is paired
+re-execution of the *same* prompt within one run; SciCode's 0.037 was the WITHOUT arm
+compared *across representations*. And LongMemEval's **`F_empty` is UNMEASURED, not zero** —
+`k3_screened_analysis.json` records `WITHOUT_ARM_REUSED` for 108 groups because the cache
+served that arm. **A cached zero is not a measured zero.** The caption now quotes one
+construction for both, emitted as macros from the floor artifact.
+
+Two join traps were recorded here, both of which produced a confident zero: `condition_id`
+embedding the representation name, and `memory_id` as a content hash. Both are Part I §10.
+
+## H4 — 2026-10-01 ~00:30 CDT (addendum 3, the model-generalization phase)
+
+**The reader-transfer arm:** 1,694 LongMemEval cells re-read by `gemma-4-31B-it` reusing the
+gpt-oss memories, with the design invariant **verified, not assumed** — all 1,694 rows carry
+`memory_text` byte-identical to the gpt-oss run (match 1694, mismatch 0, no counterpart 0),
+joined on `(memory_unit_locator, future_task_id, memory_representation)`.
+
+**The cross-session table as published then** (⚠️ **the raw row is SUPERSEDED** by the
+session-matched +0.0982 in Part I §5.1; summary and structured stand):
 
 | representation | n | ΔU gpt-oss | ΔU Gemma | paired diff | CI (task-clustered) | |
 |---|---:|---:|---:|---:|---|---|
-| **raw** | 276 | +0.1884 | **+0.3152** | **+0.1268** | **[+0.0511, +0.2050]** | **excludes 0** |
+| raw | 276 | +0.1884 | +0.3152 | +0.1268 | [+0.0511, +0.2050] | excludes 0 — **SUPERSEDED** |
 | summary | 274 | +0.0511 | +0.0547 | +0.0036 | [−0.0492, +0.0600] | spans 0 |
 | structured | 269 | +0.0186 | +0.0297 | +0.0112 | [−0.0522, +0.0845] | spans 0 |
 
-Sign agreement on Raw: **49/50 (98%)**. B−MC on Raw: gpt-oss +0.3462
-[+0.2210, +0.4761] → **Gemma +0.6002 [+0.4787, +0.7144]**.
+Sign agreement on Raw 49/50 (98%). B−MC on Raw: gpt-oss +0.3462 [+0.2210, +0.4761] → Gemma
++0.6002 [+0.4787, +0.7144]. Outcomes were pre-committed in
+`READER_TRANSFER_PRECOMMITMENT.md`: *no transfer* was an equally valid result.
 
-**The effect does not merely survive the reader change — on Raw it is larger.**
-The Raw-dominant ordering reproduces under a second backbone. Outcomes were
-pre-committed in `docs/READER_TRANSFER_PRECOMMITMENT.md`: *no transfer* was an
-equally valid result before the run.
+**SWE-bench stopped being django-only:** sympy ran clean (11 cells, arm complete under the
+shipped manifest); coverage 55/107 all-django → **66/107 across two repos**. Every contrast
+remains `NOT_ESTABLISHED` per-repo and pooled — **the django-only criticism is answered on
+coverage grounds, not on power.**
 
-*I re-derived every number in that table independently; it reproduces to 4 dp.*
+**Two corrections a successor must not reverse** (both now Part I §10): defect 21, the
+pytest collection error scored as a wrong answer (37 arm-reads, matched n 17 → 15); and
+sympy's scorer control being **8/8, not 20/20** — the 20/20 is the union with django's 12/12,
+which is what the gate reads, because the default `--scorer-control` list names both files.
 
-### SWE-bench is no longer django-only
+**`tasks_per_memory=4` — investigated, deliberately NOT changed.** Now Part I §10 trap 30.
 
-sympy ran clean (11 cells, arm complete under the shipped manifest). Coverage
-**55/107 all-django → 66/107 across two repos**. Every contrast remains
-`NOT_ESTABLISHED` per-repo and pooled — **the django-only criticism is answered
-on coverage grounds, not on power.**
+## H5 — 2026-10-01 ~03:35 CDT (session-scope sweep)
 
-### 🔴 Two corrections a successor must not reverse
+The reader-transfer result was marked **PROVISIONAL at every site**, then **confirmed** by
+the session-matched re-run and the flags lifted (`e77c56b` → `25960a9` → `9cdf532`).
 
-1. **Defect 21 — a pytest collection error was scored as a wrong answer.**
-   `score_patched_file` returned `0.0` whenever F2P was not ok, ignoring
-   `n_status_lines`, which exists precisely to separate *tests ran and failed*
-   from *tests never ran*. **27 django + 10 sympy arm-runs** carried a
-   manufactured `0.0`. Fixed for F2P and P2P (→ `None`, detail prefixed
-   `UNSCORABLE`). Corrected matched n: django 13→12, sympy 4→3, **pooled
-   17→15**. Every contrast still crosses zero. **Quote the corrected numbers.**
-2. **`sympy` scorer control is 8/8, not 20/20.** The 20/20 is the *union* of
-   django 12/12 and sympy 8/8 — which is what the gate reads, since the default
-   `--scorer-control` names both files. I had written the union number attached
-   to sympy in `COVERAGE_MANIFEST.md`; corrected there.
+**Defect #25** established that `gpt-oss-120b` is deterministic within a session and not
+across one. **Defect #27** voided 570 mislabelled rows. **Defect #28** showed that the
+reader-transfer arm had compared two readers executed in different sessions and that no
+document said so — the published WITHOUT-arm decomposition rested on a baseline shift that
+is **half the day**. Settled by the session-matched re-run: WITHOUT splits **−0.0327 session
+/ −0.0364 reader**, and ΔU still rises **+0.0982**. **The headline survives; only its
+decomposition was inflated**, by about 2×. **Defect #29**: the fix for #25 reproduced #23 by
+writing an absolute `/Users/<name>/` path into git-tracked `results/ledgers/`; re-scanning
+found 9 tracked files already carrying 15 such paths, one inside `results/ledgers/repro/`.
 
-### 🔴 `tasks_per_memory=4` — investigated, deliberately NOT changed
+## H6 — 2026-10-01 12:21 CDT (scope freeze)
 
-Relaxing it grows pairs 406→552, but the **runnable** universe only 107→117
-(**+10, not +146** — quoting +146 as available work overstates it 14×). Worse,
-`select_cells` dedups by recipient first-wins over locator-sorted order, so
-newly admitted earlier donors **displace incumbents**: 26 django recipients
-change donor and **13 are among the already-executed cells** — they would
-silently become different cells under the same `task_id`. *A subset at one
-stage becomes a re-pairing at the next.* Any uncapped universe must be a **new
-pre-committed manifest under a new filename**.
-
-### Running now
-
-| what | artifact | state |
-|---|---|---|
-| **SA-WRITER** — Gemma-written Summary/Structured + the 2×2 factorial | `docs/WRITER_FACTORIAL_*.md` | **RUNNING** |
-| **SA-FIG** — coverage + reader-generalization figures, Overleaf sync | `main.tex`, `figdata.tex` | **RUNNING** |
-| **SciCode memory recovery → HF v0.3** | `results/scicode/memories.jsonl` | **RUNNING** |
-
-### Known gaps, stated so they are not rediscovered
-
-- **No F_exec for SWE-bench, in either repo.** The WITHOUT arm is byte-identical
-  across all three representations (11/11 sympy, 32/32 django), so the design
-  contains no A/A replicate; a measured 0 would be an artefact. Fixing this
-  needs a deliberate replicate arm, not another repo.
-- **SciCode memory text was never persisted** (`response_chars` recorded,
-  `content` discarded, no `cache=`). It is *recoverable* — the writers are
-  byte-deterministic at temp 0 — and recovery must **prove** identity via the
-  ledger's recorded `prompt_tokens`, not assume it.
-- **F_judge = 0/240 is endpoint determinism, not rubric robustness** (temp 1.0
-  gives 8/8 distinct texts). The honest statement is ≤1.5% for *this* judge
-  under greedy decoding.
-- 64 SFS pairs sit in 6 repos with no runner; **sphinx (37, pure Python) is the
-  next cheapest unlock**. 12 are genuinely blocked by C builds on arm64.
+`docs/SCOPE_FREEZE.md` froze the scientific scope: the question, the five axes, the seven
+results the paper is written around, and the rule that only **completion, validation,
+repair of an invalid run, or a validity-critical gap** may still be run. Deferred rather
+than killed: additional benchmarks, Jev, learned gate, RL memory manager, new retrieval
+architectures, semantic-type redesign, new representation families, any backbone beyond
+gpt-oss-120b and gemma-4-31B-it. Five sub-agents were dispatched against that freeze.
