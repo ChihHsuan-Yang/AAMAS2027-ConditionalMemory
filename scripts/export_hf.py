@@ -1337,18 +1337,58 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
     # This is the question a reader has; leaving them to answer it from a boolean is
     # how a flag becomes noise.
     if manifest.get("release_tree_dirty"):
-        shipped_names = {Path(f).name for f in manifest["files"]}
-        touching = sorted(d for d in manifest["release_tree_dirty_paths"]
-                          if Path(d).name in shipped_names)
+        # 🔴 MATCH ON CONTENT, NOT ON BASENAME. This compared ``Path(d).name``
+        # against the shipped basenames, so the repo-root ``README.md`` -- edited
+        # by another agent, never published -- collided with the DATA CARD, which
+        # ships as ``README.md``. v0.4 was built with the note "1 of them
+        # correspond to a file in this release: ['README.md']. Those bytes are the
+        # WORKING COPY, not the named commit." Every word of that was false: the
+        # staged card was byte-identical to the committed ``docs/hf_card/README.md``.
+        #
+        # A basename is not an identity. The question is "did an uncommitted byte
+        # reach the release", and the only thing that answers it is the bytes: for
+        # each dirty path, compare its WORKING COPY against the shipped file of the
+        # same basename. If no shipped file has those bytes, the dirty path did not
+        # reach the release, whatever it is called. Failing closed: a dirty path we
+        # cannot read is reported as possibly-shipped rather than assumed innocent.
+        shipped_by_name: dict[str, list[str]] = {}
+        for f in manifest["files"]:
+            shipped_by_name.setdefault(Path(f).name, []).append(f)
+        touching, unreadable = [], []
+        for d in manifest["release_tree_dirty_paths"]:
+            candidates = shipped_by_name.get(Path(d).name)
+            if not candidates:
+                continue                      # no shipped file even shares its name
+            src = REPO_ROOT / d
+            if not src.is_file():
+                # deleted or renamed in the working tree: cannot compare, so say so
+                unreadable.append(d)
+                continue
+            try:
+                work = S.file_sha256(src)
+            except OSError:
+                unreadable.append(d)
+                continue
+            if any(manifest["files"][c]["sha256"] == work for c in candidates):
+                touching.append(d)
+        touching, unreadable = sorted(touching), sorted(unreadable)
         manifest["release_tree_dirty_paths_in_this_release"] = touching
+        manifest["release_tree_dirty_paths_unverifiable"] = unreadable
+        manifest["release_tree_dirty_match"] = (
+            "by CONTENT (sha256 of the working copy vs the shipped file), not by "
+            "basename -- a basename collision between the repo-root README.md and "
+            "the data card produced a false 'working copy shipped' note at v0.4.")
         manifest["release_tree_dirty_note"] = (
             "Uncommitted changes existed in the source repo at build time. "
-            + (f"{len(touching)} of them correspond to a file in this release: "
+            + (f"{len(touching)} of them MATCH A SHIPPED FILE BYTE FOR BYTE: "
                f"{touching}. Those bytes are the WORKING COPY, not the named commit."
                if touching else
-               "NONE of them corresponds to a file in this release, so every shipped "
-               "byte matches the named commit. Other agents commit to this repo "
-               "concurrently; the dirty paths belong to their work."))
+               "NONE of their bytes appears in this release, so every shipped byte "
+               "matches the named commit. Other agents commit to this repo "
+               "concurrently; the dirty paths belong to their work.")
+            + (f" {len(unreadable)} dirty path(s) could not be read at build time "
+               f"and are reported as unverifiable rather than assumed innocent: "
+               f"{unreadable}." if unreadable else ""))
         S.write_json_atomic(staging / "MANIFEST.json", manifest)
 
     # Belt and braces: the manifest must name exactly the files present, or a consumer
