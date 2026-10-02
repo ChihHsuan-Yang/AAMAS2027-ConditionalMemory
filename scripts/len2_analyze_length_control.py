@@ -805,7 +805,33 @@ def main() -> int:
             "both": tab[(True, True)], "trunc_only": tab[(True, False)],
             "summary_only": tab[(False, True)], "neither": tab[(False, False)]},
         "🔴": "NO effect estimate is computed on any cell of this table.",
+        # Not just a promise in a string. §4.3's rule is that retention must
+        # never SELECT the cells an effect is measured on, so the assertion
+        # is: every contrast in this file uses the full stratum, and the
+        # retention-selected subsets are strictly smaller. If a future edit
+        # ever conditioned the primary on retention, n would drop to one of
+        # these and this check would catch it.
+        "_enforcement": {
+            "n_bearing_cells_total": len(bear),
+            "n_if_conditioned_on_trunc_retained": tab[(True, True)] + tab[(True, False)],
+            "n_if_conditioned_on_both_retained": tab[(True, True)],
+            "primary_n_cells_actually_used": primary["n_cells"],
+            "primary_uses_full_bearing_stratum": bool(
+                primary["n_cells"] == len(bear)),
+            "_why_this_is_the_check": "an effect measured on cells selected "
+                                      "for retaining the signal is circular; "
+                                      "n=9 cannot carry a CI either",
+        },
     }
+    if not out["RETENTION_2x2_DESCRIPTIVE_ONLY"]["_enforcement"][
+            "primary_uses_full_bearing_stratum"]:
+        # Not fatal by itself -- an unscored cell legitimately shrinks n --
+        # but it must be VISIBLE rather than silently equal to a subgroup.
+        out["RETENTION_2x2_DESCRIPTIVE_ONLY"]["_enforcement"]["🔴note"] = (
+            f"primary n ({primary['n_cells']}) != full BEARING stratum "
+            f"({len(bear)}). Expected cause: cells excluded as unscored "
+            f"(§4.4), which are named in unscored_rows_named_exclusion. "
+            f"Confirm it is NOT retention conditioning.")
 
     # ====================================================== §7 THE VERDICT
     # Precedence, applied exactly: O5 dominates all. O4 is checked before
