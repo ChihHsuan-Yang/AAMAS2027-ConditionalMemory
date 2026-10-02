@@ -835,3 +835,71 @@ GF-2 is a different and sharper shape:
 > diligence, and it was testing a proposition nobody had checked against the
 > definition it claimed to enforce. *The right verdict for the wrong reason and
 > the wrong verdict for a plausible reason are the same defect.*
+
+---
+
+## Added 2026-10-02 (SA-HF-V05, the v0.5 reader-generalization release) — `HF5-1` … `HF5-6`
+
+🔴 **Numbered `HF5-*` deliberately.** The register already has a 30–32 collision
+between two agents who both appended in the same hours. A new prefix cannot
+collide with a bare integer.
+
+The release itself is the closure of a gap this project had already written
+down and not acted on: **through v0.4 the dataset contained no `gemma-4-31B-it`
+reader row at all** (`reader_model` was `gpt-oss-120b` on 5,924/5,924), while
+the manuscript reported a reader-transfer result. `TRACE_AVAILABILITY.md`'s G4
+and `PAPER_ARTIFACT_MAP.md`'s Figure 6 row both said so plainly. **A gap that is
+documented is not a gap that is fixed**, and a correctly-worded disclosure can
+sit in a repository for days doing nothing.
+
+| # | Defect | Caught by | Would have cost |
+|---|---|---|---|
+| HF5-1 | **A hard validator error whose own MESSAGE was false, blocking a correct release.** `duplicate_row_id` fired on 12 rows of the writer-Gemma factorial saying *"append-only ledgers must not restate a row — a correction is a NEW row."* Measured: the colliding rows have **different source spans** (`06c70de4:13-14` vs `17-18`), came from **separate model calls**, and carry **different outputs**. Nothing was restated. The ids collide because `row_id`/`cell_id` derive from `memory_id`, a content hash, and Gemma rendered two different segments as byte-identical 68-token text (defect 26, already measured and reported — but only in a result document, never taught to the validator) | GATE 1 refusing the build, then checking whether the error's stated reason was TRUE of the data rather than assuming the data was wrong | **the four informative nulls of the Writer × Reader factorial could not ship at all.** The available workarounds were both worse: re-mint the ids (published ids stop joining to the unredacted ledger) or drop the rows (delete a measured result to satisfy a check that is wrong about it). The real repair was to make the check say something true: `id_collision_writer_collapse` / `cell_collision_writer_collapse` at WARN, narrowed four ways and verified against **five** planted defects that must still hard-error |
+| HF5-2 | **A size cap written for transient logs refused the payload, and the obvious fix would have shipped it unscanned.** GATE 2's tree scan rejects any file over 200 MB; v0.5's `data/cells.jsonl` is **243 MB**, so the build died. The tempting repair — skip oversize files — makes the release's **largest** file the one nothing reads. GATE 2b meanwhile had **no cap at all** and was slurping the whole 243 MB into memory | the build failing on a file that is supposed to be there | *"too big to check"* silently becoming *"assumed clean"*, on the one file that carries every model output. Both tree scans now stream in overlapping chunks, and both refuse a **vacuous pass** over fewer than 5 files |
+| HF5-3 | **A mutation control that could not fail, because `chunk[-0:]` returns the WHOLE string.** Testing the new chunked scanner, I set `SCAN_OVERLAP_CHARS = 0` and expected a straddling secret to be missed. It was found. The slice `chunk[-SCAN_OVERLAP_CHARS:]` at 0 does not yield an empty tail — it yields the entire chunk, so "no overlap" silently meant **maximal** overlap, the buffer would grow without bound, and the mutation was **inert** | the mutation **passing** when it should have failed — then asking whether the parameter binds, which is this register's own `GF-1` | a chunk-boundary overlap that was **never exercised by any test**, certified by a control that could not fail. A secret cut by a 32 MB boundary would ship. Fixed, and a test now asserts overlap-off **MISSES** and overlap-on **CATCHES** the same bytes |
+| HF5-4 | **Two of my own plant tests were broken in ways that read exactly like a passing check.** (a) The first straddle fixture padded the needle with `x`, so `\bhf_…` could not match at all — the scan was right and the *control* was broken. (b) A later fixture used `hf_` + 30 chars, whose pattern re-matches on either side of a cut, so it passed with or without the overlap. Both were replaced: the needle is now `AKIA` + 16, **anchored at both ends and fixed-length**, so neither half matches alone; and `_tiny_chunks(keep_overlap=True)` stops the test overriding the constant it is testing | running the mutations and reading **which** test failed, rather than that some test failed | *"I planted a defect and the gate caught it"* is indistinguishable from *"I planted something that was never a defect"*. Three separate versions of this test passed while testing nothing |
+| HF5-5 | **GATE 2b flagged two things at once and only one was a leak; treating them alike would have been wrong twice.** The MANIFEST carried `/Users/<name>/` (defect 23/29's exact shape, in the field that vouches for provenance — v0.4 escaped it only because its inputs happened to live in `/tmp`). `docs/BENCHMARK_LICENSES.md` carried `github.com/xiaowu0162/…` and friends — **the benchmark authors, whose attribution is a CONDITION of the Apache-2.0 and CC BY-SA grants**. Running the current gate against the **already-shipped v0.4 tree** reproduced the second set identically, proving it pre-existing rather than introduced | reading what each hit actually named, and testing the gate against a frozen published release as a control | suppressing the gate would have shipped the home paths; "fixing" the docs would have **stripped licence-required attribution**. The exemption is keyed on the **handle roster**, never on a file path — a path allowlist exempts every future string in that file, including ours — and our own handles are matched first, by a check that never consults the roster, so one cannot be laundered into it |
+| HF5-6 | 🔴 **I contaminated the release tree with my own verification step, then uploaded it.** The build finished clean at 16:25:42 — nine gates PASS, `MANIFEST.json` listing 16 files, none a `.pyc`. At 16:28:12 **my** pre-upload check ran `sys.path.insert(0,"code"); import p1mem` **without `-B`**, depositing three `code/p1mem/__pycache__/*.pyc`. I uploaded that tree. The exporter does this correctly — GATE 5 runs the card's command with `-B` and `PYTHONDONTWRITEBYTECODE=1`, with a comment reading *"A verification step must not deposit artifacts into the thing it is verifying"* — and I committed the exact error that comment forbids, from **outside** the script where no gate could see me | diffing the **DOWNLOADED** tag against staging, file by file — the move that found v0.1's seam defect and v0.3's doc defect, now paying off a third time | a release shipping **three files nobody vouched for**, contradicting its own manifest, in a snapshot whose whole claim is that every byte is accounted for. The tag was moved to a cleaned commit; no data byte changed, and the move is recorded in the tag message, the card and `DATASET_INDEX.md` rather than hidden |
+
+### The shape HF5-1, HF5-2 and HF5-5 share
+
+All three are **a check that was right about the world when it was written and
+wrong about this release**, and in all three the cheap fix was to weaken the
+check:
+
+> A gate that refuses a correct release is not automatically wrong, and not
+> automatically right. The question is whether **the proposition it asserts** is
+> true of the data in front of it. `duplicate_row_id` asserted a restatement that
+> had not happened; the 200 MB cap asserted "this is a transient log" about the
+> payload; the handle pattern asserted "this names the author" about a citation.
+> **Each was repaired by making it say something true, never by switching it
+> off** — and each repair was then shown to still fail on a planted instance of
+> the thing the original gate existed to catch.
+
+### HF5-3 and HF5-4 are the register's most-repeated entry, in my own hands
+
+*A control that cannot fail.* Three times in one session, on the same scanner.
+What makes them worth recording separately is that each was invisible in the
+direction I was looking: the test **passed**, the mutation **passed**, and a
+green suite is what both are supposed to produce. Only running the mutation and
+reading **which** test failed — instead of whether any did — distinguished a
+working guard from a decorative one.
+
+> **A plant that passes is a question, not a result.** It means one of: the check
+> is weak, the plant was not a plant, or the harness is void. All three occurred
+> here, and only the third was the code's fault.
+
+### What HF5-6 says about where the gates end
+
+Every gate in this exporter runs **inside `build()`**. The tree it hands over is
+clean, and it is clean at the moment the function returns. Nothing in the system
+re-checks the tree **between the last gate and `hf upload`**, and that window is
+where a human (or an agent) does exactly the kind of inspection that writes to
+disk.
+
+> **The verified artifact and the uploaded artifact are two different objects**
+> unless something checks the second one. The eight-step loop's steps 6–8 exist
+> for this, and they worked — but they caught it **after** publication, which for
+> a private dataset is recoverable and for a public one would not have been. The
+> cheap structural fix is to re-run the tree scans immediately before upload, or
+> to upload from a tree nothing has opened since the build.

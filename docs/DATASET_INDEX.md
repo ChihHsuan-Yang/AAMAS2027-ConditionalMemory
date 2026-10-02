@@ -154,7 +154,7 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
 
 ---
 
-### v0.4 — tag `v0.4-swebench-metrics` *(current)*
+### v0.4 — tag `v0.4-swebench-metrics`
 
 | | |
 |---|---|
@@ -164,7 +164,7 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
 | **rows** | **5,924** (v0.3's 5,797 + 127 SWE-bench) |
 | **cells** | 2,960 (127 new, over 20 memory instances and 43 task instances; django 96 · sympy 31) |
 | **schema version** | `p1mem_conditional_memory_utility_v3`, **98 fields** |
-| **release commit** | **not transcribed** — v0.4 is the current release and this file ships *inside* it, so a hash written here cannot be the hash of the tree containing it. Read `release_commit` in the snapshot's own `MANIFEST.json`. |
+| **release commit** | `83c560e7` — transcribable now that v0.4 is **frozen and superseded**; it was deliberately left blank while v0.4 was current, because this file ships *inside* the snapshot it describes. 🔴 Read from **v0.4's own downloaded `MANIFEST.json`**, not from a doc: `README.md` had carried `bc66629f`, which is a different commit. The manifest travels with the data and is the record. |
 | **files** | 17 + `.gitattributes` |
 | **size** | 139.7 MB (`data/cells.jsonl` 139,676,660 B) |
 | **validation** | **5,924 rows / 0 errors / 1,691 warnings**, verified **on the downloaded tag** by the card's own command |
@@ -212,11 +212,68 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
 
 ---
 
+### v0.5 — tag `v0.5-reader-generalization` *(current)*
+
+| | |
+|---|---|
+| **released** | 2026-10-02 |
+| **benchmarks** | LongMemEval-V2 **12,103** + SciCode 154 + SWE-bench Verified 127 |
+| **readers** | 🔴 **TWO for the first time** — `gpt-oss-120b` **9,566** · `gemma-4-31B-it` **2,818** |
+| **representations** | LongMemEval `raw` 6,483 / `summary` 2,850 / `structured` 2,770 · SciCode `raw` 154 · SWE-bench `raw` 41 / `summary` 43 / `structured` 43 |
+| **rows** | **12,384** (v0.4's 5,924 + **6,460** new, all LongMemEval-V2, all already schema v3) |
+| **cells** | 6,186 · 571 distinct memories · 370 distinct tasks |
+| **schema version** | `p1mem_conditional_memory_utility_v3`, **98 fields** (unchanged) |
+| **release commit** | **not transcribed** — v0.5 is the current release and this file ships *inside* it, so a hash written here cannot be the hash of the tree containing it. Read `release_commit` in the snapshot's own `MANIFEST.json`. |
+| **files** | 17 + `.gitattributes` |
+| **size** | 243.1 MB (`data/cells.jsonl` 243,060,962 B) |
+| **validation** | **12,384 rows / 0 errors / 1,703 warnings**, verified **on the downloaded tag** by the card's own command, matching the card's printed expectation exactly |
+| **licence** | 🔴 **MIXED, unchanged.** 12,257 rows Apache-2.0 with source text; 127 SWE-bench rows metrics-and-ids only. Frontmatter stays `license: other`. |
+
+**What v0.5 adds** — the four slices, each with the artifact behind it:
+
+| slice | rows | canonical artifact |
+|---|---:|---|
+| session-matched reader transfer | 1,140 | `results/raw_session_matched/raw_gptoss.jsonl` · `raw_gemma.jsonl` |
+| Writer × Reader factorial | 4,496 | `results/writer_factorial/factorial_cells_gptoss.jsonl` · `factorial_cells_gemma.jsonl` |
+| gold-free screen GF-LLM | 168 | `results/deltau_goldfree_llm/cells.jsonl` |
+| gold-free screen GF-LEX | 656 | `results/deltau_goldfree/cells.jsonl` |
+
+**Known limitations at v0.5**
+- 🔴 **Through v0.4 the release contained NO Gemma reader row** (`reader_model` was
+  `gpt-oss-120b` on 5,924/5,924) while the paper reported a reader-transfer result.
+  That gap is what v0.5 exists to close; it is recorded rather than quietly fixed.
+- 🔴 **Ids are not join keys on the factorial.** `memory_id`/`cell_id`/`row_id` are
+  content hashes, and the Gemma writer rendered two different segments of episode
+  `06c70de4` (`13-14`, `17-18`) as **byte-identical** 68-token summaries. 16 real rows
+  therefore share 8 `row_id`s and 4 `cell_id`s. Reported as
+  `id_collision_writer_collapse` (8) and `cell_collision_writer_collapse` (4), both
+  **warnings**: they are not restated rows, and through v0.4 the validator raised a hard
+  `duplicate_row_id` whose own message ("must not restate a row") was **false** on them.
+  Join on `(memory_unit_locator, future_task_id, replicate_id, reader_model)`.
+- 🔴 **`reasoning_tokens` carries two different nulls.** Gemma's 2,818 nulls are an
+  endpoint that never emits the field; SciCode's 154 are a run that did not record a
+  field metis *does* report. **Do not pool them**, and `0` appears on no row.
+- **GF-LEX is the screen that DISAPPEARS and it ships anyway.** Publishing only GF-LLM
+  would select an instrument on its own outcome.
+- **The length-control experiment is absent**, and its stated reason changed during the
+  build: it was still running when v0.5 was scoped and reached a frozen verdict before
+  upload. Held out because its rows were not in the audited set this release was gated
+  against — **a v0.6 candidate to be re-decided, not skipped by default**.
+- 🔴 **The v0.5 tag was MOVED once.** Its first upload carried three
+  `code/p1mem/__pycache__/*.pyc` deposited by a pre-upload verification step that
+  imported the shipped package without `-B`, three minutes after a clean build. They
+  were never in `MANIFEST.json`, no data byte changed, and the tag now points at the
+  commit that removes them. Found by diffing the **downloaded** tag against staging —
+  the same move that found v0.1's seam defect and v0.3's doc defect.
+- All v0.2, v0.3 and v0.4 limitations carry over unchanged.
+
+---
+
 ## Planned, NOT released
 
 | version | contents | status |
 |---|---|---|
-| — | nothing is currently queued | v0.3 (SciCode) and v0.4 (SWE-bench, metrics-only) have **both shipped** and are listed above with figures measured on their downloaded tags. |
+| **v0.6 candidate** | the **length-control** experiment (`results/length_control/cells.jsonl`) | **undecided, and deliberately named here so the exclusion is not inherited by default.** Its verdict froze (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`) after v0.5 was scoped and audited, so it was out of that release's audited set. Re-decide explicitly. |
 
 **BEAM will never appear in this dataset.** Its data is CC BY-SA 4.0 and ShareAlike is
 infectious, so BEAM-derived records must ship as a **separate CC BY-SA 4.0 release**

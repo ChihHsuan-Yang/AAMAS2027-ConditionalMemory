@@ -83,11 +83,11 @@ scored 0.0. Both are in the pilot condition and share one `cell_id`. Newly recor
 | trace element | status | where |
 |---|---|---|
 | memory text (byte-identical to the gpt-oss run) | **GitHub** (slim) + **local** | `results/ledgers/repro/gemma_reader/transfer_cells_slim.jsonl`; identity proven on `\smIdentK/\smIdentN` joinable rows |
-| WITH / WITHOUT output | 🔴 **local only** | `results/gemma_reader/transfer_cells.jsonl` (30.6 MB), `transfer_cache.jsonl` (7.0 MB); session-matched `results/raw_session_matched/raw_gemma.jsonl`, `raw_gptoss.jsonl` (~21 MB each) + their caches |
+| WITH / WITHOUT output | **HF (session-matched)** + 🔴 local only (cross-session comparator) | ✅ The **session-matched** arms — `results/raw_session_matched/raw_gemma.jsonl`, `raw_gptoss.jsonl` (~21 MB each) — SHIP IN HF v0.5 with both output fields intact. 🔴 Still local only: the **cross-session comparator** `results/gemma_reader/transfer_cells.jsonl` (30.6 MB), `transfer_cache.jsonl` (7.0 MB) and all caches. The canonical figure rests on the published rows. |
 | reward detail | **GitHub** | slim files + `results/ledgers/repro/raw_session_matched/raw_{gptoss,gemma}_slim.jsonl` |
 | analysis | **GitHub** | `results/ledgers/gemma_reader/reader_transfer_analysis.json`, `reader_transfer_controls.json`, `results/ledgers/repro/gemma_reader/cache_separation_proof.json`, `results/ledgers/repro/raw_session_matched/raw_session_matched_analysis.json` |
 | model / endpoint metadata | **GitHub** | `reader_model` / `reader_cluster` on every slim row; the generator **asserts** the two reader sets are disjoint |
-| 🔴 **HF** | **ABSENT** | **No Gemma row is in any published tag.** Verified: `reader_model == "gpt-oss-120b"` on 5,924/5,924 rows of v0.4. Figure 6 is the paper's reader-generalization evidence and **none of its rows are in the dataset** |
+| ✅ **HF** | **PUBLISHED at v0.5** | **`v0.5-reader-generalization` carries 2,818 `gemma-4-31B-it` reader rows**, including all 570+570 session-matched rows (`results/raw_session_matched/raw_gptoss.jsonl` + `raw_gemma.jsonl` → `condition_id LIKE 'lmev2_raw_metis_%_readertransfer_v1'`), plus the 4,496-row Writer × Reader factorial. 🔴 **This row read "ABSENT — no Gemma row is in any published tag" through v0.4 and that was TRUE**: `reader_model == "gpt-oss-120b"` on 5,924/5,924. Figure 6's evidence base was in the paper and not in the release; v0.5 exists to close exactly that. Verified on the DOWNLOADED tag. |
 
 🔴 **A pre-truncation-fix cache and a quarantined-truncation file are kept, not
 deleted** (`transfer_cache.PRE_TRUNCATION_FIX.jsonl`,
@@ -191,6 +191,37 @@ unchanged**, 0 discrepancies. **No manufactured `0.0` is in the release.**
 
 ---
 
+## 3b. What HF v0.5 added — provenance per new slice
+
+All six files are **LongMemEval-V2** and were already schema v3, so none passed through
+`migrate_schema_v2.py`. Exported by `scripts/export_hf.py` at repo commit `57b068f`.
+
+| slice | rows | canonical artifact (generated it) | exported by | paper result it supports | canonical or diagnostic |
+|---|---:|---|---|---|---|
+| session-matched reader transfer, gpt-oss arm | 570 | `results/raw_session_matched/raw_gptoss.jsonl` | `scripts/export_hf.py` | **Figure 6** `fig:readertransfer` | **CANONICAL** |
+| session-matched reader transfer, Gemma arm | 570 | `results/raw_session_matched/raw_gemma.jsonl` | `scripts/export_hf.py` | **Figure 6** `fig:readertransfer` | **CANONICAL** |
+| Writer × Reader factorial, gpt-oss writer | 2,248 | `results/writer_factorial/factorial_cells_gptoss.jsonl` | `scripts/export_hf.py` | Story 3 support — four informative nulls | **CANONICAL** |
+| Writer × Reader factorial, Gemma writer | 2,248 | `results/writer_factorial/factorial_cells_gemma.jsonl` | `scripts/export_hf.py` | Story 3 support — four informative nulls | **CANONICAL** |
+| gold-free screen, **GF-LLM** | 168 | `results/deltau_goldfree_llm/cells.jsonl` | `scripts/prep_v05_inputs.py` → `scripts/export_hf.py` | Story 1 support — the screen that **survives** | **CANONICAL** |
+| gold-free screen, **GF-LEX** | 656 | `results/deltau_goldfree/cells.jsonl` | `scripts/prep_v05_inputs.py` → `scripts/export_hf.py` | Story 1 support — the screen that **DISAPPEARS** | **CANONICAL** (published so the surviving screen is not selected on its outcome) |
+
+⚠️ **`prep_v05_inputs.py` changed exactly one field** on the 824 gold-free rows:
+`faithfulness_notes`, which was empty because those ledgers were written directly at v3
+and so never passed through the migration step that fills it. It writes the project's
+own `FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE` **only where the note's premise is verified on
+the row**, asserts that `faithfulness_notes` feeds no id, and does not modify the source
+ledgers. Verified post-hoc: `faithfulness_notes` is the only field that differs.
+
+### Intentionally missing from v0.5, by name
+
+| artifact | status | why |
+|---|---|---|
+| `results/length_control/cells.jsonl` | **held out** | Not in the audited set v0.5 was built and gated against. 🔴 Its reason **changed mid-build** — scoped while running, frozen (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`) before upload. **v0.6 candidate; re-decide explicitly.** |
+| `results/swebench/representations_v1.json` | **VOID** | contagion screen false-positived on ASCII table borders |
+| `results/raw_session_matched_VOID_mislabelled/` | **VOID (defect 27)** | `condition_id` contradicted `reader_model`. Verified by row id: **0 of 570** reached the release |
+| `results/gemma_reader/transfer_cells.jsonl` + caches | **local only** | the **cross-session** comparator, superseded for the quoted number by the session-matched arms above |
+| all `*_cache.jsonl`, `embeddings.*` | **local only** | endpoint caches and embedding stores are not part of the release |
+
 ## 4. Summary — what a reader can and cannot re-do
 
 | | LongMemEval-V2 | SciCode | SWE-bench Verified |
@@ -263,11 +294,11 @@ is verified at read time** — which `make_figures.py` does **not** currently do
 | **G1** | **The Reproducibility section's "full output text … every cell can be re-scored" is false for 281 of 5,924 shipped rows**, and the SciCode persistence gap appears **nowhere** in `main.tex` while the SWE-bench embargo is disclosed — a caveat beside an uncaveated neighbour | §4 above; counted on the downloaded v0.4 |
 | **G2** | **`results/scicode/memories.jsonl` holds REGENERATED summary/structured text beside valid rewards**, untracked and locally indistinguishable from originals except by its own `recovery.safe_to_ship: false` flag | §2 above; 34 structured + 33 summary not verified |
 | **G3** | **Figure 3 (`fig:sparsity`) is in neither `FIGURE_INDEX.md` nor `RESULT_INDEX.md`** — grep returns 0 in both (positive controls `bearing`→3, `frontier`→2) | `PAPER_ARTIFACT_MAP.md` §(a) |
-| **G4** | **Figure 6's Gemma rows are on no HF tag.** The paper's reader-generalization evidence is absent from the dataset | `reader_model == "gpt-oss-120b"` on 5,924/5,924 of v0.4 |
+| **G4** | ✅ **CLOSED 2026-10-02 by HF v0.5.** Was: *Figure 6's Gemma rows are on no HF tag; the paper's reader-generalization evidence is absent from the dataset* (`reader_model == "gpt-oss-120b"` on 5,924/5,924 of v0.4). v0.5 publishes **2,818** Gemma reader rows. Re-verified on the downloaded tag: per-reader counts are gpt-oss-120b 9,566 / gemma-4-31B-it 2,818 of 12,384 | closed against the downloaded `v0.5-reader-generalization` |
 | **G5** | **`COVERAGE_MANIFEST.md` carries none of the paper coverage table's SWE-bench figures** — 321, 141 and 180 each grep to 0 (positive control `107`→6). The manifest reports the **recipient** unit, the table the **rep-cell** unit, and nothing states the conversion | `PAPER_ARTIFACT_MAP.md` §(b) |
-| **G6** | **The HF data card contains zero GitHub links** — `grep -c github` on the shipped v0.4 `README.md` returns **0** (positive control `SciCode`→32). A consumer of the dataset cannot navigate to the code | downloaded card |
+| **G6** | ✅ **CLOSED at v0.5.** Was: *the HF data card contains zero GitHub links* — `grep -c github` on the shipped **v0.4** card returned **0**. On the downloaded **v0.5** card it returns **8** (positive control `SciCode` → 40). The links are `<anonymized-for-review>` placeholders for the double-blind cycle, which is the navigable form available now | `grep -c -i github` on the downloaded v0.5 README.md |
 | **G7** | **The GitHub README has no Hugging Face URL and no Overleaf URL** — it names `AgentsSci/AAMAS2027-ConditionalMemory` and `git.overleaf.com/6abb…` as bare strings in a status table, not as links, and never links `DATASET_INDEX`/`COVERAGE_MANIFEST` from the Repository map | `README.md:111–114` |
-| **G8** | **2 HF LongMemEval rows carry `error_code_if_any = "endpoint_error"`** with null rewards and a null WITH output. Correct behaviour (never 0.0) but undocumented | counted on v0.4 |
+| **G8** | **UPDATED at v0.5, and the count moved.** v0.4 had 2 rows with `error_code_if_any = "endpoint_error"`. v0.5 has **94 error-coded rows across three codes**: `truncated_nonempty_at_token_budget` **88**, `empty_output_finish_length` **4**, `endpoint_error` **2**. The 88+4 come with the new Gemma arms and are the three-observable truncation guard **working** (defect 20). 🔴 **All 94 carry a null reward and a null `delta_utility` — 0 of 94 has a number** — so no refused generation was ever scored. Documented here rather than left as an undocumented count that grew 47× | re-derived on the downloaded `v0.5-reader-generalization` |
 | **G9** | **`37` vs `40` for SWE-bench are both live, both correct, and differ by definition** (valid-completed recipients vs matched rep-cells; the 3 extra sit on scorer-invalid django instances). No document stated the reconciliation | `PAPER_ARTIFACT_MAP.md` §(b) |
 | **G10** | **`make_figures.py` checks only `.exists()` on `/tmp/lmev2/questions.jsonl`**, not its sha256, while the corpus ships `checksums.sha256` and the project owns `verify_checksums()` | §5 |
 
