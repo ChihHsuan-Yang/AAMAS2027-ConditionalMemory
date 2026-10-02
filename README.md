@@ -217,8 +217,8 @@ rows**).
 
 | TODO | Status | Blocker | Path | Done when |
 |---|---|---|---|---|
-| **Length-control experiment** | **RUNNING** | — | [`docs/LENGTH_CONTROL_PRECOMMITMENT.md`](docs/LENGTH_CONTROL_PRECOMMITMENT.md) (frozen `f702aaf`) | all 8 arms complete in one session, A/A control reproduces Raw 277/277, verdict taken by §7 precedence |
-| **Integrate the length verdict** | TODO | length control | manuscript · `figdata.tex` · artifact map | Story 2 states exactly what the controlled contrast supports — **narrowing is an acceptable outcome** |
+| **Length-control experiment** | **DONE** | — | [`docs/LENGTH_CONTROL_RESULT.md`](docs/LENGTH_CONTROL_RESULT.md) · [`docs/LENGTH_CONTROL_PRECOMMITMENT.md`](docs/LENGTH_CONTROL_PRECOMMITMENT.md) | ✅ verdict **O2** by the pre-registered precedence: at matched length the extractive and model-written arms do **not** separate (+0.0519 [−0.0678, +0.1727]), so Raw's advantage is **exposure budget**, not rewriting |
+| **Integrate the length verdict** | **DONE** | — | manuscript · `figdata.tex` · `length_control_result.json` | ✅ the causal claim "rewriting removes the benefit" is **removed**; Story 2 narrowed to exposure budget + formation cost, with the new first-vs-last content finding added |
 | **Final fresh mock review** | TODO | the two above | — | a blind reviewer recovers **exactly three** stories; if they extract five or six, simplify and repeat |
 | HF v0.5 release | ✅ **DONE** | — | `scripts/export_hf.py` | downloaded remote bytes re-validate: `12384 rows \| 0 errors \| 1703 warnings` from the card's own command, run on the DOWNLOADED tag, matching the card exactly |
 | Page compression to 8 body pages | DEFERRED | science freeze | [`docs/PAGE_BUDGET_DECISION.md`](docs/PAGE_BUDGET_DECISION.md) | body ends before p9; **no claim, caveat or interval deleted** |

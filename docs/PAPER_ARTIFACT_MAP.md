@@ -263,3 +263,41 @@ and requires the refusal.
 | defects, with the pattern list | [`DEFECT_REGISTER.md`](DEFECT_REGISTER.md) |
 | current state / entry point | [`HANDOFF_CURRENT.md`](HANDOFF_CURRENT.md) |
 | manuscript-side lookup | `overleaf/ARTIFACT_LOOKUP.md` |
+
+---
+
+## Length-controlled representation test — Story 2's warrant
+
+**Verdict `O2`**, taken by the precedence rule in
+[`LENGTH_CONTROL_PRECOMMITMENT.md`](LENGTH_CONTROL_PRECOMMITMENT.md) §7, which was
+**frozen at `f702aaf` before the run executed**.
+
+| | |
+|---|---|
+| pre-registration | `docs/LENGTH_CONTROL_PRECOMMITMENT.md` (commit `f702aaf`) |
+| full result | `docs/LENGTH_CONTROL_RESULT.md` |
+| canonical artifact | `results/ledgers/length_control_result.json` |
+| row-level data | `results/length_control/cells.jsonl` — **4,432 rows**, 8 arms × 554 |
+| generator of the manuscript macros | `scripts/make_figures.py` → `\lcPrimary`, `\lcEnds`, `\lcBudget` |
+| HF | **not in v0.5** — the rows were not in the audited set that release was gated against. A **v0.6 candidate**, to be re-decided rather than skipped by default |
+| status | **canonical** |
+
+| contrast | value | unit |
+|---|---|---|
+| **primary** `trunc_last_matched − summary` | **+0.0519** [−0.0678, +0.1727] | 270 BEARING cells, task-clustered |
+| **decisive** `trunc_last − trunc_first` | **+0.1037** [+0.0091, +0.2098] | same budget, opposite end |
+| **budget** `raw − trunc_last_matched` | **+0.2612** [+0.1533, +0.3864] | — |
+
+**What it licenses.** At matched length, extractive and model-written compression are
+indistinguishable, so Raw's advantage is an **exposure-budget** effect. The paper
+therefore does **not** claim that rewriting as such destroys utility.
+
+**What it adds.** First-N and last-N share a token budget and differ only in which end
+is kept; bearing-content retention differs 41× (0.7% vs 28.9%) and the contrast excludes
+zero. At a fixed token count, moving the bearing content **into** the window changes
+utility — content presence is the mechanism, not token count.
+
+**A/A control.** `trunc_last_20000` renders byte-identical to `raw` on **554/554** and
+reproduces its rewards on **552/552** scored pairs. Three build-failing guards in
+`make_figures.py` pin the verdict, the primary contrast's non-separation, and the
+first-vs-last separation; each was verified by planting the defect it forbids.
