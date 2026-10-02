@@ -466,3 +466,145 @@ def test_a_secret_in_a_withheld_field_is_recorded_but_one_that_ships_fails():
     _, sc_withheld = EH.redact_row(sc)
     with _pt.raises(EH.GateFailure):
         EH.gate_secret_scan_rows([sc], withheld_fields=[sc_withheld])
+
+
+# ---------------------------------------------- GATE 2 / 2b on an OVERSIZE shard
+# A dataset shard legitimately exceeds MAX_FILE_BYTES (v0.5's data/cells.jsonl is
+# ~243 MB against a 200 MB cap). Two wrong answers were available and both were taken
+# at some point by the obvious fix:
+#   * FAIL the build        -- the cap exists for transient logs, not for the payload;
+#   * SKIP the file         -- far worse: the release's LARGEST file ships unscanned,
+#                              turning "too big to check" into "assumed clean".
+# The file is streamed in overlapping chunks instead. These tests exist because a
+# chunked scanner has one failure mode a whole-file scanner does not: a match that
+# straddles a chunk boundary. Both scanners are exercised across one.
+def _tiny_chunks(ex, *, keep_overlap: bool = False):
+    """Shrink the chunk size so a small fixture exercises the streaming path.
+
+    ``keep_overlap`` leaves ``SCAN_OVERLAP_CHARS`` at the value the MODULE declares.
+    That matters: a test that assigns its own overlap masks any mutation of the real
+    constant, so the mutation control passes while testing nothing. The binding test
+    below keeps the module's value for exactly that reason.
+    """
+    ex.SCAN_CHUNK_BYTES = 1024
+    if not keep_overlap:
+        ex.SCAN_OVERLAP_CHARS = 64
+    ex.MAX_FILE_BYTES = 2048          # force the streaming path on a small fixture
+
+
+# A real-shaped needle. It MUST be preceded by a non-word character or `\b` cannot
+# match -- an earlier version of this test padded with "x", the scan correctly found
+# nothing, and the CONTROL was the broken thing. Kept as a comment because "the plant
+# was not found" and "the plant was not a plant" look identical in a test report.
+_SECRET = "hf_" + "A" * 30
+_HOMEPATH = "/Users/bellayang/Documents/secret"
+
+# For the STRADDLE case the needle must be one that neither half can match alone.
+# ``hf_AAAA...`` is useless here: its pattern is ``hf_`` + 20-or-more chars, so a cut
+# leaving 23+ chars in the first chunk still matches, and the test passes whether or not
+# the overlap works. The AWS pattern is anchored at BOTH ends and fixed-length
+# (``\bAKIA[0-9A-Z]{16}\b``), so a cut through it matches in neither chunk.
+_AWS_KEY = "AKIA" + "ABCDEFGHIJKLMNOP"
+
+
+def test_oversize_shard_negative_control_clean_file_is_clean(tmp_path):
+    ex = _load_exporter(); _tiny_chunks(ex)
+    f = tmp_path / "clean.txt"
+    f.write_text("lorem ipsum dolor sit amet " * 500)
+    assert ex.scan_file_for(f, "clean.txt", ex.scan_text_for_secrets) == []
+    assert ex.scan_file_for(f, "clean.txt", ex.scan_text_for_identity) == []
+
+
+_CHUNK = 1024          # must match _tiny_chunks
+
+
+def _straddling(prefix_filler: str, needle: str, boundary: int, cut_at: int) -> str:
+    """Body placing ``needle`` so the chunk boundary falls INSIDE it.
+
+    ``cut_at`` characters of the needle sit before the boundary and the rest after, so a
+    scanner without an overlap physically cannot see the whole needle in either chunk.
+    This is the only arrangement that tests the overlap; an earlier version put the
+    needle a few bytes BEFORE the boundary, which left it entirely inside the next chunk
+    and passed even with the overlap deleted.
+    """
+    assert 0 < cut_at < len(needle), "the boundary must fall inside the needle"
+    return prefix_filler * (boundary - cut_at) + needle + "w" * 3000
+
+
+@pytest.mark.parametrize("name,body,scanner_attr", [
+    ("mid",      "x" * 5000 + " " + _SECRET + " " + "y" * 5000,            "scan_text_for_secrets"),
+    ("straddle", _straddling("z", " " + _AWS_KEY + " ", _CHUNK, 10),       "scan_text_for_secrets"),
+    ("lastchunk", "z" * 5000 + " " + _SECRET,                              "scan_text_for_secrets"),
+    ("ident",    "q" * 6000 + _HOMEPATH + "r" * 3000,                      "scan_text_for_identity"),
+    ("ident_straddle", _straddling("q", _HOMEPATH, _CHUNK * 2, 9),         "scan_text_for_identity"),
+])
+def test_oversize_shard_plants_are_caught(tmp_path, name, body, scanner_attr):
+    """Each plant sits where a naive chunked reader would lose it."""
+    ex = _load_exporter(); _tiny_chunks(ex)
+    f = tmp_path / f"{name}.txt"
+    f.write_text(body)
+    hits = ex.scan_file_for(f, f"{name}.txt", getattr(ex, scanner_attr))
+    assert hits, f"the streaming scan MISSED the {name} plant"
+
+
+def test_oversize_shard_small_file_path_still_fires(tmp_path):
+    """Control: the change must not have moved all the work into the new branch."""
+    ex = _load_exporter()
+    f = tmp_path / "small.txt"
+    f.write_text("hello " + _SECRET + " world")
+    assert ex.scan_file_for(f, "small.txt", ex.scan_text_for_secrets)
+
+
+def test_tree_scans_refuse_a_vacuous_pass(tmp_path):
+    """A clean scan over nothing is not evidence. Both tree gates must refuse to
+    report a pass when they scanned almost no files."""
+    ex = _load_exporter()
+    (tmp_path / "only.txt").write_text("nothing interesting")
+    with pytest.raises(ex.GateFailure, match="vacuous"):
+        ex.gate_secret_scan_tree(tmp_path)
+    with pytest.raises(ex.GateFailure, match="vacuous"):
+        ex.gate_identity_scan_tree(tmp_path)
+
+
+def test_the_chunk_overlap_actually_binds(tmp_path):
+    """The overlap must be LOad-bearing, not decorative.
+
+    A mutation that deletes the overlap has to break something, or the overlap is
+    untested. Two things made an earlier version of this vacuous and both are pinned
+    here:
+
+    1. ``chunk[-SCAN_OVERLAP_CHARS:]`` returns the WHOLE chunk when the overlap is 0,
+       so "no overlap" silently meant "total overlap" and the mutation was inert.
+    2. the needle was ``hf_`` + 30 chars, whose pattern re-matches on either side of a
+       cut, so even a genuinely overlap-free scan found it.
+
+    This test asserts the discrimination directly: overlap off -> MISS, overlap on ->
+    CATCH, on the same bytes.
+    """
+    ex = _load_exporter(); _tiny_chunks(ex, keep_overlap=True)
+    body = _straddling("z", " " + _AWS_KEY + " ", _CHUNK, 10)
+    f = tmp_path / "straddle_binding.txt"
+    f.write_text(body)
+
+    # The module's own declared overlap must be big enough to span a cut needle. If a
+    # future edit shrinks it below the longest match a pattern can produce, that is a
+    # real defect and this assertion is where it surfaces.
+    assert ex.SCAN_OVERLAP_CHARS >= len(_AWS_KEY) + 2, (
+        f"SCAN_OVERLAP_CHARS={ex.SCAN_OVERLAP_CHARS} is too small to span a straddling "
+        f"match; a secret cut by a chunk boundary would be missed in production")
+    assert ex.scan_file_for(f, "x", ex.scan_text_for_secrets), (
+        "the module's CONFIGURED overlap must catch the straddling needle")
+
+    # control: the needle genuinely spans the boundary -- neither chunk matches alone
+    with f.open("r") as fh:
+        c1 = fh.read(ex.SCAN_CHUNK_BYTES); c2 = fh.read(ex.SCAN_CHUNK_BYTES)
+    assert not ex.scan_text_for_secrets(c1, "c1"), "chunk 1 alone must not match"
+    assert not ex.scan_text_for_secrets(c2, "c2"), "chunk 2 alone must not match"
+
+    ex.SCAN_OVERLAP_CHARS = 0
+    assert ex.scan_file_for(f, "x", ex.scan_text_for_secrets) == [], (
+        "with no overlap the straddling needle must be MISSED; if it is found, the "
+        "fixture is not actually straddling and the overlap is untested")
+    ex.SCAN_OVERLAP_CHARS = 4096
+    assert ex.scan_file_for(f, "x", ex.scan_text_for_secrets), (
+        "with the overlap restored the needle must be caught")

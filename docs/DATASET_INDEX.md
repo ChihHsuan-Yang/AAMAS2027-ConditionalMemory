@@ -1,4 +1,4 @@
-# Dataset Index — `AgentsSci/AAMAS2027-ConditionalMemory`
+# Dataset Index — `<anonymized-for-review>/AAMAS2027-ConditionalMemory`
 
 One row per published snapshot. **Every figure here was produced by a command on the
 released artifact**, not copied from a plan. A snapshot that is not in this table has not
@@ -24,7 +24,7 @@ shipped.
 > tag is left as published, with the defect recorded, exactly as v0.1's broken first
 > upload was left and recorded rather than retconned.
 
-Repository: `AgentsSci/AAMAS2027-ConditionalMemory` (dataset, **private**).
+Repository: `<anonymized-for-review>/AAMAS2027-ConditionalMemory` (dataset, **private**). The owning org is anonymised here because **this file ships inside the release**, exactly as the data card's links are; restore it after the review cycle.
 Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.md`.
 
 > **On the "release commit" rows.** A hash is transcribed here only once the release

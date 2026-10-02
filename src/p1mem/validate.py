@@ -695,6 +695,60 @@ def validate_row(row: Any, *, row_index: int | None = None) -> list[Issue]:
     return out
 
 
+# --- content-hash id collisions that are NOT a restated row ---------------------
+#
+# ``row_id``/``cell_id``/``memory_id`` are CONTENT hashes keyed (transitively) on
+# ``memory_text``. A writer terse enough to render two DIFFERENT source segments as
+# byte-identical text therefore mints one id for two genuinely separate experiments.
+# That is defect #26: measured, reported in docs/WRITER_FACTORIAL_RESULT.md as a
+# property of the writer, and NOT a double write.
+#
+# The hard error's own message asserts "append-only ledgers must not restate a row".
+# On a collapse that proposition is FALSE -- the two rows have different source spans,
+# came from separate model calls and carry different outputs. A right verdict with a
+# wrong stated reason is this project's own recurring defect, so the collapse case gets
+# its own code and severity instead of being silently folded into the restatement one.
+#
+# The relaxation is NARROW in four ways, so it cannot become a hole:
+#   1. every colliding row must carry a POSITIONAL locator (a span, not a hash);
+#   2. their positional units must be PAIRWISE DISTINCT -- one repeated unit and it is
+#      a restatement again, at full error severity;
+#   3. ``memory_text`` must be byte-identical across them, i.e. the collision is
+#      actually explained by the collapse rather than merely co-occurring with it;
+#   4. the count must match: n distinct units == n rows.
+# Anything else keeps SEVERITY_ERROR.
+def _positional_unit(row: dict[str, Any]) -> tuple | None:
+    """The identity of a row that does NOT pass through a content hash.
+
+    Returns None when no locator is recorded, which makes the row ineligible for the
+    relaxation: an absent discriminator must never read as a passing one.
+    """
+    loc = None
+    for f in ("memory_source_span", "source_episode_metadata"):
+        v = row.get(f)
+        if isinstance(v, dict) and v.get("memory_unit_locator"):
+            loc = v["memory_unit_locator"]
+            break
+    if not loc:
+        return None
+    return (row.get("benchmark"), row.get("condition_id"),
+            row.get("memory_representation"), loc, row.get("future_task_id"),
+            row.get("replicate_id"), row.get("reader_model"))
+
+
+def _is_writer_collapse(rows: Sequence[dict[str, Any]]) -> bool:
+    """True only if these same-id rows are distinct experiments sharing one memory text."""
+    if len(rows) < 2:
+        return False
+    units = [_positional_unit(r) for r in rows]
+    if any(u is None for u in units):
+        return False                      # no positional discriminator -> not excusable
+    if len(set(units)) != len(units):
+        return False                      # a repeated unit IS a restatement
+    texts = {r.get("memory_text") for r in rows}
+    return len(texts) == 1 and None not in texts
+
+
 # ============================================================= DATASET CHECKS
 def validate_dataset(rows: Sequence[dict[str, Any]]) -> Report:
     report = Report(n_rows=len(rows))
@@ -704,18 +758,32 @@ def validate_dataset(rows: Sequence[dict[str, Any]]) -> Report:
     good = [r for r in rows if isinstance(r, dict)]
 
     # --- duplicate row ids ---
-    seen: dict[str, int] = {}
+    by_rid: dict[str, list[tuple[int, dict]]] = defaultdict(list)
     for i, r in enumerate(good):
         rid = r.get("row_id")
-        if not isinstance(rid, str) or not rid:
+        if isinstance(rid, str) and rid:
+            by_rid[rid].append((i, r))
+    for rid, items in by_rid.items():
+        if len(items) < 2:
             continue
-        if rid in seen:
-            report.issues.append(Issue(
-                "duplicate_row_id", SEVERITY_ERROR,
-                f"row_id {rid!r} already used at row {seen[rid]}; append-only ledgers must "
-                f"not restate a row -- a correction is a NEW row", "row_id", rid, i))
-        else:
-            seen[rid] = i
+        first = items[0][0]
+        collapse = _is_writer_collapse([r for _, r in items])
+        for i, _r in items[1:]:
+            if collapse:
+                report.issues.append(Issue(
+                    "id_collision_writer_collapse", SEVERITY_WARN,
+                    f"row_id {rid!r} is shared with row {first}, and these are NOT the "
+                    f"same row: their source spans differ and their memory_text is "
+                    f"byte-identical, so the content hash collided because the writer "
+                    f"rendered two different segments as the same text. Join on the "
+                    f"positional unit (locator, task, replicate, reader), never on this "
+                    f"id -- doing so would merge two experiences into one",
+                    "row_id", rid, i))
+            else:
+                report.issues.append(Issue(
+                    "duplicate_row_id", SEVERITY_ERROR,
+                    f"row_id {rid!r} already used at row {first}; append-only ledgers must "
+                    f"not restate a row -- a correction is a NEW row", "row_id", rid, i))
 
     # --- E2's named check: reader_cluster must not vary inside one condition ---
     # NOTE: the grouping key deliberately EXCLUDES reader_cluster. If cluster were part of
@@ -847,9 +915,27 @@ def validate_dataset(rows: Sequence[dict[str, Any]]) -> Report:
         reps = [r.get("replicate_id") for _, r in items]
         dupes = {x for x in reps if reps.count(x) > 1 and x is not None}
         if dupes:
-            report.issues.append(Issue(
-                "duplicate_replicate_in_cell", SEVERITY_ERROR,
-                f"cell {cid} has repeated replicate_id(s) {sorted(dupes)}", "replicate_id"))
+            # Same root cause as id_collision_writer_collapse: cell_id keys on memory_id,
+            # so a collapsed memory makes one cell appear to repeat its replicates. The
+            # rows are distinct experiments; checked per repeated replicate_id, not for
+            # the cell as a whole, so a genuine double write inside a collapsed cell is
+            # still an error.
+            hard = sorted(
+                x for x in dupes
+                if not _is_writer_collapse([r for _, r in items
+                                            if r.get("replicate_id") == x]))
+            soft = sorted(x for x in dupes if x not in hard)
+            if hard:
+                report.issues.append(Issue(
+                    "duplicate_replicate_in_cell", SEVERITY_ERROR,
+                    f"cell {cid} has repeated replicate_id(s) {hard}", "replicate_id"))
+            if soft:
+                report.issues.append(Issue(
+                    "cell_collision_writer_collapse", SEVERITY_WARN,
+                    f"cell {cid} appears to repeat replicate_id(s) {soft}, but those rows "
+                    f"have different source spans and identical memory_text: cell_id keys "
+                    f"on memory_id, a content hash, so one collapsed memory produced one "
+                    f"cell id for two segments. Join positionally", "replicate_id"))
         for fname in ("memory_text", "future_task_text", "reader_prompt_version",
                       "reader_reasoning_effort", "verifier_version"):
             vals = {_hashable(r.get(fname)) for _, r in items}

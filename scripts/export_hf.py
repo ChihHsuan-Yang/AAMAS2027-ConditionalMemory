@@ -419,6 +419,43 @@ IDENTITY_LEAK_PATTERNS: tuple[tuple[str, str], ...] = (
      "Hugging Face account handle in a URL"),
 )
 
+# 🔴 UPSTREAM ATTRIBUTION IS NOT DE-ANONYMISATION, and the two were conflated.
+#
+# ``docs/BENCHMARK_LICENSES.md`` must cite where each corpus and licence was READ FROM:
+# that is what makes the licence finding checkable, and for Apache-2.0 and CC BY-SA the
+# attribution is a condition of the grant. Those URLs name the BENCHMARK AUTHORS. The
+# handle pattern above cannot tell "the person who wrote this release" from "the person
+# who wrote the dataset we are citing", so it flagged all of them -- and it flags the
+# ALREADY-SHIPPED v0.4 tree identically, so this is a pre-existing over-match rather
+# than anything v0.5 introduced.
+#
+# The exemption is keyed on the HANDLE, never on the file. Keying it on a path
+# (``allow docs/BENCHMARK_LICENSES.md``) would exempt every future string in that file,
+# including ours -- an allowlist that names a location stops being a check on content.
+#
+# Our own handles are listed separately and are matched FIRST, at the highest severity,
+# so adding one to the upstream roster cannot quietly launder it: the self-handle check
+# does not consult the roster at all.
+UPSTREAM_ATTRIBUTION_HANDLES: frozenset[str] = frozenset({
+    # benchmark sources cited in docs/BENCHMARK_LICENSES.md
+    "xiaowu0162",          # LongMemEval V1/V2
+    "mohammadtavakoli78",  # LongMemEval mirror consulted for the V1 licence
+    "scicode-bench",       # SciCode
+    "SWE-bench",           # SWE-bench harness
+    "princeton-nlp",       # SWE-bench Verified corpus
+    "SciCode1",            # SciCode on the Hub
+    # API hostnames that are not accounts at all
+    "repos", "api", "datasets", "orgs",
+})
+
+# Handles that identify THIS submission. Never exempt; always a hard failure.
+OUR_OWN_HANDLES: tuple[str, ...] = ("ChihHsuan-Yang", "AgentsSci", "bellayang")
+
+
+def _handle_in(match: str) -> str:
+    """The account handle inside a matched ``host/<handle>/`` fragment."""
+    return match.rstrip("/").rsplit("/", 1)[-1]
+
 
 def scan_text_for_identity(text: str, where: str) -> list[str]:
     """De-anonymising strings. Separate from the secret scan on purpose.
@@ -428,23 +465,80 @@ def scan_text_for_identity(text: str, where: str) -> list[str]:
     no entropy signature, and reads as an ordinary file path.
     """
     out: list[str] = []
+    # Our own identity first, and unconditionally: this check never consults the
+    # upstream roster, so an entry added there cannot launder one of our handles.
+    for own in OUR_OWN_HANDLES:
+        for m in re.finditer(rf"\b{re.escape(own)}\b", text):
+            out.append(f"{where}: OUR OWN account handle, which de-anonymises the "
+                       f"submission -- {m.group(0)!r}")
     for rx, why in IDENTITY_LEAK_PATTERNS:
         for m in re.finditer(rx, text):
-            out.append(f"{where}: {why} -- {m.group(0)!r}")
+            frag = m.group(0)
+            if "github.com/" in frag or "huggingface.co/" in frag:
+                if _handle_in(frag) in UPSTREAM_ATTRIBUTION_HANDLES:
+                    continue          # citing the benchmark's authors, as required
+            out.append(f"{where}: {why} -- {frag!r}")
     return out
+
+
+# A dataset shard legitimately exceeds MAX_FILE_BYTES, and "too big to scan" must not
+# become "shipped unscanned" -- that is the release's largest file going out unchecked.
+# Read it in chunks with an overlap, so a pattern straddling a chunk boundary is still
+# found. The overlap must exceed the longest match any pattern can produce.
+SCAN_CHUNK_BYTES = 32 * 1024 * 1024
+SCAN_OVERLAP_CHARS = 4096
+
+
+def _scan_large_text_file(p: Path, rel: str, scanner) -> list[str]:
+    """Stream a file through ``scanner`` in overlapping chunks.
+
+    ``scanner`` is scan_text_for_secrets or scan_text_for_identity: (text, where) -> hits.
+    Returns the deduplicated hits. A read failure is RAISED, never swallowed: a file we
+    could not scan is not a file we know to be clean.
+    """
+    hits: list[str] = []
+    seen: set[str] = set()
+    tail = ""
+    with p.open("r", errors="replace") as fh:
+        while True:
+            chunk = fh.read(SCAN_CHUNK_BYTES)
+            if not chunk:
+                break
+            for h in scanner(tail + chunk, rel):
+                if h not in seen:
+                    seen.add(h)
+                    hits.append(h)
+            # 🔴 NOT ``chunk[-SCAN_OVERLAP_CHARS:]``. At 0 that slice returns the WHOLE
+            # chunk, so an overlap of "none" would silently become an overlap of
+            # "everything" -- the buffer would grow without bound and, worse, a mutation
+            # test that sets the overlap to 0 would still pass, certifying an overlap
+            # that was never exercised. Found exactly that way.
+            tail = chunk[len(chunk) - SCAN_OVERLAP_CHARS:] if SCAN_OVERLAP_CHARS else ""
+    return hits
+
+
+def scan_file_for(p: Path, rel: str, scanner) -> list[str]:
+    """Scan a staged file whatever its size. Large files stream; nothing is skipped."""
+    if p.stat().st_size > MAX_FILE_BYTES:
+        return _scan_large_text_file(p, rel, scanner)
+    return scanner(p.read_text(errors="replace"), rel)
 
 
 def gate_identity_scan_tree(root: Path) -> None:
     """GATE 2b: no file in the staging tree may de-anonymise the authors."""
     hits: list[str] = []
+    scanned = 0
     for p in sorted(root.rglob("*")):
         if not p.is_file():
             continue
-        try:
-            hits += scan_text_for_identity(
-                p.read_text(errors="replace"), str(p.relative_to(root)))
-        except Exception:
-            continue
+        # A read failure is NOT swallowed. Previously a bare `except: continue` meant an
+        # unreadable file passed silently -- an absent check reading as a passing one.
+        hits += scan_file_for(p, str(p.relative_to(root)), scan_text_for_identity)
+        scanned += 1
+    if scanned < 5:
+        raise GateFailure(
+            f"GATE 2b (identity scan) scanned only {scanned} file(s). A clean scan over "
+            f"nothing is not evidence; refusing to report a vacuous pass.")
     if hits:
         raise GateFailure(
             "GATE 2b (identity scan) FAILED -- the release would de-anonymise "
@@ -453,6 +547,7 @@ def gate_identity_scan_tree(root: Path) -> None:
 
 def gate_secret_scan_tree(root: Path) -> None:
     hits: list[str] = []
+    scanned = 0
     for p in sorted(root.rglob("*")):
         if not p.is_file():
             continue
@@ -461,14 +556,15 @@ def gate_secret_scan_tree(root: Path) -> None:
         if why:
             hits.append(f"{rel}: excluded path pattern present in staging ({why})")
             continue
-        if p.stat().st_size > MAX_FILE_BYTES:
-            hits.append(f"{rel}: {p.stat().st_size} bytes exceeds {MAX_FILE_BYTES}")
-            continue
-        try:
-            text = p.read_text(errors="replace")
-        except Exception:
-            continue
-        hits += scan_text_for_secrets(text, rel)
+        # A dataset shard is legitimately larger than MAX_FILE_BYTES. Refusing to scan
+        # it used to fail the whole build; SKIPPING it would be worse -- the release's
+        # biggest file would ship unscanned. It is streamed in overlapping chunks.
+        hits += scan_file_for(p, rel, scan_text_for_secrets)
+        scanned += 1
+    if scanned < 5:
+        raise GateFailure(
+            f"GATE 2 (secret scan, staging tree) scanned only {scanned} file(s). A clean "
+            f"scan over nothing is not evidence; refusing to report a vacuous pass.")
     if hits:
         raise GateFailure(
             "GATE 2 (secret scan, staging tree) FAILED.\n" + "\n".join("  " + h for h in hits[:50]))
@@ -1215,6 +1311,25 @@ def _synthetic_row() -> dict[str, Any]:
 
 
 # ============================================================ BUILD
+def _anonymized_repo_id(repo_id: str) -> str:
+    """``org/name`` -> ``<anonymized-for-review>/name``. Keeps the dataset identity."""
+    return f"<anonymized-for-review>/{repo_id.split('/', 1)[-1]}"
+
+
+def _provenance_path(p: Path) -> str:
+    """A shippable spelling of an input path: repo-relative where possible.
+
+    Absolute paths outside the repo are reduced to a basename plus a marker, because
+    the directory above them is the author's home and would de-anonymise the release.
+    The file is still identifiable (its sha256 is in the manifest beside it); what is
+    dropped is only the part that names a person.
+    """
+    try:
+        return str(p.resolve().relative_to(REPO_ROOT.resolve()))
+    except ValueError:
+        return f"<external>/{p.name}"
+
+
 def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
           skip_self_test: bool, force: bool) -> dict[str, Any]:
     if staging.resolve() == REPO_ROOT.resolve() or REPO_ROOT.resolve() in staging.resolve().parents:
@@ -1323,7 +1438,15 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
         _sha, _dirty, _dirty_paths = "", False, []
 
     manifest = {
-        "hf_repo_id": HF_REPO_ID,
+        # The owning org is anonymised in the SHIPPED manifest for the same reason the
+        # data card's links are: this file travels with the data, and a snapshot can be
+        # forwarded or the repo made public independently of the URL it was fetched
+        # from. The dataset NAME is kept, so the field still identifies the snapshot.
+        # Restore after the review cycle, together with the card's links.
+        "hf_repo_id": _anonymized_repo_id(HF_REPO_ID),
+        "hf_repo_id_note": (
+            "owning org anonymised for double-blind review; the dataset name is "
+            "unchanged. See the data card's anonymity note."),
         "hf_repo_type": HF_REPO_TYPE,
         "release_commit": _sha or "UNKNOWN -- git rev-parse failed at build time",
         "release_tree_dirty": _dirty,
@@ -1332,7 +1455,13 @@ def build(results: Sequence[Path], staging: Path, *, extra_docs: Sequence[Path],
         "built_at_utc": S.utc_now(),
         "n_rows": len(exported),
         "n_fields": len(S.FIELD_ORDER),
-        "source_files": [str(p) for p in results],
+        # 🔴 REPO-RELATIVE, never absolute. An input staged outside the repo (v0.5's
+        # migrated ledgers live in a sibling build directory) would otherwise write
+        # ``/Users/<name>/...`` straight into a shipped file -- defect 23/29's exact
+        # shape, in the one field that exists to vouch for provenance. v0.4 escaped it
+        # only because its inputs happened to sit in /tmp. GATE 2b catches it now, and
+        # this is the fix at source rather than a sanitised copy.
+        "source_files": [_provenance_path(p) for p in results],
         "license_doc": str(LICENSE_DOC.relative_to(REPO_ROOT)),
         "license_doc_sha256": license_doc_sha,
         "license_policy_counts": license_counts,

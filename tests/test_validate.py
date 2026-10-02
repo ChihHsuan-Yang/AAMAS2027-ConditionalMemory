@@ -756,3 +756,97 @@ def test_v2_reserved_fields_have_no_value_anyone_could_have_measured():
     for f in ("source_episode_completion_timestamp", "parent_memory_id",
               "faithfulness_check", "context_budget", "propagation_metadata"):
         assert r.get(f) is None, f
+
+
+# ------------------------------------------------- writer collapse vs restatement
+# Defect #26: a terse writer can render two DIFFERENT source segments as byte-identical
+# text. row_id/cell_id are content hashes, so those two genuinely separate experiments
+# mint one id. That is a measured property of the writer, not an append-only violation,
+# and the hard error's own message ("must not restate a row") is FALSE on it.
+#
+# The relaxation that encodes this is narrow, and these tests exist to keep it narrow:
+# ONE test shows the collapse is downgraded, FIVE show a real defect still hard-errors.
+# A guard verified only on its home case is not known to discriminate.
+def _collapse_pair():
+    """Two rows that share a row_id because their memory_text is identical, but which
+    describe DIFFERENT source spans -- i.e. exactly defect #26."""
+    a = _good_row()
+    b = _good_row()
+    a["memory_source_span"] = {"memory_unit_locator": "ep01:13-14",
+                               "start_state_index": 13, "end_state_index": 14}
+    b["memory_source_span"] = {"memory_unit_locator": "ep01:17-18",
+                               "start_state_index": 17, "end_state_index": 18}
+    # same text -> same content hash -> same ids (that is the whole point)
+    b["memory_id"], b["cell_id"], b["row_id"] = a["memory_id"], a["cell_id"], a["row_id"]
+    return a, b
+
+
+def test_collapse_01_is_a_warning_not_an_error():
+    a, b = _collapse_pair()
+    rep = V.validate_dataset([a, b])
+    assert "duplicate_row_id" not in rep.codes(), (
+        "a writer collapse is not a restated row; the hard error's message would be false")
+    assert "id_collision_writer_collapse" in rep.codes()
+    # downgraded, NOT silenced -- a consumer must still be told the id is not a join key
+    assert any(i.code == "id_collision_writer_collapse" for i in rep.warnings)
+
+
+def test_collapse_02_a_true_restatement_is_still_an_error():
+    a = _good_row()
+    rep = V.validate_dataset([a, copy.deepcopy(a)])
+    assert "duplicate_row_id" in rep.codes()
+
+
+def test_collapse_03_same_id_but_differing_text_is_still_an_error():
+    """The collision must be EXPLAINED by the collapse, not merely co-occur with it."""
+    a, b = _collapse_pair()
+    b["memory_text"] = a["memory_text"] + " and then something else happened."
+    assert "duplicate_row_id" in V.validate_dataset([a, b]).codes()
+
+
+def test_collapse_04_absent_locator_is_not_a_pass():
+    """No positional discriminator -> the relaxation must not apply. An absent check
+    must never read as a passing one.
+
+    The rows deliberately differ on ``replicate_id`` so that the OTHER guard (units must
+    be pairwise distinct) cannot be what rejects them: without a locator the units would
+    still differ, so only the locator requirement itself can fail this. Verified by
+    mutation -- deleting the locator guard alone makes this test fail, which an earlier
+    version of it did not, because a sibling guard was quietly doing the work.
+
+    A same ``row_id`` across two different ``replicate_id``s is itself impossible unless
+    an id was copied or corrupted: ``row_id`` keys on (cell_id, replicate_id,
+    seed_or_sampling_config). So this must never be downgraded.
+    """
+    a, b = _collapse_pair()
+    b["replicate_id"] = 1
+    for r in (a, b):
+        r["memory_source_span"] = {"start_state_index": 1, "end_state_index": 2}
+        r["source_episode_metadata"] = {"question_type": "knowledge-update"}
+    assert "duplicate_row_id" in V.validate_dataset([a, b]).codes()
+
+
+def test_collapse_04b_locator_present_but_rows_otherwise_identical_still_errors():
+    """Control for 04: with the locator restored and the units genuinely colliding, the
+    rejection must still happen -- so 04's failure mode cannot be 'this input is simply
+    always rejected'."""
+    a, b = _collapse_pair()
+    b["memory_source_span"] = copy.deepcopy(a["memory_source_span"])
+    assert "duplicate_row_id" in V.validate_dataset([a, b]).codes()
+
+
+def test_collapse_05_repeated_positional_unit_is_a_restatement():
+    """Same id, same text, SAME locator: nothing distinguishes the rows, so it is a
+    genuine double write and must stay an error."""
+    a, b = _collapse_pair()
+    b["memory_source_span"] = copy.deepcopy(a["memory_source_span"])
+    assert "duplicate_row_id" in V.validate_dataset([a, b]).codes()
+
+
+def test_collapse_06_a_double_write_hiding_inside_a_collapse_is_caught():
+    """Three rows sharing one id: two are a legitimate collapse, the third repeats one
+    of their units. The repeat must still be an error -- the relaxation is per-group and
+    must not excuse a whole group because part of it is excusable."""
+    a, b = _collapse_pair()
+    c = copy.deepcopy(a)
+    assert "duplicate_row_id" in V.validate_dataset([a, b, c]).codes()
