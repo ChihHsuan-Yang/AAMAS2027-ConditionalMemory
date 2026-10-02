@@ -279,7 +279,7 @@ and requires the refusal.
 | canonical artifact | `results/ledgers/length_control_result.json` |
 | row-level data | `results/length_control/cells.jsonl` — **4,432 rows**, 8 arms × 554 |
 | generator of the manuscript macros | `scripts/make_figures.py` → `\lcPrimary`, `\lcEnds`, `\lcBudget` |
-| HF | **not in v0.5** — the rows were not in the audited set that release was gated against. A **v0.6 candidate**, to be re-decided rather than skipped by default |
+| HF | ✅ **ON HF from v0.6** (`v0.6-length-control`): all **4,432** rows ship as `results/length_control/cells.jsonl`, filter `condition_id LIKE 'lmev2_%_lenctl_v1'`. The precommitment and the result doc ship **inside the snapshot** too, so the verdict can be checked against its own frozen design without leaving the download. 🔴 This cell read *"not in v0.5 — a v0.6 candidate"* and that is now settled: it was **re-decided and published**, not skipped by default. 🔴 **Join/grouping trap**: `memory_representation` is `raw` on all five truncated arms (the enum describes how a memory was written down, not which arm it belongs to) — **group by `condition_id`**, and read the arm slot as a MEMORY construction, never as a model name |
 | status | **canonical** |
 
 | contrast | value | unit |

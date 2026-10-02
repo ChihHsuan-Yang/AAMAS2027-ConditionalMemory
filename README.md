@@ -39,7 +39,7 @@ internal document name is assumed.
 | | story | status |
 |---|---|---|
 | **1** | **Memory utility is sparse and task-conditioned.** A memory is strongly useful for the few future tasks it bears on and inert for most others, so one global score per memory discards the structure a policy needs | established |
-| **2** | **Representation and cost materially change measured utility.** The same experience written as Raw / Summary / Structured is not behaviourally equivalent, and compression's apparent efficiency changes once you charge it for writing itself | established on LongMemEval-V2; **a length control is in flight** |
+| **2** | **Representation and cost materially change measured utility.** The same experience written as Raw / Summary / Structured is not behaviourally equivalent, and compression's apparent efficiency changes once you charge it for writing itself | established on LongMemEval-V2; 🔴 **the length control is DONE and NARROWS this** — at matched length the extractive and model-written arms do not separate (**+0.0519** [−0.0678, +0.1727]), so the effect is an **exposure budget**, not rewriting. The cost half is unaffected and becomes load-bearing. Published in HF **v0.6** |
 | **3** | **The main Raw effect survives a change of reader.** Byte-identical memories, a second backbone, session-matched: the effect persists | established |
 
 Everything else in the paper — similarity, screening, sign reversal, the cross-benchmark
@@ -68,21 +68,26 @@ already there.
 
 🤗 **`AgentsSci/AAMAS2027-ConditionalMemory`** —
 <https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory> · **private** ·
-**12,384 rows** · tags `v0.1-lmev2-derived` → **`v0.5-reader-generalization`** (current)
+**16,816 rows** · tags `v0.1-lmev2-derived` → **`v0.6-length-control`** (current)
+
+🔴 **Nothing of this project's evaluated data remains unpublished-but-ready.** Every
+row that exists and could ship, has shipped. What is still absent is absent for a
+**structural** reason — a licence (BEAM, SWE-bench corpus text), a persistence gap
+(SciCode summary/structured), or a VOID label — and each is named below.
 
 ### Per benchmark
 
 | benchmark | rows | what is actually in them |
 |---|---:|---|
-| **LongMemEval-V2** | **12,103** | ✅ **complete** — memory text, task text, both arm outputs, rewards, costs, provenance. 2 rows carry an endpoint error with null rewards (never 0.0) |
+| **LongMemEval-V2** | **16,535** | ✅ **complete** — memory text, task text, both arm outputs, rewards, costs, provenance. 2 rows carry an endpoint error with null rewards (never 0.0) |
 | **SciCode** | 154 | ⚠️ **`raw` only, 154 of 462 cells.** Memory text is present; **both output fields are `__OUTPUT_NOT_RETAINED__`**. The 308 Summary/Structured cells are **absent — their text was never persisted and is *not recoverable***. A **persistence** gap, not a licence one. Rewards remain valid |
 | **SWE-bench Verified** | 127 | ⚠️ **metrics and ids only.** Every text field is `__WITHHELD_SEE_LICENSE__` and declared in `text_fields_withheld`, because the corpus **declares no licence**. A **licence** withholding — not the same fact as SciCode's |
 
-### Per reader — new at v0.5
+### Per reader — two since v0.5
 
 | `reader_model` | rows | `reasoning_tokens` |
 |---|---:|---|
-| `gpt-oss-120b` | **9,566** | int on 9,412 · **null on 154** (SciCode: that run did not record a field metis *does* report) |
+| `gpt-oss-120b` | **13,998** | int on 13,844 · **null on 154** (SciCode: that run did not record a field metis *does* report) |
 | `gemma-4-31B-it` | **2,818** | **null on all 2,818 — an ABSENCE** (metis/Gemma emits no `completion_tokens_details` at all) |
 
 🔴 **`reasoning_tokens` is `0` on ZERO rows of the release**, under either reader.
@@ -101,6 +106,24 @@ SciCode, **none** for Gemma, and a planted `reasoning_tokens = 0` on a Gemma row
 | gold-free screen **GF-LLM** | **168** | `results/deltau_goldfree_llm/cells.jsonl` | **Story 1 support** — the screen that **survives** (15.6% → 50.0% on cells gold never selected) |
 | gold-free screen **GF-LEX** | **656** | `results/deltau_goldfree/cells.jsonl` | the screen that **DISAPPEARS**, published on purpose: reporting only the screen that worked would select an instrument on its own outcome |
 
+### What v0.6 added
+
+| slice | rows | canonical artifact | supports |
+|---|---:|---|---|
+| **length control**, 8 arms × 554 | **4,432** | `results/length_control/cells.jsonl` · ledger `results/ledgers/length_control_result.json` | **Story 2, the narrowing** — verdict **O2**: at a matched exposed-token budget the extractive and model-written arms do **not** separate (**+0.0519**, task-clustered 95% CI **[−0.0678, +0.1727]**, 135 BEARING cells / 55 clusters), so Raw's advantage is an **exposure-budget** effect, not a rewriting effect. Design frozen at `f702aaf` **before execution** |
+
+🔴 **`trunc_last_20000` is an A/A CONTROL, not a ninth condition.** Its 20,000-token
+budget exceeds the longest Raw memory (19,801), so it renders **byte-identical to `raw`
+on 554/554** and reproduces its reward triples and reader outputs on **552/552 scored
+pairs**. **Pooling the arms without dropping either it or `raw` double-counts Raw.**
+
+🔴 **Group the length control by `condition_id`, not by `memory_representation`.** The
+latter is `raw` on all five truncated arms, correctly: the enum describes how a memory
+was *written down* (extractive, zero writer calls), not which arm it belongs to. And the
+arm slot in `lmev2_<arm>_lenctl_v1` **never names a model** — unlike the factorial's
+`w<writer>_r<reader>` ids, where confusing the two conventions produced two false alarms
+against a correct release (`DEFECT_REGISTER` MA-3).
+
 ⚠️ **Join positionally, never on an id.** `memory_id`/`cell_id`/`row_id` are content
 hashes, and the Gemma writer rendered two different segments of episode `06c70de4` as
 byte-identical text, so 16 real rows share 8 `row_id`s and 4 `cell_id`s. The release
@@ -110,9 +133,12 @@ reports this as `id_collision_writer_collapse` (8) and `cell_collision_writer_co
 
 ### Intentionally absent, and why
 
-| not in v0.5 | why |
+🔴 **Read this as the complete list.** Nothing here is waiting on us; each row names a
+licence, a persistence gap, or a VOID label.
+
+| not in v0.6 | why |
 |---|---|
-| **length-control experiment** | Excluded because its rows were **not in the audited set v0.5 was built and gated against**. 🔴 Its original reason ("still running") **expired mid-build** — it reached a frozen verdict (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`) before upload. **A v0.6 candidate that must be re-decided, not skipped by default.** |
+| ~~length-control experiment~~ | ✅ **SHIPPED in v0.6.** It was held out of v0.5 because its rows were not in that release's audited set, and its original reason ("still running") expired mid-build when it reached a frozen verdict (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`). Named a v0.6 candidate so the exclusion would not be inherited by default — then **re-decided and published** |
 | `results/swebench/representations_v1.json` | **VOID** — contagion screen false-positived on ASCII table borders. Kept on disk as a record, never reachable as an input |
 | `results/raw_session_matched_VOID_mislabelled/` | **VOID (defect 27)** — `condition_id` said gemma while `reader_model` said gpt-oss. Verified by row id: **0 of its 570** rows are in the release |
 | BEAM | CC BY-SA 4.0; ShareAlike is infectious, so it must ship as a **separate** release. Refused outright by a gate, not merely redacted |
@@ -148,9 +174,11 @@ environment: [`docs/DEV_ENVIRONMENT.md`](docs/DEV_ENVIRONMENT.md).
 👉 **[`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md)** — current state, exact paths,
 running jobs, restart commands, known-invalid runs, next actions.
 
-**Remaining scientific TODOs: 3** — finish the pre-registered length control
+**Remaining scientific TODOs: 0.** The pre-registered length control
 ([`docs/LENGTH_CONTROL_PRECOMMITMENT.md`](docs/LENGTH_CONTROL_PRECOMMITMENT.md), frozen
-*before* any outcome); integrate its verdict; run and address a final fresh mock review.
+*before* any outcome) has **run**, its verdict (**O2**) is integrated into Story 2, and
+its 4,432 rows are published in HF **v0.6**. A final fresh mock review is **deferred
+editorial work**, not an open experiment.
 Everything else open is documentation, synchronization or page compression —
 [`docs/MASTER_TODO.md`](docs/MASTER_TODO.md) has all 198 items in terminal states.
 
@@ -336,7 +364,7 @@ is the wrong object, for a different reason than we hypothesised.
 | **Current Overleaf commit** | **`1961825`** "Cite two figures the text never pointed at; tighten the reader paragraph" |
 | **Code repo** | <https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory> (`main`) |
 | **HF dataset** | <https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory> (**private**) |
-| **Current HF version** | **v0.5 `reader-generalization`**, tag `v0.5-reader-generalization` (built from repo commit `57b068f`) — **12,384 rows** (longmemeval_v2 **12,103** / scicode 154 / swebench_verified 127), by reader **gpt-oss-120b 9,566 / gemma-4-31B-it 2,818**, schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Licence frontmatter is `other` + `license_name: mixed-per-row-see-data-card`, NOT apache-2.0: the 127 SWE-bench rows are metrics-and-ids only. **Five tags** exist (v0.1 … v0.5). **Verified on the DOWNLOADED tag**: the card's own command prints `12384 rows \| 0 errors \| 1703 warnings`, matching the card's stated expectation exactly, and all 17 files are byte-identical to what was staged. 🔴 The benchmark field spells `longmemeval_v2` / `scicode` / `swebench_verified`; a grep for `lmev2` or `swebench` returns a false zero. 🔴 **v0.5's tag was MOVED once**: the first upload carried 3 `__pycache__/*.pyc` deposited by a verification step that imported the shipped package without `-B`. They were never in `MANIFEST.json`, no data byte changed, and the tag now points at the cleaned commit. |
+| **Current HF version** | **v0.6 `length-control`**, tag `v0.6-length-control` — **16,816 rows** (longmemeval_v2 **16,535** / scicode 154 / swebench_verified 127), by reader **gpt-oss-120b 13,998 / gemma-4-31B-it 2,818**, schema `p1mem_conditional_memory_utility_v3`, **98 fields**, **private**. Licence frontmatter is `other` + `license_name: mixed-per-row-see-data-card`, NOT apache-2.0: the 127 SWE-bench rows are metrics-and-ids only. **Six tags** exist (v0.1 … v0.6). **Verified on the DOWNLOADED tag**: the card's own command prints `16816 rows \| 0 errors \| 6160 warnings`, matching the card's stated expectation exactly, and all 19 files are byte-identical to what was staged. 🔴 **v0.6 adds the pre-registered length control** (4,432 rows, 8 arms): one of those arms, `trunc_last_20000`, is an **A/A control** that renders byte-identical to `raw` on 554/554 — not a ninth condition, and pooling without dropping it double-counts Raw. 🔴 **After v0.6 no evaluated row remains unpublished-but-ready.** 🔴 The benchmark field spells `longmemeval_v2` / `scicode` / `swebench_verified`; a grep for `lmev2` or `swebench` returns a false zero. 🔴 **v0.5's tag was MOVED once**: the first upload carried 3 `__pycache__/*.pyc` deposited by a verification step that imported the shipped package without `-B`. They were never in `MANIFEST.json`, no data byte changed, and the tag now points at the cleaned commit. |
 | **Code repo HEAD** | **`9f835a2`** "docs: freeze the scientific scope", 2026-10-01 12:21 CDT · 227 commits |
 
 ### Main local paths
@@ -388,7 +416,7 @@ Overleaf clone already contains them; pushing it is the whole operation.
 | handoff entry point | [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) |
 | result index · coverage | [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) · [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) |
 | dataset index · scope freeze | [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) · [`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md) |
-| Hugging Face dataset | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**; tags v0.1 … **v0.5**) |
+| Hugging Face dataset | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**; tags v0.1 … **v0.6**) |
 
 ### Coverage and model identity — read these two tables first
 
@@ -626,7 +654,7 @@ TODO 7 · RUNNING 1 · BLOCKED 1**, re-derived by running the page's own snippet
 |---|---|---|
 | **P1-C17** | TODO | the one genuinely open submission-critical item: final manuscript sync, compile, anonymity, citations |
 | ~~P1-C19~~ | **DONE** at `bd25ad4` | SWE-bench coverage complete: 107/107 attempted, remaining 0 |
-| **P1-C21** | **DONE** | HF v0.3 (SciCode), v0.4 (SWE-bench, **metrics + ids ONLY**) and **v0.5 (reader generalization, +6,460 rows)** all shipped; **v0.5 is current** |
+| **P1-C21** | **DONE** | HF v0.3 (SciCode), v0.4 (SWE-bench, **metrics + ids ONLY**), v0.5 (reader generalization, +6,460 rows) and **v0.6 (length control, +4,432 rows)** all shipped; **v0.6 is current** and nothing evaluated remains unpublished-but-ready |
 | **P1-C22** | TODO | three `main.tex` ↔ artifact inconsistencies, all retracted-number-still-circulating |
 | **P1-I11** | TODO | 🔴 **the representation scale-up slices are STILL untracked** — Contribution B's 1,124 rows exist on one laptop |
 | **P1-I13** | TODO | the efficiency ratios in `main.tex` (`5.2×` → **5.58×**; "roughly 5×" is wrong for Summary, which is **1.08×**) |

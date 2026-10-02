@@ -255,10 +255,11 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
   field metis *does* report. **Do not pool them**, and `0` appears on no row.
 - **GF-LEX is the screen that DISAPPEARS and it ships anyway.** Publishing only GF-LLM
   would select an instrument on its own outcome.
-- **The length-control experiment is absent**, and its stated reason changed during the
-  build: it was still running when v0.5 was scoped and reached a frozen verdict before
-  upload. Held out because its rows were not in the audited set this release was gated
-  against — **a v0.6 candidate to be re-decided, not skipped by default**.
+- **The length-control experiment is absent from v0.5**, and its stated reason changed
+  during that build: it was still running when v0.5 was scoped and reached a frozen
+  verdict before upload. Held out because its rows were not in the audited set that
+  release was gated against — named a v0.6 candidate so the exclusion would not be
+  inherited by default. ✅ **Re-decided and SHIPPED in v0.6.**
 - 🔴 **The v0.5 tag was MOVED once.** Its first upload carried three
   `code/p1mem/__pycache__/*.pyc` deposited by a pre-upload verification step that
   imported the shipped package without `-B`, three minutes after a clean build. They
@@ -269,11 +270,78 @@ Policy: `docs/HF_RELEASE_POLICY.md`. Licence findings: `docs/BENCHMARK_LICENSES.
 
 ---
 
+### v0.6 — tag `v0.6-length-control` *(current)*
+
+| | |
+|---|---|
+| **released** | 2026-10-02 |
+| **benchmarks** | LongMemEval-V2 **16,535** + SciCode 154 + SWE-bench Verified 127 |
+| **readers** | `gpt-oss-120b` **13,998** · `gemma-4-31B-it` **2,818** (v0.6's 4,432 new rows are all gpt-oss) |
+| **representations** | LongMemEval `raw` 9,807 / `summary` 3,404 / `structured` 3,324 · SciCode `raw` 154 · SWE-bench `raw` 41 / `summary` 43 / `structured` 43 |
+| **rows** | **16,816** (v0.5's 12,384 + **4,432** new, all LongMemEval-V2, all already schema v3) |
+| **cells** | 8,393 · 839 distinct memories · 370 distinct tasks · 29 distinct `condition_id`s |
+| **schema version** | `p1mem_conditional_memory_utility_v3`, **98 fields** (unchanged) |
+| **release commit** | **not transcribed** — v0.6 is the current release and this file ships *inside* it, so a hash written here cannot be the hash of the tree containing it. Read `release_commit` in the snapshot's own `MANIFEST.json`. |
+| **validation** | **16,816 rows / 0 errors / 6,160 warnings**, verified **on the downloaded tag** by the card's own command, matching the card's printed expectation exactly |
+| **licence** | 🔴 **MIXED, unchanged.** 16,689 rows Apache-2.0 with source text; 127 SWE-bench rows metrics-and-ids only. Frontmatter stays `license: other`. |
+
+**What v0.6 adds** — the pre-registered **length control**, one slice:
+
+| slice | rows | canonical artifact |
+|---|---:|---|
+| length-controlled representation test, 8 arms × 554 | **4,432** | `results/length_control/cells.jsonl` · ledger `results/ledgers/length_control_result.json` |
+
+**Verdict O2.** At a matched exposed-token budget the extractive and model-written arms
+do **not** separate: **+0.0519**, task-clustered 95% CI **[−0.0678, +0.1727]**, 135
+BEARING cells over 55 clusters. Raw's advantage is an **exposure-budget** effect, not a
+rewriting effect. Design frozen at `f702aaf` **before execution**;
+`docs/LENGTH_CONTROL_PRECOMMITMENT.md` and `docs/LENGTH_CONTROL_RESULT.md` now ship
+**inside** the snapshot so a consumer can check the result against its own precommitment
+without leaving the download.
+
+**Known limitations at v0.6**
+- 🔴 **`trunc_last_20000` is an A/A CONTROL, not a ninth condition.** Its 20,000-token
+  budget exceeds the longest Raw memory (19,801), so it renders **byte-identical to
+  `raw` on 554/554** and reproduces its reward triples and reader outputs on **552/552
+  scored pairs**. Pooling the arms without dropping either it or `raw` **double-counts
+  Raw**. The data card says so in §21.3 before any number.
+- 🔴 **`memory_representation` is `raw` on all five truncated arms**, because the enum
+  describes how a memory was written down (extractive, zero writer calls) and not which
+  arm it belongs to. **Group by `condition_id`, never by `memory_representation`**, to
+  recover the eight arms.
+- 🔴 **Length-control `condition_id`s are `lmev2_<arm>_lenctl_v1` and the arm slot never
+  names a model** — unlike the factorial's `w<writer>_r<reader>` ids. Reading one
+  convention under the other produced two false alarms against a correct release
+  (`DEFECT_REGISTER` MA-3). Verified with a checker whose positive control was proven to
+  fire: **0** rows contradict their `reader_model` or writer.
+- **Warnings rose 1,703 → 6,160 and NO new warning code appeared.** 4,432 of the
+  increase is `provenance_incomplete` (that runner leaves `provenance.config_sha256`
+  empty — a completeness flag, reported rather than suppressed); the remaining +7
+  `cell_collision_writer_collapse` and +18 `id_collision_writer_collapse` are the
+  already-documented byte-identical-rendering collisions appearing on the new rows,
+  which reuse the frozen Summary/Structured text. Errors stay **0**.
+- **6 of 4,432 rows carry a null reward** (`empty_output_finish_length`), never a
+  manufactured 0.0 (defect 21). Verified both directions: every null reward sits beside
+  a non-null error code and every non-null reward beside a null one.
+- `scripts/prep_v06_inputs.py` filled `faithfulness_notes` on all 4,432 rows, which
+  arrived empty because this ledger was written directly at v3 and never passed through
+  the migration that fills a null's reason. Three different reasons, each written only
+  where its premise was **re-derived true on the row**: 1,202 full-span tautology, 2,122
+  truncated-slice, and 1,108 model-written rows that carry the **real** write-pass score
+  (attached, not pointed at — the validator rejects a "not scored" note on a scorable
+  memory). Four planted premise violations are each refused.
+- All v0.2, v0.3, v0.4 and v0.5 limitations carry over unchanged.
+
+---
+
 ## Planned, NOT released
 
-| version | contents | status |
-|---|---|---|
-| **v0.6 candidate** | the **length-control** experiment (`results/length_control/cells.jsonl`) | **undecided, and deliberately named here so the exclusion is not inherited by default.** Its verdict froze (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`) after v0.5 was scoped and audited, so it was out of that release's audited set. Re-decide explicitly. |
+🔴 **Nothing is queued. As of v0.6 no evaluated row of this project is
+unpublished-but-ready**, which is a stronger statement than "nothing is planned": the
+only things still out are out for a **structural** reason — a licence, a persistence
+gap, or a VOID label — each named in the data card's §22 and in
+[`TRACE_AVAILABILITY.md`](TRACE_AVAILABILITY.md). The v0.6 candidate this table named
+at v0.5 (the length control) **shipped**.
 
 **BEAM will never appear in this dataset.** Its data is CC BY-SA 4.0 and ShareAlike is
 infectious, so BEAM-derived records must ship as a **separate CC BY-SA 4.0 release**

@@ -212,11 +212,54 @@ own `FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE` **only where the note's premise is veri
 the row**, asserts that `faithfulness_notes` feeds no id, and does not modify the source
 ledgers. Verified post-hoc: `faithfulness_notes` is the only field that differs.
 
+## 3c. What HF v0.6 added — the length control
+
+**One file**, LongMemEval-V2, already schema v3. Exported by `scripts/export_hf.py`
+after `scripts/prep_v06_inputs.py`.
+
+| slice | rows | canonical artifact (generated it) | exported by | paper result it supports | canonical or diagnostic |
+|---|---:|---|---|---|---|
+| length control, 8 arms × 554 | **4,432** | `results/length_control/cells.jsonl` (ledger: `results/ledgers/length_control_result.json`) | `scripts/prep_v06_inputs.py` → `scripts/export_hf.py` | **Story 2, the narrowing**: verdict **O2** — at matched length the extractive and model-written arms do not separate (**+0.0519**, CI **[−0.0678, +0.1727]**), so Raw's advantage is an **exposure-budget** effect | **CANONICAL** |
+
+🔴 **One of the eight arms is an A/A CONTROL.** `trunc_last_20000` has a 20,000-token
+budget against a longest Raw memory of 19,801, so it renders **byte-identical to `raw`
+on 554/554** and reproduces its reward triples and reader outputs on **552/552 scored
+pairs**. It is a control with a known correct answer, **not a ninth condition** —
+pooling the arms without dropping either it or `raw` double-counts Raw.
+
+🔴 **Read `condition_id` as a MEMORY arm, never as a model.** These ids are
+`lmev2_<arm>_lenctl_v1`; the arm slot names how the memory was constructed. The other
+multi-arm slice (§3b's factorial) uses `w<writer>_r<reader>`, and reading one convention
+under the other produced two false alarms against a correct release (`DEFECT_REGISTER`
+MA-3). Verified with a checker whose positive control was proven to fire: **0** of 4,432
+rows carry a `condition_id` contradicting their `reader_model` or writer.
+
+⚠️ **`prep_v06_inputs.py` changed exactly three fields**, all on the faithfulness axis,
+verified post-hoc by a field-by-field diff: `faithfulness_notes` (4,432),
+`faithfulness_check` (1,084) and `faithfulness_detail` (1,108). All 4,432 rows arrived
+with an EMPTY note because this ledger was written directly at v3 and so never passed
+through the migration that fills a deliberately-null field's reason. The script writes
+each note **only where its premise is re-derived true on the row itself** — 1,202
+full-span tautology, 2,122 truncated-slice, 1,108 model-written — asserts that
+`faithfulness_notes` feeds no id, and does not modify the source ledger. Four planted
+premise violations are each refused and clean data is accepted unchanged.
+
+🔴 **The 1,108 model-written rows carry the REAL write-pass score, attached rather than
+pointed at.** The length-control arms reuse the frozen Summary/Structured memory text,
+so `results/repr_scaleup/memories.jsonl` is the record for those exact memories. The
+score reaches each row through **two independent join keys** —
+`(memory_unit_locator, memory_representation)` and a sha256 of `memory_text` — verified
+to select the **same** record on all 1,108, against a negative control that correctly
+resolves nothing. A first attempt wrote a "not scored, see the write pass" pointer and
+left the field null; the validator rejected all 1,108 with
+`faithfulness_claimed_unscored_on_a_written_memory`, because a model-written memory
+**is** scorable and a note denying it is false.
+
 ### Intentionally missing from v0.5, by name
 
 | artifact | status | why |
 |---|---|---|
-| `results/length_control/cells.jsonl` | **held out** | Not in the audited set v0.5 was built and gated against. 🔴 Its reason **changed mid-build** — scoped while running, frozen (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`) before upload. **v0.6 candidate; re-decide explicitly.** |
+| `results/length_control/cells.jsonl` | ✅ **SHIPPED IN v0.6** (§3c) | It was held out of **v0.5** because its rows were not in the audited set that release was gated against; its reason **changed mid-build** — scoped while running, frozen (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`) before upload. Named a v0.6 candidate so the exclusion would not be inherited, then **re-decided and published**. |
 | `results/swebench/representations_v1.json` | **VOID** | contagion screen false-positived on ASCII table borders |
 | `results/raw_session_matched_VOID_mislabelled/` | **VOID (defect 27)** | `condition_id` contradicted `reader_model`. Verified by row id: **0 of 570** reached the release |
 | `results/gemma_reader/transfer_cells.jsonl` + caches | **local only** | the **cross-session** comparator, superseded for the quoted number by the session-matched arms above |

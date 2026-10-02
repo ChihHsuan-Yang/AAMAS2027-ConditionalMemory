@@ -51,16 +51,38 @@ configs:
 
 # Conditional Memory Utility Dataset
 
-> **v0.5 — `reader-generalization`. 12,384 real evaluated rows, 0 fabricated rows.**
+> **v0.6 — `length-control`. 16,816 real evaluated rows, 0 fabricated rows.**
 >
-> Three benchmarks: **LongMemEval-V2 12,103** · **SciCode 154** · **SWE-bench
-> Verified 127**. **Two readers**: `gpt-oss-120b` **9,566** · `gemma-4-31B-it`
+> Three benchmarks: **LongMemEval-V2 16,535** · **SciCode 154** · **SWE-bench
+> Verified 127**. **Two readers**: `gpt-oss-120b` **13,998** · `gemma-4-31B-it`
 > **2,818**.
 >
-> 🔴 **v0.5 is the first release containing ANY `gemma-4-31B-it` reader row.**
+> 🔴 **v0.6 adds the pre-registered LENGTH CONTROL — the experiment that
+> narrows this project's own representation claim.** 4,432 rows, eight arms over
+> one frozen 554-row cell set, run in a single session. At a matched exposed-token
+> budget a content-blind extractive slice and a model-written summary do **not**
+> separate (**+0.0519**, 95% task-clustered CI **[−0.0678, +0.1727]**), so Raw's
+> advantage is an **exposure-budget** effect, not a rewriting effect. The design
+> was frozen at commit `f702aaf` **before any reader call was made against a
+> truncated memory**. See §21.
+>
+> 🔴 **One of those eight arms is an A/A CONTROL, not a condition.**
+> `trunc_last_20000` is a 20,000-token budget against a maximum Raw length of
+> 19,801, so it renders **byte-identical to `raw` on 554/554** and reproduces its
+> rewards on **552/552 scored pairs**. **Treating it as a ninth condition would
+> double-count Raw.** It is in the release because an identity arm with a known
+> correct answer is what proves the new code path; it is not an independent
+> measurement. See §21.3.
+>
+> **As of v0.6 no evaluated row of this project remains unpublished-but-ready.**
+> Everything still absent is absent for a stated structural reason — a licence
+> (BEAM), a persistence gap (SciCode summary/structured), or a VOID label — and
+> each is named in §22.
+>
+> 🔴 **v0.5 was the first release containing ANY `gemma-4-31B-it` reader row.**
 > Through v0.4 `reader_model` was `gpt-oss-120b` on 5,924 of 5,924 rows, so the
 > entire reader-generalization evidence base was absent from the release while
-> being reported in the paper. v0.5 closes that gap: +6,460 rows, all
+> being reported in the paper. v0.5 closed that gap: +6,460 rows, all
 > LongMemEval-V2, all schema v3. See §20.
 >
 > Two benchmarks remain incomplete, in two different ways, and both gaps are
@@ -157,7 +179,7 @@ effect over overwhelmingly many inert pairs**, not because the sign varies.
 
 | Benchmark | Role in THIS release | Rows | Status |
 |---|---|---:|---|
-| **LongMemEval-V2** (`xiaowu0162/longmemeval-v2`) | the primary source; the only one with all three representations | **12,103** | released here, Apache-2.0, source text included |
+| **LongMemEval-V2** (`xiaowu0162/longmemeval-v2`) | the primary source; the only one with all three representations | **16,535** | released here, Apache-2.0, source text included |
 | **SciCode** (`SciCode1/SciCode`) | cross-domain transfer | **154** | released here, Apache-2.0, `raw` only — §19.14 |
 | **SWE-bench Verified** (`princeton-nlp/SWE-bench_Verified`) | cross-domain transfer | **127** | released here, 🔴 **metrics and ids ONLY, no corpus text** — §19.15 |
 | LongMemEval V1 | not in this release | 0 | annotations only, if ever |
@@ -168,8 +190,8 @@ and SWE-bench's three arms rest on 76 scorable cells of 127, so the representati
 comparison this schema was built for is a LongMemEval claim and is not a
 cross-benchmark one.
 
-Measured, not assumed: **12,103 / 12,384** rows carry
-`license_source_reference = 'longmemeval_v2:Apache-2.0'` (re-derived at v0.5, not
+Measured, not assumed: **16,535 / 16,816** rows carry
+`license_source_reference = 'longmemeval_v2:Apache-2.0'` (re-derived at v0.6, not
 inherited). Pinned benchmark revision
 `2cc8c540bdb87fe6761629b585e727e1c4704520` — the same revision for both the v0.1 and the
 v0.2 arms.
@@ -248,7 +270,7 @@ were contingent on every row being `raw`, and v0.2 ends that.
 | field | why it is null |
 |---|---|
 | `source_episode_completion_timestamp` | **No wall-clock field exists anywhere in LongMemEval-V2.** An exhaustive key scan of all 1,870 trajectories returns only `{domain, environment, goal, id, outcome, start_url, states}`, and states carry only `{accessibility_tree, action, screenshot, state_index, step, thought, url}`. `state_index` is an *order*, not a timestamp. Re-checked at v0.2: same benchmark revision `2cc8c540`. (LongMemEval **V1** does ship real dates, so the field is defined for a future V1 arm.) |
-| `context_budget` | **No truncation budget was ever enforced.** `memory_tokens_exposed == memory_tokens_retrieved` on **12,257 of 12,384** rows — re-derived at v0.5, not inherited. The other **127 are the SWE-bench rows, where BOTH fields are null** (`retrieval_method='none'`: no retriever ran, so there is no retrieved set to count and nothing was truncated — `schema.BENCHMARK_NULLABLE_EXEMPTIONS`). Those 127 are **not** evidence of no-truncation; they are an absence of the measurement, and counting `null == null` as agreement would have turned a 12,257-row fact into a false 12,384-row one. Re-checked for the representation arm specifically: the runner's `truncate_to_tokens` is called **only on the embedding path**, never on the reader's context. (The 20,000-token cap in our design docs is a memory-*selection* rule, not an exposure cap.) |
+| `context_budget` | **No truncation budget was ever enforced.** `memory_tokens_exposed == memory_tokens_retrieved` on **16,689 of 16,816** rows — re-derived at v0.6, not inherited. 🔴 **This stays true across the length control, and the reason is worth stating**: the length-control arms shorten the MEMORY TEXT ITSELF before the reader sees it, so both fields move together and remain equal. The budget in `provenance.length_budget` is a property of how that memory was CONSTRUCTED, not a cap applied to a longer exposure — `context_budget` is still null on all 16,816 rows. The other **127 are the SWE-bench rows, where BOTH fields are null** (`retrieval_method='none'`: no retriever ran, so there is no retrieved set to count and nothing was truncated — `schema.BENCHMARK_NULLABLE_EXEMPTIONS`). Those 127 are **not** evidence of no-truncation; they are an absence of the measurement, and counting `null == null` as agreement would have turned a 16,689-row fact into a false 16,816-row one. Re-checked for the representation arm specifically: the runner's `truncate_to_tokens` is called **only on the embedding path**, never on the reader's context. (The 20,000-token cap in our design docs is a memory-*selection* rule, not an exposure cap.) |
 | `propagation_metadata` | P3-reserved. P1 is single-agent; a value could only be fabricated. The validator rejects a non-null value. Re-checked: `receiver_id`, `receiver_role`, `visibility_mask` and `team_reward` are null on all 1,124 new rows. |
 
 ### 7.1 🔴 Two nulls that v0.2 had to fix, because their REASONS were about to become false
@@ -586,11 +608,11 @@ sha256 in `MANIFEST.json`.** That document governs; this section summarizes.
 
 | rows | source | licence | source text |
 |---:|---|---|---|
-| 5,643 | LongMemEval-V2 | Apache-2.0 | ✅ redistributed, with attribution and a NOTICE |
+| 16,535 | LongMemEval-V2 | Apache-2.0 | ✅ redistributed, with attribution and a NOTICE |
 | 154 | SciCode | Apache-2.0 | ✅ redistributed (the memory text; the reader outputs were never persisted — §19.14) |
 | **127** | **SWE-bench Verified** | 🔴 **none declared** | ❌ **withheld — metrics and ids only (§19.15)** |
 
-So 12,257 of 12,384 rows carry their source text and **127 do not**. The 127 are
+So 16,689 of 16,816 rows carry their source text and **127 do not**. The 127 are
 not a subset you can opt into: an absent licence is not a permissive licence.
 
 **Withheld by policy, and absent from this release:**
@@ -652,13 +674,18 @@ model is `gpt-oss-120b` on Metis and `openai/gpt-oss-120b` on Sophia. Group by
 
 ### 18.1 🔴 TWO READERS from v0.5, and `reasoning_tokens` means different things on each
 
+🔴 **The length control does NOT add a second reader.** All 4,432 of its rows are
+`gpt-oss-120b` on `metis`; the experiment varies the MEMORY, holding the reader fixed.
+Its arm names (`trunc_last_matched`, …) name memory constructions, never models — see
+§21.2 before parsing any `condition_id`.
+
 | `reader_model` | rows | `reasoning_tokens` |
 |---|---:|---|
-| `gpt-oss-120b` | **9,566** | an **int** on 9,412; **`null` on 154** |
+| `gpt-oss-120b` | **13,998** | an **int** on 13,844; **`null` on 154** |
 | `gemma-4-31B-it` | **2,818** | **`null` on all 2,818 — an ABSENCE, never 0** |
 
-Measured per arm, not asserted. Across the **6,460 new rows**: gpt-oss `int` 3,642 /
-`null` 0, Gemma `null` 2,818 / `0` **0**. Across all **12,384**: gpt-oss `int` 9,412 /
+Measured per arm, not asserted. Across v0.6's **4,432 new rows** (all gpt-oss):
+`int` on **4,432**, `null` 0, `0` **0**. Across all **16,816**: gpt-oss `int` 13,844 /
 `null` **154**, Gemma `null` 2,818 / `0` **0**. **`reasoning_tokens` is `0` on zero rows
 of this release**, under either reader.
 
@@ -1040,7 +1067,8 @@ source run, not dropped silently here.
 | **v0.2 `repr-derived`** | 2026-09-30 | **+1,124 rows**: the matched Summary (570) and Structured (554) arms over the same memories, tasks and reader. **5,643 rows total.** Schema **v3**, **98 fields** (`faithfulness_detail` added). `faithfulness_check` and `parent_memory_id` are now populated on the new rows (§7.1). Adds §12.1 (compression destroys the effect), §14.1 (the cost ranking reverses once formation is charged) and §19.13 (cross-session drift between the arms). |
 | **v0.4 `swebench-metrics`** | 2026-10-01 | **+127 rows**: SWE-bench Verified, **metrics and ids ONLY** — the corpus declares no licence, so all 5 text fields are withheld per row and declared in `text_fields_withheld`. **5,924 rows total**, 98 fields, three benchmarks. 🔴 **37 manufactured `0.0` rewards demoted to null** before export (defect 21: a suite that printed no verdict is not a wrong answer). Adds §19.15. |
 
-| **v0.5 `reader-generalization`** *(current)* | 2026-10-02 | **+6,460 rows**, all LongMemEval-V2, all already schema v3. **12,384 rows total.** 🔴 **The first release with ANY `gemma-4-31B-it` reader row** — through v0.4 `reader_model` was `gpt-oss-120b` on 5,924/5,924, so the reader-generalization evidence base was reported in the paper and absent from the release. Four slices: the **session-matched reader transfer** (570+570), the **Writer × Reader factorial** (2,248+2,248), and **both** gold-free bearing screens (GF-LEX 656, GF-LLM 168). Adds §20.1 and two new validator warning codes (`id_collision_writer_collapse`, `cell_collision_writer_collapse`). |
+| **v0.5 `reader-generalization`** | 2026-10-02 | **+6,460 rows**, all LongMemEval-V2, all already schema v3. **12,384 rows total.** 🔴 **The first release with ANY `gemma-4-31B-it` reader row** — through v0.4 `reader_model` was `gpt-oss-120b` on 5,924/5,924, so the reader-generalization evidence base was reported in the paper and absent from the release. Four slices: the **session-matched reader transfer** (570+570), the **Writer × Reader factorial** (2,248+2,248), and **both** gold-free bearing screens (GF-LEX 656, GF-LLM 168). Adds §20.1 and two new validator warning codes (`id_collision_writer_collapse`, `cell_collision_writer_collapse`). |
+| **v0.6 `length-control`** *(current)* | 2026-10-02 | **+4,432 rows**, all LongMemEval-V2, all `gpt-oss-120b`, all already schema v3. **16,816 rows total.** The pre-registered **length control** (§21): eight arms over one frozen 554-row cell set in a single session, design frozen at `f702aaf` **before execution**. Verdict **O2** — at a matched exposed-token budget the extractive and model-written arms do **not** separate, so Raw's advantage is an **exposure-budget** effect. 🔴 One arm (`trunc_last_20000`) is an **A/A control**, not a condition. Adds §21 and §22. **No evaluated row of this project remains unpublished-but-ready** (§22). |
 
 ### 20.1 🔴 What v0.5 adds, and what it deliberately does not
 
@@ -1055,7 +1083,7 @@ source run, not dropped silently here.
 
 | excluded | why |
 |---|---|
-| the length-control experiment | **excluded from v0.5, and the reason CHANGED while v0.5 was being built.** It was still running when this release was scoped; it reached a frozen verdict (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`) before upload. It is held out because its rows were **not in the audited set this release was built and gated against**, not because the result is provisional — and that distinction is written down so the exclusion is not silently inherited. 🔴 **It is a candidate for v0.6 and must be re-decided there, not skipped by default.** |
+| the length-control experiment | **was excluded from v0.5, and the reason CHANGED while v0.5 was being built.** It was still running when that release was scoped; it reached a frozen verdict (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`) before upload. It was held out because its rows were **not in the audited set v0.5 was built and gated against**, not because the result was provisional — and that distinction was written down so the exclusion would not be silently inherited. ✅ **It was re-decided and SHIPS IN v0.6** (§21). This row is kept because it describes v0.5, which remains a published tag; it is not a statement about the current release. |
 | `results/swebench/representations_v1.json` | **VOIDED** — its contagion screen false-positived on ASCII table borders (`+---+`) in issue text. Retained on disk as a record, never as an input. |
 | `results/raw_session_matched_VOID_mislabelled/` | **VOID (defect 27)**: a runner hardcoded one arm's `condition_id`, so 570 rows claimed `gemma4_31B` while `reader_model` said `gpt-oss-120b`. Verified by row id: **0 of its 570** rows appear in this release. |
 | calibration / debug / probe rows, superseded arms | not results. |
@@ -1094,24 +1122,34 @@ reason is harder to catch than a wrong verdict.
 import sys; sys.path.insert(0, "code")          # the shipped schema.py + validate.py
 from p1mem import schema as S, validate as V
 rows = S.load_jsonl("data/cells.jsonl", strict=True)
-print(V.validate_dataset(rows).summary())        # expect: 12384 rows | 0 errors
+print(V.validate_dataset(rows).summary())        # expect: 16816 rows | 0 errors
 ```
 
-Expected output, exactly — **0 errors and 1,703 warnings**, every warning intended and
+Expected output, exactly — **0 errors and 6,160 warnings**, every warning intended and
 documented:
 
 ```
-12384 rows | 0 errors | 1703 warnings
+16816 rows | 0 errors | 6160 warnings
   all_labels_undetermined: 1
-  cell_collision_writer_collapse: 4
-  id_collision_writer_collapse: 8
+  cell_collision_writer_collapse: 11
+  id_collision_writer_collapse: 26
   id_unverifiable_withheld_input: 127
-  provenance_incomplete: 1405
+  provenance_incomplete: 5837
   reasoning_tokens_missing: 154
   scorer_composition_differs_across_strata: 1
   unknown_error_code: 2
   zero_execution_noise: 1
 ```
+
+🔴 **The warning total rose from 1,703 at v0.5 to 6,160, and 4,432 of the increase is
+one code on one new slice.** `provenance_incomplete` fires once per length-control row
+because `provenance.config_sha256` is empty on that runner — the field is a
+*completeness* flag, not a defect in the measurement, and it is reported rather than
+suppressed. The remaining increase is 7 more `cell_collision_writer_collapse` and 18
+more `id_collision_writer_collapse`: the length control reuses the frozen Summary and
+Structured memory text, so it inherits the same byte-identical-rendering collisions
+described below, on its own rows. **No new warning CODE appears at v0.6**, and the error
+count stays 0.
 
 🔴 **The two `*_writer_collapse` codes are new at v0.5 and are WARNINGS on purpose.**
 `row_id` and `cell_id` are content hashes keyed (transitively) on `memory_text`. The
@@ -1146,7 +1184,211 @@ validator declines to re-derive it and **says so** instead of passing silently
 code outside the enum. Those rows correctly carry **no reward**, so no result was
 fabricated to fill the gap.
 
-## 21. Relation to P3
+## 21. 🔴 The length control — v0.6's new slice, and what it takes AWAY from our own claim
+
+**4,432 rows. Eight arms. One frozen 554-row cell set. One session.** This is the
+experiment that narrows this project's own representation result, and it is published
+with the arms that produced the narrowing, not only the ones that survived it.
+
+The design — the arms, the primary contrast, the estimator, the CI method, the controls,
+and the meaning of **every possible outcome** — was frozen at repo commit `f702aaf`
+**before a single reader call had been made against a truncated memory**. Nothing in it
+was chosen after seeing a number.
+
+### 21.1 The verdict: O2 — the representation effect does not survive a length control
+
+| | Δ = ΔU(trunc_last_matched) − ΔU(summary), BEARING | 95% CI (task-clustered) | n |
+|---|---:|---|---:|
+| **PRIMARY** | **+0.0519** | **[−0.0678, +0.1727]** | 135 cells / 55 clusters |
+
+The interval includes zero. At a matched exposed-token budget, a **content-blind
+extractive slice** and a **model-written summary** are indistinguishable.
+
+> **What Raw buys is the budget to carry the bearing content, at zero formation cost** —
+> an **exposure-budget** effect, not a rewriting effect.
+
+🔴 **This supersedes the causal reading of §12.1, not its numbers.** §12.1's measured
+values stand. What changes is the explanation attached to them: "rewriting the
+experience removes the benefit" attributes the loss to *rewriting*, and this experiment
+attributes it to *length*. A reader using this dataset to check §12.1 should read §21
+alongside it.
+
+**The null is reportable because the test could have found the effect.** Planting the
+published cross-session Raw−Summary gap (+0.2741) into the matched arm moves the primary
+to **+0.3260 [+0.2069, +0.4445]** — detected; planting the in-session gap (+0.3209) gives
+**+0.3727 [+0.2537, +0.4913]** — detected; planting **zero** reproduces the primary
+exactly and does not exclude zero, so the detector is not vacuous. The design resolves a
+true difference of about **0.12**, and the measured +0.0519 is below that. **This is a
+measured indistinguishability, not a failure to look.**
+
+**Utility tracks retained content, not token count.** At a *fixed* budget, keeping the
+**end** of a page-visit segment rather than the beginning raises bearing-content
+retention from 0.7% to 28.9% and ΔU by **+0.1037 [+0.0080, +0.2046]** — a contrast that
+excludes zero while holding tokens constant.
+
+### 21.2 🔴 Read `condition_id` as a MEMORY arm, never as a model
+
+Every length-control `condition_id` has the form `lmev2_<arm>_lenctl_v1`. **The arm slot
+names how the memory was CONSTRUCTED. It never names a model.** The reader is
+`gpt-oss-120b` on all 4,432 rows and the writer is in `memory_writer_model`.
+
+This warning is here because the *other* multi-arm slice in this dataset uses
+`w<writer>_r<reader>` factorial ids (§20.1), and reading one convention under the other
+produced two false alarms against a correct release. **A row's models are in its model
+fields.** Verified on this slice, with a positive control proving the checker could fail:
+**0 rows** carry a `condition_id` contradicting their `reader_model` or writer.
+
+| arm | `condition_id` | `memory_representation` | rows | budget |
+|---|---|---|---:|---|
+| `raw` | `lmev2_raw_lenctl_v1` | `raw` | 554 | — (full span) |
+| `summary` | `lmev2_summary_lenctl_v1` | `summary` | 554 | that cell's own summary length |
+| `structured` | `lmev2_structured_lenctl_v1` | `structured` | 554 | that cell's own structured length |
+| `trunc_last_matched` | `lmev2_trunclast_matched_lenctl_v1` | **`raw`** | 554 | matched to summary |
+| `trunc_first_matched` | `lmev2_truncfirst_matched_lenctl_v1` | **`raw`** | 554 | matched to summary |
+| `trunc_last_1024` | `lmev2_trunclast_1024_lenctl_v1` | **`raw`** | 554 | 1,024 |
+| `trunc_last_4096` | `lmev2_trunclast_4096_lenctl_v1` | **`raw`** | 554 | 4,096 |
+| **`trunc_last_20000`** | `lmev2_trunclast_20000_lenctl_v1` | **`raw`** | 554 | 20,000 — **A/A CONTROL, see §21.3** |
+
+⚠️ **`memory_representation` is `raw` on all five truncated arms, and that is correct.**
+It is a closed enum describing **how the memory was written down** — a truncated segment
+is extractive verbatim text with **zero writer calls** — not which arm it belongs to. The
+arm identity lives in `condition_id` and `provenance.arm`. Group by **`condition_id`**,
+never by `memory_representation`, when you want the eight arms.
+
+### 21.3 🔴 `trunc_last_20000` is an A/A CONTROL, not a ninth condition
+
+**Do not count it as a condition. Doing so double-counts Raw.**
+
+Its budget of 20,000 tokens exceeds the longest Raw memory in the cell set (19,801), so
+the truncation rule removes nothing:
+
+| check | measured |
+|---|---|
+| `memory_text` byte-identical to the `raw` arm | **554 / 554** |
+| reward triples reproduced | **552 / 552 scored pairs** |
+| reader outputs byte-identical | **552 / 552** |
+| mean ΔU on BEARING | **+0.3433**, identical to `raw` to four decimals |
+
+The two excluded pairs are *the same cell* failing in **both** arms — itself further
+evidence the identity arm reproduces Raw rather than merely agreeing with it. Counting
+`None == None` as agreement would have inflated the very control that exists to detect
+errors, so unscored pairs are excluded from both numerator and denominator.
+
+**It is in the release because an identity arm with a KNOWN CORRECT ANSWER is what
+proves the new code path end to end** — it travels under a different `condition_id` and
+a different content hash, so it is a genuinely separate set of 1,108 calls. All 8,834
+stored cache keys remain distinct even though 1,040 context groups render identical
+bytes across arms, so the two arms really did issue separate calls.
+
+Any analysis that pools arms must therefore either **drop `trunc_last_20000`** or
+**drop `raw`** — never both.
+
+### 21.4 Rows that could not be scored, and the 0.0 that is not there
+
+**6 rows of 4,432** carry a null reward, all `empty_output_finish_length` — the reasoning
+model spending its `max_tokens` budget before emitting an answer. They are **2 in `raw`,
+2 in `trunc_last_20000` (the same cell, both replicates — see §21.3), and 2 in
+`trunc_last_4096`.**
+
+🔴 **`reward is None` means COULD NOT BE SCORED and is never coerced to 0.0** (defect
+21). Verified on this slice with a positive control: **every** null reward sits beside a
+non-null `error_code_if_any`, and **every** non-null reward sits beside a null error
+code — so there is no 0.0 standing in for an absence and no silent absence standing in
+for a measurement. The primary contrast is unaffected: it compares `trunc_last_matched`
+against `summary`, neither of which lost a row.
+
+`reasoning_tokens` is an **int on all 4,432** of these rows and is **0 on none** of them.
+
+### 21.5 Faithfulness on this slice — three different reasons for one null
+
+This ledger was written directly at schema v3 and never passed through the migration
+that fills a deliberately-null field's reason, so all 4,432 rows arrived with an empty
+`faithfulness_notes`. `scripts/prep_v06_inputs.py` fills it **only where each note's
+premise is re-derived as true on the row itself**, and refuses otherwise:
+
+| rows | situation | what ships |
+|---:|---|---|
+| **1,202** | full-span extractive — text **is** the source span | `FAITHFULNESS_RAW_IS_TAUTOLOGY_NOTE`, unchanged. A source-grounded proxy would compare the text with itself and return 1.0 by construction. |
+| **2,122** | truncated extractive — text is a verbatim **slice** of that span | a note that says exactly that. 🔴 The project's raw constant is **not** reused, because its own sentence ("the memory text IS the source span, verbatim") would be **false** here. Truncation removes content, and a tautological 1.0 says nothing about how much; `provenance.bearing_content_retained` is the field that does. |
+| **1,108** | model-written (`summary` / `structured`) | the **real score**, attached: `faithfulness_check` (number_support) plus the full multi-axis `faithfulness_detail`, measured on the WRITE pass. |
+
+🔴 **The 1,202/2,122 split is MEASURED, not read off a field.** Which rows are full-span
+is decided by comparing each row's text with its own cell's full span; the
+`provenance.identical_to_raw_text` flag is then **cross-checked against that
+measurement** and a disagreement is a refusal. A planted row that set the flag true while
+carrying truncated text was *accepted* by an earlier version of that script — it would
+have shipped "the memory text IS the source span, verbatim" onto a row where it is false.
+Four planted premise violations are now each refused and clean data is accepted
+unchanged.
+
+🔴 **The 1,108 scores are ATTACHED, not pointed at.** The first version of the fill wrote
+a note saying "not scored here, see the write pass" and left the field null; the
+validator rejected all 1,108 with `faithfulness_claimed_unscored_on_a_written_memory` —
+a model-written memory **is** scorable, so a note denying it is false. That rule's own
+comment warns against rewording a note until the guard's substring disappears, so the
+note was not reworded: the measurement was attached, exactly as `migrate_schema_v2.py`
+does for the §20.1 arms. The score reaches the row through **two independent join keys**
+— `(memory_unit_locator, memory_representation)` and a sha256 of `memory_text` — which
+were verified to select the **same** record on all 1,108 rows, against a negative control
+that correctly resolves nothing. **24** of them carry a null `faithfulness_check` with a
+non-null detail: those memories contain no numeric literal, so `number_support` has an
+empty denominator, which `faithfulness.py` returns as `None` rather than a perfect 1.0
+precisely so a number-free memory cannot lift a corpus mean.
+
+### 21.6 Caveats that travel with this result
+
+* **Total context is not matched**, only exposed *memory* tokens — median with-context
+  is ~24.9k tokens for Raw and ~17.0k for the compressed arms. This is **conservative
+  for the primary** (`trunc_last_matched` and `summary` are matched on both) and is a
+  caveat only for Raw vs trunc.
+* **The reader's tokenizer is not the budget's tokenizer.** Re-derived per cell, the
+  length-controlled arm is a median **4 tokens shorter** than summary in `o200k_harmony`
+  (n=57), so the extractive arm did not buy its null with tokens.
+* **One cell's slice is 195 tokens against a 196-token budget.** The official tokenizer
+  admits no prefix of exactly 196 tokens there. The rule asserts **maximality** — one
+  more character must break the budget — which is well-defined where exact equality is
+  not. **216 of 217** cut cells are exact, one is −1, **none is over budget**.
+* **The summary writer can emit a gold string its source span never contained**: the
+  detector fires on 3 of 142 MATCHED_CONTROL cells for `summary` and on **0 of 142** for
+  every extractive arm. That is a property of the writer, not the detector, and it does
+  not touch the BEARING contrasts.
+* **"One session" is asserted from the rows, and the run ledger's own boolean says
+  `false`.** That flag requires zero cache hits; there were **14**, against a cache that
+  began **empty** (`n_preexisting_cache_rows: 0`), so those 14 were served from this
+  run's own earlier calls and not from another session. All 4,432 rows carry **one**
+  `run_id` and **one** `session_start_utc`, spanning 25.9 minutes. The flag is
+  conservative, not contradicted — and it is reported here rather than quietly re-derived.
+* **Not claimable**: that compression is as good as extraction *in general* (this is one
+  positional rule, one corpus, one budget); that the pre-registered sensitivity rescues
+  the representation story (it does not, and the precommitment forbids reading the
+  verdict off it); or any effect conditioned on cells that retained the bearing content
+  (**circular** — an effect measured on cells selected for it, pre-registered as excluded
+  from the verdict and descriptive only).
+
+**Artifacts**: `docs/LENGTH_CONTROL_PRECOMMITMENT.md` (frozen `f702aaf`),
+`docs/LENGTH_CONTROL_RESULT.md`, `results/ledgers/length_control_result.json`
+(canonical), `length_control_run.json`, `length_control_confound.json`.
+
+## 22. 🔴 What is still NOT in this release, by name
+
+**As of v0.6, no evaluated row of this project is unpublished-but-ready.** Every
+exclusion below is structural — a licence, a persistence gap, or a VOID label — and none
+of them is "a dataset we have not got around to publishing".
+
+| excluded | rows | why — and why it cannot simply be added |
+|---|---:|---|
+| **BEAM**-derived rows | — | **Licence.** BEAM's data is **CC BY-SA 4.0** and ShareAlike is **infectious**: a dataset adapted from it must itself be CC BY-SA 4.0, which would silently relicense everything else here. It must ship as its **own** CC BY-SA 4.0 release attributing the BEAM authors. The exporter **refuses** BEAM rows outright, and that refusal is exercised with a positive control on every build. Aggregate statistics over BEAM are not adaptations and remain safe to report in the paper. |
+| SciCode **Summary / Structured** | 308 cells | **Persistence, not licence.** The memory text was never written to disk and is **not recoverable**: regeneration is not byte-reproducible across sessions (0/8 at fully matched settings). SciCode is Apache-2.0 and withholds nothing. §19.14. |
+| SWE-bench **corpus text** | 127 rows' 5 fields | **Licence.** `princeton-nlp/SWE-bench_Verified` declares none. The metrics and ids ship; the text carries `__WITHHELD_SEE_LICENSE__` and is declared in `text_fields_withheld`. §19.15. |
+| `results/swebench/representations_v1.json` | — | **VOID.** Its contagion screen false-positived on ASCII table borders (`+---+`) in issue text. Kept on disk as a record, never as an input. |
+| `results/raw_session_matched_VOID_mislabelled/` | 570 | **VOID (defect 27).** A runner hardcoded one arm's `condition_id`, so those rows claimed `gemma4_31B` while `reader_model` said `gpt-oss-120b`. Verified **by row id**: 0 of 570 appear in any release. |
+| LongMemEval **V1** source text | — | V1's own grant is MIT, but ~51% of its sessions derive from **ShareGPT/UltraChat**, whose upstream terms MIT does not override. |
+| SciCode `test_data.h5` | — | Distributed with **no licence stated**; a per-field carve-out the exporter enforces separately (GATE 3c). |
+| endpoint caches, embedding stores, bulk trajectories | — | Not results. Permitted but large (~1.14 GiB+); we ship ids and spans. |
+| the **cross-session** reader-transfer comparator | 1,140 | **Superseded, not hidden.** `results/gemma_reader/transfer_cells.jsonl` measured the two readers on different days; the **session-matched** arms that replace it for the quoted number ARE published (§20.1). Publishing both would invite citing the confounded one. |
+| calibration, debug and probe rows | — | Not results. |
+
+## 23. Relation to P3
 
 `receiver_id`, `receiver_role`, `visibility_mask`, `team_reward` and `propagation_metadata`
 are **P3-reserved and null in P1**, enforced by the validator. They exist now so a
@@ -1154,7 +1396,7 @@ multi-agent P3 row and a single-agent P1 row share one schema instead of forking
 measures whether a memory helps **its own** future task; P3 asks whether it helps **another
 agent's**, which needs a receiver identity P1 has no value for.
 
-## 22. Citation and attribution
+## 24. Citation and attribution
 
 **Cite the paper:** *What Is This Memory Useful For? Measuring Task-Conditioned Utility in
 Long-Term Agent Memory* (AAMAS 2027). **Code:**

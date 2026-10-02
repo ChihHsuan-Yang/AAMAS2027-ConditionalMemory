@@ -1,12 +1,13 @@
 # Hugging Face Release Policy
 
 Target: **`AgentsSci/AAMAS2027-ConditionalMemory`** (dataset, **private**, created
-2026-09-29 17:34Z). It is no longer empty: as of 2026-10-01 it holds 5,924 rows across
-17 files on `main`, with four tags. (This line read "currently empty — `usedStorage:
-0`" until v0.4; a stated fact about a mutable object decays exactly like a stated
-reason does.)
+2026-09-29 17:34Z). It is no longer empty: as of **2026-10-02** it holds **16,816 rows**
+across **19 files + `.gitattributes`** on `main`, with **six tags**. (This line read
+"currently empty — `usedStorage: 0`" until v0.4 and "5,924 rows / 17 files / four tags"
+until v0.6; a stated fact about a mutable object decays exactly like a stated reason
+does, and this one has now decayed twice.)
 
-**Four uploads have occurred**: `v0.1-lmev2-derived`, `v0.2-repr-derived`, `v0.3-scicode-derived`, `v0.4-swebench-metrics` (see the release log below). The repository remains **private**. Each upload is separately authorized; this line is not a standing authorization for the next one.
+**Six uploads have occurred**: `v0.1-lmev2-derived`, `v0.2-repr-derived`, `v0.3-scicode-derived`, `v0.4-swebench-metrics`, `v0.5-reader-generalization`, `v0.6-length-control` (see the release log below). The repository remains **private**. Each upload is separately authorized; this line is not a standing authorization for the next one.
 
 ---
 
@@ -100,6 +101,79 @@ GitHub code at a named commit.
 ---
 
 ## Release log
+
+### v0.6 — `v0.6-length-control`, 2026-10-02 ✅ VERIFIED
+
+**16,816 rows** (LongMemEval-V2 **16,535** · SciCode 154 · SWE-bench Verified 127),
+98 fields, 19 files + `.gitattributes`, private. By reader: `gpt-oss-120b` **13,998** ·
+`gemma-4-31B-it` **2,818**. All nine gates passed, plus GATE 2b and seven
+release-specific checks. Verified by **downloading the tag**: the card's own command
+printed `16816 rows | 0 errors | 6160 warnings`, matching the card exactly, and all 19
+files are byte-identical to staging.
+
+**+4,432 rows: the pre-registered length control**, design frozen at `f702aaf`
+**before execution**. Verdict **O2** — at a matched exposed-token budget the extractive
+and model-written arms do not separate (+0.0519 [−0.0678, +0.1727]), so Raw's advantage
+is an **exposure-budget** effect. `docs/LENGTH_CONTROL_PRECOMMITMENT.md` and
+`docs/LENGTH_CONTROL_RESULT.md` ship **inside** the snapshot, so the verdict can be
+checked against its own frozen design from the download alone.
+
+🔴 **One arm is an A/A CONTROL and the card must say so.** `trunc_last_20000` has a
+20,000-token budget against a longest Raw memory of 19,801, so it renders
+**byte-identical to `raw` on 554/554** and reproduces its reward triples and reader
+outputs on **552/552 scored pairs**. A consumer who reads it as a ninth condition
+**double-counts Raw**. No gate can catch that — the data is correct and the error would
+be in the reader's head — so it is stated in the headline, in §21.3, and in the index.
+
+#### The exporter refused twice, and both refusals were right
+
+1. **GATE 5b** refused the first build: the card still promised 12,384 rows against a
+   16,816-row release. Re-deriving every card number then found **five** more that had
+   decayed against the new denominator — the benchmark table, the licence count, the
+   `context_budget` equality (16,689, not 12,257), the source-text count, and the
+   per-reader `reasoning_tokens` table. *A documented number is a claim, and it decays.*
+2. **The validator** refused the faithfulness fill: `prep_v06_inputs.py` first wrote a
+   "not scored here, see the write pass" **pointer** on the 1,108 model-written rows and
+   left the field null. All 1,108 raised
+   `faithfulness_claimed_unscored_on_a_written_memory` — a model-written memory **is**
+   scorable, so a note denying it is false. That rule's own comment warns against
+   rewording a note until the guard's substring disappears, so the note was **not**
+   reworded: the real write-pass score was **attached**, exactly as
+   `migrate_schema_v2.py` does.
+
+#### Two checkers that were void before they were right
+
+Both were caught by **running the positive control before believing the output** —
+DEFECT_REGISTER MA-3 applied to this release's own instruments.
+
+* **The A/A check reported 277/554 and its control did not fire.** The join key was
+  `pair_key`, which maps 554 rows onto 277 cells (two replicates each), so half the rows
+  were silently overwritten and the planted byte landed on a discarded one. With
+  `(pair_key, replicate_id)` — 554/554 distinct, asserted — the real answer is
+  **554/554**. *A join key that is not unique turns a check into noise.*
+* **The faithfulness fill accepted a row that lied about itself.** It read
+  `provenance.identical_to_raw_text` instead of measuring it, so a planted truncated row
+  carrying that flag was accepted and would have shipped *"the memory text IS the source
+  span, verbatim"* onto a row where it is false. The flag is now **cross-checked against
+  a re-derived comparison** and a disagreement is a refusal.
+
+#### A grep that read prose as a sentinel
+
+A sentinel-separation scan reported `OUTPUT_NOT_RETAINED` on 127 **SWE-bench** rows,
+which would be the exact swap the policy forbids. It was a **substring of an
+explanatory sentence** in `provenance` describing why that sentinel must *not* be used
+there. Tested against the real literals (`S.WITHHELD_SENTINEL`,
+`S.OUTPUT_NOT_RETAINED_SENTINEL`) on text fields only, with a planted swap as a positive
+control: **508 withheld on swebench_verified only, 308 not-retained on scicode only, 0
+crossings.** *Match the literal, not a fragment of it — and positive-control the scan
+before reporting a defect.*
+
+🔴 **After v0.6, no evaluated row of this project remains unpublished-but-ready.**
+Everything still out is out structurally — BEAM (CC BY-SA), SWE-bench corpus text (no
+licence), SciCode summary/structured (never persisted), VOID artifacts — each named in
+the card's §22, `DATASET_INDEX.md` and `TRACE_AVAILABILITY.md`.
+
+---
 
 ### v0.4 — `v0.4-swebench-metrics`, 2026-10-01 ✅ VERIFIED
 
