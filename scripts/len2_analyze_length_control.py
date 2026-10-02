@@ -372,16 +372,37 @@ def main() -> int:
         # recorded, not failed -- the run already asserted MAXIMALITY per cell.
         "passed": bool(maxabs is not None and len(over) == 0 and maxabs <= 1),
     }
+    # C-DET's negative control is checked on EVERY arm, not only on raw.
+    # §2.3 states the detector fires on 0/142 MATCHED_CONTROL "which is the
+    # detector's negative control on this set" -- and that is exactly true of
+    # the EXTRACTIVE arms, whose text is a verbatim slice of the segment.
+    # Measured here, the MODEL-WRITTEN summary arm fires on a small number of
+    # MATCHED_CONTROL cells: a writer can emit a string matching a gold answer
+    # the source span never contained. That is a property of the writer, not a
+    # broken detector, so it is REPORTED per arm rather than folded into a
+    # single pass/fail that would either hide it or fail the run for it. The
+    # binding requirement is the one §2.3 names: silence on the extractive
+    # arms, where the text is the source.
+    mc_fires = {a: run["retention_by_arm"].get(a, {}).get("MATCHED_CONTROL_fires", 0)
+                for a in sorted(run["retention_by_arm"])}
+    extractive = [a for a in mc_fires if a == "raw" or a.startswith("trunc_")]
     ctrl["C_DET"] = {
         "_what": "§5.5: the gold detector's own controls pass before any "
                  "retention number is reported, and the detector is silent on "
-                 "the MATCHED_CONTROL cells.",
+                 "the MATCHED_CONTROL cells of every EXTRACTIVE arm.",
         **run["controls"]["leakage_detector_selftest"],
         "retention_by_arm": run["retention_by_arm"],
+        "matched_control_fires_by_arm": mc_fires,
+        "extractive_arms_checked": sorted(extractive),
+        "n_matched_control_fires_on_extractive_arms":
+            sum(mc_fires[a] for a in extractive),
+        "_model_written_arm_note":
+            "a nonzero count on summary/structured is a property of the "
+            "WRITER (it can emit a string the source span never contained), "
+            "not a detector fault; reported, not failed on",
         "passed": bool(run["controls"]["leakage_detector_selftest"]["n_pass"]
                        == run["controls"]["leakage_detector_selftest"]["n_total"]
-                       and run["retention_by_arm"]["raw"].get(
-                           "MATCHED_CONTROL_fires", 0) == 0),
+                       and sum(mc_fires[a] for a in extractive) == 0),
     }
     cw = run["controls"].get("C_WITHOUT_cross_arm_identity") or {}
     ctrl["C_WITHOUT"] = {
@@ -433,6 +454,26 @@ def main() -> int:
                            str(r["error_code_if_any"]) for r in by_arm[a]
                            if r["error_code_if_any"]).items())),
                        "pair_keys": sorted(set(null_keys))[:20]}
+    # A cell with ONE failed replicate keeps a mean computed from the other
+    # one. That is correct -- discarding a scored replicate would throw away a
+    # real measurement -- but it means such a cell is averaged over fewer
+    # draws than its neighbours, so the count is surfaced rather than left
+    # implicit in an unchanged n.
+    partial: dict[str, int] = {}
+    for a in arms:
+        cnt: dict[str, int] = collections.Counter()
+        for r in by_arm[a]:
+            if r["delta_utility"] is not None and not r["error_code_if_any"]:
+                cnt[pk(r)] += 1
+        full = max(cnt.values()) if cnt else 0
+        partial[a] = sum(1 for k, v in cnt.items() if v < full)
+    out["cells_averaged_over_fewer_replicates"] = {
+        "_what": "cells where at least one replicate could not be scored, so "
+                 "the cell mean rests on fewer draws than its neighbours'. "
+                 "Kept (a scored replicate is a real measurement) and counted.",
+        "per_arm": partial,
+    }
+
     out["unscored_rows_named_exclusion"] = {
         "_rule": "§4.4: reward None means COULD NOT BE SCORED. Never coerced "
                  "to 0.0. Reported with its count and excluded from the paired "
@@ -577,9 +618,22 @@ def main() -> int:
         "pearson_dU_vs_retention": float(np.corrcoef(rr, dd)[0, 1]),
         "pearson_dU_vs_log10_tokens": float(np.corrcoef(tt, dd)[0, 1]),
         "_corr_caveat": "5 points, each an arm-level mean; these correlations "
-                        "describe the shape of the ladder and carry no CI. They "
-                        "are not a test and nothing in the verdict rests on "
-                        "them.",
+                        "describe the shape of the ladder and carry no CI. "
+                        "Two numbers over five points can be moved by one "
+                        "rung, so they are NOT a test and nothing in the "
+                        "verdict rests on them. The paired step contrasts "
+                        "below are the part of the ladder that carries an "
+                        "interval.",
+        # Each STEP as a paired, task-clustered contrast on the same cells --
+        # the ladder's claim ("utility recovers as the budget grows") stated
+        # in a form that has a CI, rather than as the shape of five dots.
+        "paired_steps_BEARING": {
+            f"{b}_minus_{a}": paired(b, a, "BEARING")
+            for a, b in (("trunc_last_matched", "trunc_last_1024"),
+                         ("trunc_last_1024", "trunc_last_4096"),
+                         ("trunc_last_4096", "trunc_last_20000"),
+                         ("trunc_first_matched", "trunc_last_matched"))
+        },
     }
     for r_ in ladder:
         log(f"  [ladder] {r_['arm']:20s} tok={r_['median_memory_tokens_official']:8.0f} "
