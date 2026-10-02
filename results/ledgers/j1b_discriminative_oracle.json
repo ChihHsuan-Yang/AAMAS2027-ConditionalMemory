@@ -180,7 +180,7 @@
         "24": 85,
         "36": 68
       },
-      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_pilot/cells.jsonl",
+      "rows_artifact": "results/deltau_pilot/cells.jsonl",
       "sweep": {
         "max_pool_hits<=1": {
           "acc_with": 1.0,
@@ -790,7 +790,7 @@
         "24": 86,
         "36": 68
       },
-      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_official/cells.jsonl",
+      "rows_artifact": "results/deltau_official/cells.jsonl",
       "sweep": {
         "max_pool_hits<=1": {
           "acc_with": 1.0,

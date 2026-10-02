@@ -93,15 +93,43 @@ The quantity at risk is the WITHOUT arm — which contains **no memory**, so a
 reader change is the only intended difference, and a session change is an
 unintended one of the same kind.
 
-| representation | reported WITHOUT change (Gemma − gpt-oss) | measured one-day gpt-oss drift | drift as a share |
+| representation | reported WITHOUT change (Gemma − gpt-oss) | measured gpt-oss session drift | drift as a share |
 |---|---:|---:|---:|
-| raw | **−0.0688** (re-derived, n=276) | −0.0303 | — (comparator is 2 days back) |
-| summary | −0.0584 | **−0.0316** (same cells) | **54%** |
-| structured | −0.0632 | **−0.0290** (same cells) | **46%** |
+| **raw** | **−0.0691** | **−0.0327** | **47%** |
+| summary | −0.0584 | −0.0316 | 54% |
+| structured | −0.0632 | −0.0290 | 46% |
 
-The drift column is not an estimate: it is the *same* gpt-oss WITHOUT request
-bytes re-issued on 2026-10-01 and recorded in
-`results/writer_factorial/factorial_cells_gptoss.jsonl`, joined per cell.
+The drift column is not an estimate and not a transfer from another
+representation: it is the *same* gpt-oss WITHOUT cells re-executed, joined per
+cell.
+
+🔴 **For raw it is a direct three-way measurement, because a session-matched
+gpt-oss raw run EXISTS.** It was voided for a labelling defect (register #27 —
+`gemma_reader_run.py` stamped a hardcoded Gemma `condition_id` onto gpt-oss
+rows) and kept at
+`results/raw_session_matched_VOID_mislabelled/raw_gptoss.jsonl`. **The label is
+void; the measurements are real**, were produced on **2026-10-01**, the same
+session as every Gemma cell, and 568 of 570 rows carry a non-null
+`reward_without_memory`. On the **275** cells present in all three files:
+
+| raw WITHOUT arm | mean |
+|---|---:|
+| gpt-oss **2026-09-29** (the published comparator) | 0.1055 |
+| gpt-oss **2026-10-01** (same session as Gemma) | 0.0727 |
+| Gemma **2026-10-01** | 0.0364 |
+
+| component | value |
+|---|---:|
+| reported change (Gemma − gpt-oss 09-29) | **−0.0691** |
+| **session** (gpt-oss 10-01 − gpt-oss 09-29) | **−0.0327** |
+| **reader**, session-matched (Gemma − gpt-oss 10-01) | **−0.0364** |
+
+**The two components are nearly equal.** The reader effect is real and survives
+session-matching; it is **about half** the size the published decomposition
+attributes to it. This corrects the audit's own first pass, which recorded the
+raw comparator as unrepairable — the repair material existed in a directory
+named *VOID*, and *void for a labelling defect is not void for every purpose*
+(the rows' `reader_model` field is correct; only `condition_id` is wrong).
 
 **What this does and does not touch.**
 
@@ -135,9 +163,54 @@ bytes re-issued on 2026-10-01 and recorded in
   > *An empty directory is a timestamp, not a verdict: this is the audit's own
   > subject matter, applied to the audit.*
 
-**Action taken:** the share is kept and its number unchanged, with the
-confound named at both sites. Removing it would discard a real measurement;
-leaving it unqualified asserts a reader attribution the design cannot support.
+### 2b. SETTLED for `raw` — the session-matched run landed, and the effect survives
+
+As of 2026-10-01T03:34 `results/raw_session_matched/` holds **both** arms,
+correctly labelled, **both executed 2026-10-01**: `raw_gptoss.jsonl`
+(`condition_id lmev2_raw_metis_gptoss120b_readertransfer_v1`, 570 rows) and
+`raw_gemma.jsonl` (570 rows). Re-derived here on the **275** cells present in
+the published comparator and both new arms:
+
+| quantity | gpt-oss 09-29 (published) | gpt-oss 10-01 | Gemma 10-01 | cross-session change | **SESSION** | **READER (session-matched)** |
+|---|---:|---:|---:|---:|---:|---:|
+| WITHOUT arm | +0.1055 | +0.0727 | +0.0364 | −0.0691 | **−0.0327** | **−0.0364** |
+| WITH arm | +0.2982 | +0.2909 | +0.3527 | +0.0545 | −0.0073 | **+0.0618** |
+| **ΔU** | +0.1927 | +0.2182 | +0.3164 | **+0.1236** | **+0.0255** | **+0.0982** |
+
+Three things follow, and the first is a check on the rest:
+
+1. **The new Gemma arm reproduces the published one to four decimals**
+   (+0.0364 / +0.3527 / +0.3164 on both). Gemma is cross-session stable — the
+   0/1,124 result — so this is the expected agreement, and it is what makes
+   the gpt-oss column the only thing that moved.
+2. **The headline survives.** ΔU still rises under Gemma session-matched:
+   **+0.0982**, task-clustered **[+0.0247, +0.1730]**, which excludes zero
+   (`results/ledgers/raw_session_matched_analysis.json`, independently
+   re-derived here).
+
+   ⚠️ **Do not divide it by the published +0.1268.** That figure is the
+   **2-way** join (gpt-oss 09-29 ∩ Gemma, n=276); the three-way join used in
+   the table above is n=275 and gives +0.1236 for the same contrast. Both are
+   correct and they describe **different cell sets**, so a ratio across them
+   is this project's own *"a single column built on two different bases"*
+   defect. The defensible statement is that the session-matched estimate
+   **excludes zero on its own interval** and that each mean lies inside the
+   other's CI — which is what the peer artifact's
+   `SURVIVES_SESSION_MATCHING` verdict rests on. *(I made exactly this error
+   first and caught it on cross-check; it is recorded rather than quietly
+   fixed.)*
+3. **The decomposition sentence was the overclaim, and by about a factor of
+   two.** The WITHOUT-arm change splits almost evenly: **−0.0327 session** vs
+   **−0.0364 reader**. "About half the gain is a weaker reader" was computed
+   against a baseline that had itself drifted; session-matched, the weaker-
+   baseline share of the ΔU change is **−0.0364 / +0.0982**, not 54% of
+   +0.1236.
+
+**Action taken:** every published number is kept unchanged and is correct for
+the arms it describes; the confound is named and now *sized* at each site.
+Re-stating the decomposition on the session-matched arms is a change to a
+published result and is handed back as a decision, not made here — but the
+measurement that would settle it now exists, and §2b is it.
 
 ---
 
@@ -250,6 +323,19 @@ Fixed in three places, source first:
 | emitters | 7 scripts now write **repo-relative** paths via `_rel_to_repo`; `tokenizer_provenance` redacts the home prefix to `~/` |
 | existing artifacts | all 9 sanitised — **and every numeric value re-read before and after** (9,504 in the largest file) to prove a path rewrite moved no measurement |
 | the gate | `audit_claims.py` now scans `results/ledgers`, `docs/hf_card`, `docs/submission` **and the manuscript** |
+
+**Scope of the fix, stated rather than implied.** The gate covers
+`results/ledgers`, `docs/hf_card`, `docs/submission` and the manuscript — the
+tracked artifacts and the reviewer-facing surfaces — and all four are now
+**0 hits**. A full-tree scan still reports **47** occurrences in internal
+working documents (30 in `docs/`, 16 in `scripts/`, 1 in `src/`), almost all
+in `Reproduce:` blocks of the form `PY=/Users/<name>/miniconda3/bin/python3`.
+Those are **not** fixed here and are a **lower but non-zero** exposure: they
+do not ship to HuggingFace and are not the submission, but they are in the
+repository, so **if the repo itself is ever shared with reviewers they are a
+de-anonymisation**. Left as an explicit, counted item rather than silently
+included in a "clean" verdict — an unscanned tree and a clean tree must not
+read the same, which is the whole lesson of #23.
 
 **The new gate is proven able to fail, both ways.** Planting the exact string
 that shipped into `k3_screened_analysis.json` makes the audit exit **1** naming

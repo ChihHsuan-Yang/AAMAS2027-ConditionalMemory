@@ -1,23 +1,43 @@
 {
   "_what": "controls for the reader-transfer arm",
-  "generated_at_utc": "2026-10-01T03:22:21.905759+00:00",
+  "generated_at_utc": "2026-10-01T08:23:21.881984+00:00",
   "aa_determinism_gptoss": {
-    "_what": "gpt-oss-120b: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the cache key). Identical content => the endpoint is deterministic at temperature 0 on the real context shape.",
+    "_what": "gpt-oss-120b: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the cache key). Identical content => the endpoint is deterministic at temperature 0 on the real context shape, WITHIN ONE SESSION.",
+    "\ud83d\udd34_SCOPE_WITHIN_SESSION_ONLY": "Both calls in every pair come from ONE run. This licenses 're-issuing an identical request moments later in the same run returns identical text'. It does NOT license cross-session reproducibility: the same comparison across one day moved 554/1,124 on gpt-oss-120b (0/1,124 on gemma-4-31B-it). Quote this number only with its session scope. See docs/SESSION_DETERMINISM_AUDIT.md.",
     "n_paired_groups": 248,
     "n_identical": 248,
     "n_differing": 0,
     "rate_identical": 1.0,
     "differing_examples": [],
-    "_vacuity_check_n_groups_gt_0": true
+    "_vacuity_check_n_groups_gt_0": true,
+    "intra_pair_gap_seconds": {
+      "min": 53.8,
+      "median": 173.8,
+      "max": 178.2
+    },
+    "utc_dates_spanned": [
+      "2026-09-30"
+    ],
+    "_is_single_session": true
   },
   "aa_determinism_gemma": {
-    "_what": "gemma-4-31B-it: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the cache key). Identical content => the endpoint is deterministic at temperature 0 on the real context shape.",
+    "_what": "gemma-4-31B-it: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the cache key). Identical content => the endpoint is deterministic at temperature 0 on the real context shape, WITHIN ONE SESSION.",
+    "\ud83d\udd34_SCOPE_WITHIN_SESSION_ONLY": "Both calls in every pair come from ONE run. This licenses 're-issuing an identical request moments later in the same run returns identical text'. It does NOT license cross-session reproducibility: the same comparison across one day moved 554/1,124 on gpt-oss-120b (0/1,124 on gemma-4-31B-it). Quote this number only with its session scope. See docs/SESSION_DETERMINISM_AUDIT.md.",
     "n_paired_groups": 248,
     "n_identical": 248,
     "n_differing": 0,
     "rate_identical": 1.0,
     "differing_examples": [],
-    "_vacuity_check_n_groups_gt_0": true
+    "_vacuity_check_n_groups_gt_0": true,
+    "intra_pair_gap_seconds": {
+      "min": 607.7,
+      "median": 1228.3,
+      "max": 1698.8
+    },
+    "utc_dates_spanned": [
+      "2026-10-01"
+    ],
+    "_is_single_session": true
   },
   "cache_separation_reconfirmed_on_this_run": {
     "_what": "the response cache cannot serve a gpt-oss answer to a Gemma request. POSITIVE CONTROL FIRST: without a demonstrated HIT, a 'miss' proves only that the cache is dead.",

@@ -1,9 +1,9 @@
 {
   "_what": "READER-ONLY REPLICATION: gemma-4-31B-it reads the EXACT memory artifacts gpt-oss-120b read. Only the reader changed.",
   "precommitment": "docs/READER_TRANSFER_PRECOMMITMENT.md (written before any design-cell Gemma call)",
-  "run_at_utc": "2026-10-01T03:05:11.640423+00:00",
-  "run_id": "gemma_transfer_20261001T023844.811156+0000",
-  "wall_clock_s": 1502.22,
+  "run_at_utc": "2026-10-01T08:34:18.149209+00:00",
+  "run_id": "gemma_transfer_20261001T082117.300799+0000",
+  "wall_clock_s": 745.08,
   "reader_arm": "gemma_metis",
   "reader_identity": {
     "reader_model": "gemma-4-31B-it",
@@ -18,71 +18,20 @@
   },
   "reader_prompt_version": "p1_deltau_raw_v1",
   "condition_ids": {
-    "raw": "lmev2_raw_metis_gemma4_31B_readertransfer_v1",
-    "summary": "lmev2_summary_metis_gemma4_31B_readertransfer_v1",
-    "structured": "lmev2_structured_metis_gemma4_31B_readertransfer_v1"
+    "raw": "lmev2_raw_metis_gemma4_31B_readertransfer_v1"
   },
   "representations": [
-    "raw",
-    "summary",
-    "structured"
+    "raw"
   ],
   "replicates": 2,
   "cells_per_representation": {
-    "raw": 285,
-    "summary": 285,
-    "structured": 277
+    "raw": 285
   },
   "eligible_pool_size": {
-    "raw": 285,
-    "summary": 285,
-    "structured": 277
+    "raw": 285
   },
   "excluded": {
-    "raw": [],
-    "summary": [],
-    "structured": [
-      {
-        "cell": "12457787:1-2|17a03f9b",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      },
-      {
-        "cell": "12457787:1-2|f4b2b1fb",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      },
-      {
-        "cell": "2af3e2bb:25-25|8f70bc0e",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      },
-      {
-        "cell": "2af3e2bb:25-25|e77d1287",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      },
-      {
-        "cell": "b1c719fb:3-6|289aea4a",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      },
-      {
-        "cell": "b1c719fb:3-6|4d7dda89",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      },
-      {
-        "cell": "b1c719fb:3-6|77db204d",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      },
-      {
-        "cell": "b1c719fb:3-6|98b62f3d",
-        "reason": "write_failed",
-        "error_code": "structured_malformed_json"
-      }
-    ]
+    "raw": []
   },
   "eligibility_rule": "stratum in BEARING/MATCHED_CONTROL (285 design cells) x {raw,summary,structured}; the write succeeded; a gpt-oss row exists to reuse the embedding measurement from. NON-OUTCOME-BASED, fixed in docs/READER_TRANSFER_PRECOMMITMENT.md before any Gemma design-cell output existed.",
   "identity_gates": {
@@ -93,24 +42,24 @@
     "gate3_filler_pool_sha256": "f6d88934516499fafbf98bd18e907a92f9d6b8f341d37581f017a032784b4651",
     "gate3_matches_gptoss_run": true,
     "gate4_context_byte_identity_vs_gptoss_requests": {
-      "matched": 2248,
+      "matched": 0,
       "mismatched": 0,
       "unverifiable_v1_key": 1140
     },
     "gate4_coverage_note": "raw has NO stored request hash (the screened cache uses the v1 key shape, which had no context_sha256). Those requests are counted as unverifiable_v1_key, never as agreement. GATE 5 is raw's per-cell check.",
     "gate5_per_cell_position_and_filler_vs_gptoss_rows": {
-      "matched": 847,
+      "matched": 285,
       "mismatched": 0
     }
   },
-  "planned_calls": 3388,
-  "real_endpoint_calls": 2659,
-  "cache_hits": 635,
-  "errors": 94,
-  "rows_written": 1694,
-  "rows_with_null_delta": 56,
+  "planned_calls": 1140,
+  "real_endpoint_calls": 1110,
+  "cache_hits": 0,
+  "errors": 30,
+  "rows_written": 570,
+  "rows_with_null_delta": 18,
   "resolved_model_counts": {
-    "gemma-4-31B-it": 3294
+    "gemma-4-31B-it": 1110
   },
   "artifact_checks": {
     "rows_on_disk_equals_expected": true,
@@ -123,8 +72,8 @@
     "reader_model_is_the_pinned_gemma_id": true,
     "no_row_coerced_a_null_reward_to_zero": true,
     "every_errored_row_has_null_reward": true,
-    "reasoning_tokens_is_null_never_zero": true,
-    "condition_ids_are_new_not_the_gptoss_ones": true,
+    "reasoning_tokens_match_the_arms_capability": true,
+    "condition_ids_name_THIS_arm_not_another": true,
     "replicates_per_cell_as_requested": true
   },
   "VERDICT": "RUN_PASSED"

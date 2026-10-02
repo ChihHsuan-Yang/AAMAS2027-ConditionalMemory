@@ -81,7 +81,7 @@
         "numeric_only": 6,
         "official": 28
       },
-      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_pilot/cells.jsonl",
+      "rows_artifact": "results/deltau_pilot/cells.jsonl",
       "stored_vs_rederived_mismatches": 0
     },
     "official": {
@@ -163,7 +163,7 @@
         "numeric_only": 6,
         "official": 28
       },
-      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_official/cells.jsonl",
+      "rows_artifact": "results/deltau_official/cells.jsonl",
       "stored_vs_rederived_mismatches": 0
     }
   },

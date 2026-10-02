@@ -1,28 +1,5 @@
 # Reader transfer — does memory utility survive a change of reader?
 
-> # ✅ RESOLVED 2026-10-01 04:55 — the effect SURVIVES session matching
->
-> Both arms were re-run **back-to-back** (gpt-oss `08:20Z`, Gemma `08:34Z` — 14
-> minutes apart), raw only, `memory_text` byte-identical **550/550**, both
-> passing every artifact gate.
->
-> | | ΔU diff (Gemma − gpt-oss) | CI | n |
-> |---|---:|---|---:|
-> | **session-matched** | **+0.0982** | **[+0.0247, +0.1730]** | 550 |
-> | published (11 h apart) | +0.1268 | [+0.0511, +0.2050] | 276 |
->
-> Each mean falls inside the other's interval; sign agreement 110/116.
-> **`VERDICT: SURVIVES_SESSION_MATCHING`**, against falsification criteria
-> committed in `8763fb8` *before* the Gemma arm finished.
->
-> The drift was real but did not carry the effect. What *was* contaminated is
-> the **WITHOUT-arm decomposition**: session-matched it is **−0.0364** against
-> −0.0688 cross-session, so about half of that quantity was the day, matching
-> the 46–54% the session audit measured per cell. **"Memory utility transfers
-> across readers" stands; "about half the gain is a weaker reader" does not.**
->
-> Artifact: `results/ledgers/repro/raw_session_matched/`.
-
 **Generated from `results/ledgers/gemma_reader/reader_transfer_analysis.json` on 2026-10-01T03:22:22.367940+00:00.** Every number here is read out of that artifact at generation time by `scripts/gemma_reader_report.py`; none is typed from recall, so this document cannot drift from the data.
 
 Pre-registered in `docs/READER_TRANSFER_PRECOMMITMENT.md`, written **before any design-cell Gemma call was issued**.
@@ -42,6 +19,8 @@ A reviewer will ask whether the representation finding is an artifact of `gpt-os
 🔴 **But roughly half of that larger ΔU is a weaker baseline, not a more useful memory.** Decomposed, Gemma's raw WITH arm is +0.0580 against gpt-oss and its WITHOUT arm is -0.0688 — **54%** of the change sits in the arm with no memory in it. Gemma is the weaker reader unaided and recovers more of the gap from the same memory. Reporting "Gemma gets more out of memory" without this decomposition would overstate the result.
 
 > 🔴 **The WITHOUT-arm change is CONFOUNDED WITH THE SESSION, and the confound is about half its size.** The two readers were not executed together: the gpt-oss raw comparator is the **2026-09-29** screened run, gpt-oss summary/structured are **2026-09-30**, and every Gemma cell is **2026-10-01** (re-derived from each cache's `written_at_utc`). `gpt-oss-120b` is deterministic within a session and **not** across one: re-issuing byte-identical no-memory requests a day later moved the baseline by **-0.0303** (554/1,124 texts differ), which is **46-54% of the -0.058 to -0.069 WITHOUT-arm change reported above**. The direction survives -- the drift does not cover the whole change, so Gemma really is weaker unaided -- but the **share** must not be read as a clean reader attribution. A session-matched gpt-oss comparator was never run and cannot be recovered from the stored artifacts. The WITHIN-reader contrasts the headline rests on (representation ordering, BEARING-MATCHED_CONTROL) difference this term out and are unaffected. See `docs/SESSION_DETERMINISM_AUDIT.md` section 2.
+
+> ✅ **SETTLED for `raw` by a session-matched re-run** (`results/raw_session_matched/`, both arms 2026-10-01, 570 rows each). On the 275 cells present in all three files the WITHOUT-arm change splits almost evenly -- **session -0.0327, reader -0.0364** -- and ΔU still rises under Gemma when both readers run in one session: **+0.0982**, task-clustered **[+0.0247, +0.1730]**, which excludes zero. (Do NOT divide that by the +0.1268 above: that is the 2-way join, n=276, while the session-matched comparison is a different cell set -- a ratio across the two is a mixed basis. Each mean lies inside the other's CI.) The new Gemma arm reproduces the published one to four decimals, as expected from its 0/1,124 cross-session stability. **The headline survives; the half-the-gain decomposition above is the part that was inflated.**
 
 **Harm stays nearly absent under the second reader**: across all three representations, 0 of 398 matched BEARING cells are negative under Gemma, against 12 under gpt-oss.
 

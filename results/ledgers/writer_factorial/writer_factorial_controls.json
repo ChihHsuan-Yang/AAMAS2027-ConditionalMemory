@@ -1,6 +1,6 @@
 {
   "_what": "controls for the Writer x Reader factorial",
-  "generated_at_utc": "2026-10-01T06:30:44.347018+00:00",
+  "generated_at_utc": "2026-10-01T08:24:03.964800+00:00",
   "cache_separation_across_writers": {
     "_what": "the response cache cannot serve a writer-gpt-oss answer to a writer-Gemma request. POSITIVE CONTROL FIRST: without a demonstrated HIT, a 'miss' proves only that the cache is dead.",
     "step1_POSITIVE_CONTROL_published_key_in_published_cache": {
@@ -23,21 +23,41 @@
     "VERDICT": true
   },
   "aa_determinism_gpt_oss_120b": {
-    "_what": "reader gpt-oss, writer Gemma: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the key). Identical content => deterministic at temperature 0 on the real shape.",
+    "_what": "reader gpt-oss, writer Gemma: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the key). Identical content => deterministic at temperature 0 on the real shape, WITHIN ONE SESSION.",
+    "\ud83d\udd34_SCOPE_WITHIN_SESSION_ONLY": "Both calls in every pair come from ONE run. This does NOT license cross-session reproducibility -- the same comparison across one day moved 554/1,124 on gpt-oss-120b (0/1,124 on gemma-4-31B-it), recorded in cross_session_drift_that_forced_the_rerun below. See docs/SESSION_DETERMINISM_AUDIT.md.",
     "n_paired_groups": 248,
     "n_identical": 248,
     "n_differing": 0,
     "rate_identical": 1.0,
     "differing_examples": [],
+    "intra_pair_gap_seconds": {
+      "min": 57.4,
+      "median": 187.8,
+      "max": 191.1
+    },
+    "utc_dates_spanned": [
+      "2026-10-01"
+    ],
+    "_is_single_session": true,
     "_vacuity_check_n_groups_gt_0": true
   },
   "aa_determinism_gemma_4_31B_it": {
-    "_what": "reader Gemma, writer Gemma: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the key). Identical content => deterministic at temperature 0 on the real shape.",
+    "_what": "reader Gemma, writer Gemma: byte-identical WITHOUT-arm requests issued as SEPARATE calls (memory_repr is in the key). Identical content => deterministic at temperature 0 on the real shape, WITHIN ONE SESSION.",
+    "\ud83d\udd34_SCOPE_WITHIN_SESSION_ONLY": "Both calls in every pair come from ONE run. This does NOT license cross-session reproducibility -- the same comparison across one day moved 554/1,124 on gpt-oss-120b (0/1,124 on gemma-4-31B-it), recorded in cross_session_drift_that_forced_the_rerun below. See docs/SESSION_DETERMINISM_AUDIT.md.",
     "n_paired_groups": 244,
     "n_identical": 244,
     "n_differing": 0,
     "rate_identical": 1.0,
     "differing_examples": [],
+    "intra_pair_gap_seconds": {
+      "min": 176.2,
+      "median": 563.2,
+      "max": 583.3
+    },
+    "utc_dates_spanned": [
+      "2026-10-01"
+    ],
+    "_is_single_session": true,
     "_vacuity_check_n_groups_gt_0": true
   },
   "without_arm_is_writer_invariant_SESSION_MATCHED": {
@@ -126,7 +146,12 @@
     ],
     "HOLDS": null,
     "_vacuity_check": true,
-    "_this_is_a_measurement_not_a_gate": true
+    "_this_is_a_measurement_not_a_gate": true,
+    "_comparator_rows": "results/repr_scaleup/cells.jsonl",
+    "_subject_rows": "results/writer_factorial/factorial_cells_gemma.jsonl",
+    "mean_WITHOUT_reward_change": -0.032028,
+    "mean_change_denominator": 1124,
+    "\ud83d\udd34_WHICH_FIGURE_IS_THIS": "This mean is computed over the WITHOUT rows of _subject_rows above. The writer-Gemma file gives -0.0320 over 1,124 pairs; the writer-gpt-oss file gives -0.0303 over 1,122 (2 null rewards leave the denominator). Both are correct and they are NOT a discrepancy -- any doc quoting one must name the file. See docs/SESSION_DETERMINISM_AUDIT.md section 4."
   },
   "truncation_accounting": {
     "_what": "On Gemma a truncation returns a plausible FRAGMENT, not null content. Scored, it is a wrong answer that drives dU negative and MANUFACTURES a harmful memory. The guard tests three observables; the ARITHMETIC one (completion_tokens >= max_tokens) is counted separately because the server has been measured reporting neither reason field.",

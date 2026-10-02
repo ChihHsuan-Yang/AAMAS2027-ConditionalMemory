@@ -249,5 +249,5 @@
     "disagreements": [],
     "missing": 0
   },
-  "responses_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/j2_escalation/responses.jsonl"
+  "responses_artifact": "results/j2_escalation/responses.jsonl"
 }

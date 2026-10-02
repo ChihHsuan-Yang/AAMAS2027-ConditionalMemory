@@ -1,15 +1,15 @@
 {
   "_what": "K1 screened three-stratum design. Content-only screen, ZERO endpoint calls.",
-  "cells_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/data/manifests/k1_screened_cells.jsonl",
+  "cells_artifact": "data/manifests/k1_screened_cells.jsonl",
   "config": {
-    "cells_out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/data/manifests/k1_screened_cells.jsonl",
+    "cells_out": "data/manifests/k1_screened_cells.jsonl",
     "filler_hi": 5000,
     "filler_lo": 1500,
     "k_filler": 4,
     "max_calls": 6000,
     "max_pool_hits": 8,
     "n_memories": 60,
-    "out": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/ledgers/k1_screened_design.json",
+    "out": "results/ledgers/k1_screened_design.json",
     "random_per_memory": 3,
     "reps_bearing": 3,
     "reps_grid": 2,

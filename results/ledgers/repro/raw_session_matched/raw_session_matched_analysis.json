@@ -13,6 +13,8 @@
  ],
  "excludes_zero": true,
  "sign_agreement_nonzero_under_both": "110/116",
+ "without_arm_change": -0.0364,
+ "with_arm_change": 0.0618,
  "published_cross_session": {
   "mean": 0.1268,
   "ci": [

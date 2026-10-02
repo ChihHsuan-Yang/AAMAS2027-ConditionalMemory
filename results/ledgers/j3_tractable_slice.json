@@ -482,7 +482,7 @@
         }
       },
       "n_live_cells": 479,
-      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_pilot/cells.jsonl"
+      "rows_artifact": "results/deltau_pilot/cells.jsonl"
     },
     "official": {
       "by_domain": {
@@ -964,7 +964,7 @@
         }
       },
       "n_live_cells": 480,
-      "rows_artifact": "/Users/bellayang/Documents/2026/p1_memory_utility/repo/results/deltau_official/cells.jsonl"
+      "rows_artifact": "results/deltau_official/cells.jsonl"
     }
   }
 }
