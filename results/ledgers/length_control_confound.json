@@ -1,0 +1,180 @@
+{
+  "C_DET": {
+    "n_pass": 17,
+    "n_total": 17,
+    "passed": true
+  },
+  "C_JOIN": {
+    "n_common_to_all_three": 277,
+    "n_memory_ids_common_to_all_three": 0,
+    "n_pair_keys_per_representation": {
+      "raw": 285,
+      "structured": 277,
+      "summary": 285
+    },
+    "passed": true
+  },
+  "C_JOIN_POSITIVE_CONTROL_published_table": {
+    "_what": "\u00a72: re-deriving the published Contribution-B table from this join must reproduce it to four decimals. A join that matches half its rows still looks like success.",
+    "per_representation": {
+      "raw": {
+        "mean_delta_utility": 0.18050541516245489,
+        "n_cells": 277,
+        "n_memories": 57,
+        "paired_B_minus_MC": 0.3173976608187134
+      },
+      "structured": {
+        "mean_delta_utility": 0.018050541516245487,
+        "n_cells": 277,
+        "n_memories": 57,
+        "paired_B_minus_MC": -0.049805068226120866
+      },
+      "summary": {
+        "mean_delta_utility": 0.039711191335740074,
+        "n_cells": 277,
+        "n_memories": 57,
+        "paired_B_minus_MC": 0.06130604288499025
+      }
+    }
+  },
+  "REDERIVATION_MISMATCHES": {
+    "_rule": "house rule: never quote a number you have not re-derived. A mismatch is REPORTED, never silently replaced by the fresh value -- the precommitment is the instrument and an after-the-fact edit destroys it.",
+    "mismatches": [],
+    "n_figures_compared": 23,
+    "n_mismatched": 0
+  },
+  "_join": "(memory_unit_locator, future_task_id). NEVER memory_id, which is a per-representation content hash returning zero rows.",
+  "_what": "\u00a72 of docs/LENGTH_CONTROL_PRECOMMITMENT.md, machine-readable. Every figure RE-DERIVED from the row artifacts, then compared against what \u00a72 states. A mismatch is reported as a mismatch.",
+  "generated_at_utc": "2026-10-02T15:43:23.306275+00:00",
+  "n_unscored_rows_excluded_not_zeroed": {
+    "raw": 0,
+    "structured": 0,
+    "summary": 0
+  },
+  "s2_1_exposed_token_distributions": {
+    "_what": "\u00a72.1: the arms do not overlap AT ALL, so no reweighting, covariate adjustment or matched subsample of EXISTING cells can separate representation from length. That is why the confound requires new conditions and new reader calls.",
+    "per_representation": {
+      "raw": {
+        "max": 19801,
+        "mean": 9227.9,
+        "median": 8344.0,
+        "min": 1490,
+        "n": 277,
+        "p25": 5085.0,
+        "p75": 12890.0
+      },
+      "structured": {
+        "max": 453,
+        "mean": 237.8,
+        "median": 216.0,
+        "min": 120,
+        "n": 277,
+        "p25": 188.0,
+        "p75": 275.0
+      },
+      "summary": {
+        "max": 604,
+        "mean": 322.8,
+        "median": 280.0,
+        "min": 139,
+        "n": 277,
+        "p25": 215.0,
+        "p75": 407.0
+      }
+    },
+    "separation": {
+      "median_ratio_raw_over_structured": 38.6,
+      "median_ratio_raw_over_summary": 29.8,
+      "n_raw_cells_inside_structured_range": 0,
+      "n_raw_cells_inside_summary_range": 0,
+      "raw_min_over_structured_max": 3.29,
+      "raw_min_over_summary_max": 2.47
+    }
+  },
+  "s2_2_within_raw_dose_response": {
+    "_what": "\u00a72.2: if more exposed tokens drove utility, dU should RISE with length inside Raw, where representation is held fixed. It does not -- the shortest quartile has the largest mean dU. This does NOT prove the advantage is representational: the within-Raw range never reaches the compressed arms' range, so it is an extrapolation of ~2.5x beyond observed support.",
+    "per_stratum": {
+      "BEARING": {
+        "n": 135,
+        "pearson_r": -0.1847,
+        "quartile_means": {
+          "Q1": 0.5,
+          "Q2": 0.3714,
+          "Q3": 0.2059,
+          "Q4": 0.2812
+        },
+        "quartile_n": {
+          "Q1": 34,
+          "Q2": 35,
+          "Q3": 34,
+          "Q4": 32
+        },
+        "spearman_rho": -0.2093
+      },
+      "MATCHED_CONTROL": {
+        "n": 142,
+        "pearson_r": 0.0673,
+        "quartile_means": {
+          "Q1": 0.0278,
+          "Q2": -0.027,
+          "Q3": 0.0556,
+          "Q4": 0.0606
+        },
+        "quartile_n": {
+          "Q1": 36,
+          "Q2": 37,
+          "Q3": 36,
+          "Q4": 33
+        },
+        "spearman_rho": 0.0785
+      }
+    }
+  },
+  "s2_3_bearing_retention_by_rule": {
+    "_what": "\u00a72.3, THE ONE MEASUREMENT THE DESIGN DEPENDS ON (\u00a71): the truncation rule was chosen on these numbers. A property of the TEXT, computed by the project's own pure-Python detector with NO reader call. The detector's negative control is that it is silent on all MATCHED_CONTROL cells.",
+    "n_bearing": 135,
+    "n_matched_control": 142,
+    "per_rule": {
+      "raw_full": {
+        "BEARING_fires": 135,
+        "BEARING_frac": 1.0,
+        "MATCHED_CONTROL_fires": 0
+      },
+      "structured": {
+        "BEARING_fires": 17,
+        "BEARING_frac": 0.1259,
+        "MATCHED_CONTROL_fires": 0
+      },
+      "summary": {
+        "BEARING_fires": 24,
+        "BEARING_frac": 0.1778,
+        "MATCHED_CONTROL_fires": 3
+      },
+      "trunc_first": {
+        "BEARING_fires": 1,
+        "BEARING_frac": 0.0074,
+        "MATCHED_CONTROL_fires": 0
+      },
+      "trunc_last": {
+        "BEARING_fires": 39,
+        "BEARING_frac": 0.2889,
+        "MATCHED_CONTROL_fires": 0
+      }
+    }
+  },
+  "s5_4_published_raw_minus_summary_BEARING_gap": {
+    "_what": "\u00a75.4: the size of the synthetic uplift planted in C-POWER. \ud83d\udd34 MEASURED ACROSS SESSIONS (Raw 2026-09-29, compressed 2026-09-30) and therefore NOT usable as a comparator (\u00a75.1); it is a plant size only.",
+    "ci_half_width": 0.1472,
+    "ci_lower": 0.12587296809151116,
+    "ci_upper": 0.42028985507246375,
+    "excludes_zero": true,
+    "mean": 0.2740740740740741,
+    "n_clusters": 55,
+    "n_obs": 135
+  },
+  "tokenizer": {
+    "tokenizer": "Qwen/Qwen3.5-9B",
+    "tokenizer_file": "~/.cache/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer.json",
+    "vocab_size": "248070"
+  }
+}
