@@ -1,0 +1,320 @@
+{
+  "_session_note": "defect #25: gpt-oss-120b is deterministic WITHIN a session and not across one. Every arm -- including raw and summary, which have published numbers -- was re-executed here.",
+  "_what": "LEN1 length-controlled representation test. All arms in ONE session.",
+  "all_arms_executed_in_one_session": false,
+  "arms": {
+    "raw": {
+      "budget": null,
+      "condition_id": "lmev2_raw_lenctl_v1",
+      "kind": "raw"
+    },
+    "structured": {
+      "budget": null,
+      "condition_id": "lmev2_structured_lenctl_v1",
+      "kind": "structured"
+    },
+    "summary": {
+      "budget": null,
+      "condition_id": "lmev2_summary_lenctl_v1",
+      "kind": "summary"
+    },
+    "trunc_first_matched": {
+      "budget": null,
+      "condition_id": "lmev2_truncfirst_matched_lenctl_v1",
+      "kind": "trunc_first"
+    },
+    "trunc_last_1024": {
+      "budget": 1024,
+      "condition_id": "lmev2_trunclast_1024_lenctl_v1",
+      "kind": "trunc_last"
+    },
+    "trunc_last_20000": {
+      "budget": 20000,
+      "condition_id": "lmev2_trunclast_20000_lenctl_v1",
+      "kind": "trunc_last"
+    },
+    "trunc_last_4096": {
+      "budget": 4096,
+      "condition_id": "lmev2_trunclast_4096_lenctl_v1",
+      "kind": "trunc_last"
+    },
+    "trunc_last_matched": {
+      "budget": null,
+      "condition_id": "lmev2_trunclast_matched_lenctl_v1",
+      "kind": "trunc_last"
+    }
+  },
+  "cache_hits": 14,
+  "code_sha": "0c77d49a03f9e0b3b7ecee4abcf321080c6a3d8f",
+  "context_tokens_with_arm": {
+    "raw": {
+      "max": 37561,
+      "median": 24868,
+      "min": 15735
+    },
+    "structured": {
+      "max": 19728,
+      "median": 16952,
+      "min": 13641
+    },
+    "summary": {
+      "max": 19934,
+      "median": 17016,
+      "min": 13630
+    },
+    "trunc_first_matched": {
+      "max": 19934,
+      "median": 17016,
+      "min": 13630
+    },
+    "trunc_last_1024": {
+      "max": 20560,
+      "median": 17767,
+      "min": 14514
+    },
+    "trunc_last_20000": {
+      "max": 37561,
+      "median": 24868,
+      "min": 15735
+    },
+    "trunc_last_4096": {
+      "max": 23632,
+      "median": 20581,
+      "min": 15735
+    },
+    "trunc_last_matched": {
+      "max": 19933,
+      "median": 17015,
+      "min": 13629
+    }
+  },
+  "controls": {
+    "C5_position_equal_across_arms": {
+      "n_cells_with_differing_position": 0
+    },
+    "C_AA_text_identity": {
+      "cache_keys_differ_under_identical_context": true,
+      "n_byte_identical_to_raw": 57,
+      "n_memories": 57
+    },
+    "C_JOIN": {
+      "_why": "memory_id is a per-representation content hash; joining on it returns ZERO rows and would print a table of nothing.",
+      "n_join_on_memory_id": 0,
+      "n_join_on_memory_unit_locator": 285
+    },
+    "C_PLANT": [
+      {
+        "control": "P1_untruncated_text_is_caught",
+        "defect_planted": true,
+        "guard_fired": true,
+        "passed": true
+      },
+      {
+        "control": "P1_negative_control_clean_slice_passes",
+        "defect_planted": false,
+        "guard_fired": false,
+        "passed": true
+      },
+      {
+        "control": "P1b_untruncated_text_caught_by_maximality",
+        "defect_planted": true,
+        "guard_fired": true,
+        "passed": true
+      },
+      {
+        "control": "P2_undersaturated_budget_is_caught",
+        "defect_planted": true,
+        "guard_fired": true,
+        "passed": true
+      },
+      {
+        "control": "P2_negative_control_saturated_slice_passes",
+        "defect_planted": false,
+        "guard_fired": false,
+        "passed": true
+      },
+      {
+        "control": "P2_negative_control_saturated_prefix_passes",
+        "defect_planted": false,
+        "guard_fired": false,
+        "passed": true
+      },
+      {
+        "control": "P2b_over_budget_by_25_caught_by_exact",
+        "defect_planted": true,
+        "guard_fired": true,
+        "passed": true
+      },
+      {
+        "control": "P2b_over_budget_by_25_caught_by_maximality",
+        "defect_planted": true,
+        "guard_fired": true,
+        "passed": true
+      },
+      {
+        "_case": {
+          "_what": "maximal slice whose token count != budget; the guard must accept it",
+          "achieved": 28,
+          "budget": 30,
+          "from_end": true
+        },
+        "control": "P2c_maximal_but_inexact_slice_passes",
+        "defect_planted": false,
+        "guard_fired": false,
+        "passed": true
+      },
+      {
+        "control": "P2c_negative_one_char_shorter_at_inexact_boundary_is_caught",
+        "defect_planted": true,
+        "guard_fired": true,
+        "passed": true
+      },
+      {
+        "control": "P5_none_reward_is_caught",
+        "defect_planted": true,
+        "guard_fired": true,
+        "passed": true
+      },
+      {
+        "control": "P5_negative_control_all_scored_passes",
+        "defect_planted": false,
+        "guard_fired": false,
+        "passed": true
+      },
+      {
+        "control": "P3_position_reseeded_per_arm_is_caught",
+        "defect_planted": true,
+        "guard_fired": true,
+        "n_cells_flagged_unplanted": 0,
+        "n_cells_flagged_when_planted": 277,
+        "passed": true
+      },
+      {
+        "control": "P4_join_on_memory_id_returns_zero",
+        "defect_planted": true,
+        "guard_fired": true,
+        "n_rows_joining_on_memory_content_hash": 0,
+        "n_units_expected": 57,
+        "n_units_joining_on_locator": 57,
+        "passed": true
+      }
+    ],
+    "C_WITHOUT_cross_arm_identity": {
+      "examples": [],
+      "n_all_arms_identical": 554,
+      "n_cells_compared": 554,
+      "n_disagreeing": 0
+    },
+    "leakage_detector_selftest": {
+      "n_pass": 17,
+      "n_total": 17
+    }
+  },
+  "errors": 6,
+  "filler_pool_sha256": "f6d88934516499fafbf98bd18e907a92f9d6b8f341d37581f017a032784b4651",
+  "is_smoke_run_not_a_result": false,
+  "memory_tokens_by_arm": {
+    "raw": {
+      "median_official": 7802.0,
+      "median_reader_o200k": 6504.0
+    },
+    "structured": {
+      "median_official": 225.0,
+      "median_reader_o200k": 205.0
+    },
+    "summary": {
+      "median_official": 356.0,
+      "median_reader_o200k": 296.0
+    },
+    "trunc_first_matched": {
+      "median_official": 356.0,
+      "median_reader_o200k": 289.0
+    },
+    "trunc_last_1024": {
+      "median_official": 1024.0,
+      "median_reader_o200k": 862.0
+    },
+    "trunc_last_20000": {
+      "median_official": 7802.0,
+      "median_reader_o200k": 6504.0
+    },
+    "trunc_last_4096": {
+      "median_official": 4096.0,
+      "median_reader_o200k": 3401.0
+    },
+    "trunc_last_matched": {
+      "median_official": 356.0,
+      "median_reader_o200k": 296.0
+    }
+  },
+  "n_cells": 277,
+  "n_preexisting_cache_rows": 0,
+  "n_rows_with_null_reward": 6,
+  "n_strata": {
+    "BEARING": 135,
+    "MATCHED_CONTROL": 142
+  },
+  "planned_calls": 8864,
+  "precommitment": "docs/LENGTH_CONTROL_PRECOMMITMENT.md",
+  "reader_tokenizer": "o200k_harmony",
+  "real_endpoint_calls": 8844,
+  "replicates": 2,
+  "retention_by_arm": {
+    "raw": {
+      "BEARING_fires": 135,
+      "MATCHED_CONTROL_silent": 142
+    },
+    "structured": {
+      "BEARING_fires": 17,
+      "BEARING_silent": 118,
+      "MATCHED_CONTROL_silent": 142
+    },
+    "summary": {
+      "BEARING_fires": 24,
+      "BEARING_silent": 111,
+      "MATCHED_CONTROL_fires": 3,
+      "MATCHED_CONTROL_silent": 139
+    },
+    "trunc_first_matched": {
+      "BEARING_fires": 1,
+      "BEARING_silent": 134,
+      "MATCHED_CONTROL_silent": 142
+    },
+    "trunc_last_1024": {
+      "BEARING_fires": 65,
+      "BEARING_silent": 70,
+      "MATCHED_CONTROL_silent": 142
+    },
+    "trunc_last_20000": {
+      "BEARING_fires": 135,
+      "MATCHED_CONTROL_silent": 142
+    },
+    "trunc_last_4096": {
+      "BEARING_fires": 113,
+      "BEARING_silent": 22,
+      "MATCHED_CONTROL_silent": 142
+    },
+    "trunc_last_matched": {
+      "BEARING_fires": 39,
+      "BEARING_silent": 96,
+      "MATCHED_CONTROL_silent": 142
+    }
+  },
+  "rows_written": 4432,
+  "run_at_utc": "2026-10-02T16:12:34.369853+00:00",
+  "run_id": "len1_20261002T153335.212524+0000",
+  "session_end_utc": "2026-10-02T16:12:29.551581+00:00",
+  "session_start_utc": "2026-10-02T15:46:32.689629+00:00",
+  "smoke_cells": null,
+  "tokenizer": {
+    "tokenizer": "Qwen/Qwen3.5-9B",
+    "tokenizer_file": "~/.cache/huggingface/hub/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a/tokenizer.json",
+    "vocab_size": "248070"
+  },
+  "truncation_audit": {
+    "max_abs_delta_vs_budget_official": 18510,
+    "n_exact": 216,
+    "n_truncated_memories": 285
+  },
+  "wall_clock_s": 1556.85
+}
