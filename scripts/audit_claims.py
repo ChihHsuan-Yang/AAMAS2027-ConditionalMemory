@@ -443,6 +443,32 @@ if _tex3.is_file():
           "2 of 3 required)",
           sum((_m1, _m2, _m3)) >= 2, True)
 
+# The length control (verdict O2) refuted the causal reading "rewriting the
+# experience removes the benefit". At matched length the extractive and
+# model-written arms do not separate, so the loss is the BUDGET. This guard
+# stops that attribution returning anywhere in the manuscript -- it was still
+# live in the ABSTRACT and in contribution (C) an hour after the body was
+# corrected, which is exactly how a refuted claim survives.
+if _tex3.is_file():
+    _b5 = "\n".join(l for l in _tex3.read_text().split("\n")
+                    if not l.lstrip().startswith("%"))
+    _f5 = re.sub(r"\\(?:textbf|emph|textsc)\{([^}]*)\}", r"\1", _b5.lower())
+    _f5 = re.sub(r"[\s\\]+", " ", _f5)
+    _causal = []
+    for _pat in (r"rewriting the experience removes",
+                 r"rewriting removes the benefit",
+                 r"summariz\w+ and structuring remove the benefit",
+                 r"compression destroys the (?:measured )?benefit"):
+        if re.search(_pat, _f5):
+            _causal.append(_pat)
+    check("manuscript does not re-attribute the loss to rewriting "
+          "(length control verdict O2 says it is the budget)", _causal, [])
+    # and the corrected attribution must be PRESENT, since a ban-list cannot
+    # see a deleted caveat
+    check("manuscript states the length control's budget attribution",
+          bool(re.search(r"budget to carry the bearing content|"
+                         r"truncat\w+ to the same budget loses", _f5)), True)
+
 print("== Efficiency ratios stated in the manuscript ==")
 # P1-I13: the paper said the charged reversal is "roughly 5x". True of
 # Structured (4.84x); for SUMMARY it is 1.08x -- indistinguishable -- and the
