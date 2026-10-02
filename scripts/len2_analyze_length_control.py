@@ -416,6 +416,42 @@ def main() -> int:
         "passed": bool(cw.get("n_cells_compared") and not cw.get("n_disagreeing")),
     }
 
+    # ---- C-KEY: no arm is a cache alias of another --------------------
+    # The WITHOUT arm renders byte-identical context in all eight arms, and
+    # trunc_last_20000's WITH context is byte-identical to raw's. If the cache
+    # key did not separate those, one generation would be served to several
+    # arms and their agreement would be TRUE BY CONSTRUCTION -- which would
+    # make C-AA and C-WITHOUT unfalsifiable. Measured directly on the cache
+    # the run wrote: count the request groups whose rendered context is shared
+    # across arms, and require every stored key hash to still be distinct.
+    cache_file = args.cells.parent / "eval_cache.jsonl"
+    ckey: dict[str, Any] = {"_what": "no arm may be served another arm's "
+                                     "cached generation; otherwise C-AA and "
+                                     "C-WITHOUT agree by construction."}
+    if cache_file.exists():
+        crows = [json.loads(l) for l in cache_file.read_text().splitlines() if l.strip()]
+        groups: dict[tuple, set] = collections.defaultdict(set)
+        for cr in crows:
+            k = cr["key"]
+            groups[(k["future_task_id"], k["source_item_id"], k["arm"],
+                    k["replicate_id"], k["context_sha256"])].add(k["memory_repr"])
+        shared = sum(1 for v in groups.values() if len(v) > 1)
+        hashes = {cr["key_hash"] for cr in crows}
+        ckey.update({
+            "n_cached_responses": len(crows),
+            "n_distinct_key_hashes": len(hashes),
+            "n_identical_context_groups_spanning_multiple_arms": shared,
+            "passed": bool(len(hashes) == len(crows) and shared > 0),
+            "_reading": "shared>0 proves arms DO render identical bytes; "
+                        "distinct hashes == rows proves they were still "
+                        "issued and stored separately",
+        })
+    else:
+        ckey["passed"] = False
+        ckey["_why"] = ("no eval_cache.jsonl beside the rows; cache "
+                        "separation could not be verified")
+    ctrl["C_KEY_no_cross_arm_cache_alias"] = ckey
+
     out["controls"] = ctrl
     controls_ok = all(v.get("passed") for v in ctrl.values())
     log(f"CONTROLS: { {k: v.get('passed') for k, v in ctrl.items()} }")
