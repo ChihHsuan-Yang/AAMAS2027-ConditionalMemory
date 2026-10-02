@@ -839,24 +839,51 @@ def main() -> int:
                     "all_three_met": bool(cpower["passed"] and raw_beats_trunc),
                 }
                 verdict = "O2"
-                why = ("the primary CI includes zero while C-POWER shows the "
-                       "test could have detected the pre-registered effect: "
-                       "extractive and model-written compression are "
-                       "indistinguishable once length is held fixed"
-                       + (", and dU(raw)-dU(trunc) is positive with a CI "
-                          "excluding zero, so the Raw advantage is an "
-                          "exposure-budget effect."
-                          if raw_beats_trunc else
-                          ". NOTE: dU(raw)-dU(trunc_last_matched) does NOT "
-                          "exclude zero, so O2's second clause is only "
-                          "partially met and the exposure-budget reading is "
-                          "weaker than O2 as written anticipated."))
+                # 🔴 §5.4 is binding here: "A reported null is accompanied by
+                # this number or it is not reported." An earlier draft of this
+                # branch ASSERTED that C-POWER showed the effect was
+                # detectable, in the verdict text, without checking it -- a
+                # check whose message states something it never verified. If
+                # C-POWER did not pass, the primary is not evidence of no
+                # difference; it is absence of evidence, and the text must say
+                # that rather than the opposite.
+                if cpower["passed"]:
+                    why = ("the primary CI includes zero while C-POWER shows "
+                           "the test could have detected the pre-registered "
+                           "effect: extractive and model-written compression "
+                           "are indistinguishable once length is held fixed")
+                else:
+                    why = ("the primary CI includes zero, but C-POWER did NOT "
+                           "pass -- the test is not shown able to detect the "
+                           "pre-registered effect, so this is ABSENCE OF "
+                           "EVIDENCE, not evidence of no difference. §5.4: a "
+                           "reported null is accompanied by that number or it "
+                           "is not reported")
+                why += (", and dU(raw)-dU(trunc) is positive with a CI "
+                        "excluding zero, so the Raw advantage is an "
+                        "exposure-budget effect."
+                        if raw_beats_trunc else
+                        ". NOTE: dU(raw)-dU(trunc_last_matched) does NOT "
+                        "exclude zero, so O2's second clause is only "
+                        "partially met and the exposure-budget reading is "
+                        "weaker than O2 as written anticipated.")
             steps.append(f"Among O1/O2/O3 the sign and CI of the PRIMARY decide: "
                          f"mean={f4(d_mean)}, CI={ci_str(tc)}, "
                          f"excludes_zero={excl} -> {verdict}.")
         steps.append("The verdict is taken from the PRIMARY contrast only -- "
                      "not the sensitivity, not the secondary, not any subgroup "
                      "(§7).")
+
+    # §5.4 again, as a FIELD and not only as prose: whether the null-shaped
+    # outcomes may be reported at all.
+    null_shaped = verdict in ("O2", "O4")
+    out["NULL_IS_REPORTABLE"] = {
+        "_rule": "§5.4: C-POWER is binding on O2 and O4. A null is not "
+                 "evidence unless the test could have detected the effect.",
+        "verdict_is_null_shaped": null_shaped,
+        "c_power_passed": bool(cpower["passed"]),
+        "reportable": bool((not null_shaped) or cpower["passed"]),
+    }
 
     out["VERDICT"] = {
         "_rule": "§7 pre-registered precedence: O5 dominates all; O4 is checked "
@@ -870,6 +897,7 @@ def main() -> int:
         "primary_n_cells": primary["n_cells"],
         "primary_n_task_clusters": primary["n_task_clusters"],
         "controls_all_passed": controls_ok,
+        "null_is_reportable": out["NULL_IS_REPORTABLE"]["reportable"],
     }
     log(f"VERDICT: {verdict} -- {why}")
 
