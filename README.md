@@ -121,6 +121,74 @@ repo, in shared `/tmp`, and gates the bearing-scarcity figure.
 
 ---
 
+---
+
+# Figure and table provenance
+
+Authoritative detail: **[`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md)**.
+This is the summary. **Every figure is TikZ, drawn inline in `main.tex` from macros
+in `paper/figdata.tex`** — there are no image files, which is why a figure cannot
+drift from its artifact. All are emitted by `scripts/make_figures.py`, which **fails
+the build** when an artifact stops supporting a caption.
+
+| Figure | Story it supports | Canonical input artifact | Unit / universe | Status |
+|---|---|---|---|---|
+| **1** `fig:pipeline` | how ΔU(m,t) is measured | protocol only — no data | — | canonical (explanatory) |
+| **2** `fig:bearing` | **Story 1** — sparsity at corpus scale; reversals sit where pairing is meaningless | `data/manifests/lmev2_memory_units_small.jsonl` · `results/deltau_screened/cells.jsonl` | (a) memory units, n=1,889 · (b) memories per stratum | canonical |
+| **3** `fig:sparsity` | **Story 1** — utility is sparse and the sparsity is structured | `results/deltau_screened/cells.jsonl` | **cells**, 1,157 drawn marks in 3 strata | canonical |
+| **4** `fig:similarity` | **Story 1 support** — similarity does not locate utility | `results/deltau_screened/cells.jsonl` + embeddings | cells, by similarity sextile | canonical |
+| **5** `fig:frontier` | **Story 2** — utility against full cost | `results/repr_scaleup/cells.jsonl` + `memories.jsonl` | **memories** for cost, **cells** for utility — stated per axis | canonical |
+| **6** `fig:readertransfer` | **Story 3** — the Raw effect survives a reader change | `results/ledgers/repro/raw_session_matched/raw_session_matched_analysis.json` | **275 cells / 123 tasks / 550 replicate rows** | canonical (**session-matched**; the cross-session run is superseded) |
+
+| Table | Scientific purpose | Input artifact | Unit / universe | Current n | Status |
+|---|---|---|---|---|---|
+| **1** `tab:coverage` | what was attempted vs completed, per benchmark | `docs/COVERAGE_MANIFEST.md` + the per-benchmark finals | **stated per row** — the units differ and the table says which | LMEv2 1,157 cells · SciCode 154 pairs · SWE-bench 107 recipients | canonical |
+| **2** `tab:screened` | the screen bought measurement capacity | `results/deltau_screened/cells.jsonl` | **cells**, 3 strata | 139 / 146 / 872 = 1,157 | canonical |
+| **3** `tab:crossbench` | **Story 2 boundary** — only LongMemEval separates | `results/ledgers/repro/scicode/scaleup_analysis.json` · `results/ledgers/repro/swebench/representations_multirepo_final.json` | **matched cells** (interpretable under all 3 representations) | LMEv2 277 · SciCode 122 · SWE-bench **40** | canonical |
+
+🔴 **Units are never interchangeable here.** A *pair* is not a *cell* is not an
+*arm-run* is not a *replicate row*. `n=550` is 550 replicate rows over 275 cells.
+`cell_id` is a content hash and **collides** (283 ids over 285 cells). Joins must use
+`memory_unit_locator`, never `memory_id` (a per-representation content hash) and never
+`condition_id` (it embeds the representation name, so joining on it returns **zero
+rows**).
+
+**Gold-free validation** (Story 1 support) has no figure; it is reported in prose from
+`results/ledgers/gf_llm_effect.json` and `gf_gold_free_effect.json`.
+
+---
+
+# Remaining work
+
+## Human TODO — needs authority, judgement or credentials an agent does not have
+
+| TODO | Status | Agent can prepare | Done when |
+|---|---|---|---|
+| Restore Overleaf git access (account/Premium) | **BLOCKED on account** | the manuscript is already mirrored and compiles; nothing else needed | `git push` to the existing project succeeds |
+| Author list, affiliations, author order | TODO | — | decided by the authors |
+| OpenReview metadata and the submission action | TODO | agent prepares a venue-compliance checklist | submitted |
+| Reciprocal-reviewer commitment | TODO | — | registered |
+| Decide when the GitHub repo and HF dataset become public | TODO | agent has already withheld the de-anonymising links | decided |
+| Final approval of every scientific claim | TODO | every number is artifact-backed and re-derivable | approved |
+
+## Agent TODO
+
+| TODO | Status | Blocker | Path | Done when |
+|---|---|---|---|---|
+| **Length-control experiment** | **RUNNING** | — | [`docs/LENGTH_CONTROL_PRECOMMITMENT.md`](docs/LENGTH_CONTROL_PRECOMMITMENT.md) (frozen `f702aaf`) | all 8 arms complete in one session, A/A control reproduces Raw 277/277, verdict taken by §7 precedence |
+| **Integrate the length verdict** | TODO | length control | manuscript · `figdata.tex` · artifact map | Story 2 states exactly what the controlled contrast supports — **narrowing is an acceptable outcome** |
+| **Final fresh mock review** | TODO | the two above | — | a blind reviewer recovers **exactly three** stories; if they extract five or six, simplify and repeat |
+| HF v0.5 release | **RUNNING** | — | `scripts/export_hf.py` | downloaded remote bytes re-validate |
+| Page compression to 8 body pages | DEFERRED | science freeze | [`docs/PAGE_BUDGET_DECISION.md`](docs/PAGE_BUDGET_DECISION.md) | body ends before p9; **no claim, caveat or interval deleted** |
+| Push the manuscript when Overleaf returns | BLOCKED | human TODO above | `../overleaf` | fresh clone compiles and matches `paper/` |
+
+**Scientific items are the first three.** Everything else is synchronization,
+publication or compression. Full terminal-state list (198 items):
+[`docs/MASTER_TODO.md`](docs/MASTER_TODO.md).
+
+
+---
+
 ## The question
 
 Does a long-term memory have something like a stable intrinsic value, `Value(memory)` —
@@ -598,3 +666,95 @@ produce silent zeros.
 otherwise.
 **(5)** Compare only session-matched arms; this endpoint is not deterministic across
 sessions.
+
+---
+
+# Regenerate figures and tables
+
+Working directory is the repository root. Interpreter and environment:
+[`docs/DEV_ENVIRONMENT.md`](docs/DEV_ENVIRONMENT.md) (**the system `python3` is 3.9 and
+breaks the suite; use the project interpreter**).
+
+| Item | Command | Input | Expected output |
+|---|---|---|---|
+| **All figures and tables** | `python3 scripts/make_figures.py` | the tracked artifacts in `results/ledgers/repro/` | `paper/figdata.tex` — every number and plot coordinate |
+| Verify the figure guards discriminate | `python3 scripts/verify_figure_guards.py` · `python3 scripts/verify_story_figure_guards.py` | — | `ALL GUARDS DISCRIMINATE` (each plants its own defect) |
+| Verify every manuscript claim | `python3 scripts/audit_claims.py` | tracked artifacts + `paper/main.tex` + `main.pdf` | `AUDIT PASSED` — 224 checks |
+| Build the paper | `cd paper && latexmk -pdf -interaction=nonstopmode main.tex` **twice** | `paper/` only | `paper/main.pdf`, 11 pages |
+
+`make_figures.py` **exits non-zero** if a generated number disagrees with its artifact,
+so a stale figure cannot ship silently.
+
+# Reproduce current results
+
+## A · Reproduce the analysis from existing data — minutes, no endpoint
+
+Every canonical number is re-derivable from tracked artifacts with no model calls:
+
+```bash
+python3 scripts/k3_analyze_screened.py             # Story 1: bearing vs matched control
+python3 scripts/r3_analyze_representations.py      # Story 2: representation + cost
+python3 scripts/raw_session_matched_analysis.py    # Story 3: reader transfer, session-matched
+python3 scripts/swebench_multirepo_analysis.py     # cross-benchmark boundary
+python3 -m pytest -q                               # 638 tests
+```
+
+Expected headline values — if these do not reproduce, **stop and investigate**:
+
+| result | expected |
+|---|---|
+| bearing − matched control (LongMemEval) | **+0.3349**, episode-clustered [+0.1974, +0.4736] |
+| reader transfer, session-matched | **+0.0982** [+0.0247, +0.1730], 275 cells |
+| gold-free screen, cells gold never selected | **15.6% → 50.0%** |
+| SciCode / SWE-bench representation contrasts | **all cross zero** |
+
+## B · Re-run model inference — expensive, rarely necessary
+
+Do **not** re-run inference to regenerate a table; the canonical rows already exist.
+
+| experiment | entry point | calls | notes |
+|---|---|---:|---|
+| LongMemEval screened | `scripts/k2_run_screened.py` | 5,198 | the primary arm |
+| Representation scale-up | `scripts/r2_run_representations.py` | 2,368 | needs `--memory-records` and `--parents` |
+| Reader transfer | `scripts/gemma_reader_run.py --reader-arm {gptoss_metis,gemma_metis}` | 1,140/arm | 🔴 **both arms in ONE session** — the endpoint is deterministic within a session and not across one |
+| SciCode | `scripts/scicode_pilot.py --n-cells 999 --tasks-per-memory 99` | 924 | the full pool |
+| SWE-bench | `scripts/swebench_representations.py --repo <r> --cells <n>` | ~4/cell | gates read from disk and refuse without them |
+
+All runs are idempotent through the response cache, and every runner prints
+`VERDICT: RUN_PASSED/RUN_FAILED` from its own artifact checks — **exit code 0 is not
+success**.
+
+---
+
+# Next agent: start here
+
+**You can begin useful work in minutes. Do not read conversation history.**
+
+1. Read **§1 Main story** above — three stories, and the founding hypothesis that was *not* supported.
+2. Read **[`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md)** — exact paths, live jobs, restart commands.
+3. Open **Agent TODO** above and take the first non-blocked scientific item.
+4. Check for live jobs: `pgrep -fl 'scripts/.*\.py'`.
+5. Before trusting any check, read **[`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md)** — 30+ defects, several of which were checks that *passed while measuring the wrong thing*.
+
+**Current live experiment.** The length control, 8 arms × 277 cells × 2 replicates × 2
+sub-arms = 8,864 calls, design frozen at `f702aaf`. Output `results/length_control/`.
+**Do not amend the design after seeing an outcome** — all five outcomes are
+pre-registered and narrowing Story 2 is an acceptable result.
+
+**Current blocker.** Overleaf git access only. Not scientific. The manuscript is in
+[`paper/`](paper/) and compiles standalone.
+
+**Next scientific action.** Finish the length control, then integrate its verdict, then
+the final mock review.
+
+**What NOT to redo**
+- ❌ Do not re-apply manuscript edits when Overleaf returns — **push the local clone**, which is 1 commit ahead. Confirm with `grep -c 'never sees the gold answer' ../overleaf/main.tex` → **1**.
+- ❌ Do not re-run SciCode — 154/154 is the full eligible pool.
+- ❌ Do not relax SWE-bench `tasks_per_memory=4` — it adds **+10** runnable cells, not +146, and silently re-pairs 13 already-executed cells.
+- ❌ Do not try to recover SciCode Summary/Structured memory text — it was never persisted and **cross-session regeneration is 0/8 byte-identical**.
+- ❌ Do not reopen the demoted storylines (sign-flip headline, variance decomposition, semantic-type taxonomy) — each was demoted for a measured reason.
+
+**Canonical vs superseded**
+- ✅ reader transfer = the **session-matched** +0.0982. ❌ The cross-session +0.1268 is **superseded**.
+- ✅ SWE-bench = **n=40** (`representations_multirepo_final.json`). ❌ n=15 and `representations_v1.json` are **superseded/void**.
+- ✅ Gold-free = **both** screens reported. Reporting only the one that worked would select an instrument on its outcome.
