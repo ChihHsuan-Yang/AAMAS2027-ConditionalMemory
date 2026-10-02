@@ -201,6 +201,41 @@ def main() -> int:
             and not run.get("n_preexisting_cache_rows", 0)),
     }
 
+    # ---- C-REPL: within-session determinism, MEASURED -------------------
+    # §5.1's premise is that gpt-oss-120b is deterministic WITHIN a session.
+    # Replicates here are BYTE-IDENTICAL requests by construction (position is
+    # seeded without replicate_id, prereg §2), so if the premise holds every
+    # replicate pair must return identical text. This is the premise of the
+    # whole single-session design, measured on this run's own rows rather
+    # than inherited from an earlier audit.
+    #
+    # It also guards a subtler thing: if replicates ever DISAGREED, the
+    # per-cell mean would be averaging execution noise rather than repeating
+    # one measurement, and every CI in this file would be describing a
+    # different quantity than the design says.
+    repl: dict[tuple, dict] = collections.defaultdict(dict)
+    for r in rows:
+        p = r.get("provenance") or {}
+        if r["output_with_memory"] is not None:
+            repl[(p["arm"], p["pair_key"])][r["replicate_id"]] = \
+                r["output_with_memory"]
+    pairs = [d for d in repl.values() if len(d) >= 2]
+    ident = sum(1 for d in pairs if len({v for v in d.values()}) == 1)
+    ctrl["C_REPL_within_session_determinism"] = {
+        "_what": "§5.1's premise, measured here: replicates are byte-identical "
+                 "REQUESTS (position is seeded without replicate_id), so a "
+                 "deterministic in-session reader must return byte-identical "
+                 "text. If it did not, each cell mean would be averaging "
+                 "execution noise and every CI would describe a different "
+                 "quantity than the design specifies.",
+        "n_replicate_pairs": len(pairs),
+        "n_byte_identical": ident,
+        "n_disagreeing": len(pairs) - ident,
+        "passed": bool(pairs and ident == len(pairs)),
+    }
+    log(f"  [C-REPL] WITH-arm replicate pairs byte-identical: "
+        f"{ident}/{len(pairs)}")
+
     # ---- C-JOIN (§5.5): BOTH traps, in both directions ------------------
     def pk(r: dict) -> str:
         return (r.get("provenance") or {})["pair_key"]
