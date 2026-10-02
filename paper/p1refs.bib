@@ -1,0 +1,190 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% P1 bibliography.
+%%%
+%%% BINDING RULE (docs/LITERATURE_BOUNDARY.md): every entry here must be a
+%%% paper someone on this project actually fetched. AAMAS 2027 names
+%%% hallucinated citations as a desk-reject trigger.
+%%%
+%%% Every entry below was re-verified on 2026-09-29 against the arXiv Atom
+%%% API (`export.arxiv.org/api/query?id_list=...`) or, for EvoMemEval,
+%%% against `api2.openreview.net/notes/search?term=EvoMemEval` (count=1).
+%%% Titles and author lists are transcribed from those responses, not recalled.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% --- The closest collision. docs/LITERATURE_BOUNDARY.md Sec. 2.
+@misc{umem,
+  title        = {{UMEM}: Unified Memory Extraction and Management Framework
+                  for Generalizable Memory},
+  author       = {Ye, Yongshi and Jiang, Hui and Jiang, Feihu and Lan, Tian and
+                  Du, Yichao and Fu, Biao and Shi, Xiaodong and Jia, Qianghuai and
+                  Wang, Longyue and Luo, Weihua},
+  year         = {2026},
+  eprint       = {2602.10652},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+%%% --- One memory against several future tasks: named and tabulated there
+%%% first. docs/LITERATURE_BOUNDARY.md Sec. 2b.
+@misc{ember,
+  title        = {{EMBER}: Efficient Memory via Budgeted Evidence Retention for
+                  Long-Horizon Agents},
+  author       = {Li, Yilong and Banerjee, Suman and Che, Tong},
+  year         = {2026},
+  eprint       = {2606.05894},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+%%% --- The useful/harmful reversal we must concede. Cited as the OpenReview
+%%% record, deliberately: the submission is under double-blind review and a
+%%% public mirror of its artifact exists. docs/EVOMEMEVAL_VERDICT.md Sec. 1.
+@misc{evomemeval,
+  title        = {{EvoMemEval}: Evaluating Large Language Models at Evaluating
+                  Memory Utility in Self-Evolving Agents},
+  author       = {{Anonymous}},
+  year         = {2026},
+  howpublished = {ACL ARR 2026 May Submission, OpenReview \texttt{n3GMbobXnc}},
+  note         = {Under review}
+}
+
+%%% --- The assertion this paper converts into a number.
+@misc{meclear,
+  title        = {{MeClear}: Cooperative Game-Theoretic Attribution and
+                  Risk-Aware Memory Clearance for Long-Horizon {LLM} Agents},
+  author       = {Yang, Boyu and Sun, Jiazheng and Lu, Zilong and Qiu, Zhi and
+                  Peng, Xin and Zheng, Jun},
+  year         = {2026},
+  eprint       = {2609.09115},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+%%% --- The fair-comparison critique our ablation must answer.
+@misc{memoryrtwo,
+  title        = {{Memory-R2}: Fair Credit Assignment for Long-Horizon
+                  Memory-Augmented {LLM} Agents},
+  author       = {Yan, Sikuan and Bahloul, Ahmed and Nie, Ercong and
+                  Schwarzmann, Susanna and Trivisonno, Riccardo and
+                  Tresp, Volker and Ma, Yunpu},
+  year         = {2026},
+  eprint       = {2605.21768},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+@misc{memoryrone,
+  title        = {{Memory-R1}: Enhancing Large Language Model Agents to Manage
+                  and Utilize Memories via Reinforcement Learning},
+  author       = {Yan, Sikuan and Yang, Xiufeng and Huang, Zuchao and
+                  Nie, Ercong and Ding, Zifeng and Li, Zonggen and Ma, Xiaowen and
+                  Bi, Jinhe and Kersting, Kristian and Pan, Jeff Z. and
+                  Sch{\"u}tze, Hinrich and Tresp, Volker and Ma, Yunpu},
+  year         = {2025},
+  eprint       = {2508.19828},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+%%% --- The honest null. Referred to internally as TraceRetain; the arXiv
+%%% comment field records ICML 2026 acceptance.
+@inproceedings{traceretain,
+  title     = {Selective Memory Retention for Long-Horizon {LLM} Agents},
+  author    = {Reddy, Pranath},
+  booktitle = {Proceedings of the 43rd International Conference on Machine
+               Learning (ICML)},
+  year      = {2026},
+  note      = {arXiv:2606.29178}
+}
+
+%%% --- A learned value model that ties a linear scorer.
+@misc{multifactor,
+  title        = {Learning What to Remember: A Cognitively Grounded
+                  Multi-Factor Value Model for Agentic Memory},
+  author       = {Chen, Zhibao and Cheng, Qian},
+  year         = {2026},
+  eprint       = {2606.12945},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+%%% --- Prior art outside the memory literature. Referred to internally as
+%%% When2Tool; the arXiv title is the one transcribed here.
+@misc{when2tool,
+  title        = {{LLM} Agents Already Know When to Call Tools -- Even Without
+                  Reasoning},
+  author       = {Sun, Chung-En and Liu, Linbo and Yan, Ge and Wang, Zimo and
+                  Weng, Tsui-Wei},
+  year         = {2026},
+  eprint       = {2605.09252},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+@misc{influence,
+  title        = {Influence Guided Context Selection for Effective
+                  Retrieval-Augmented Generation},
+  author       = {Deng, Jiale and Shen, Yanyan and Pei, Ziyuan and
+                  Chen, Youmin and Huang, Linpeng},
+  year         = {2025},
+  eprint       = {2509.21359},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+%%% --- Benchmarks. Licences and provenance: docs/BENCHMARK_LICENSES.md.
+@misc{lmev2,
+  title        = {{LongMemEval-V2}: Evaluating Long-Term Agent Memory Toward
+                  Experienced Colleagues},
+  author       = {Wu, Di and Ji, Zixiang and Kawatkar, Asmi and Kwan, Bryan and
+                  Gu, Jia-Chen and Peng, Nanyun and Chang, Kai-Wei},
+  year         = {2026},
+  eprint       = {2605.12493},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL}
+}
+
+@inproceedings{lmev1,
+  title     = {{LongMemEval}: Benchmarking Chat Assistants on Long-Term
+               Interactive Memory},
+  author    = {Wu, Di and Wang, Hongwei and Yu, Wenhao and Zhang, Yuwei and
+               Chang, Kai-Wei and Yu, Dong},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2025},
+  note      = {arXiv:2410.10813}
+}
+
+@inproceedings{beam,
+  title     = {Beyond a Million Tokens: Benchmarking and Enhancing Long-Term
+               Memory in {LLMs}},
+  author    = {Tavakoli, Mohammad and Salemi, Alireza and Ye, Carrie and
+               Abdalla, Mohamed and Zamani, Hamed and Mitchell, J Ross},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2026},
+  note      = {arXiv:2510.27246}
+}
+
+@inproceedings{scicode,
+  title     = {{SciCode}: A Research Coding Benchmark Curated by Scientists},
+  author    = {Tian, Minyang and Gao, Luyu and Zhang, Shizhuo Dylan and
+               Chen, Xinan and Fan, Cunwei and Guo, Xuefei and Haas, Roland and
+               Ji, Pan and Krongchon, Kittithat and Li, Yao and Liu, Shengyan and
+               Luo, Di and Ma, Yutao and Tong, Hao and Trinh, Kha and
+               Tian, Chenyu and Wang, Zihan and Wu, Bohao and Xiong, Yanyu and
+               Yin, Shengzhu and Zhu, Minhui and Lieret, Kilian and Lu, Yanxin and
+               Liu, Genglin and Du, Yufeng and Tao, Tianhua and Press, Ofir and
+               Callan, Jamie and Huerta, Eliu and Peng, Hao},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)
+               Datasets and Benchmarks Track},
+  year      = {2024},
+  note      = {arXiv:2407.13168}
+}
+
+@inproceedings{swebench,
+  title     = {{SWE-bench}: Can Language Models Resolve Real-World GitHub Issues?},
+  author    = {Jimenez, Carlos E. and Yang, John and Wettig, Alexander and
+               Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024},
+  note      = {We use the human-validated \textsc{SWE-bench Verified} subset}
+}
