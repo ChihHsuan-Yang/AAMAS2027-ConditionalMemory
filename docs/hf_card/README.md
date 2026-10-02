@@ -1055,7 +1055,7 @@ source run, not dropped silently here.
 
 | excluded | why |
 |---|---|
-| the length-control experiment | **still running.** Its result is not frozen, and a release is not a place to park a provisional number. |
+| the length-control experiment | **excluded from v0.5, and the reason CHANGED while v0.5 was being built.** It was still running when this release was scoped; it reached a frozen verdict (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`) before upload. It is held out because its rows were **not in the audited set this release was built and gated against**, not because the result is provisional — and that distinction is written down so the exclusion is not silently inherited. 🔴 **It is a candidate for v0.6 and must be re-decided there, not skipped by default.** |
 | `results/swebench/representations_v1.json` | **VOIDED** — its contagion screen false-positived on ASCII table borders (`+---+`) in issue text. Retained on disk as a record, never as an input. |
 | `results/raw_session_matched_VOID_mislabelled/` | **VOID (defect 27)**: a runner hardcoded one arm's `condition_id`, so 570 rows claimed `gemma4_31B` while `reader_model` said `gpt-oss-120b`. Verified by row id: **0 of its 570** rows appear in this release. |
 | calibration / debug / probe rows, superseded arms | not results. |
