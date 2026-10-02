@@ -9,6 +9,28 @@ estimated ([`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md)).
 
 ---
 
+## 📡 Current live status — 2026-10-02
+
+| workstream | state |
+|---|---|
+| Core benchmark collection (LongMemEval · SciCode · SWE-bench) | ✅ **DONE** — 1,157 / 154 / 107 of each eligible universe |
+| Reader transfer, session-matched (**Story 3**) | ✅ **DONE** — ⏫ *publishing to HF now* |
+| Gold-free validation of the bearing screen (**Story 1 support**) | ✅ **DONE** — ⏫ *publishing to HF now* |
+| Writer × Reader factorial (**Story 3 support**) | ✅ **DONE** — ⏫ *publishing to HF now* |
+| **Length-control experiment** (**Story 2**) | 🔄 **RUNNING** — design frozen at `f702aaf` *before* any outcome. **Deliberately excluded from HF until its result is frozen** |
+| Final fresh mock review | ⏳ queued behind the length control |
+| Page compression | ⏳ deferred until the science is frozen |
+
+| | |
+|---|---|
+| **latest HF tag** | `v0.4-swebench-metrics` · **5,924 rows** |
+| ⏫ **finished but not yet uploaded** | **6,460 rows** — session-matched reader transfer (1,140), gold-free screens (824), writer×reader factorial (4,496). **No Gemma-reader row is published yet**, so the Story 3 evidence base is currently absent from the release. A v0.5 release is in flight |
+| **canonical manuscript** | [`paper/`](paper/) — builds standalone |
+| **Overleaf remote** | 🔴 **temporarily unavailable** (account/Premium). Local clone `../overleaf` at **`a320c74`**, 1 commit ahead. Nothing lost |
+| **Remaining scientific TODOs** | **3** — finish the length control · integrate its verdict · final mock review |
+
+---
+
 # ▶ START HERE
 
 **You need nothing but this page.** No Overleaf URL, no local path, no dataset name, no
