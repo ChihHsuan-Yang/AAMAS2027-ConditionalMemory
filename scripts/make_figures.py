@@ -665,6 +665,24 @@ def crossbench():
         FAIL.append("gold-free: the gold-free bearing arm no longer improves over "
                     "its own no-memory arm; the manuscript's 15.6->50.0 is false")
 
+    # Length control -- Story 2's warrant. Verdict O2: at matched length the
+    # extractive/model-written contrast does NOT separate, so Raw's advantage
+    # is an exposure-budget effect. The manuscript must not re-acquire a
+    # causal "rewriting removes the benefit" claim.
+    _lc = json.loads((REPO / "results/ledgers" / "length_control_result.json").read_text())
+    if _lc.get("VERDICT") != "O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH":
+        FAIL.append(f"length control: verdict is {_lc.get('VERDICT')!r} -- the "
+                    "manuscript says the representation contrast does NOT "
+                    "survive a length control")
+    _lp = _lc["primary_trunclast_minus_summary"]
+    if _lp["ci_lo"] > 0 or _lp["ci_hi"] < 0:
+        FAIL.append("length control: the primary contrast now EXCLUDES zero; "
+                    "Story 2's narrowing is no longer warranted")
+    _ld = _lc["decisive_trunclast_minus_truncfirst"]
+    if not (_ld["ci_lo"] > 0 or _ld["ci_hi"] < 0):
+        FAIL.append("length control: first-vs-last no longer separates; the "
+                    "content-presence mechanism is unsupported")
+
     _smg = json.loads((REPO / "results/ledgers/repro/raw_session_matched"
                        / "raw_session_matched_analysis.json").read_text())
     expect("session-matched reader arms: matched cell count",
@@ -1717,6 +1735,18 @@ def main():
     L.append(rf"\def\rgSmWith{{{_sm['with_arm_change']:+.4f}}}")
     # Gold-free replication of the bearing effect -- Story 1 support. The
     # numbers the manuscript quotes come from here, never typed.
+    # Length control -- Story 2's warrant (verdict O2). The GUARDS live in
+    # crossbench(), which runs before the `if FAIL:` exit; this only emits.
+    _lcm = json.loads((REPO / "results/ledgers" / "length_control_result.json").read_text())
+    _lp2 = _lcm["primary_trunclast_minus_summary"]
+    _lf2 = _lcm["decisive_trunclast_minus_truncfirst"]
+    _lb2 = _lcm["budget_raw_minus_trunclast"]
+    for _nm, _d in (("lcPrimary", _lp2), ("lcEnds", _lf2), ("lcBudget", _lb2)):
+        L.append(rf"\def\{_nm}{{{_d['mean']:+.4f}}}")
+        L.append(rf"\def\{_nm}Lo{{{_d['ci_lo']:+.4f}}}")
+        L.append(rf"\def\{_nm}Hi{{{_d['ci_hi']:+.4f}}}")
+    L.append(rf"\def\lcPrimaryN{{{_lp2['n']}}}")
+
     _gfl = json.loads((REPO / "results/ledgers" / "gf_llm_effect.json").read_text())
     _gfx = json.loads((REPO / "results/ledgers" / "gf_gold_free_effect.json").read_text())
     _go = _gfl["arm_rates"]["GFLLM_BEARING_gold_free_only"]
