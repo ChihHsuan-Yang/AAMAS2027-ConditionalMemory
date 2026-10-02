@@ -1,15 +1,101 @@
-# Memory Utility Is Not a Scalar
+# What Is This Memory Useful For?
 
-**Measuring Task-Conditional Value in Long-Term Agent Memory**
+### Measuring Task-Conditioned Utility in Long-Term Agent Memory
 
-> **What is this memory useful for?**
+**AAMAS 2027 submission.** Scientific scope is **FROZEN**
+([`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md)). 30,159 real endpoint calls across
+three benchmarks and two reader backbones, **0 unrecoverable losses** — counted, not
+estimated ([`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md)).
 
-Status: **analysis and write-up; the scientific scope is FROZEN**
-([`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md)). Initialized 2026-09-29. **30,159 real
-endpoint calls** across three benchmarks and two model backbones, **0 unrecoverable
-losses** — counted, not estimated, by
-[`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md). Jump to
-[`## Current Project State`](#current-project-state).
+---
+
+# ▶ START HERE
+
+**You need nothing but this page.** No Overleaf URL, no local path, no dataset name, no
+internal document name is assumed.
+
+## 1 · What the paper says — three stories, and only three
+
+| | story | status |
+|---|---|---|
+| **1** | **Memory utility is sparse and task-conditioned.** A memory is strongly useful for the few future tasks it bears on and inert for most others, so one global score per memory discards the structure a policy needs | established |
+| **2** | **Representation and cost materially change measured utility.** The same experience written as Raw / Summary / Structured is not behaviourally equivalent, and compression's apparent efficiency changes once you charge it for writing itself | established on LongMemEval-V2; **a length control is in flight** |
+| **3** | **The main Raw effect survives a change of reader.** Byte-identical memories, a second backbone, session-matched: the effect persists | established |
+
+Everything else in the paper — similarity, screening, sign reversal, the cross-benchmark
+boundary, the writer×reader factorial, the dataset — **supports, bounds or validates
+these three**. None is a fourth story.
+
+🔴 **The founding hypothesis was NOT supported.** The project set out to find
+task-conditional *harm* (the same memory helping one task and hurting another) and did
+not find it; the sparsity result replaced it. That negative is reported in the paper's
+own introduction, and [`docs/THE_HONEST_HEADLINE.md`](docs/THE_HONEST_HEADLINE.md)
+records it.
+
+## 2 · Where the paper lives
+
+| | |
+|---|---|
+| 📦 **canonical paper package** | **[`paper/`](paper/)** — self-contained; `latexmk -pdf main.tex` **twice** (bibtex needs the second pass). Verified to build standalone and render byte-identically to the Overleaf copy |
+| ✍️ **Overleaf project** (the target remote, unchanged) | `git.overleaf.com/6abbde4a9eb777031afef068` |
+| 💾 **local Overleaf clone** | `../overleaf` (sibling of this repo), commit **`a320c74`** |
+| 🔴 **status** | **Overleaf git access is temporarily unavailable** (account/Premium; `push` *and* `fetch` both fail, so it is the remote, not a credential). The local clone is **1 commit ahead** of the server. **Nothing is lost.** See [Paper / Overleaf status](#paper--overleaf-status) |
+
+⚠️ **On recovery, push the local clone — do not re-apply edits by hand.** The content is
+already there.
+
+## 3 · Where the data live
+
+🤗 **`AgentsSci/AAMAS2027-ConditionalMemory`** —
+<https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory> · **private** ·
+5,924 rows · tags `v0.1-lmev2-derived` → **`v0.4-swebench-metrics`** (current)
+
+| benchmark | rows | what is actually in them |
+|---|---:|---|
+| **LongMemEval-V2** | 5,643 | ✅ **complete** — memory text, task text, both arm outputs, rewards, costs, provenance. 2 rows carry an endpoint error with null rewards (never 0.0) |
+| **SciCode** | 154 | ⚠️ **`raw` only, 154 of 462 cells.** Memory text is present; **both output fields are `__OUTPUT_NOT_RETAINED__`**. The 308 Summary/Structured cells are **absent — their text was never persisted and is *not recoverable***. A **persistence** gap, not a licence one. Rewards remain valid |
+| **SWE-bench Verified** | 127 | ⚠️ **metrics and ids only.** Every text field is `__WITHHELD_SEE_LICENSE__` and declared in `text_fields_withheld`, because the corpus **declares no licence**. A **licence** withholding — not the same fact as SciCode's |
+
+The two sentinels are never swapped. Full per-field detail:
+[`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md).
+
+## 4 · Where every number comes from
+
+| map | what it answers |
+|---|---|
+| [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) | **paper → artifact.** Every figure and table with its generator, canonical input, GitHub path, HF subset and **unit**; memory construction per benchmark; eligibility/validity rules and what is **never** scored as reward zero |
+| [`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md) | **can it be reproduced and audited?** Per result: source episode, each memory text, both arm outputs, reward, scorer, endpoint and replicate metadata — HF / GitHub / local-only / **unavailable forever**. Gaps recorded, not softened |
+| [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) · [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md) | every headline result, one row each · figure decisions and the generator contract |
+| [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) · [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) | one row per HF snapshot with its limitations · the authoritative definition of "full coverage" per benchmark, with the universe **named** |
+| [`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md) | **30+ instrument defects found and fixed.** Read before trusting any check — several were checks that passed while measuring the wrong thing |
+
+## 5 · How to reproduce the paper
+
+```bash
+python3 scripts/make_figures.py    # regenerates EVERY number -> paper/figdata.tex; fails if an artifact stops supporting a caption
+python3 scripts/audit_claims.py    # 224 checks re-derived from tracked artifacts
+python3 -m pytest -q               # 638 tests
+cd paper && latexmk -pdf main.tex  # twice
+```
+
+No number in the manuscript is hand-typed where a generator can emit it. Interpreter and
+environment: [`docs/DEV_ENVIRONMENT.md`](docs/DEV_ENVIRONMENT.md).
+
+## 6 · Where to continue the work
+
+👉 **[`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md)** — current state, exact paths,
+running jobs, restart commands, known-invalid runs, next actions.
+
+**Remaining scientific TODOs: 3** — finish the pre-registered length control
+([`docs/LENGTH_CONTROL_PRECOMMITMENT.md`](docs/LENGTH_CONTROL_PRECOMMITMENT.md), frozen
+*before* any outcome); integrate its verdict; run and address a final fresh mock review.
+Everything else open is documentation, synchronization or page compression —
+[`docs/MASTER_TODO.md`](docs/MASTER_TODO.md) has all 198 items in terminal states.
+
+🔴 **Two standing traps before you quote anything.** The HF `benchmark` field spells
+`longmemeval_v2` / `scicode` / `swebench_verified` — a grep for `lmev2` or `swebench`
+returns a **false zero**. And `/tmp/lmev2/questions.jsonl` is untracked, outside the
+repo, in shared `/tmp`, and gates the bearing-scarcity figure.
 
 ---
 
@@ -40,34 +126,6 @@ anticipated — most directly by UMEM (arXiv:2602.10652). See
 forbidden-claims list.
 
 A learned predictor appears only if the measurement survives a kill criterion.
-
-## Start here — the provenance layer
-
-**Take any figure, table, claim, benchmark or dataset row in the paper and find the code
-and data behind it, without reading chat history.**
-
-| | |
-|---|---|
-| 📄 **Paper** | *What Is This Memory Useful For? Measuring Task-Conditioned Utility in Long-Term Agent Memory* (AAMAS 2027) |
-| ✍️ **Manuscript (Overleaf)** | <https://git.overleaf.com/6abbde4a9eb777031afef068> · local clone `../overleaf` · manuscript-side lookup `overleaf/ARTIFACT_LOOKUP.md` |
-| 🤗 **Dataset (Hugging Face)** | <https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory> — **private**; tags `v0.1-lmev2-derived`, `v0.2-repr-derived`, `v0.3-scicode-derived`, `v0.4-swebench-metrics` |
-| 💻 **Code (GitHub)** | <https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory> |
-
-| map | what it answers |
-|---|---|
-| [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) | **paper → artifact.** Every figure and table with its generator, canonical input, GitHub path, HF subset and unit; memory construction per benchmark; the eligibility/validity rules and what is **never** scored as reward zero |
-| [`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md) | **can we reproduce and audit it?** Per benchmark: source episode, each memory text, both arm outputs, reward, scorer, endpoint and replicate metadata — HF-private / GitHub / local-only / **unavailable forever**. Gaps are recorded, not softened |
-| [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) | every headline result, one row each |
-| [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md) | figure decisions and the generator contract |
-| [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) | one row per published HF snapshot, with its known limitations |
-| [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) | the authoritative definition of "full coverage", per benchmark, with the universe named |
-| [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) | current state — the entry point for a new agent |
-
-🔴 **Two standing traps before you quote anything.** The HF `benchmark` field spells
-`longmemeval_v2` / `scicode` / `swebench_verified` — a grep for `lmev2` or `swebench`
-returns a **false zero**. And `/tmp/lmev2/questions.jsonl` is untracked, outside the
-repo, in shared `/tmp`, and gates the bearing-scarcity figure
-([`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md) §5).
 
 ## Repository map
 

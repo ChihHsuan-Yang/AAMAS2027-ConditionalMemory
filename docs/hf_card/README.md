@@ -84,6 +84,18 @@ configs:
 
 ---
 
+> # 🧭 START AT THE CODE REPOSITORY
+>
+> **The project's GitHub README is its canonical entry point**, not this card. It
+> carries the three frozen scientific stories, the paper package, the
+> paper→artifact map, the trace-availability audit, the reproduction commands and
+> the handoff document, and it is updated first whenever anything moves.
+>
+> This card describes **one released snapshot of the data**. For what the data
+> *mean*, which figure each row supports, and what is permanently unavailable,
+> start there. The repository link is withheld here only while the submission is
+> under double-blind review (see §1).
+
 ## 1. Name, purpose, and research goal
 
 **Conditional Memory Utility Dataset**, released with the AAMAS 2027 submission

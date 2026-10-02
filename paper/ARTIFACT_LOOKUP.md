@@ -1,5 +1,16 @@
 # Artifact Lookup — from this manuscript to the code and data
 
+
+> # 🧭 START AT GITHUB
+>
+> **The GitHub repository README is the canonical entry point for this project.**
+> It carries the three frozen stories, the paper package, the dataset state, the
+> paper→artifact maps, the reproduction commands, and the handoff document — and it
+> is updated first whenever a path or link changes.
+>
+> Everything below is navigation *within* this surface. If this file and the GitHub
+> README disagree, **the README is right**.
+
 **Written 2026-10-01 by SA-PROVENANCE.** This file lives beside `main.tex` so a reader
 holding the paper can find the artifact behind any number without leaving the manuscript
 repository. **It does not duplicate the maps — it points at them.**
