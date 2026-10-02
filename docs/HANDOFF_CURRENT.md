@@ -7,7 +7,8 @@
 > representation or analysis branch is open.
 >
 > **Remaining scientific TODOs: 0.** One editorial task is **deferred**, not
-> unfinished: see *Mock review* below.
+> unfinished: see *Mock review* below. **All data is published** — HF
+> `v0.6-length-control`, 16,816 rows, verified on downloaded bytes.
 
 ## Your first five actions
 
@@ -65,6 +66,36 @@ oracle) was correct and led to the gold-free experiment.
 | **both** gold-free screens reported | reporting only the one that worked |
 
 Full list: [`INVALID_AND_SUPERSEDED.md`](INVALID_AND_SUPERSEDED.md).
+
+## Hugging Face — final state, verified on downloaded bytes
+
+| | |
+|---|---|
+| repo | `AgentsSci/AAMAS2027-ConditionalMemory` — **private** (unauthenticated fetch → 401) |
+| latest tag | **`v0.6-length-control`** · six tags exist (v0.1 … v0.6) |
+| rows | **16,816** — longmemeval_v2 16,535 · scicode 154 · swebench_verified 127 |
+| by reader | gpt-oss-120b **13,998** · gemma-4-31B-it **2,818** |
+| validation | the card's own command, run from the **downloaded** root: `16816 rows \| 0 errors \| 6160 warnings`, matching the card exactly |
+
+**Verified independently by the Master Agent on the downloaded tag:** all
+4,432 length-control rows present across 8 arms; the A/A control
+(`trunc_last_20000`) byte-identical to `raw` on **554/554**; **0** VOID row-ids
+of 570; **0** manufactured `0.0` rewards, checked with a positive control
+proven to detect a planted one.
+
+🔴 **`trunc_last_20000` is an A/A CONTROL, not a ninth condition.** Pooling the
+eight arms without dropping it **double-counts Raw**. No gate can catch this —
+the data is correct and the error would be downstream, in analysis.
+
+🔴 **After v0.6 no evaluated row remains unpublished-but-ready.** What stays
+out is structural, not pending: BEAM (CC BY-SA, infectious), SWE-bench corpus
+text (no declared licence), SciCode Summary/Structured text (never persisted,
+**not recoverable**), the two VOID runs, and caches.
+
+⚠️ **One pre-existing NOTE the audit still emits**, left deliberately rather
+than edited: the data card's compression figures `0.0162` / `0.0151`
+reproduce from no basis — the scale-up medians are `0.0384` / `0.0330`. It
+predates this release. **Re-derive before quoting either pair.**
 
 ## Overleaf — frozen local canonical copy
 
