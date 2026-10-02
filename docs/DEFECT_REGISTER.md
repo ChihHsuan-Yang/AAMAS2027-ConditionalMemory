@@ -861,6 +861,30 @@ sit in a repository for days doing nothing.
 | HF5-5 | **GATE 2b flagged two things at once and only one was a leak; treating them alike would have been wrong twice.** The MANIFEST carried `/Users/<name>/` (defect 23/29's exact shape, in the field that vouches for provenance — v0.4 escaped it only because its inputs happened to live in `/tmp`). `docs/BENCHMARK_LICENSES.md` carried `github.com/xiaowu0162/…` and friends — **the benchmark authors, whose attribution is a CONDITION of the Apache-2.0 and CC BY-SA grants**. Running the current gate against the **already-shipped v0.4 tree** reproduced the second set identically, proving it pre-existing rather than introduced | reading what each hit actually named, and testing the gate against a frozen published release as a control | suppressing the gate would have shipped the home paths; "fixing" the docs would have **stripped licence-required attribution**. The exemption is keyed on the **handle roster**, never on a file path — a path allowlist exempts every future string in that file, including ours — and our own handles are matched first, by a check that never consults the roster, so one cannot be laundered into it |
 | HF5-6 | 🔴 **I contaminated the release tree with my own verification step, then uploaded it.** The build finished clean at 16:25:42 — nine gates PASS, `MANIFEST.json` listing 16 files, none a `.pyc`. At 16:28:12 **my** pre-upload check ran `sys.path.insert(0,"code"); import p1mem` **without `-B`**, depositing three `code/p1mem/__pycache__/*.pyc`. I uploaded that tree. The exporter does this correctly — GATE 5 runs the card's command with `-B` and `PYTHONDONTWRITEBYTECODE=1`, with a comment reading *"A verification step must not deposit artifacts into the thing it is verifying"* — and I committed the exact error that comment forbids, from **outside** the script where no gate could see me | diffing the **DOWNLOADED** tag against staging, file by file — the move that found v0.1's seam defect and v0.3's doc defect, now paying off a third time | a release shipping **three files nobody vouched for**, contradicting its own manifest, in a snapshot whose whole claim is that every byte is accounted for. The tag was moved to a cleaned commit; no data byte changed, and the move is recorded in the tag message, the card and `DATASET_INDEX.md` rather than hidden |
 
+| HF5-7 | 🔴 **HF-30 for the THIRD time: the `DATASET_INDEX.md` shipped inside v0.5 said "v0.4 *(current)*".** The copy in the first v0.5 upload also said *"v0.4 is the current release and this file ships inside it"* and *"nothing is currently queued"* — all three false from inside a v0.5 snapshot, and the third doubly so once the length-control experiment became a named v0.6 candidate. The repo copy had already been corrected; the **staged** copy was taken before that edit | diffing the DOWNLOADED tag against the repo **after** publishing, exactly as v0.3's defect was found | a consumer reading the shipped docs beside the shipped data concludes their download is the wrong version. **No gate can see this**: every gate reads `data/cells.jsonl`, which was correct, and GATE 5b reads one line of the card. Corrected by republishing the doc **and its manifest entry in the same commit**, so the manifest never vouches for bytes that are not there |
+
+### HF5-7: the register predicted this and it happened anyway
+
+`DATASET_INDEX.md` opens with a boxed warning **about itself**, added after v0.3
+shipped the same defect, stating the general form: *a document that describes a
+release cannot be fully correct inside that release.* I read that warning, wrote
+the v0.5 entry it prescribes, and then **staged the file before making the
+edit** — so the shipped copy was the pre-correction one.
+
+> **Knowing a failure mode is not a control against it.** The file's own warning
+> is addressed to its CONTENT and the defect was in the BUILD ORDER: the staging
+> copy is taken at build time, and any later edit to the repo copy does not reach
+> it. The structural fix is to rebuild staging after the last doc edit, or to make
+> the build refuse when a staged doc differs from its repo source — the same
+> relationship GATE 5b already enforces for the card's validator line, applied to
+> the auxiliary docs that currently have no equivalent.
+
+Note also what the manifest did right by construction: because the doc was
+republished **with** its manifest entry, the downloaded `MANIFEST.json` still
+hashes every shipped byte (16/16, 0 mismatches). Had only the doc been pushed,
+the manifest would have become a confident, precise, false statement — which is
+the register's most repeated shape.
+
 ### The shape HF5-1, HF5-2 and HF5-5 share
 
 All three are **a check that was right about the world when it was written and
