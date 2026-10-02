@@ -163,6 +163,42 @@ is the wrong object, for a different reason than we hypothesised.
 **Python: `/Users/bellayang/miniconda3/bin/python3` (3.13).** The system `python3` is 3.9
 and aborts pytest collection on a vendored file — a healthy suite looks broken.
 
+# Paper / Overleaf status
+
+**Title.** *What Is This Memory Useful For? Measuring Task-Conditioned Utility
+in Long-Term Agent Memory*
+
+🔴 **Overleaf git access is temporarily unavailable** (account/Premium access;
+both `git push` and `git fetch` return `no git access`, so it is the remote and
+not a credential). **No manuscript content is lost.**
+
+| | |
+|---|---|
+| **canonical paper package** | [`paper/`](paper/) — self-contained, compiles standalone |
+| **GitHub commit holding the mirror** | `6ef8f1e` |
+| **local Overleaf clone** | `../overleaf` (sibling of this repo), commit **`a320c74`**, **one commit ahead of the Overleaf server** |
+| **build status** | ✅ 11 pages, 0 undefined control sequences / citations / references; the mirror's rendered text is **byte-identical** to the Overleaf copy's PDF |
+| **target remote** | `git.overleaf.com/6abbde4a9eb777031afef068` — **unchanged, and must NOT be replaced** |
+
+**When access returns:** fetch the existing remote, reconcile only if it moved,
+push the local clone, then fresh-clone it, compile independently, and verify
+title, tables, figures and `ARTIFACT_LOOKUP.md` against [`paper/`](paper/).
+
+⚠️ **Do not re-apply manuscript edits by hand from the mirror.** The local
+Overleaf clone already contains them; pushing it is the whole operation.
+
+### Navigation
+
+| | |
+|---|---|
+| paper → artifact map | [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) |
+| what traces still exist | [`docs/TRACE_AVAILABILITY.md`](docs/TRACE_AVAILABILITY.md) |
+| figure lookup · table lookup | [`docs/FIGURE_INDEX.md`](docs/FIGURE_INDEX.md) · [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) §(b) |
+| handoff entry point | [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) |
+| result index · coverage | [`docs/RESULT_INDEX.md`](docs/RESULT_INDEX.md) · [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) |
+| dataset index · scope freeze | [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) · [`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md) |
+| Hugging Face dataset | `AgentsSci/AAMAS2027-ConditionalMemory` (**private**; tags v0.1 … v0.4) |
+
 ### Coverage and model identity — read these two tables first
 
 Authoritative definitions: [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md)

@@ -615,42 +615,55 @@ gpt-oss-120b and gemma-4-31B-it. Five sub-agents were dispatched against that fr
 
 ---
 
-## 🔴 OVERLEAF GIT ACCESS IS DOWN — 2026-10-01 ~18:10 CDT
+## 🔴 OVERLEAF GIT ACCESS IS DOWN — mirrored to GitHub 2026-10-02
 
-`git push` and `git fetch` to `git.overleaf.com/6abbde4a9eb777031afef068` both
-return:
+> **The Overleaf remote is temporarily unavailable. No manuscript content is
+> lost.**
 
-```
-fatal: remote error: no git access
-This Overleaf project currently has no git access, either because
-the project does not exist, or because git access is not enabled
-for the project.
-```
+`git push` **and** `git fetch` to
+`git.overleaf.com/6abbde4a9eb777031afef068` both return `no git access`.
+Fetch failing too means this is the remote (account/Premium access), not the
+stored token.
 
-**Fetch fails too, so this is the remote, not the stored token.** Retried after
-20 s with the same result.
+| | |
+|---|---|
+| local Overleaf clone | `/Users/bellayang/Documents/2026/p1_memory_utility/overleaf` |
+| local Overleaf commit | **`a320c74`** — "Story 1 support: a screen that never sees gold finds the same effect" |
+| ahead of the server by | **1 commit** (server is at `650a911`) |
+| GitHub mirror | **[`paper/`](../paper/)** — self-contained and standalone-compilable |
+| GitHub commit holding it | **`6ef8f1e`** |
+| flat backup | `../overleaf_backup/` (main.tex, figdata.tex, main.pdf, p1refs.bib) |
+| build status | ✅ 11 pages, 0 undefined control sequences / citations / references |
 
-### What this means for the work
+**Independently verified**, not assumed: `paper/` was copied to a scratch
+directory and built there with no access to the overleaf tree. Its rendered
+text is **byte-identical** to the Overleaf copy's own PDF (65,268 characters).
 
-- **Nothing is lost.** The manuscript is committed locally at **`a320c74`**
-  ("Story 1 support: a screen that never sees gold finds the same effect"),
-  one commit **ahead of** `origin/main` (`650a911`).
-- A flat copy of `main.tex`, `figdata.tex`, `main.pdf` and `p1refs.bib` is in
-  **`/Users/bellayang/Documents/2026/p1_memory_utility/overleaf_backup/`** in
-  case the local git directory is disturbed.
+### What has NOT reached the Overleaf server
 
-### What a successor must do
+Exactly one commit, `a320c74`: the gold-free screen integrated as Story 1
+support — the 15.6% → 50.0% result on cells the gold screen never selected,
+both screens reported, and the both-arms-fail diagnostic that settles which to
+believe. Everything earlier is on the server.
 
-1. **Do not re-apply the gold-free paragraph.** It is already in `main.tex`.
-   Check with `grep -c 'never sees the gold answer' main.tex` → expect 1.
-2. Re-try `git push origin main` from the overleaf directory. If access is
-   restored it will go through unchanged.
-3. If access stays down, the content can be pasted into the Overleaf web
-   editor from the backup copy — but then the local git history and the web
-   project will have diverged, and the local repo must be re-cloned afterwards
-   rather than merged.
+### ⚠️ When access returns
+
+> **Do not re-apply already integrated manuscript edits.** Push and reconcile
+> the existing local canonical commit instead.
+
+The content is already in `../overleaf/main.tex`. Check with
+`grep -c 'never sees the gold answer' main.tex` → expect **1**. Then:
+
+1. `cd ../overleaf && git fetch origin`
+2. reconcile only if the remote moved (it should not have)
+3. `git push origin main`
+4. fresh-clone the project elsewhere, compile it, and verify title, tables,
+   figures and `ARTIFACT_LOOKUP.md` against `paper/`
+
+🔴 **Do not create a replacement Overleaf project, change the remote, or
+overwrite history.** The existing project is the target.
 
 **This is a tooling outage, not a scientific blocker.** Every number in the
-unpushed commit is generated from a tracked artifact in the GitHub repo, so the
-manuscript is reconstructible from `scripts/make_figures.py` + `figdata.tex`
-even if this copy were lost entirely.
+unpushed commit is generated from a tracked artifact here, so the manuscript is
+reconstructible from `scripts/make_figures.py` + `figdata.tex` even if both
+local copies were lost.
