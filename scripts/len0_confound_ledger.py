@@ -53,6 +53,12 @@ CLAIMED = {
     "b_minus_mc": {"raw": 0.3174, "summary": 0.0613, "structured": -0.0498},
     "mean_dU": {"raw": 0.1805, "summary": 0.0397, "structured": 0.0181},
     "spearman_bearing": -0.209, "spearman_mc": 0.079,
+    #: §2.2's quartile means. Q1 reproduces; Q2-Q4 do NOT -- see the note at
+    #: the s2_2 block. Kept in the comparison set rather than dropped, because
+    #: a figure quietly removed from a re-derivation is a figure nobody
+    #: checked.
+    "quartile_means_bearing": {"Q1": 0.5000, "Q2": 0.4062,
+                               "Q3": 0.1379, "Q4": 0.3000},
     "retention_bearing": {"trunc_last": 39, "summary": 24, "structured": 17,
                           "trunc_first": 1},
 }
@@ -285,6 +291,33 @@ def main() -> int:
         CLAIMED["spearman_bearing"], 0.002)
     cmp("§2.2.spearman.MATCHED_CONTROL", dose["MATCHED_CONTROL"]["spearman_rho"],
         CLAIMED["spearman_mc"], 0.002)
+    for q, want in CLAIMED["quartile_means_bearing"].items():
+        cmp(f"§2.2.quartile_mean.BEARING.{q}",
+            dose["BEARING"]["quartile_means"][q], want, 5e-4)
+    # 🔴 A FIGURE IN THE PRECOMMITMENT THAT DOES NOT REPRODUCE.
+    # §2.2's BEARING quartile means are stated as Q1 +0.5000, Q2 +0.4062,
+    # Q3 +0.1379, Q4 +0.3000. Re-derived here they are Q1 +0.5000, Q2 +0.3714,
+    # Q3 +0.2059, Q4 +0.2812. Q1 matches; Q2-Q4 do not.
+    #
+    # It is NOT a quartile-boundary convention. The doc states its own cut
+    # points (Q1 1,490-5,085, Q4 12,890-19,801) and those are exactly the
+    # pooled percentiles over the 277 cells (p25=5,085, p75=12,890), which is
+    # what is used here. Four different constructions were tried -- row-level
+    # vs cell-mean, cuts over rows / over the 277 cells / over the 57
+    # memories / within BEARING -- and three of the four give the SAME
+    # +0.3714 / +0.2059 / +0.2812; none gives the doc's triple.
+    #
+    # What this does and does not touch. Everything §2.2 is CITED for
+    # reproduces exactly: Spearman rho -0.209 / +0.079, Pearson -0.185 /
+    # +0.067, n=135/142, and the claim the figures support -- that the
+    # shortest quartile has the LARGEST mean dU and the dose-response runs the
+    # wrong way for a more-tokens mechanism (Q1 +0.5000 is the largest in
+    # every construction tried). The design does not depend on §2.2 at all
+    # (§1's table: "does the design depend on its value? -- no"), and no arm,
+    # budget or contrast was chosen from it.
+    #
+    # Reported, not quietly replaced. The precommitment is the instrument;
+    # editing a figure in it after the fact destroys exactly what it is for.
     out["s2_2_within_raw_dose_response"] = {
         "_what": "§2.2: if more exposed tokens drove utility, dU should RISE "
                  "with length inside Raw, where representation is held fixed. "
@@ -382,12 +415,13 @@ def main() -> int:
                  "mismatch is REPORTED, never silently replaced by the fresh "
                  "value -- the precommitment is the instrument and an "
                  "after-the-fact edit destroys it.",
-        "n_figures_compared": 23,
+        "n_figures_compared": 27,
         "n_mismatched": len(mismatches),
         "mismatches": mismatches,
     }
     write_json_atomic(args.out, jsonable(out))
-    log(f"§2 re-derivation: {len(mismatches)} mismatch(es) out of 23 figures")
+    log(f"§2 re-derivation: {len(mismatches)} mismatch(es) out of "
+        f"{out['REDERIVATION_MISMATCHES']['n_figures_compared']} figures")
     for m in mismatches:
         log(f"  MISMATCH {m['figure']}: claimed {m['claimed_in_precommitment']} "
             f"re-derived {m['re_derived']}")

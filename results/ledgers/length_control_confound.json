@@ -39,13 +39,32 @@
   },
   "REDERIVATION_MISMATCHES": {
     "_rule": "house rule: never quote a number you have not re-derived. A mismatch is REPORTED, never silently replaced by the fresh value -- the precommitment is the instrument and an after-the-fact edit destroys it.",
-    "mismatches": [],
-    "n_figures_compared": 23,
-    "n_mismatched": 0
+    "mismatches": [
+      {
+        "claimed_in_precommitment": 0.4062,
+        "figure": "\u00a72.2.quartile_mean.BEARING.Q2",
+        "re_derived": 0.3714,
+        "tolerance": 0.0005
+      },
+      {
+        "claimed_in_precommitment": 0.1379,
+        "figure": "\u00a72.2.quartile_mean.BEARING.Q3",
+        "re_derived": 0.2059,
+        "tolerance": 0.0005
+      },
+      {
+        "claimed_in_precommitment": 0.3,
+        "figure": "\u00a72.2.quartile_mean.BEARING.Q4",
+        "re_derived": 0.2812,
+        "tolerance": 0.0005
+      }
+    ],
+    "n_figures_compared": 27,
+    "n_mismatched": 3
   },
   "_join": "(memory_unit_locator, future_task_id). NEVER memory_id, which is a per-representation content hash returning zero rows.",
   "_what": "\u00a72 of docs/LENGTH_CONTROL_PRECOMMITMENT.md, machine-readable. Every figure RE-DERIVED from the row artifacts, then compared against what \u00a72 states. A mismatch is reported as a mismatch.",
-  "generated_at_utc": "2026-10-02T15:43:23.306275+00:00",
+  "generated_at_utc": "2026-10-02T15:47:56.175962+00:00",
   "n_unscored_rows_excluded_not_zeroed": {
     "raw": 0,
     "structured": 0,

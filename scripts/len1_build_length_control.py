@@ -1091,6 +1091,15 @@ def main() -> int:
         "all_arms_executed_in_one_session": bool(
             n_preexisting == 0 and n_cached == 0 and set(arms) == set(ARMS)),
         "n_rows_with_null_reward": n_null_reward,
+        # §4.4: reward None means COULD NOT BE SCORED, never 0.0. The error
+        # TYPES are recorded so the named exclusion carries its reasons rather
+        # than just a count -- an http_error and a truncated reasoning
+        # response are different facts about the same null.
+        "endpoint_errors_by_type": dict(sorted(collections.Counter(
+            str(v["error"]).split(":")[0]
+            for v in results.values() if v.get("error")).items())),
+        "endpoint_errors_by_arm": dict(sorted(collections.Counter(
+            k[0] for k, v in results.items() if v.get("error")).items())),
         "tokenizer": tokenizer_provenance(),
         "reader_tokenizer": "o200k_harmony",
         "filler_pool_sha256": pool_sha,

@@ -174,9 +174,31 @@ def main() -> int:
         "wall_clock_s": run.get("wall_clock_s"),
         "n_preexisting_cache_rows": run.get("n_preexisting_cache_rows"),
         "cache_hits_during_run": run.get("cache_hits"),
-        "passed": bool(len(run_ids) == 1 and len(sess) == 1 and len(arms) == 8
-                       and not run.get("n_preexisting_cache_rows")
-                       and not run.get("cache_hits")),
+        "real_endpoint_calls": run.get("real_endpoint_calls"),
+        "planned_calls": run.get("planned_calls"),
+        # 🔴 An ABSENT field must not read as a passing zero -- that is the
+        # "absent input defaults to a plausible zero" shape. Each clause is
+        # evaluated on a field that is PRESENT, and the strongest evidence
+        # does not depend on any optional one: if every planned call was a
+        # REAL endpoint call and the cache served nothing, then every row
+        # came from this process, whatever a cache file held beforehand.
+        "every_planned_call_was_issued_fresh": bool(
+            run.get("real_endpoint_calls") is not None
+            and run.get("planned_calls") is not None
+            and run.get("cache_hits") == 0
+            and run["real_endpoint_calls"] + run.get("errors", 0)
+            == run["planned_calls"]),
+        "_preexisting_cache_field_present":
+            "n_preexisting_cache_rows" in run,
+        "passed": bool(
+            len(run_ids) == 1 and len(sess) == 1 and len(arms) == 8
+            and run.get("cache_hits") == 0
+            and run.get("real_endpoint_calls") is not None
+            and run.get("planned_calls") is not None
+            and run["real_endpoint_calls"] + run.get("errors", 0)
+            == run["planned_calls"]
+            # when the field IS recorded it must also be zero
+            and not run.get("n_preexisting_cache_rows", 0)),
     }
 
     # ---- C-JOIN (§5.5): BOTH traps, in both directions ------------------
@@ -403,6 +425,13 @@ def main() -> int:
         mean_du[a] = {k: float(np.mean(v)) for k, v in acc.items()}
         unscored[a] = {"n_rows_unscored": n_null,
                        "n_pair_keys_affected": len(set(null_keys)),
+                       # The REASON, not just the count: an http_error and a
+                       # truncated reasoning response are different facts
+                       # about the same null, and only one of them is a
+                       # property of the endpoint.
+                       "error_codes": dict(sorted(collections.Counter(
+                           str(r["error_code_if_any"]) for r in by_arm[a]
+                           if r["error_code_if_any"]).items())),
                        "pair_keys": sorted(set(null_keys))[:20]}
     out["unscored_rows_named_exclusion"] = {
         "_rule": "§4.4: reward None means COULD NOT BE SCORED. Never coerced "
