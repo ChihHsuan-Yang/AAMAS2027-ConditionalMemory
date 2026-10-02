@@ -9,25 +9,23 @@ estimated ([`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md)).
 
 ---
 
-## 📡 Current live status — 2026-10-02
+## 📡 Project status — HANDOFF READY, 2026-10-02
 
-| workstream | state |
-|---|---|
-| Core benchmark collection (LongMemEval · SciCode · SWE-bench) | ✅ **DONE** — 1,157 / 154 / 107 of each eligible universe |
-| Reader transfer, session-matched (**Story 3**) | ✅ **DONE** — ⏫ *publishing to HF now* |
-| Gold-free validation of the bearing screen (**Story 1 support**) | ✅ **DONE** — ✅ *published in HF v0.5 (GF-LLM 168 + GF-LEX 656)* |
-| Writer × Reader factorial (**Story 3 support**) | ✅ **DONE** — ✅ *published in HF v0.5 (4,496 rows)* |
-| **Length-control experiment** (**Story 2**) | ✅ **verdict frozen** (`O2_EFFECT_DISAPPEARS_AT_MATCHED_LENGTH`, `b750518`); design frozen at `f702aaf` *before* any outcome. **Not in HF v0.5** — its rows were not in the audited set that release was built and gated against. **A v0.6 candidate to be re-decided, not skipped by default** |
-| Final fresh mock review | ⏳ queued behind the length control |
-| Page compression | ⏳ deferred until the science is frozen |
-
-| | |
-|---|---|
-| **latest HF tag** | **`v0.5-reader-generalization`** · **12,384 rows** · verified on the DOWNLOADED tag |
-| ✅ **the Gemma gap is CLOSED** | v0.5 published the 6,460 rows that were local-only: session-matched reader transfer (1,140), gold-free screens (824), writer×reader factorial (4,496). **2,818 `gemma-4-31B-it` reader rows are now in the release** — through v0.4 there were none, so the Story 3 evidence base was reported in the paper and absent from the data |
-| **canonical manuscript** | [`paper/`](paper/) — builds standalone |
-| **Overleaf remote** | 🔴 **temporarily unavailable** (account/Premium). Local clone `../overleaf` at **`a320c74`**, 1 commit ahead. Nothing lost |
-| **Remaining scientific TODOs** | **3** — finish the length control · integrate its verdict · final mock review |
+| Component | Status | Current state | Canonical path |
+|---|---|---|---|
+| Project stage | **HANDOFF READY** | science frozen; no open experiment | [`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md) |
+| Core experiments | **DONE** | LongMemEval 1,157 cells · SciCode 154 pairs · SWE-bench 107 recipients, each its full eligible universe | [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) |
+| Gold-free validation (**Story 1**) | **DONE** | a screen that never sees gold reproduces the effect on cells gold never selected | [`docs/BEARING_SCREEN_DISCLOSURE.md`](docs/BEARING_SCREEN_DISCLOSURE.md) |
+| Length control (**Story 2**) | **DONE** | verdict **O2** — the Raw advantage is exposure budget, not rewriting | [`docs/LENGTH_CONTROL_RESULT.md`](docs/LENGTH_CONTROL_RESULT.md) |
+| Reader transfer (**Story 3**) | **DONE** | session-matched **+0.0982 [+0.0247, +0.1730]** | [`docs/READER_TRANSFER_RESULT.md`](docs/READER_TRANSFER_RESULT.md) |
+| Writer × Reader factorial | **DONE** | four informative nulls; no same-family advantage | [`docs/WRITER_FACTORIAL_RESULT.md`](docs/WRITER_FACTORIAL_RESULT.md) |
+| Paper | **CURRENT** | 11 pages, 0 undefined, abstract exactly 300 words, anonymity clean | [`paper/`](paper/) |
+| Overleaf | 🔴 **UNAVAILABLE** | remote access down (account/Premium); local clone **4 commits ahead**; mirror byte-identical and verified to build standalone | [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) |
+| Hugging Face | **CURRENT** | see the data section below | [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) |
+| Figures / tables | **CURRENT** | 6 figures, 3 tables, every number generated — none typed | [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) |
+| **Remaining scientific TODOs** | **0** | the mock review is **deferred editorial work**, not an unfinished experiment | [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) |
+| Next-agent TODOs | 5 | first: a fresh blind mock review | [Remaining work](#remaining-work) |
+| Human TODOs | 6 | first: restore Overleaf access | [Remaining work](#remaining-work) |
 
 ---
 
@@ -202,32 +200,35 @@ rows**).
 
 # Remaining work
 
-## Human TODO — needs authority, judgement or credentials an agent does not have
+**Remaining scientific TODOs: 0.** The three-story framing is frozen and no
+experiment is open. What follows is editorial, publication and access work.
 
-| TODO | Status | Agent can prepare | Done when |
+## Human TODO — needs authority or credentials an agent does not have
+
+| TODO | Status | Agent has prepared | Done when |
 |---|---|---|---|
-| Restore Overleaf git access (account/Premium) | **BLOCKED on account** | the manuscript is already mirrored and compiles; nothing else needed | `git push` to the existing project succeeds |
-| Author list, affiliations, author order | TODO | — | decided by the authors |
-| OpenReview metadata and the submission action | TODO | agent prepares a venue-compliance checklist | submitted |
+| **Restore Overleaf Premium / git access** | **BLOCKED on account** | manuscript is current locally, mirrored to [`paper/`](paper/), and verified to build standalone | `git push` to the existing project succeeds and a fresh clone compiles |
+| Authors, affiliations, author order | TODO | — | decided |
+| Venue decision, OpenReview metadata, the submission action | TODO | a venue-compliance checklist can be prepared on request | submitted |
 | Reciprocal-reviewer commitment | TODO | — | registered |
-| Decide when the GitHub repo and HF dataset become public | TODO | agent has already withheld the de-anonymising links | decided |
-| Final approval of every scientific claim | TODO | every number is artifact-backed and re-derivable | approved |
+| When the GitHub repo and HF dataset become public | TODO | de-anonymising links already withheld; GATE 2b blocks their return | decided |
+| Final approval of every scientific claim | TODO | every number is artifact-backed and re-derivable; `audit_claims.py` re-checks 226 | approved |
 
-## Agent TODO
+## Next-agent TODO — in order
 
-| TODO | Status | Blocker | Path | Done when |
+| # | TODO | Status | Blocker | Done when |
 |---|---|---|---|---|
-| **Length-control experiment** | **DONE** | — | [`docs/LENGTH_CONTROL_RESULT.md`](docs/LENGTH_CONTROL_RESULT.md) · [`docs/LENGTH_CONTROL_PRECOMMITMENT.md`](docs/LENGTH_CONTROL_PRECOMMITMENT.md) | ✅ verdict **O2** by the pre-registered precedence: at matched length the extractive and model-written arms do **not** separate (+0.0519 [−0.0678, +0.1727]), so Raw's advantage is **exposure budget**, not rewriting |
-| **Integrate the length verdict** | **DONE** | — | manuscript · `figdata.tex` · `length_control_result.json` | ✅ the causal claim "rewriting removes the benefit" is **removed**; Story 2 narrowed to exposure budget + formation cost, with the new first-vs-last content finding added |
-| **Final fresh mock review** | TODO | the two above | — | a blind reviewer recovers **exactly three** stories; if they extract five or six, simplify and repeat |
-| HF v0.5 release | ✅ **DONE** | — | `scripts/export_hf.py` | downloaded remote bytes re-validate: `12384 rows \| 0 errors \| 1703 warnings` from the card's own command, run on the DOWNLOADED tag, matching the card exactly |
-| Page compression to 8 body pages | DEFERRED | science freeze | [`docs/PAGE_BUDGET_DECISION.md`](docs/PAGE_BUDGET_DECISION.md) | body ends before p9; **no claim, caveat or interval deleted** |
-| Push the manuscript when Overleaf returns | BLOCKED | human TODO above | `../overleaf` | fresh clone compiles and matches `paper/` |
+| 1 | **Fresh blind mock review** | **DEFERRED** (tooling, not content) | — | a reviewer with only the PDF recovers **three** stories; if five or six, simplify and repeat |
+| 2 | Address substantive review findings | TODO | 1 | each objection is fixed, or answered in the paper with its reason |
+| 3 | Venue-compliance / page-budget pass | DEFERRED | 2 | body ends before p9 with **no claim, caveat or interval deleted** — options costed in [`docs/PAGE_BUDGET_DECISION.md`](docs/PAGE_BUDGET_DECISION.md) |
+| 4 | Final submission-facing polish | TODO | 3 | — |
+| 5 | Push the manuscript to Overleaf | **BLOCKED** | human TODO #1 | fresh clone compiles and matches [`paper/`](paper/) |
 
-**Scientific items are the first three.** Everything else is synchronization,
-publication or compression. Full terminal-state list (198 items):
-[`docs/MASTER_TODO.md`](docs/MASTER_TODO.md).
+🔴 **No new science** unless the mock review reveals a genuine validity-critical
+issue. Three sub-agent attempts at #1 stalled while *reading* the paper, never
+on its content — see [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md).
 
+Full terminal-state list (198 items): [`docs/MASTER_TODO.md`](docs/MASTER_TODO.md).
 
 ---
 
