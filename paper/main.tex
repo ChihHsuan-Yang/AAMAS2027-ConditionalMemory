@@ -97,39 +97,36 @@ Utility in Long-Term Agent Memory}
 %%% data supports instead: conditional evaluation, sparsity, representation, cost.
 %%% Benchmarks beyond LongMemEval-V2 are named only as protocol extensions --
 %%% those runs are in flight and no result from them is claimed anywhere.
-A long-horizon agent accumulates far more experience than is useful for any
-one future task, and something must decide what to keep. The prevailing answer
-scores each stored item and keeps the highest-scoring ones, treating
-usefulness as a property of the item. That the same memory serves one task and
-not another is already observed; missing is a signed per-item measurement of
-it, replicated, priced, and compared across ways of writing the experience
-down. We measure it directly: for a memory and a later task, we re-execute a
-frozen agent with and without that memory and record the signed change in
-task reward, holding model, cluster, decoding, budget and scoring fixed.
+A long-horizon agent accumulates far more experience than any future task
+needs, and something must decide what to keep. The prevailing
+answer scores each item and keeps the highest, treating usefulness as a
+property of the item. That the same memory serves one task and not another is
+already observed; missing is a signed per-item measurement of it, replicated
+and priced.
+For a memory and a later task we re-execute a frozen agent with and without
+it, recording the signed change in reward with model, decoding, budget and
+scoring held fixed.
 
-On LongMemEval-V2, useful memory is sparse: a memory bears on a median of
-one future task out of hundreds, so a single global score averages a large
-effect over overwhelmingly many inert pairings, and pairing indiscriminately
-measures almost nothing. Where a memory does bear on a task it helps
-substantially against a matched control drawn from the same memories. Generic
-embedding similarity locates that benefit poorly; the screen that does locate
-it reads the task's gold answer, making it a measurement instrument rather
-than a deployable retriever --- the gap a retrieval or gating method would
-have to close. Representation matters too: aggressive
-summarization and structuring remove the benefit raw experience retains, and
-the raw-memory effect persists under a second, unrelated reader given
-byte-identical memories.
+On LongMemEval-V2, useful memory is sparse: a memory bears on a median of one
+future task out of hundreds, so a global score averages a large effect over
+overwhelmingly many inert pairs. Where it does bear, it helps substantially against a
+matched control drawn from the same memories. Generic
+embedding similarity locates that benefit poorly; the screen that does reads
+the gold answer, so it is a measurement instrument, not a retriever --- though
+a gold-free screen reproduces the effect on cells it never selected.
 
-Each measurement is paired with the cost of forming, storing, retrieving and
-exposing the memory. Counting exposed tokens alone makes compression look
-several times more efficient, but on the same cells its utility does not
-separate from zero, so the ratio divides by a quantity we cannot distinguish
-from no benefit; charging each representation for writing itself erases the
-apparent advantage outright. On a software-engineering and a scientific-procedural
-benchmark every representation contrast crosses zero, so those runs
-\emph{bound} this result rather than confirming it and the ordering should not
-be assumed to carry across benchmarks. We release the Conditional Memory
-Utility Dataset.
+Representation matters too, but not as rewriting: summarizing and structuring
+lose the benefit raw experience retains, and a pre-registered length control
+shows truncating to the same budget loses it as well. What raw buys is the budget to carry the
+bearing content, and at a fixed budget which end is kept decides whether the
+benefit survives. The effect persists under a second,
+unrelated reader given byte-identical memories. Counting exposed
+tokens alone makes compression look several times more efficient, but its
+utility does not separate from zero there, and charging each representation for
+writing itself erases it. On a software-engineering and a
+scientific-procedural benchmark every representation contrast crosses zero,
+so those runs \emph{bound} this result rather than confirm it. We release the
+Conditional Memory Utility Dataset.
 \end{abstract}
 
 %%% ACM CCS 2012 concepts. Required by the class for papers over two pages
@@ -1425,10 +1422,29 @@ how the experience is written down, separates the three representations. On
 the 277 cells evaluated under all three, the paired \textsc{bearing}$-$control
 effect is $+0.3174$ for Raw (95\% CI $[+0.19, +0.45]$), $+0.0613$ for Summary
 ($[-0.04, +0.16]$) and $-0.0498$ for Structured ($[-0.14, +0.04]$). Only Raw
-excludes zero: at compression ratios of $0.063$ and $0.037$, rewriting the
-experience removes the benefit, and the loss falls in \textsc{bearing}, where
-there was an effect to lose. Against cost (Figure~\ref{fig:frontier}),
-compression buys a smaller context, not a better return.
+excludes zero: at compression ratios of $0.063$ and $0.037$ the benefit is
+gone, and the loss falls in \textsc{bearing}, where there was an effect to
+lose.
+
+\textbf{That loss is the budget, not the rewriting.} A pre-registered length
+control (frozen before execution) added a content-blind extractive arm: the
+final $N$ tokens of the same segment, $N$ set per cell to that cell's own
+Summary token count. At matched length the extractive and model-written arms
+are \emph{indistinguishable} --- $\lcPrimary$ $[\lcPrimaryLo$,
+$\lcPrimaryHi]$ on $\lcPrimaryN$ cells --- while Raw beats the matched
+extractive arm by $\lcBudget$ $[\lcBudgetLo$, $\lcBudgetHi]$. What Raw buys is
+the budget to carry the bearing content, and it buys it at zero formation
+cost. We therefore do not claim that rewriting as such destroys utility;
+compressing \emph{to this budget} does, and truncating to the same budget does
+too.
+
+\textbf{What is lost is content, not tokens.} Keeping the \emph{first} $N$
+tokens instead of the last --- the same budget, the opposite end --- retains
+the bearing content in $0.7\%$ of cells against $28.9\%$, and the paired
+contrast between the two ends is $\lcEnds$ $[\lcEndsLo$, $\lcEndsHi]$,
+excluding zero. At a fixed token count, moving the bearing content into the
+window changes utility. Against cost (Figure~\ref{fig:frontier}), compression
+buys a smaller context, not a better return.
 
 
 
