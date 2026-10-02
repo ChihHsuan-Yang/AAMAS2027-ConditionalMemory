@@ -274,6 +274,7 @@ def main() -> int:
         idx[((r.get("provenance") or {})["arm"], pk(r), r["replicate_id"])] = r
     reps_seen = sorted({r["replicate_id"] for r in rows})
     aa_cells, aa_same_text, aa_same_rw, aa_same_out, aa_diff = 0, 0, 0, 0, []
+    aa_unscored = aa_scored = 0
     for k in sorted(common):
         for rep in reps_seen:
             a, b = idx.get(("raw", k, rep)), idx.get(("trunc_last_20000", k, rep))
@@ -282,11 +283,30 @@ def main() -> int:
             aa_cells += 1
             if a["memory_text"] == b["memory_text"]:
                 aa_same_text += 1
-            # Rewards must match EXACTLY. None==None counts as agreement only
-            # when both are None -- an unscored cell is not a reproduction.
+            # 🔴 TWO UNSCORED CELLS ARE NOT A REPRODUCTION. If both arms
+            # failed, None == None is True on all three fields and the pair
+            # would be counted as a perfect match -- an error inflating the
+            # control that exists to detect errors. Such pairs are counted
+            # SEPARATELY and excluded from the agreement numerator AND its
+            # denominator, so C-AA is evaluated only on cells where there was
+            # something to reproduce. This run has a real instance: one
+            # BEARING cell's raw WITH arm failed on both replicates.
+            unscored_pair = (a["delta_utility"] is None
+                             or b["delta_utility"] is None)
+            if unscored_pair:
+                aa_unscored += 1
+                if len(aa_diff) < 10:
+                    aa_diff.append({"pair_key": k, "replicate_id": rep,
+                                    "_why": "one or both arms unscored; not "
+                                            "counted as agreement or as a "
+                                            "disagreement",
+                                    "raw_dU": a["delta_utility"],
+                                    "aa_dU": b["delta_utility"]})
+                continue
             same_rw = (a["reward_with_memory"] == b["reward_with_memory"]
                        and a["reward_without_memory"] == b["reward_without_memory"]
                        and a["delta_utility"] == b["delta_utility"])
+            aa_scored += 1
             if same_rw:
                 aa_same_rw += 1
             if a["output_with_memory"] == b["output_with_memory"]:
@@ -303,6 +323,8 @@ def main() -> int:
                  "exercises the entire new code path end to end.",
         "n_comparisons": aa_cells,
         "n_memory_text_byte_identical": aa_same_text,
+        "n_pairs_scored_in_both_arms": aa_scored,
+        "n_pairs_unscored_excluded_from_agreement": aa_unscored,
         "n_reward_triples_identical": aa_same_rw,
         "n_reader_outputs_byte_identical": aa_same_out,
         "disagreements": aa_diff,
@@ -311,11 +333,16 @@ def main() -> int:
             .get("cache_keys_differ_under_identical_context"),
         "n_unique_memory_ids_raw_vs_aa": len(mid_sets.get("raw", set())
                                              & mid_sets.get("trunc_last_20000", set())),
+        # Text identity is required on EVERY pair (it is a property of the
+        # text, not of a call). Reward reproduction is required on every pair
+        # that was SCORED IN BOTH ARMS, and the excluded count is reported so
+        # a shrinking denominator is visible rather than silent.
         "passed": bool(aa_cells > 0 and aa_same_text == aa_cells
-                       and aa_same_rw == aa_cells),
+                       and aa_scored > 0 and aa_same_rw == aa_scored),
     }
     log(f"  [C-AA] text identical {aa_same_text}/{aa_cells}; rewards identical "
-        f"{aa_same_rw}/{aa_cells}; outputs identical {aa_same_out}/{aa_cells}")
+        f"{aa_same_rw}/{aa_scored} scored pairs; outputs identical "
+        f"{aa_same_out}/{aa_scored}; unscored excluded {aa_unscored}")
 
     # ---- C-PLANT, C-TOK, C-DET, C-WITHOUT: carried from the run ---------
     ctrl["C_PLANT"] = {
