@@ -1,18 +1,102 @@
-# P1 — Current Handoff
+# P1 — HANDOFF CURRENT
 
-**Restructured 2026-10-01 12:45 CDT by SA-ARCHIVE.** Current state is at the **TOP**;
-the dated history is in **Part II** below, preserved verbatim in substance. Where the two
-disagree, **Part I is current**.
+> # 🟢 HANDOFF READY — 2026-10-02
+>
+> **The scientific work is complete enough for a new agent to take over.** The
+> three-story framing is **frozen**. No experiment, model, benchmark,
+> representation or analysis branch is open.
+>
+> **Remaining scientific TODOs: 0.** One editorial task is **deferred**, not
+> unfinished: see *Mock review* below.
 
-A Master Agent should be able to take over from this file alone.
-`README.md` §Current Project State is the short version;
-[`EXPERIMENT_ACCOUNTING.md`](EXPERIMENT_ACCOUNTING.md) is every count,
-[`RESULT_INDEX.md`](RESULT_INDEX.md) and [`FIGURE_INDEX.md`](FIGURE_INDEX.md) are the
-lookup tables.
+## Your first five actions
+
+1. Read **§Main story** in [`../README.md`](../README.md) — three stories, and
+   the founding hypothesis that was **not** supported.
+2. Run a **fresh blind mock review** (details below). This is the first task.
+3. Address substantive clarity objections it raises.
+4. Venue-compliance and page-budget pass —
+   [`PAGE_BUDGET_DECISION.md`](PAGE_BUDGET_DECISION.md) has the options costed.
+5. Push the manuscript to Overleaf **once a human restores access** (below).
+
+**Do not open new science** unless the mock review finds a validity-critical
+hole.
+
+## Mock review — DEFERRED TO NEXT AGENT
+
+> **Final fresh mock review: DEFERRED TO NEXT AGENT — the attempts stalled on
+> tooling/read infrastructure, not on manuscript content.**
+
+Three sub-agent attempts each stalled at ~600 s while *reading* the paper: once
+on the PDF, once on a pre-extracted 102 KB text file, once on three
+page-aligned chunks with an explicit read-then-write instruction. The paper
+itself was never the problem. **This is not an unfinished experiment.**
+
+When you run it, give the reviewer **only** the PDF or its text, with no access
+to this repository, and ask the question in this form:
+
+> *Do not look for a particular number of contributions.* Report how many
+> distinct headline claims you come away with, and what they are, in your own
+> words — before forming any other opinion.
+
+If the reviewer recovers **three**, the structure works. If five or six,
+simplify and repeat. Also ask for **alternative explanations** per claim: the
+previous blind review's deciding objection (the bearing screen might be an
+oracle) was correct and led to the gold-free experiment.
+
+## 🔴 Do NOT redo these
+
+| | why |
+|---|---|
+| Re-apply the gold-free or length-control manuscript edits | **already in `../overleaf/main.tex`.** Check: `grep -c 'never sees the gold answer' ../overleaf/main.tex` → **1** |
+| Re-run SciCode | 154/154 is the **full** eligible pool under the frozen relatedness rule |
+| Recover SciCode Summary/Structured memory text | never persisted; cross-session regeneration is **0/8** byte-identical. Not recoverable |
+| Relax SWE-bench `tasks_per_memory=4` | **+10** runnable cells, not +146 — and it silently re-pairs 13 already-executed cells |
+| Reopen sign-flip, variance decomposition, semantic-type | each demoted for a **measured** reason |
+| Retry the Overleaf remote on a schedule | a human must restore access first |
+
+## Canonical vs superseded
+
+| ✅ canonical | ❌ superseded / void |
+|---|---|
+| reader transfer **+0.0982 [+0.0247,+0.1730]**, session-matched, 275 cells | cross-session **+0.1268** |
+| SWE-bench **n=40** (`representations_multirepo_final.json`) | n=15, n=17, `representations_v1.json` (**VOID**) |
+| length control **O2** — budget, not rewriting | "rewriting removes the benefit" (**refuted**; two audit guards pin it) |
+| **both** gold-free screens reported | reporting only the one that worked |
+
+Full list: [`INVALID_AND_SUPERSEDED.md`](INVALID_AND_SUPERSEDED.md).
+
+## Overleaf — frozen local canonical copy
+
+| | |
+|---|---|
+| remote | `git.overleaf.com/6abbde4a9eb777031afef068` — **unchanged; do not replace** |
+| access | 🔴 **UNAVAILABLE** (account/Premium). `push` *and* `fetch` both fail, so it is the remote, not a credential |
+| local clone | `../overleaf` — **commit `c1a66da`** |
+| pending | **4 commits** ahead of the server (`650a911`) |
+| GitHub mirror | [`../paper/`](../paper/) — **byte-identical** to the local clone |
+| build | ✅ verified **independently**: `paper/` copied to a scratch dir and built with no access to `../overleaf` — 0 undefined control sequences / citations / references, 11 pages, rendered text **identical** to the local PDF |
+
+### Restore procedure, when a human regains access
+
+```bash
+cd ../overleaf
+git fetch origin                      # 1. confirm the remote is reachable
+git rev-list --count origin/main..HEAD   # 2. expect 4; reconcile ONLY if the remote moved
+git push origin main                  # 3. push the existing canonical history
+git rev-list --count origin/main..HEAD   # 4. expect 0 — verify by COUNT, not exit code
+cd /tmp && git clone <remote> verify  # 5. fresh clone
+cd verify && latexmk -pdf main.tex    #    build it twice (bibtex)
+```
+
+Then compare the fresh clone's rendered text against [`../paper/`](../paper/).
+**Pushing the local clone is the whole operation** — the content is already
+there.
 
 ---
 
-# PART I — CURRENT STATE
+## Historical detail (superseded by the block above where they differ)
+
 
 ## 1. Read these, in this order
 
