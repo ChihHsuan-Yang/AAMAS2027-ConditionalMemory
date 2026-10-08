@@ -7,28 +7,6 @@
 three benchmarks and two reader backbones, **0 unrecoverable losses** — counted, not
 estimated ([`docs/EXPERIMENT_ACCOUNTING.md`](docs/EXPERIMENT_ACCOUNTING.md)).
 
----
-
-## 📡 Project status — HANDOFF READY, 2026-10-02
-
-| Component | Status | Current state | Canonical path |
-|---|---|---|---|
-| Project stage | **HANDOFF READY** | science frozen; no open experiment | [`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md) |
-| Core experiments | **DONE** | LongMemEval 1,157 cells · SciCode 154 pairs · SWE-bench 107 recipients, each its full eligible universe | [`docs/COVERAGE_MANIFEST.md`](docs/COVERAGE_MANIFEST.md) |
-| Gold-free validation (**Story 1**) | **DONE** | a screen that never sees gold reproduces the effect on cells gold never selected | [`docs/BEARING_SCREEN_DISCLOSURE.md`](docs/BEARING_SCREEN_DISCLOSURE.md) |
-| Length control (**Story 2**) | **DONE** | verdict **O2** — the Raw advantage is exposure budget, not rewriting | [`docs/LENGTH_CONTROL_RESULT.md`](docs/LENGTH_CONTROL_RESULT.md) |
-| Reader transfer (**Story 3**) | **DONE** | session-matched **+0.0982 [+0.0247, +0.1730]** | [`docs/READER_TRANSFER_RESULT.md`](docs/READER_TRANSFER_RESULT.md) |
-| Writer × Reader factorial | **DONE** | four informative nulls; no same-family advantage | [`docs/WRITER_FACTORIAL_RESULT.md`](docs/WRITER_FACTORIAL_RESULT.md) |
-| Paper | **CURRENT** | 11 pages, 0 undefined, abstract exactly 300 words, anonymity clean | [`paper/`](paper/) |
-| Overleaf | 🔴 **UNAVAILABLE** | remote access down (account/Premium); local clone **4 commits ahead**; mirror byte-identical and verified to build standalone | [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) |
-| Hugging Face | **CURRENT** | see the data section below | [`docs/DATASET_INDEX.md`](docs/DATASET_INDEX.md) |
-| Figures / tables | **CURRENT** | 6 figures, 3 tables, every number generated — none typed | [`docs/PAPER_ARTIFACT_MAP.md`](docs/PAPER_ARTIFACT_MAP.md) |
-| **Remaining scientific TODOs** | **0** | the mock review is **deferred editorial work**, not an unfinished experiment | [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md) |
-| Next-agent TODOs | 5 | first: a fresh blind mock review | [Remaining work](#remaining-work) |
-| Human TODOs | 6 | first: restore Overleaf access | [Remaining work](#remaining-work) |
-
----
-
 # ▶ START HERE
 
 **You need nothing but this page.** No Overleaf URL, no local path, no dataset name, no
