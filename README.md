@@ -738,38 +738,3 @@ Do **not** re-run inference to regenerate a table; the canonical rows already ex
 All runs are idempotent through the response cache, and every runner prints
 `VERDICT: RUN_PASSED/RUN_FAILED` from its own artifact checks — **exit code 0 is not
 success**.
-
----
-
-# Next agent: start here
-
-**You can begin useful work in minutes. Do not read conversation history.**
-
-1. Read **§1 Main story** above — three stories, and the founding hypothesis that was *not* supported.
-2. Read **[`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md)** — exact paths, live jobs, restart commands.
-3. Open **Agent TODO** above and take the first non-blocked scientific item.
-4. Check for live jobs: `pgrep -fl 'scripts/.*\.py'`.
-5. Before trusting any check, read **[`docs/DEFECT_REGISTER.md`](docs/DEFECT_REGISTER.md)** — 30+ defects, several of which were checks that *passed while measuring the wrong thing*.
-
-**Current live experiment.** The length control, 8 arms × 277 cells × 2 replicates × 2
-sub-arms = 8,864 calls, design frozen at `f702aaf`. Output `results/length_control/`.
-**Do not amend the design after seeing an outcome** — all five outcomes are
-pre-registered and narrowing Story 2 is an acceptable result.
-
-**Current blocker.** Overleaf git access only. Not scientific. The manuscript is in
-[`paper/`](paper/) and compiles standalone.
-
-**Next scientific action.** Finish the length control, then integrate its verdict, then
-the final mock review.
-
-**What NOT to redo**
-- ❌ Do not re-apply manuscript edits when Overleaf returns — **push the local clone**, which is 1 commit ahead. Confirm with `grep -c 'never sees the gold answer' ../overleaf/main.tex` → **1**.
-- ❌ Do not re-run SciCode — 154/154 is the full eligible pool.
-- ❌ Do not relax SWE-bench `tasks_per_memory=4` — it adds **+10** runnable cells, not +146, and silently re-pairs 13 already-executed cells.
-- ❌ Do not try to recover SciCode Summary/Structured memory text — it was never persisted and **cross-session regeneration is 0/8 byte-identical**.
-- ❌ Do not reopen the demoted storylines (sign-flip headline, variance decomposition, semantic-type taxonomy) — each was demoted for a measured reason.
-
-**Canonical vs superseded**
-- ✅ reader transfer = the **session-matched** +0.0982. ❌ The cross-session +0.1268 is **superseded**.
-- ✅ SWE-bench = **n=40** (`representations_multirepo_final.json`). ❌ n=15 and `representations_v1.json` are **superseded/void**.
-- ✅ Gold-free = **both** screens reported. Reporting only the one that worked would select an instrument on its outcome.
