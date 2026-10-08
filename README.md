@@ -204,40 +204,6 @@ rows**).
 
 ---
 
-# Remaining work
-
-**Remaining scientific TODOs: 0.** The three-story framing is frozen and no
-experiment is open. What follows is editorial, publication and access work.
-
-## Human TODO — needs authority or credentials an agent does not have
-
-| TODO | Status | Agent has prepared | Done when |
-|---|---|---|---|
-| **Restore Overleaf Premium / git access** | **BLOCKED on account** | manuscript is current locally, mirrored to [`paper/`](paper/), and verified to build standalone | `git push` to the existing project succeeds and a fresh clone compiles |
-| Authors, affiliations, author order | TODO | — | decided |
-| Venue decision, OpenReview metadata, the submission action | TODO | a venue-compliance checklist can be prepared on request | submitted |
-| Reciprocal-reviewer commitment | TODO | — | registered |
-| When the GitHub repo and HF dataset become public | TODO | de-anonymising links already withheld; GATE 2b blocks their return | decided |
-| Final approval of every scientific claim | TODO | every number is artifact-backed and re-derivable; `audit_claims.py` re-checks 226 | approved |
-
-## Next-agent TODO — in order
-
-| # | TODO | Status | Blocker | Done when |
-|---|---|---|---|---|
-| 1 | **Fresh blind mock review** | **DEFERRED** (tooling, not content) | — | a reviewer with only the PDF recovers **three** stories; if five or six, simplify and repeat |
-| 2 | Address substantive review findings | TODO | 1 | each objection is fixed, or answered in the paper with its reason |
-| 3 | Venue-compliance / page-budget pass | DEFERRED | 2 | body ends before p9 with **no claim, caveat or interval deleted** — options costed in [`docs/PAGE_BUDGET_DECISION.md`](docs/PAGE_BUDGET_DECISION.md) |
-| 4 | Final submission-facing polish | TODO | 3 | — |
-| 5 | Push the manuscript to Overleaf | **BLOCKED** | human TODO #1 | fresh clone compiles and matches [`paper/`](paper/) |
-
-🔴 **No new science** unless the mock review reveals a genuine validity-critical
-issue. Three sub-agent attempts at #1 stalled while *reading* the paper, never
-on its content — see [`docs/HANDOFF_CURRENT.md`](docs/HANDOFF_CURRENT.md).
-
-Full terminal-state list (198 items): [`docs/MASTER_TODO.md`](docs/MASTER_TODO.md).
-
----
-
 ## The question
 
 Does a long-term memory have something like a stable intrinsic value, `Value(memory)` —
