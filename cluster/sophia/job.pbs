@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -q by-gpu
+#PBS -A datascience_collab
+#PBS -l select=1
+#PBS -l walltime=06:00:00
+#PBS -l filesystems=home:eagle
+#PBS -j oe
+# One job = the runs listed in $RUNS (passed with qsub -v RUNS="bench:seed bench:seed ..."), one GPU each.
+# On 'by-gpu', select=N means N GPUs on one node. Each run resumes from its own saved state.
+source /lus/eagle/projects/datascience_collab/uhanjir/p1mem/code/cluster/sophia/env.sh
+mkdir -p $ROOT/logs
+echo "[$(date +%F' '%T)] job $PBS_JOBID on $(hostname): $(nvidia-smi -L | wc -l) GPUs, runs: $RUNS" >> $ROOT/logs/jobs.log
+run_one () {
+  local B=$1 S=$2 G=$3
+  local RUN=${B}_s${S} LOG=$ROOT/logs/${B}_s${S}.log
+  for attempt in 1 2 3; do
+    [ -f "$ROOT/runs/$RUN/summary.json" ] && { echo "$RUN finished" >> $LOG; return; }
+    local PORT=$(python -c "import socket;s=socket.socket();s.bind(('127.0.0.1',0));print(s.getsockname()[1])")
+    echo "[$(date +%F' '%T)] job $PBS_JOBID GPU $G port $PORT attempt $attempt" >> $LOG
+    CUDA_VISIBLE_DEVICES=$G bash cluster/sophia/run_experiment.sh $B $ROOT/runs/$RUN >> $LOG 2>&1
+    echo "[$(date +%F' '%T)] exit code $?" >> $LOG
+    pkill -u $USER -f -- "--port $PORT" 2>/dev/null
+    sleep 60
+  done
+}
+i=0
+for r in $RUNS; do run_one ${r%%:*} ${r#*:} $i & i=$((i+1)); done
+wait
