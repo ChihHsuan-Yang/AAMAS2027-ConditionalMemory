@@ -64,7 +64,12 @@ def _arm_requires_strict_truncation(cluster: str, model: str) -> bool:
     return False
 
 GATEWAY = "https://inference-api.alcf.anl.gov/resource_server"
-AUTH_DIR = Path("/Users/bellayang/Documents/2026/iclr_receiver_conditional_communication")
+# Folder holding ALCF's inference_auth_token.py (and run from there). Set
+# P1_AUTH_DIR on a cluster; the default is the original laptop location.
+import os as _os
+AUTH_DIR = Path(_os.environ.get(
+    "P1_AUTH_DIR",
+    "/Users/bellayang/Documents/2026/iclr_receiver_conditional_communication"))
 
 # Framework path segment per cluster. Sophia serves via vLLM; Metis/Minerva via
 # their "api" framework. Verified against /resource_server/list-endpoints.
@@ -155,6 +160,10 @@ class TokenProvider:
         self._lock = threading.Lock()
 
     def _fetch(self) -> str:
+        if not (self.auth_dir / "inference_auth_token.py").exists():
+            raise EndpointError(
+                f"inference_auth_token.py not found in {self.auth_dir}; set P1_AUTH_DIR "
+                f"to the folder that holds it (cluster/sophia/setup.sh downloads it)")
         proc = subprocess.run(
             [sys.executable, "inference_auth_token.py", "get_access_token"],
             cwd=str(self.auth_dir), capture_output=True, text=True,
