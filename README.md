@@ -2,6 +2,14 @@
 
 ### Measuring Task-Conditioned Utility in Long-Term Agent Memory
 
+[Project Website](https://chihhsuan-yang.github.io/AAMAS2027-ConditionalMemory/) | [Code](https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory) | [Dataset](https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory)
+
+**Public release resources (2026-10-30):** The project website contains the release
+manuscript PDF. The Hugging Face dataset is public and requires no login. The
+experiment notes below document an earlier frozen research snapshot; consult the
+release PDF and current dataset card for later manuscript results and exact data
+coverage. Website source is in [`website/`](website/).
+
 **AAMAS 2027 submission.** Scientific scope is **FROZEN**
 ([`docs/SCOPE_FREEZE.md`](docs/SCOPE_FREEZE.md)). 30,159 real endpoint calls across
 three benchmarks and two reader backbones, **0 unrecoverable losses** — counted, not
