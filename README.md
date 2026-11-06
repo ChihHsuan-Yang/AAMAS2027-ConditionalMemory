@@ -4,8 +4,7 @@
 
 [**Project page**](https://chihhsuan-yang.github.io/AAMAS2027-ConditionalMemory/) ·
 [**Paper (PDF)**](website/paper.pdf) ·
-[**Dataset**](https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory) ·
-arXiv (coming soon)
+[**Dataset**](https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory)
 
 Chih-Hsuan Yang\*, Anjir Ahmed Chowdhury\*, Feng Yan, Rajeev Thakur  
 Argonne National Laboratory · University of Houston  
@@ -58,7 +57,7 @@ tests/             Test suite (pytest)
 cluster/sophia/    Scripts for running the experiments on ALCF Sophia
 data/manifests/    Memory-unit, pairing, screen and leakage manifests (small, tracked)
 results/ledgers/   Computed analysis outputs and slim data slices (tracked)
-paper/             LaTeX source snapshot (AAMAS 2027 class)
+paper/             Older LaTeX snapshot (superseded; the release PDF is website/paper.pdf)
 website/           Source of the project page
 docs/              Protocol decisions, pre-registrations, results ledgers, defect register
 ```
@@ -81,87 +80,37 @@ pip install -e ".[analysis,dev]"
 python -m pytest -q
 ```
 
-Expected: **617 passed, 37 skipped** (about 50 seconds). The skips are tests that need the
+Expected: **629 passed, 37 skipped** (about one minute). The skips are tests that need the
 upstream SciCode, SWE-bench or LongMemEval tokenizer files, which are not downloaded.
 
 ---
 
-## Reproduce the headline numbers (minutes, no endpoint, no downloads)
+## Reproduce the headline numbers (seconds, no endpoint, no downloads)
 
-`results/ledgers/repro/` contains slim slices of the per-row data. They carry every field the
-headline numbers are computed from.
-
-### 1. Answer-bearing versus matched-control contrast
-
-```python
-import json, collections
-import numpy as np
-
-rows = [json.loads(l) for l in open("results/ledgers/repro/screened_cells_slim.jsonl")]
-
-# One cell = one (memory, task) pair; average its replicates first.
-cell = collections.defaultdict(list)
-for r in rows:
-    cell[(r["memory_id"], r["future_task_id"], r["stratum"])].append(
-        r["reward_with_memory"] - r["reward_without_memory"])
-cell = {k: np.mean(v) for k, v in cell.items()}
-
-# Within each memory: mean over BEARING cells minus mean over MATCHED_CONTROL cells.
-per_memory = collections.defaultdict(lambda: collections.defaultdict(list))
-for (m, t, stratum), d in cell.items():
-    per_memory[m][stratum].append(d)
-contrast = [np.mean(v["BEARING"]) - np.mean(v["MATCHED_CONTROL"])
-            for v in per_memory.values() if v["BEARING"] and v["MATCHED_CONTROL"]]
-
-print("memories:", len(contrast))                 # 60
-print("contrast: %.4f" % np.mean(contrast))       # 0.3349
-for s in ("BEARING", "MATCHED_CONTROL", "RANDOM"):
-    d = [x for (m, t, st), x in cell.items() if st == s]
-    print(s, "cells:", len(d), "mean ΔU: %.3f" % np.mean(d))
+```bash
+python scripts/reproduce_headline.py --bootstrap 10000
 ```
 
-Expected output:
+It reads the tracked slice `results/ledgers/repro/screened_cells_slim.jsonl` and ends with
+`VERDICT: REPRODUCED`:
 
 ```text
-memories: 60
-contrast: 0.3349
-BEARING cells: 139 mean ΔU: 0.345
-MATCHED_CONTROL cells: 146 mean ΔU: 0.027
-RANDOM cells: 872 mean ΔU: 0.064
+contrast         : +0.334861   (expected +0.334861)
+95% CI memories  : [+0.209, +0.463]
+95% CI episodes  : [+0.196, +0.475]
 ```
 
-These are the paper's +0.33 headline and the per-stratum values in Table 2. The confidence
-interval is a bootstrap over memories or episodes and is computed by
-`scripts/k3_analyze_screened.py` (see below).
+That is the paper's +0.33 [+0.21, +0.46] over 60 memories, with 139 / 146 / 872 cells in the
+answer-bearing, matched-control and random strata (Table 2). The same script checks the
+public dataset's overview table (`--overview`). Full commands, the reader-transfer check
+(+0.0982) and what each result needs are in [`docs/REPRODUCIBILITY.md`](docs/REPRODUCIBILITY.md).
 
-### 2. Reader transfer, session-matched
+**Reproducibility of the later analyses.** The fixed-total-context, second-session/position and
+retrieval results are reproducible from the dataset folder `followups_package/`.
+[`docs/RELEASE_COVERAGE.md`](docs/RELEASE_COVERAGE.md) lists every paper figure and table
+with its source, command, public location and status.
 
-```python
-import json, collections
-import numpy as np
-
-D = "results/ledgers/repro/raw_session_matched/"
-
-def cells(path):
-    c = collections.defaultdict(list)
-    for line in open(D + path):
-        r = json.loads(line)
-        if r["reward_with_memory"] is None or r["reward_without_memory"] is None:
-            continue                      # missing rewards are dropped, never scored as 0
-        c[(r["memory_id"], r["future_task_id"])].append(
-            r["reward_with_memory"] - r["reward_without_memory"])
-    return {k: np.mean(v) for k, v in c.items()}
-
-a, b = cells("raw_gptoss_slim.jsonl"), cells("raw_gemma_slim.jsonl")
-common = sorted(set(a) & set(b))
-print("matched cells:", len(common))                                        # 275
-print("gemma − gpt-oss: %.4f" % np.mean([b[k] - a[k] for k in common]))     # 0.0982
-```
-
-Expected: **275 matched cells** and a mean change of **+0.0982** (task-clustered 95% interval
-[+0.0247, +0.1730], computed in `results/ledgers/repro/raw_session_matched/raw_session_matched_analysis.json`).
-
-### 3. Other computed results
+### Other computed results
 
 Every other analysis output is a JSON file under `results/ledgers/`. For example:
 
@@ -187,7 +136,8 @@ conditions. No login is needed.
 from datasets import load_dataset
 import pandas as pd
 
-df = load_dataset("AgentsSci/AAMAS2027-ConditionalMemory", "overview", split="train").to_pandas()
+REV = "332cd047e9093a948606c4251bf5b294b0664762"   # dataset revision that includes the follow-up runs
+df = load_dataset("AgentsSci/AAMAS2027-ConditionalMemory", "overview", split="train", revision=REV).to_pandas()
 
 # The screened primary run, paired within memory.
 s = df[df.condition_id == "lmev2_raw_metis_gptoss120b_screened_v1"].dropna(subset=["delta_utility"])
@@ -247,7 +197,7 @@ by printing a verdict; read the verdict and row count, since exit code 0 alone i
 | Length control (§5.4) | `len1_build_length_control.py` → `len2_analyze_length_control.py` |
 | Gold-free screens (§3.2) | `gf1_` … `gf7_` (in order) |
 | Second reader and writer × reader factorial (§5.5) | `gemma_reader_run.py` → `gemma_reader_analyze.py`; `w1_` … `w5_`; `raw_session_matched_analysis.py` |
-| Second session, fixed total context, retrieval (§5.2–5.4, S11) | `x1_position_session.py`, `x2_fixed_context.py`, `x3_retrieval_baseline.py` |
+| Second session, fixed total context, retrieval (§5.2–5.4, S11) | `x1_position_session.py`, `x2_fixed_context.py` → `x2_analyze_fixed_context.py`, `x3_retrieval_baseline.py`. Run outputs are public in the dataset folder `followups_package/` (revision `332cd04`); see [`docs/RELEASE_COVERAGE.md`](docs/RELEASE_COVERAGE.md) |
 | SciCode and SWE-bench (S6) | `scicode_pilot.py`, `swebench_representations.py`, `swebench_multirepo_analysis.py` |
 
 To run on ALCF Sophia, use the scripts in `cluster/sophia/`
@@ -261,15 +211,11 @@ the slim slices above.
 
 ---
 
-## Build the paper source
+## Paper source
 
-```bash
-cd paper
-latexmk -pdf -interaction=nonstopmode main.tex   # run twice: bibtex needs the second pass
-```
-
-The first pass reports undefined citations until bibtex has run. The release manuscript is
-`website/paper.pdf`.
+The release manuscript is [`website/paper.pdf`](website/paper.pdf) (18 pages including the
+supplement). The LaTeX in `paper/` is an **older single-file snapshot** of the manuscript and
+is not the source of the release PDF; see [`paper/README.md`](paper/README.md).
 
 ---
 
@@ -278,7 +224,8 @@ The first pass reports undefined citations until bibtex has run. The release man
 | Read this | For |
 |---|---|
 | `docs/PAPER_ARTIFACT_MAP.md` | Every figure and table → generator, input, unit |
-| `docs/REPRODUCIBILITY.md` | Reproduction levels and assumptions |
+| `docs/REPRODUCIBILITY.md` | Verified reproduction commands and expected output |
+| `docs/RELEASE_COVERAGE.md` | Every figure and table: source, command, public location, status; missing records |
 | `docs/MEMORY_PROTOCOL.md`, `docs/MEMORY_REPRESENTATIONS.md` | How memories are written and represented |
 | `docs/BEARING_SCREEN_DISCLOSURE.md`, `docs/LEAKAGE_AUDIT.md` | The answer-bearing screen and leakage checks |
 | `docs/ANALYSIS_PREREGISTRATION.md` | Pre-registered analyses |
@@ -290,6 +237,8 @@ The remaining files in `docs/` are working notes kept for provenance.
 ---
 
 ## Citation
+
+Machine-readable metadata: [`CITATION.cff`](CITATION.cff); BibTeX for the paper and the dataset: [`CITATION.bib`](CITATION.bib). The paper is a preprint (not accepted); an arXiv identifier will be added after deposit.
 
 ```bibtex
 @misc{yang2026memoryuseful,

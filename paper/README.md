@@ -1,9 +1,22 @@
-# Canonical Overleaf-ready manuscript package
+# Superseded manuscript snapshot (2026-10-02, 11 pages)
 
-**This directory is the durable copy of the paper while Overleaf git access is
-unavailable.** It is complete: a new agent can compile the current manuscript
-from this directory alone, with no other part of the repository and no
-conversation history.
+> **This directory is not the source of the release paper.** It is an older, single-file
+> snapshot of the manuscript (11 pages, all figures drawn inline in TikZ from
+> `figdata.tex`). The release manuscript is [`../website/paper.pdf`](../website/paper.pdf):
+> 18 pages including the supplement, with the project, code and dataset links above the
+> abstract. Numbers, figures and statistical summaries here can differ from the release.
+> It is kept for provenance only.
+>
+> The release LaTeX source lives in the release Overleaf project. Importing it here has not
+> been done yet; it needs an export from someone with access to that project. Until then, do
+> not cite numbers from this directory and do not treat `figdata.tex` as the release's source.
+
+## Historical notes on this snapshot
+
+
+*At the time of this snapshot* this directory was the durable copy of the paper while
+Overleaf git access was unavailable. It compiled the manuscript of that date from this
+directory alone.
 
 ## Compile it
 

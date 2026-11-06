@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the paper. If you use the data, also cite the dataset and record the dataset revision you used."
+title: "What Is This Memory Useful For? Measuring Task-Conditioned Utility in Long-Term Agent Memory"
+type: software
+authors:
+  - family-names: Yang
+    given-names: Chih-Hsuan
+    email: bellayang@anl.gov
+    affiliation: Argonne National Laboratory
+  - family-names: Chowdhury
+    given-names: Anjir Ahmed
+    affiliation: University of Houston
+  - family-names: Yan
+    given-names: Feng
+    affiliation: University of Houston
+  - family-names: Thakur
+    given-names: Rajeev
+    affiliation: Argonne National Laboratory
+repository-code: "https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory"
+url: "https://chihhsuan-yang.github.io/AAMAS2027-ConditionalMemory/"
+date-released: "2026-10-30"
+# Preprint, not accepted. When the arXiv record exists, add: identifiers: [{type: other, value: "arXiv:XXXX.XXXXX"}]
+preferred-citation:
+  type: report
+  title: "What Is This Memory Useful For? Measuring Task-Conditioned Utility in Long-Term Agent Memory"
+  authors:
+    - family-names: Yang
+      given-names: Chih-Hsuan
+    - family-names: Chowdhury
+      given-names: Anjir Ahmed
+    - family-names: Yan
+      given-names: Feng
+    - family-names: Thakur
+      given-names: Rajeev
+  year: 2026
+  month: 10
+  notes: "Preprint"
+references:
+  - type: data
+    title: "Conditional Memory Utility Dataset"
+    authors:
+      - family-names: Yang
+        given-names: Chih-Hsuan
+      - family-names: Chowdhury
+        given-names: Anjir Ahmed
+      - family-names: Yan
+        given-names: Feng
+      - family-names: Thakur
+        given-names: Rajeev
+    year: 2026
+    publisher:
+      name: Hugging Face
+    url: "https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory"
+    version: "332cd047e9093a948606c4251bf5b294b0664762"
