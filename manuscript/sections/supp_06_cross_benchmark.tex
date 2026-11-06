@@ -1,0 +1,61 @@
+\section{Cross-benchmark contrasts}
+\label{sec:crossbenchtable}
+The one quantity all three benchmarks define identically is the per-cell
+representation contrast: a representation's $\Delta U$ minus Raw's on the same
+memory and task. It separates from zero on LongMemEval-V2 alone
+(Figure~\ref{fig:overview}e): Summary$-$Raw is $\xbSRLmM$
+$[\xbSRLmLo, \xbSRLmHi]$ and Structured$-$Raw is $\xbTRLmM$
+$[\xbTRLmLo, \xbTRLmHi]$ on $\xbSRLmN$ cells. On SciCode ($n{=}\xbSRScN$) and
+SWE-bench Verified ($n{=}\xbSRSwN$) every interval includes zero, but there the
+memories themselves have no effect even in raw form: Raw's own $\Delta U$ is
+$\rvSciRaw$ $[\rvSciRawLo, \rvSciRawHi]$ on SciCode, where $\rvSciRawTied$ of
+$\rvSciRawN$ cells are unchanged, and $\rvSweRaw$ $[\rvSweRawLo, \rvSweRawHi]$
+on SWE-bench. With no Raw effect to preserve or lose, a representation contrast
+there is uninformative about representation; these benchmarks bound where
+memory matters for this reader, not how it should be written
+(Section~\ref{sec:crossbenchtable}).
+
+Table~\ref{tab:crossbench} gives the values plotted in
+Figure~\ref{fig:overview}e. We compare contrasts rather than
+per-representation $\Delta U$ because each benchmark carries its own
+nondeterminism. The no-memory arm, whose input is identical across
+representations, still disagrees with itself on
+$\xbFloorLmK/\xbFloorLmN{=}\xbFloorLm$ of LongMemEval-V2 cells and
+$\xbFloorScK/\xbFloorScN{=}\xbFloorSc$ of SciCode cells, and a paired contrast
+removes that term. SWE-bench has no such floor because its no-memory arm is
+deterministic by construction. SciCode's equivalent judge control disagrees
+on 5 of 135 cells within one session, so determinism cannot be assumed of a
+new benchmark.
+
+\begin{table}[t]
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Per-cell representation contrasts: $\Delta U$ under one
+representation minus $\Delta U$ under Raw on the same memory and task, with
+task-clustered 95\% intervals. Only LongMemEval-V2 separates from zero. Every
+SciCode and SWE-bench interval includes zero (SWE-bench's Summary$-$Raw only at
+its upper bound), and doubling the SciCode cell
+count separated no contrast. MDE is the minimum detectable contrast at 80\%
+power and two-sided $\alpha = 0.05$, computed from each interval's width.
+Raw's own with-versus-without $\Delta U$ is $\rvSciRaw$
+$[\rvSciRawLo, \rvSciRawHi]$ on SciCode and $\rvSweRaw$ on SWE-bench, so on
+these benchmarks no memory effect exists for a representation to preserve, and
+the contrasts cannot test the ordering.}
+\label{tab:crossbench}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+contrast & benchmark & $n$ & mean & 95\% CI & MDE \\
+\midrule
+Summary$-$Raw
+ & LongMemEval-V2 & \xbSRLmN & \xbSRLmM & [\xbSRLmLo, \xbSRLmHi] & \raMdeSRLm \\
+ & SciCode        & \xbSRScN & \xbSRScM & [\xbSRScLo, \xbSRScHi] & \raMdeSRSc \\
+ & SWE-bench      & \xbSRSwN & \xbSRSwM & [\xbSRSwLo, \xbSRSwHi] & \raMdeSRSw \\
+\midrule
+Structured$-$Raw
+ & LongMemEval-V2 & \xbTRLmN & \xbTRLmM & [\xbTRLmLo, \xbTRLmHi] & \raMdeTRLm \\
+ & SciCode        & \xbTRScN & \xbTRScM & [\xbTRScLo, \xbTRScHi] & \raMdeTRSc \\
+ & SWE-bench      & \xbTRSwN & \xbTRSwM & [\xbTRSwLo, \xbTRSwHi] & \raMdeTRSw \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,49 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Combined-document version of supplement.tex for inclusion in main.tex.
+%%% This file intentionally has NO documentclass, package imports,
+%%% title/author block, CCS metadata, bibliography commands, or document
+%%% environment. It uses the packages and shared macros already loaded by
+%%% main.tex.
+%%%
+%%% In main.tex, load the main-paper cross-reference table in the PREAMBLE:
+%%%   \input{xref/main_labels}
+%%% (Keep the existing \input{xref/supplement_labels} line as well.)
+%%%
+%%% Then insert this file after the main bibliography and before
+%%% \end{document}:
+%%%   \clearpage
+%%%   \input{supplex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\section*{Supplementary Material}
+\label{sec:supplementary-material}
+
+% Use S1, S2, ... section numbering and S1, S2, ... figure/table numbering.
+% Page numbering continues from the main paper.
+\setcounter{section}{0}
+\setcounter{subsection}{0}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+
+% References from the supplement to sections, tables, and figures in main.tex.
+\providecommand{\main}[1]{main paper, Section~\ref*{M-#1}}
+
+% Supplementary sections.
+\input{sections/supp_00_guide}
+\input{sections/supp_01_protocol}
+\input{sections/supp_02_benchmarks}
+\input{sections/supp_03_configuration}
+\input{sections/supp_04_additional_results}
+\input{sections/supp_05_second_reader}
+\input{sections/supp_06_cross_benchmark}
+\input{sections/supp_07_sign_reversal}
+\input{sections/supp_08_release}
+\input{sections/supp_09_limitations}
+\input{sections/supp_11_preregistration}
+\input{sections/supp_12_sophia}
+\input{sections/supp_13_figures}

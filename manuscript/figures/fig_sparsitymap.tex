@@ -1,0 +1,64 @@
+%%% TikZ figure, drawn from macros/figdata.tex. Included by a section file.
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\scriptsize,
+  tk/.style={font=\tiny, text=black!55},
+  hd/.style={font=\tiny\bfseries, text=black!80},
+  lg/.style={font=\tiny, text=black!60},
+  br/.style={draw=black!45, line width=0.35pt},
+]
+\def\cw{3.5pt}\def\ch{2.1pt}
+%% ---- the cells. Order matters: zeros first, so a non-zero mark is never
+%% painted over by a neighbouring zero.
+\foreach \x/\y in \spZero
+  { \fill[teallight!18] (\x pt,\y pt) rectangle +(\cw,\ch); }
+\foreach \x/\y in \spNeg
+  { \fill[coral] (\x pt,\y pt) rectangle +(\cw,\ch); }
+\foreach \x/\y in \spPos
+  { \fill[tealdeep] (\x pt,\y pt) rectangle +(\cw,\ch); }
+%% ---- stratum headers and the per-block positive rate
+\foreach \mi/\nm/\rt/\lo/\hi in {%
+    \spBearMid/{\textsc{bearing}}/\spBearRate/\spBearLo/\spBearHi,
+    \spCtrlMid/{matched control}/\spCtrlRate/\spCtrlLo/\spCtrlHi,
+    \spRandMid/{\textsc{random}}/\spRandRate/\spRandLo/\spRandHi}{
+  \node[tk, text=black!75, anchor=south] at (\mi,7pt) {\nm};
+  \node[tk, anchor=north] at (\mi,{-\spTotH-1pt})
+    {\rt\%\ \,{\tiny[\lo, \hi]}};
+}
+\node[tk, anchor=north] at (\spBearMid,{-\spTotH-9pt}) {\spBearPos/\spBearN};
+\node[tk, anchor=north] at (\spCtrlMid,{-\spTotH-9pt}) {\spCtrlPos/\spCtrlN};
+\node[tk, anchor=north] at (\spRandMid,{-\spTotH-9pt}) {\spRandPos/\spRandN};
+\node[tk, anchor=north] at (78pt,{-\spTotH-17pt})
+  {cells where the memory helped, with Wilson 95\% interval};
+%% ---- the memory axis
+\draw[br] (-3pt,0pt) -- (-3pt,{-\spTotH});
+\node[tk, rotate=90, anchor=south] at (-8pt,{-0.5*\spTotH})
+  {\spMems\ memories};
+%% ---- legend, raised clear of the stratum headers
+\fill[tealdeep] (0pt,20pt) rectangle +(\cw,\ch);
+\node[lg, anchor=west] at (5pt,21pt) {helped};
+\fill[coral] (30pt,20pt) rectangle +(\cw,\ch);
+\node[lg, anchor=west] at (35pt,21pt) {hurt};
+\fill[teallight!18] (54pt,20pt) rectangle +(\cw,\ch);
+\node[lg, anchor=west] at (59pt,21pt) {no change};
+\node[lg, anchor=west] at (95pt,21pt) {(blank $=$ not run)};
+\end{tikzpicture}
+\caption{\textbf{Utility is sparse over future tasks, and the sparsity is
+structured.} One square per \emph{measured} cell --- all $\spCells$ of them,
+$\spMems$ memories $\times$ their own future tasks, one representation and
+one frozen reader. $\Delta U$ takes exactly three values here, so the marks
+are discrete rather than shaded. Only $\spNonzero$ cells move at all:
+$\spZeroPct\%$ of measured cells are an exact zero, which is the quantity a
+single global memory score has to summarize. The three blocks are the same $\spMems$
+memories against bearing, matched-control and unscreened tasks, so the
+comparison is paired within memory. Rows are ordered by \textsc{bearing}
+count; that arranges the rows but cannot create the block contrast, which is
+$\spBearRate\%$ against $\spRandRate\%$ with disjoint Wilson intervals. A row's squares are that memory's own tasks in its
+own order, so a \emph{column is not a task}: the blocks span $\spBearTasks$,
+$\spCtrlTasks$ and $\spRandTasks$ distinct tasks against widths of 9, 9 and
+15. Unrun cells are blank rather than padded --- the rows are ragged, and
+padding them would spread the same marks over more area and collapse the
+contrast to about $1\times$.}
+\label{fig:sparsitymap}
+\end{figure}

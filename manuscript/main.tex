@@ -1,0 +1,193 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% AAMAS 2027 main track submission.
+%%%
+%%% PAGE RULE (AAMAS 2027 Submission Instructions and Q&A, checked 2026-10-03):
+%%%   * body at most EIGHT pages; references may run onto further pages;
+%%%   * an appendix inside this PDF COUNTS toward the eight pages, so all
+%%%     overflow lives in supplement.tex, submitted as a separate zip (<= 25 MB);
+%%%   * reviewers need not read the supplement: everything needed to understand
+%%%     and evaluate the paper stays in these eight pages;
+%%%   * double-blind; do not modify aamas.cls or any layout parameter.
+%%%
+%%% LAYOUT: sections/ (one file per section), figures/ (PDFs + TikZ),
+%%% macros/ (generated numbers, never edit by hand), xref/ (static label
+%%% tables so main.tex and supplement.tex each compile alone, e.g. on Overleaf).
+%%% References to the supplement (\supp{...}) resolve through
+%%% xref/supplement_labels.tex; after renumbering anything in the supplement,
+%%% run tools/build.sh locally to refresh xref/.
+%%%
+%%% Every measured number is a figdata.tex macro or was carried verbatim from
+%%% the previous manuscript, which re-derived it in scripts/audit_claims.py.
+%%% figures/fig_results.pdf is drawn by tools/make_results_figure.py from macros/figdata.tex.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[sigconf,nonacm]{aamas}
+
+\usepackage{balance}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{siunitx}
+%%% Main-text display of pipeline values at two decimals; the macros keep full
+%%% precision (the supplement prints them unrounded).
+\newcommand{\rd}[1]{\num[round-mode=places,round-precision=2,retain-explicit-plus=true]{#1}}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{tikz}
+\usetikzlibrary{positioning,calc,fit,arrows.meta,backgrounds}
+\input{macros/figdata}
+\input{macros/reanalysis}
+\input{macros/lenctl}
+\input{macros/ledgerfacts}
+\input{macros/sophia}
+\input{macros/review}
+
+
+%%% Teal/coral house package (sci-figure-style), shared with tools/fig_style.py.
+\definecolor{tealdeep}{HTML}{178A86}
+\definecolor{teallight}{HTML}{3DB5AC}
+\definecolor{coral}{HTML}{E2553F}
+%%% Visible to-do marker; every \todo must be resolved before upload.
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+%%% A title ending in "?" is followed by a period in the ACM bibliography style;
+%%% \qmark prints "?" and absorbs that period (used only in p1refs.bib).
+\makeatletter
+\newif\if@qmtitle
+\newcommand{\qmark}{?\global\@qmtitletrue}
+\def\showarticletitle#1{\global\@qmtitlefalse#1\if@qmtitle\expandafter\@gobbleperiod\fi}
+\def\@gobbleperiod{\@ifnextchar.{\@gobble}{}}
+\makeatother
+
+\definecolor{ink}{HTML}{3A3A4A}
+
+\newcommand{\supp}[1]{Supplement~\ref*{S-#1}}
+
+%%% A preprint license will be selected by the authors at deposit time.
+\setcopyright{none}
+\acmConference[Preprint]{Preprint}{October 2026}{Online}{}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{}
+\acmISBN{}
+
+%%% Public preprint: omit the anonymous submission ID and proceedings claim.
+
+%%% Title kept exactly as registered on OpenReview: AAMAS 2027 does not allow a
+%%% substantive title or abstract change after the 1 October abstract deadline.
+\title{What Is This Memory Useful For? Measuring Task-Conditioned
+Utility in Long-Term Agent Memory}
+
+\author{Chih-Hsuan Yang}
+\authornote{These authors are co-first authors and contributed equally to this work.}
+\authornote{Corresponding author: Chih-Hsuan Yang (bellayang@anl.gov).}
+\affiliation{%
+  \institution{Argonne National Laboratory}
+  \city{Lemont}
+  \state{Illinois}
+  \country{USA}
+}
+\email{bellayang@anl.gov}
+
+\author{Anjir Ahmed Chowdhury}
+\authornotemark[1]
+\affiliation{%
+  \institution{University of Houston}
+  \city{Houston}
+  \state{Texas}
+  \country{USA}
+}
+
+\author{Feng Yan}
+\affiliation{%
+  \institution{University of Houston}
+  \city{Houston}
+  \state{Texas}
+  \country{USA}
+}
+\email{fyan5@uh.edu}
+
+\author{Rajeev Thakur}
+\affiliation{%
+  \institution{Argonne National Laboratory}
+  \city{Lemont}
+  \state{Illinois}
+  \country{USA}
+}
+\email{thakur@anl.gov}
+
+%%% Labels of supplement.tex, prefixed S-, so \ref*{S-...} resolves
+%%% without compiling supplement.tex first (refreshed by tools/build.sh).
+\input{xref/supplement_labels}
+\input{xref/main_labels}
+\begin{document}
+
+\input{sections/00_abstract}
+
+%%% ACM CCS 2012 concepts. Required by the class for papers over two pages
+%%% (aamas.cls emits "CCS concepts are mandatory" otherwise). Concept paths are
+%%% standard ACM CCS 2012 strings, not invented ones.
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10010147.10010178.10010187</concept_id>
+<concept_desc>Computing methodologies~Knowledge representation and reasoning</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010178.10010219.10010221</concept_id>
+<concept_desc>Computing methodologies~Intelligent agents</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010178.10010179</concept_id>
+<concept_desc>Computing methodologies~Natural language processing</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010257</concept_id>
+<concept_desc>Computing methodologies~Machine learning</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Computing methodologies~Knowledge representation and reasoning}
+\ccsdesc[500]{Computing methodologies~Intelligent agents}
+\ccsdesc[300]{Computing methodologies~Natural language processing}
+\ccsdesc[300]{Computing methodologies~Machine learning}
+
+\keywords{agent memory; long-term memory; counterfactual evaluation;
+memory utility; memory representation; efficiency; LLM agents}
+
+% Public resource links below the authors and above the abstract.
+\begin{teaserfigure}
+\noindent\makebox[\textwidth][c]{\small
+\href{https://chihhsuan-yang.github.io/AAMAS2027-ConditionalMemory/}{Project Website}\quad$\vert$\quad
+\href{https://github.com/ChihHsuan-Yang/AAMAS2027-ConditionalMemory}{Code}\quad$\vert$\quad
+\href{https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory}{Dataset}
+}
+\Description{Links to the project website, code, and dataset.}
+\end{teaserfigure}
+
+\maketitle
+
+
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_method}
+\input{sections/04_setup}
+\input{sections/05_results}
+\input{sections/06_discussion}
+\input{sections/07_ai_disclosure}
+
+\begin{acks}
+This research used resources of the Argonne Leadership Computing Facility, a U.S. Department of Energy (DOE) Office of Science user facility at Argonne National Laboratory (ANL) operated under Contract No.~DE-AC02-06CH11357. The work was also supported under the same contract by the DOE Office of Science's Advanced Scientific Computing Research Program and by Laboratory Directed Research and Development (LDRD) funding from ANL, provided by the Director, DOE Office of Science. The work of the University of Houston coauthors was supported in part by the National Science Foundation under grants CAREER-2305491 and CNS-2504762.
+\end{acks}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{p1refs}
+
+\clearpage
+\input{supplex}
+
+\end{document}

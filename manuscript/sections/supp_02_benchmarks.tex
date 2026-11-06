@@ -1,0 +1,60 @@
+\section{Benchmark adapters and coverage}
+\label{sec:benchdetails}
+
+\paragraph{LongMemEval-V2 haystacks.}
+On the \texttt{small} tier each domain has exactly one haystack, identical
+across questions even as an ordered tuple, so every memory is available to
+every question in its domain and there is no availability confound between
+arms. The same test returns 222 and 211 distinct haystacks on
+\texttt{medium}, a positive control showing that it distinguishes the two
+cases. Trajectory lengths were measured with the benchmark's own tokenizer
+over 200 trajectories and 5{,}095 states.
+
+\paragraph{Scorer dispatch.}
+There are eight distinct evaluation-specification strings, not six: two
+phrase-match variants differ only in their separator. The adapter therefore
+dispatches on the full string, never on the function name, and calls the
+benchmark's scorer verbatim. Its phrase matcher tests gold-phrase
+\emph{containment}, not set equality, which a name-based reimplementation
+gets wrong. An LLM-judged task raises an error rather than returning a
+default; a silent \texttt{False} would turn ``cannot evaluate'' into ``wrong
+answer'' for 156 of 451 questions in both arms.
+
+\paragraph{Pairing and power.}
+Seeded deterministic pairing within domain, stratified by the benchmark's own
+question-type taxonomy, gives 1{,}889 memories $\times$ 8 tasks $=$ 15{,}112
+cells, and every memory was verified to receive exactly 8. The build asserts
+that the same seed reproduces the grid byte-identically \emph{and} that a
+different seed changes it, so the reproducibility check is not vacuous. That
+grid is the available pairing, not the executed design. The floor of 60
+memories was fixed before running from a recovery study on synthetic data
+with known planted components; the same study showed that widening the task
+axis helps more than adding memories.
+
+\paragraph{BEAM.}
+BEAM~\cite{beam} was in our original plan as a multi-domain check but cannot
+supply the task axis: 92.6\% of its cited turns are cited by exactly one
+question. Being CC~BY-SA~4.0, it would also have to ship separately, since
+ShareAlike would otherwise relicense the rest of the release.
+
+\paragraph{SciCode.}
+The memory unit is a reusable helper routine with its procedure, which
+transfers across problems. Against an early feasibility estimate of 8--12
+pairs, the full candidate pool measured on the built adapter is $\sciPairs$
+donor$\to$recipient pairs ($\sciMems$ memories, $\sciTasks$ tasks), and we
+ran all of it.
+
+\paragraph{SWE-bench Verified.}
+Pairing is plentiful but the \emph{measurable} yield is low. Across
+$\covSwRepos$ repositories, after a localizer that misses the edit region on
+$\sweLocMiss$ cells and edits that neither apply nor produce a test verdict,
+$\sweMatched$ cells are interpretable under all three representations, and
+$\sweDomRepoPct\%$ come from one repository. A scoring defect was corrected before these counts: a test suite
+that printed no verdict at all (an import or collection error) had been
+recorded as a reward of zero. Those $\lfSweDemoted$ arm-reads
+($\lfSweDemDjango$ django, $\lfSweDemSympy$ sympy) are now unscorable, and
+every contrast includes zero after the correction. The matched set of
+$\lfSweMatched$ cells is pooled from four runs across the two repositories; it grew as runs were added, not through the correction, which can only
+remove cells. Table~\ref*{M-tab:coverage} of the main paper counts SWE-bench in
+(memory, task, representation) cells; counts per recipient task (107/37/70)
+describe a different unit.

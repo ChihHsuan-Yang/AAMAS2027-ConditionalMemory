@@ -1,0 +1,92 @@
+\section{Protocol details}
+\label{sec:protocol}
+
+\subsection{Keeping the writer blind to future tasks}
+\label{sec:taskblind}
+Memory formation must be a function of the past episode alone, $m = W(e)$.
+If the writer could see a future task, a positive $\Delta U$ would show only
+that a model can be told the answer and copy it forward. We enforce this with
+four structural barriers rather than by convention. (1)~\emph{Arity}: the
+writer function takes a segment and nothing else. (2)~\emph{A closed field
+set}: the writer emits only the fields of its schema. (3)~\emph{A metadata
+denylist}: the weakest barrier, present to make a plumbing mistake fail loudly.
+(4)~\emph{A single interpolation point}: the prompt has one placeholder, the
+segment text. Each barrier carries a negative control that plants the defect
+and requires the check to fire. Prompt identity is derived from the prompt
+file's bytes, not from a hand-maintained version constant that could report a
+stale version.
+
+\subsection{Target position is held fixed}
+\label{sec:position}
+The \textsc{with} arm holds one more item than the \textsc{without} arm, so
+some rule must place it, and that rule is not neutral. Holding the memory,
+question, filler, model, decoding and seed fixed and varying only the
+position of the target memory changes the answer in 8 of 12 probe cells. Measured at scale in the second-session
+run (Section~\ref{sec:sophia}), position changes $\soPosChgPct\%$ of labels. A
+comparison that does not control position therefore measures position
+together with presence. We hold position fixed across replicates, vary it
+across cells, and record it on every row. This is also what makes the
+second-reader comparison (\main{sec:readertransfer}) a comparison of readers
+and not of positions. The probe is small ($n{=}12$), and we treat the rate
+as provisional.
+
+\subsection{The bearing screen and both gold-free screens}
+\label{sec:goldfree}
+The bearing screen reads the memory text, the task's gold answer, and the
+task's evaluation specification; it never reads the question. A pair is
+\textsc{bearing} only when the benchmark's scorer marks the memory text
+correct against the gold answer \emph{and} the test fires on at most eight of
+the 865--1{,}024 units in the task's domain pool. The second clause matters.
+An earlier, non-discriminative version of the flag fired on nearly every
+candidate: its rate on paired versus unpaired memories was in a ratio of
+$0.995$, so it said nothing about any one of them.
+
+We pre-registered two gold-free screens before execution. Each reads the
+memory, the question and the same-domain pool, and none of the gold answer,
+the reward, any model output, or the evaluation specification. We report
+both, because reporting only the screen that worked would select an
+instrument on its outcome.
+\begin{itemize}
+\item \emph{Model-based screen.} The judge is $\lfGfJudge$, the reader's own
+model, at temperature 0, asked whether the memory contains the specific
+information the question asks about. On cells the gold screen never
+selected, its picks move the reader from $\gfWithoutPct\%$ correct without the
+memory to $\gfWithPct\%$ with it ($\gfN$ rows, $\gfCells$ cells); its matched
+control moves from $\gfCtlWithoutPct\%$ to $\gfCtlWithPct\%$ ($\gfCtlN$ rows,
+$\lfGfCtlCells$ cells). The contrast of $\gfDiff$ has a task-clustered interval
+of $[\lfGfTaskLo, \lfGfTaskHi]$ ($\lfGfTaskN$ tasks), an episode-clustered one
+of $[\lfGfEpLo, \lfGfEpHi]$ ($\lfGfEpN$ episodes), and a paired-by-memory
+difference of $\lfGfMemD$ over $\lfGfMemN$ memories. Against the gold screen it
+recovers $\lfGfBoth$ of $\lfGfGold$ gold-bearing pairs ($\lfGfRec\%$ recall),
+and $\lfGfBoth$ of its $\lfGfPicks$ picks are gold-bearing ($\lfGfPrec\%$). The
+run is in one session, separate from the gold run.
+\item \emph{Lexical screen.} It returns no effect. A diagnostic independent of
+any utility explains why: its bearing cells fail in both arms at a rate of
+$\gfLexBaf$, \emph{worse} than unscreened random pairing, against
+$\gfLlmBaf$ for the model-based screen. A criterion whose selections are
+harder than a random draw has not located bearing pairs.
+\end{itemize}
+
+\subsection{Leakage audit}
+\label{sec:leakage}
+The writer invariant excludes \emph{task-directed writing}, not a naturally
+occurring memory that happens to contain a later answer. Such a memory is
+genuinely useful, and removing it would condition the cell set on the
+outcome. We therefore audit every cell rather than filter it. The detector
+reuses the benchmark's own scorer and asks whether the rendered memory text
+alone would score correct against the gold answer. For \textsc{bearing} cells
+the answer is yes by construction, since that is half the bearing definition.
+The audit carries information for the control and \textsc{random} strata and
+for the Summary and Structured texts, where containment is not guaranteed and
+can be conditioned on in analysis. It is validated by 17
+controls (plants it must catch, clean cases it must not fire on, and two
+pinned known false negatives) and aborts if any control fails.
+
+\subsection{Three kinds of zero in the cost ledger}
+\label{sec:zeros}
+Raw makes zero writer calls; Summary and Structured make one each per
+segment. The ledger distinguishes three zeros that are routinely merged: a
+measured zero (Raw makes zero extraction calls), an absent measurement (no
+call was made, so the cell leaves that denominator), and an unreported field
+(the endpoint exposes no counter). Failed writes count: a write that failed
+after consuming a call still cost that call.

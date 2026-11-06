@@ -2,14 +2,12 @@
 
 > **This directory is not the source of the release paper.** It is an older, single-file
 > snapshot of the manuscript (11 pages, all figures drawn inline in TikZ from
-> `figdata.tex`). The release manuscript is [`../website/paper.pdf`](../website/paper.pdf):
-> 18 pages including the supplement, with the project, code and dataset links above the
-> abstract. Numbers, figures and statistical summaries here can differ from the release.
+> `figdata.tex`). The release manuscript is [`../website/paper.pdf`](../website/paper.pdf), built from
+> [`../manuscript/`](../manuscript/), with the project, code and dataset links above the abstract. Numbers, figures and statistical summaries here can differ from the release.
 > It is kept for provenance only.
 >
-> The release LaTeX source lives in the release Overleaf project. Importing it here has not
-> been done yet; it needs an export from someone with access to that project. Until then, do
-> not cite numbers from this directory and do not treat `figdata.tex` as the release's source.
+> The release LaTeX source is in [`../manuscript/`](../manuscript/). Do not cite numbers from this
+> directory and do not treat `figdata.tex` here as the release's source.
 
 ## Historical notes on this snapshot
 

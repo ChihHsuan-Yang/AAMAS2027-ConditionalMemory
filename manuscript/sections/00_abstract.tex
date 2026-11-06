@@ -1,0 +1,26 @@
+\begin{abstract}
+A stored experience may answer one future question and offer little help
+with another. We measure this task-conditioned utility rather than assigning
+each memory a single importance score. A task-blind writer stores a memory
+without seeing the later task; a frozen reader then answers that task with
+and without the memory, using identical filler. A cost ledger records the
+resources used to form, store and expose the memory.
+
+On single-call factual-recall tasks built from LongMemEval-V2 web-agent
+memories, the same memory helps more when it contains information needed for
+the answer. Its mean paired reward gain on these answer-bearing task pairs
+exceeds that on matched-control pairs by $\lfHeadD$ (95\% interval
+$\lfHeadLo$ to $\lfHeadHi$). The tested task-blind summaries and structured records yield smaller gains
+than Raw, including at fixed total context; a budget sweep is consistent
+with retention of answer-bearing content contributing to the difference.
+The bearing--control contrast remains positive in a new session with
+randomized memory position and under a second reader, although individual
+memory--task labels change. Generic retrieval performs above
+chance but misses most screen-defined answer-bearing memories. The factual-recall gains do not extend to the tested software-engineering
+and scientific-coding benchmarks, where even raw memories have no measurable
+effect. We provide a public, versioned
+\href{https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory}{Conditional Memory Utility Dataset}
+of paired measurements and costs. The practical takeaway is to evaluate memory compression by the task
+utility it preserves alongside its costs. Task-conditioned measurements
+make this comparison possible; their stability must also be checked.
+\end{abstract}

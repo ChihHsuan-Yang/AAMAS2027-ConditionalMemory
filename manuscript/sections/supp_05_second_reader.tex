@@ -1,0 +1,67 @@
+\section{Second reader and writer, $\times$, reader factorial}
+\label{sec:readerfull}
+
+\paragraph{Design.}
+The second-reader study was pre-registered before any design-cell call was
+issued, with no transfer, the same ordering at a different magnitude, and a
+different representation preference all committed as valid outcomes. The
+memory file, prompt, filler pool, every rendered request, and each cell's
+target position were hash-asserted against the first run at call time, and
+the text re-verified byte-identical on $\rgRows$ rows; in the session-matched
+run all $\smIdentK$ of $\smIdentN$ joinable rows are hash-identical.
+
+\paragraph{Session-matched result.}
+Both readers ran in one session. Over $\rgSmCells$ matched Raw cells on
+$\rgSmTasks$ tasks ($\rgSmN$ replicate rows; these three counts are different
+units), mean $\Delta U$ is $\rgSmOss$ under the first reader and $\rgSmGem$
+under the second, a paired change of $\rgSmDiff$ $[\rgSmLo, \rgSmHi]$. The
+two readers' own 95\% intervals overlap; plotting those would invite a ``no
+difference'' reading that the paired design rules out. The within-memory
+\textsc{bearing}$-$control contrast is $\rgBmcRawOss$ $[\rgBmcRawOssLo,
+\rgBmcRawOssHi]$ under the first reader and $\rgBmcRawGem$ $[\rgBmcRawGemLo,
+\rgBmcRawGemHi]$ under the second ($\rgBmcRawOssMem$ memories). The no-memory
+arm moves by $\rgWithoutDelta$, so part of the gain is a weaker reader rather
+than a better memory.
+
+\paragraph{Cross-session first execution.}
+A first execution with the two readers a day apart returned $\rgRawDiff$
+$[\rgRawLo, \rgRawHi]$, inside the session-matched interval. Re-run together,
+that difference splits into $-0.0327$ attributable to the session and
+$-0.0364$ to the reader, which halves the apparent reader share. We quote only
+the session-matched estimate.
+
+\paragraph{Cell-level agreement, session-matched run.}
+These are the numbers behind Figure~\ref{fig:overview}f. Over the
+$\rgSmCells$ matched Raw cells, the readers' three-way labels (helped,
+unchanged, hurt) agree on $\raReaderLabAgree$ of $\rgSmCells$ cells, at Cohen's
+$\kappa = \raReaderKappa$; $\smCZeroZero$ cells are unchanged under both and
+can only agree. Of the $\raReaderMoving$ cells that move under either reader,
+both mark $\smAgree$ as helped, and signs agree on $\smAgree$ of the $\smBoth$
+cells that move under both. The readers agree on no harmed cell (the first
+reader's $\raHurtOss$ and the second's $\raHurtGem$ do not overlap), but so few cells
+are harmed that this cannot show whether harm labels reproduce.
+
+\paragraph{Cell-level agreement, earlier cross-session run.}
+The first execution, with the two readers a day apart, covers a slightly
+different matched set ($\rgRawN$ cells) and is the only source for Summary and
+Structured. There the readers' per-cell $\Delta U$ correlate at
+$r{=}\rgRawRAll$ over all cells, of which $\rgRawZeroBoth$ are zero under both;
+over the $\rgRawNNz$ cells non-zero under either reader, $r = \rgRawRNz$
+($\rgSumRNz$ for Summary, $\rgStrRNz$ for Structured). Signs agree on
+$\rgRawSignK$ of $\rgRawSignN$ Raw cells where both move, and labels on
+$\rgRawLabK$ of $\rgRawLabN$. Summary $\rgSumDiff$ $[\rgSumLo, \rgSumHi]$ and
+Structured $\rgStrDiff$ $[\rgStrLo, \rgStrHi]$ span zero with only
+$\rgSumNNz$ and $\rgStrNNz$ cells non-zero under either reader. Because this
+run spans sessions, its numbers mix reader and session differences, and they
+should not be pooled with the session-matched ones. Costs are not pooled
+across readers: the second reports no reasoning-token counts.
+
+\paragraph{Writer, $\times$, reader factorial.}
+\label{sec:factorial}
+All four writer--reader arms ran in one session. Every one of the eight
+contrasts (writer, reader, same-family and interaction, on Summary with
+$n{=}274$ and Structured with $n{=}268$) spans zero. The intervals are
+informative rather than underpowered: they exclude writer and same-family
+effects larger than $0.0380$, against the $\rgSmDiff$ reader effect the same
+apparatus detects. Raw has no writer and is not in the factorial, and two
+checkpoints form a $2\times2$ design, not a population of models.

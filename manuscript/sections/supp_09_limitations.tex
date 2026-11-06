@@ -1,0 +1,56 @@
+\section{Extended limitations}
+\label{sec:extlimits}
+
+\paragraph{Leakage rates are lower bounds.}
+Our leakage detector reuses the benchmark's phrase matcher, whose normalizer
+strips punctuation without inserting a space. A gold phrase next to a quote
+or an equals sign is glued to its neighbor and the match fails. Such leaks
+are missed, and punctuation is common in accessibility trees, so every
+leakage rate we report is a lower bound. A control test records the defect, so
+an upstream fix would be detected. The 156
+LLM-judged questions cannot be audited without an inference call and are
+recorded as undecidable rather than clean. 69 multiple-choice questions with
+gold answers of one to five characters cannot be audited structurally and are
+never folded into a pooled rate.
+
+\paragraph{The judge floor measures decoding.}
+$F_{\mathrm{judge}}$ is zero wherever we measured it: over $\lfJudgeObs$
+explicit re-scorings of $\lfJudgeUnits$ units in the earlier official arm, and
+in every stratum of the screened run. Both estimators carry a positive control
+(a planted disagreement makes them fire). A zero floor here reflects a
+deterministic scorer and greedy decoding, not an unambiguous rubric. The
+SciCode control in Section~\ref{sec:crossbenchtable}, which disagrees on 5 of
+135 cells, is a different scorer on a different benchmark. We have no
+cross-session floor for any arm and presume it to be non-zero.
+%%% NOTE: earlier drafts quoted "240 of 240" and "288 re-scorings"; neither
+%%% figure could be traced to a ledger in results/, so both were replaced.
+
+\paragraph{Semantic type.}
+We intended semantic memory type as a second axis, but in our representation
+pilot the two labeling passes agreed on 3 of 8 segments at Cohen's
+$\kappa = 0.000$: the structured writer's own pass called every segment
+\texttt{episodic}, a degenerate marginal, so we report no semantic-type
+breakdown. Separately, exactly one deterministically scorable
+\emph{errors-gotchas} question exists in the benchmark and accounts for 865 of
+6{,}920 web cells, so any per-stratum result there is a single-question result.
+
+\paragraph{Writer failures and faithfulness.}
+The structured writer failed on 3 of 60 segments, all by exhausting the token
+budget mid-value rather than by malformed output, and on 0 of the 57 writes
+that finished. An 8-segment pilot had put the failure rate at 0 of 8 and could
+not have seen this, since it never reached the cap. Our faithfulness measures
+are a screen, not a guarantee: a low score is strong evidence of a problem,
+a high score is weak evidence of its absence, and they do not detect
+recombination, omission, unsupported inference or negation.
+
+\paragraph{Unrecorded quantities.}
+Two quantities were not recorded during the runs and cannot be recovered: how
+many gold-free picks contain the answer, and how the 12 position-probe cells
+were chosen, which is why we treat that probe as a pilot.
+
+\paragraph{Stated exclusions.}
+17 of the 295 deterministically scored questions have no memory unit that
+carries their gold answer under the segmentation answerability check, so their
+cells can only yield $\Delta U \le 0$. The bearing screen, a looser containment
+test, fires on no unit for $\soScrZero$ of them (Section~\ref{sec:sophia}).
+23 of the 1{,}889 units (1.2\%) are their entire trajectory.

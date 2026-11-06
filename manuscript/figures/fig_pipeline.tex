@@ -1,0 +1,81 @@
+%%% Figure 1: conditional memory utility evaluation (vertical, single column).
+%%% Adapted from the authors' hand-drawn draft (figure1_replacement.pdf).
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=1pt,y=1pt,
+  panel/.style={draw=teallight, dashed, rounded corners=4pt, line width=0.6pt},
+  ptitle/.style={anchor=west, font=\small\bfseries, text=ink},
+  box/.style={draw=tealdeep!80, rounded corners=2.5pt, line width=0.55pt, fill=white, align=center},
+  note/.style={font=\scriptsize\itshape, text=black!62},
+  flow/.style={-{Stealth[length=3.6pt,width=3pt]}, draw=tealdeep, line width=0.6pt},
+  pageicon/.pic={\draw[ink, line width=0.4pt, fill=white] (-4,-5) -- (-4,5) -- (2,5) -- (4,3) -- (4,-5) -- cycle;
+                 \draw[ink, line width=0.3pt] (2,5) -- (2,3) -- (4,3);
+                 \foreach \yy in {1.5,-0.5,-2.5} \draw[tealdeep, line width=0.35pt] (-2.5,\yy) -- (2.5,\yy);},
+  bankicon/.pic={\draw[ink, line width=0.4pt, fill=teallight!25] (-5,-5) rectangle (5,4);
+                 \draw[ink, line width=0.4pt, fill=teallight!25] (0,4) ellipse (5 and 1.6);
+                 \draw[ink, line width=0.3pt] (-5,-0.5) arc (180:360:5 and 1.6);
+                 \draw[ink, line width=0.4pt] (-5,-5) arc (180:360:5 and 1.6);},
+  robot/.pic={\draw[ink, line width=0.35pt] (0,5.2) -- (0,7.2); \fill[coral] (0,7.6) circle (1.1);
+              \draw[ink, line width=0.45pt, fill=white, rounded corners=1.6pt] (-5.5,-4.5) rectangle (5.5,5.2);
+              \fill[tealdeep] (-2.3,1.4) circle (1.15); \fill[tealdeep] (2.3,1.4) circle (1.15);
+              \draw[ink, line width=0.4pt] (-2.2,-2) -- (2.2,-2);
+              \draw[ink, line width=0.4pt] (-5.5,0) -- (-7,0); \draw[ink, line width=0.4pt] (5.5,0) -- (7,0);},
+  pencil/.pic={\draw[ink, line width=0.4pt, fill=coral!35, rotate=45] (-1.6,-5.5) rectangle (1.6,3.5);
+               \draw[ink, line width=0.4pt, fill=white, rotate=45] (-1.6,3.5) -- (0,6.5) -- (1.6,3.5);}]
+% ---------------- (a) write once ----------------
+\draw[panel] (0,0) rectangle (236,-72);
+\node[ptitle] at (5,-9) {(a) Write once, blind to future tasks};
+\node[box, minimum width=68pt, minimum height=34pt] (u) at (37,-41) {};
+\pic at (37,-31) {pageicon};
+\node[font=\scriptsize, align=center] at (37,-47) {memory unit $u$\\[-1pt]{\tiny one page visit}};
+\node[box, minimum width=72pt, minimum height=34pt] (w) at (118,-41) {};
+\pic at (118,-31) {pencil};
+\node[font=\scriptsize, align=center] at (118,-47) {writer $W_v$\\[-1pt]{\tiny Raw $\cdot$ Summary $\cdot$ Structured}};
+\node[box, minimum width=68pt, minimum height=34pt] (b) at (199,-41) {};
+\pic at (199,-31) {bankicon};
+\node[font=\scriptsize, align=center] at (199,-47) {frozen bank\\[-1pt]{\tiny $m = W_v(u)$}};
+\draw[flow] (u.east) -- (w.west); \draw[flow] (w.east) -- (b.west);
+\node[note] at (118,-64) {The writer never observes the later task $t$.};
+% ---------------- (b) paired comparison ----------------
+\draw[panel] (0,-79) rectangle (236,-243);
+\node[ptitle] at (5,-88) {(b) Compare with and without the target memory};
+\node[box, minimum width=186pt, minimum height=15pt, font=\footnotesize, fill=teallight!12] (top) at (118,-106)
+  {same later task $t$ \;+\; identical filler $F$};
+\node[box, draw=tealdeep, fill=teallight!14, minimum width=100pt, minimum height=54pt] (wo) at (62,-152) {};
+\node[box, draw=coral, line width=0.8pt, fill=coral!8, minimum width=100pt, minimum height=54pt] (wi) at (174,-152) {};
+\node[font=\scriptsize\bfseries, text=tealdeep] at (62,-133) {WITHOUT $m$};
+\node[font=\scriptsize\bfseries, text=coral] at (174,-133) {WITH $m$};
+\node[font=\footnotesize] at (62,-146) {$t + F$};
+\node[font=\footnotesize] at (174,-146) {$t + F$ \textcolor{coral}{$\boldsymbol{+\,m}$}};
+\pic at (44,-166) {robot}; \node[font=\scriptsize, anchor=west] at (54,-166) {frozen reader};
+\pic at (156,-166) {robot}; \node[font=\scriptsize, anchor=west] at (166,-166) {frozen reader};
+\draw[flow] (top.south -| wo.north) -- (wo.north);
+\draw[flow] (top.south -| wi.north) -- (wi.north);
+\node[font=\footnotesize] (rwo) at (62,-191) {$R_{\text{without}}$};
+\node[font=\footnotesize] (rwi) at (174,-191) {$R_{\text{with}}$};
+\draw[flow] (wo.south) -- (rwo.north); \draw[flow] (wi.south) -- (rwi.north);
+\node[box, draw=coral, line width=0.8pt, fill=coral!8, minimum width=168pt, minimum height=17pt, font=\small] (du)
+  at (118,-215) {$\Delta U(m,t) = R_{\text{with}} - R_{\text{without}}$};
+\draw[flow] (rwo.south) -- (rwo.south |- du.north);
+\draw[flow] (rwi.south) -- (rwi.south |- du.north);
+\node[note] at (118,-234) {Same reader, decoding, prompt, output budget and scorer.};
+% ---------------- (c) profile ----------------
+\draw[panel] (0,-250) rectangle (236,-306);
+\node[ptitle] at (5,-259) {(c) Keep a task-wise utility profile};
+\node[font=\footnotesize] at (118,-274) {$[\,\Delta U(m,t_1),\ \Delta U(m,t_2),\ \dots,\ \Delta U(m,t_J)\,]$};
+\node[note] at (118,-287) {Repeated across tasks, representations and replicates.};
+\node[font=\scriptsize, text=coral] at (118,-299) {Cost ledger: formation $\cdot$ storage $\cdot$ retrieval $\cdot$ exposure};
+\end{tikzpicture}
+\caption{Conditional memory utility evaluation. \textbf{(a)}~Page-visit memory
+units extracted from past episodes are stored as Raw, Summary or Structured
+representations without exposing the writer to future evaluation tasks.
+\textbf{(b)}~For a memory--task pair, a frozen reader is evaluated with identical
+filler $F$, either with or without the target memory $m$; the paired reward
+difference defines $\Delta U(m,t)$ under the recorded evaluation conditions.
+\textbf{(c)}~Repeating this comparison across tasks, representations and
+replicates yields a task-conditioned utility profile. Formation, storage,
+retrieval and exposure costs are recorded alongside the measurements (the
+cost ledger).}
+\label{fig:pipeline}
+\Description{A three-panel diagram. Panel a: a memory unit (one page visit) passes to a writer that produces Raw, Summary or Structured text, stored in a frozen bank; the writer never observes the later task. Panel b: the same later task and identical filler feed two arms, without and with the target memory, each answered by the same frozen reader; their rewards give Delta U equals R with minus R without. Panel c: repeating this gives a profile of Delta U over tasks, with a cost ledger of formation, storage, retrieval and exposure.}
+\end{figure}

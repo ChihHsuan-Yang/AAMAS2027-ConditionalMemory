@@ -1,0 +1,79 @@
+\section{Execution configuration and statistics}
+\label{sec:config}
+
+\paragraph{Frozen configuration.}
+Cluster and serving configuration are part of a cell's experimental
+identity, and every row records the full pinned set: reader and writer
+\texttt{gpt-oss-120b} on one cluster, low reasoning effort,
+temperature 0, \texttt{max\_tokens} 512, 16 concurrent workers,
+SFR-Embedding-\allowbreak Mistral at dimension 4096, and the benchmark's own tokenizer. A
+change to any of them defines a new arm rather than additional data. Three
+settings were fixed by measurement. An empty or truncated completion raises
+and the cell is re-run, since scoring it as zero would push $\Delta U$
+negative and manufacture harmful memories. Concurrency sits at a measured
+saturation ceiling, with the ladder pushed past the chosen value. Responses
+are cached on all twelve fields of a cell's identity, verified by varying one
+field and confirming a cache miss. The embedding model's determinism was
+checked directly: the cosine of identical texts is exactly 1.0.
+
+\paragraph{Noise floors.}
+\label{sec:floors}
+$F_{\mathrm{exec}}$ is outcome variation across seeds with everything else
+fixed, measured per benchmark with a bootstrap interval and within a single
+execution session. $F_{\mathrm{empty}}$ is the variation of the no-memory
+arm, available at no extra cost because that arm is identical for every
+memory paired with a task. $F_{\mathrm{judge}}$ is scorer disagreement on
+byte-identical outputs, from re-scoring stored generations; we store full
+output text rather than a digest so that this re-scoring is possible. The
+floor is defined on the $\Delta U$ scale, since
+$\mathrm{var}(\Delta U) = \mathrm{var}_{\mathrm{with}} +
+\mathrm{var}_{\mathrm{without}} - 2\,\mathrm{cov}$; per-arm floors are
+reported alongside. One hazard would fabricate the whole result: the
+\textsc{without} arm's inputs are identical across memories, so a cache
+serving it would reuse one generation everywhere and let every $\Delta U$
+clear a zero floor. That arm is re-generated per (task, replicate) rather than served from the
+response cache; in the screened run all $\lfScrRealCalls$ calls reached the
+endpoint, with $\lfScrCacheHits$ cache hits.
+
+\paragraph{Labels and flips.}
+A cell is robust useful when $\mathrm{CI}_{\mathrm{lower}} > 0$ and
+$\overline{\Delta U} > F$, robust harmful when $\mathrm{CI}_{\mathrm{upper}}
+< 0$ and $|\overline{\Delta U}| > F$, and neutral otherwise, so a cell can be
+statistically non-zero and still neutral. A memory shows a robust sign flip
+only if two of its cells independently meet the useful and harmful criteria.
+Every flip rate carries its denominator (memories on at least two tasks) and
+a Wilson interval beside the naive rate, and a cell needs at least two
+replicates to enter one. Because replicates agree on every primary cell, a
+robust label reduces in practice to the sign of $\Delta U$, and flip rates are
+comparable only at matched cells per memory (Section~\ref{sec:negative}).
+
+\paragraph{The additive null.}
+A flip is a property of $\Delta U$'s sign; interaction is a property of its
+variance. Under $\Delta U(m,t) = \mu + a_m + b_t$ with no interaction, a
+memory still helps one task and harms another whenever $b_t$ crosses
+$-(\mu + a_m)$. Simulating that null over 20 trials of 200 memories $\times$
+8 tasks gives flip rates of 53.5\%--92.0\% across five settings of $\mu$ and
+the memory and task standard deviations. A high flip rate is therefore
+consistent with memory value being a scalar plus a task-difficulty term.
+
+\paragraph{The variance decomposition.}
+We pre-registered a decomposition $\Delta U(m,t,s) = \mu + a_m + b_t +
+(ab)_{mt} + \varepsilon_s$ into component variance shares against
+$F_{\mathrm{exec}}$, with a method-of-moments fallback fixed in advance. We
+recorded the structural precondition before executing: components are
+identified only relative to a residual scale. It fails here because the
+reader is deterministic within a session, so we quote no share
+(Section~\ref{sec:negative}). Standard errors are clustered by task
+throughout.
+
+\paragraph{Similarity and cost.}
+Semantic distance is the cosine of the pinned embeddings of memory and task,
+banded by terciles fixed before outcomes were examined, since cosine scales
+are not comparable across corpora. The seven cost families are
+\textbf{storage} (memory tokens held), \textbf{retrieval} (latency, tokens
+returned), \textbf{exposure} (tokens placed in the reader's context),
+\textbf{generation} (latency, input, output and reasoning tokens),
+\textbf{extraction} (formation cost), \textbf{API and compute}, and
+\textbf{selectivity} (how much of what was retrieved was worth exposing).
+Exposure is recorded separately from retrieval because the gap between them
+is truncation loss.

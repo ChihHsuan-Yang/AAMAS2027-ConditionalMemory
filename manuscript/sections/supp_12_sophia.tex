@@ -1,0 +1,132 @@
+\section{Follow-up runs}
+\label{sec:sophia}
+Three follow-up runs test the main results under conditions the main design
+held fixed; all are exploratory and used the same serving endpoint and reader as
+the main runs. A generator script in the released code computes every number
+below from the row files.
+
+\paragraph{Second session, randomized position.} All $\soXoneCells$ bearing and
+control cells, three replicates each, the memory's position redrawn per
+replicate ($\soXoneCalls$ real calls, $\soXoneCacheHits$ from cache,
+$\soXoneErr$ failed and excluded). Bearing minus control, paired within memory:
+$\soXoneD$ $[\soXoneLo, \soXoneHi]$ over $\soXoneMems$ memories;
+episode-clustered $[\soXoneEpLo, \soXoneEpHi]$ ($\soXoneEps$ episodes); two-way
+(memory $\times$ task) $\soXoneTw$ $[\soXoneTwLo, \soXoneTwHi]$. Across the
+three positions of a cell, the label changes in $\soPosChg$ of $\soPosCells$
+cells ($\soPosChgPct\%$), and in $\soPosChgMv$ of the $\soPosMov$ cells that move
+at least once ($\soPosChgMvPct\%$); position accounts for $\soPosVarPct\%$ of
+the variance of $\Delta U$. Joined one-to-one to the published run, labels agree
+in $\soStabSamePct\%$ of $\soStabSameN$ replicate-cells at the same position
+($\kappa = \soStabSameK$) and in $\soStabDiffPct\%$ of $\soStabDiffN$ at a new
+one ($\kappa = \soStabDiffK$).
+
+\paragraph{Fixed total context.} $\soXtwoCells$ cells over $\soXtwoMems$
+memories, two replicates. For each cell, $T$ is the base filler plus the Raw
+memory; every other arm, and the no-memory arm, is padded after the base context
+with bearing-disjoint filler to $T$ (asserted equal across arms), the memory
+kept at its K2 position. \emph{Disclosed defect:} the no-memory cache key was
+(trajectory, task, replicate), so two memories from one trajectory paired with
+one task could share a no-memory response although their padding differs. The
+headline numbers exclude all $\soXtwoCollCells$ such cells ($n=\soFN$ bearing
+cells); including them ($n=\soFNAll$) changes no conclusion:
+
+\begin{table}[!ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Bearing-cell $\Delta U$ at a fixed total context (task-clustered
+95\% intervals).}
+\label{tab:fixedctx}
+\begin{tabular}{@{}lll@{}}
+\toprule
+arm & excluding exposed cells & all cells \\
+\midrule
+Raw & \soFRaw\ [\soFRawLo, \soFRawHi] & \soFRawAll\ [\soFRawAllLo, \soFRawAllHi] \\
+Summary & \soFSum\ [\soFSumLo, \soFSumHi] & \soFSumAll\ [\soFSumAllLo, \soFSumAllHi] \\
+Structured & \soFStr\ [\soFStrLo, \soFStrHi] & \soFStrAll\ [\soFStrAllLo, \soFStrAllHi] \\
+matched truncation & \soFTr\ [\soFTrLo, \soFTrHi] & \soFTrAll\ [\soFTrAllLo, \soFTrAllHi] \\
+Summary $-$ Raw & \soFSumR\ [\soFSumRLo, \soFSumRHi] & \soFSumRAll\ [\soFSumRAllLo, \soFSumRAllHi] \\
+Structured $-$ Raw & \soFStrR\ [\soFStrRLo, \soFStrRHi] & \soFStrRAll\ [\soFStrRAllLo, \soFStrRAllHi] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The matched truncation is sensitive to the exclusion and supports no claim. The
+cache key now includes the memory, so a re-run cannot repeat the defect.
+
+\paragraph{Retrieval.} The reference labels are the screened design's (75 tasks, 266
+bearing edges, reproduced and asserted). Each method ranks the task's whole
+domain pool by the raw question; dense retrieval embeds 512-token chunks (a
+unit scores its best chunk) or the first 2{,}000 tokens.
+
+\begin{table}[!ht]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Retrieval of bearing units (task-clustered 95\% intervals; chance
+recall@10 is about \soChanceTenP). MRR is the mean reciprocal rank of the first
+bearing unit; AUROC is the area under the ROC curve over bearing and
+non-bearing units.}
+\label{tab:retrieval}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+method & recall@1 & recall@10 & MRR & AUROC \\
+\midrule
+BM25 & \soRBmOne & \soRBmTen\ [\soRBmTenLo, \soRBmTenHi] & \soRBmMrr & \soRBmAuc \\
+dense, prefix & \soRPreOne & \soRPreTen\ [\soRPreTenLo, \soRPreTenHi] & \soRPreMrr & \soRPreAuc \\
+dense, chunks & \soRChkOne & \soRChkTen\ [\soRChkTenLo, \soRChkTenHi] & \soRChkMrr & \soRChkAuc \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Of the 295 deterministic questions, $\soScrZero$ fire on no unit, $\soScrDisc$
+on one to eight, and $\soScrOver$ on more than eight. Without the cap, string
+containment fires for all $\soNoCapMems$ memories, on $\soNoCapMin$ to
+$\soNoCapMax$ tasks each.
+
+\paragraph{Variance decomposition.} In the second-session run each cell has three
+replicates at redrawn positions, which supplies the residual scale the main run
+lacked. On the $\rvDecCells$ cells with all three replicates we fit the additive
+model $\mu + a_m + b_t$ to cell means by least squares; its residual mean square
+($\rvDecDf$ degrees of freedom) estimates the interaction variance plus the
+within-cell variance divided by three, and the within-cell variance estimates the
+residual. The shares are $\rvIntShare\%$ interaction, $\rvAddShare\%$ additive
+memory and task effects, and $\rvEpsShare\%$ position with decoding; the
+interaction $F$ test gives $F=\rvIntF$ ($p\rvIntP$). This is a method-of-moments
+estimate on a sparse crossed design, reported as exploratory.
+
+\paragraph{Power for harm.} With $16$ bearing cells able to show harm, against
+the random stratum's rate of $\rvHarmRandPct\%$, the screened design detects
+(80\% power, two-sided $\alpha=0.05$) only a bearing harm rate of
+$\rvHarmMdePct\%$ or more; the null on harm is therefore weak evidence.
+
+\paragraph{Containment inside the random-task stratum.} Memories in this stratum are real
+same-domain pages. On the $\rvRandFireN$ random cells where the containment
+detector fires (at any breadth) the memory helps in $\rvRandFireHelp\%$ of the
+$\rvRandFireHelpN$ cells the reader got wrong without it, against
+$\rvRandSilentHelp\%$ of $\rvRandSilentHelpN$ where it is silent; harm is
+$\rvRandFireHurt\%$ and $\rvRandSilentHurt\%$. Part of the random stratum's help
+is content, so its help rate bounds pure perturbation from above.
+
+\paragraph{The gold-free screen over the full universe.} The model-based screen
+was applied to all $\rvGfUniverse$ (task, unit) pairs: an exhaustive lexical
+stage kept $\rvGfCand$ candidates, and the judge confirmed $\rvGfYes$ over
+$\rvGfTasks$ tasks and $\rvGfMems$ memories, under the same cap of eight units
+per task. A gold-free definition does not make bearing denser.
+
+\paragraph{Sparsity across screen caps.} Recomputing the screen over the
+deterministic tasks at four caps on the number of units a task may fire on:
+at a cap of 4, $\rvCapFourTasks$ tasks and $\rvCapFourMems$ bearing memories;
+at 8 (the paper's screen), $\rvCapEightTasks$ and $\rvCapEightMems$; at 16,
+$\rvCapSixteenTasks$ and $\rvCapSixteenMems$; at 32, $\rvCapThirtyTwoTasks$ and
+$\rvCapThirtyTwoMems$. At every cap the median bearing memory bears on exactly one
+task, and $\rvCapShareLo$--$\rvCapShareHi\%$ bear on exactly one. Only removing the
+cap entirely makes containment fire for every memory.
+
+\paragraph{Which memories were sampled.} The 60 memories are every memory that
+bears on two or more tasks and passes the size cap ($\rvSelMulti$ of the
+corpus's $\rvPopMulti$) plus $\rvSelSingle$ single-task memories. The headline
+contrast is $\rvHeadSingle$ $[\rvHeadSingleLo, \rvHeadSingleHi]$ on the
+single-task memories and $\rvHeadMulti$ $[\rvHeadMultiLo, \rvHeadMultiHi]$ on the
+multi-task ones; reweighted to the $\rvPopAll$ bearing memories of the corpus, of
+which $\rvPopSinglePct\%$ bear on one task, it is $\rvHeadW$
+$[\rvHeadWLo, \rvHeadWHi]$ (memory bootstrap within each group).
+

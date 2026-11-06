@@ -1,0 +1,56 @@
+\section{Related Work}
+\label{sec:related}
+We organize prior work by the granularity of memory-utility measurement and
+the evaluation controls it provides. Several systems are designed around the
+idea that a memory's value varies across tasks. A design rationale alone does
+not supply what a retention policy needs:
+how large the per-task effect is against execution noise, how often it
+occurs, and what the memory costs.
+
+\paragraph{Measured, then averaged.}
+UMEM scores a memory by a marginal-utility reward over a cosine neighborhood
+of $N{=}3$ future queries under GRPO~\cite{umem}. The counterfactual is real,
+but it is reduced to its mean, and no dispersion or negative-utility
+statistic is reported. Their Lemma~C.1 argues that the neighborhood captures
+the queries that retrieve the same memory; it does not report whether the
+dispersion inside that population is structured, which is what we measure.
+
+\paragraph{One memory, several future tasks.}
+EMBER's MultiQ split tests whether one frozen memory serves 100 bundles of
+five questions each~\cite{ember}. EvoMemEval releases per-cell labels from
+real execution with and without the memory on held-out tasks~\cite{evomemeval}; the labels
+are categorical, so they carry no effect size, and each cell runs once, so no
+flip separates from execution variance. Its released balance (exactly
+100/100/100 by seeded down-sampling) is itself a design choice, so a rate
+computed on it describes the sample rather than a population. MeClear computes leave-one-out and
+Shapley attributions from re-execution, but over the memories available to a
+single query~\cite{meclear}. A multi-factor value model notes that task
+utility is among the factors its scorer leaves out~\cite{multifactor}, and Memory-R1 trains a memory manager with one
+task per memory~\cite{memoryrone}.
+
+\paragraph{Constraints on our design.}
+Memory-R2 argues that once rollouts write, update or delete different
+memories, trajectory-level comparisons become unfair~\cite{memoryrtwo}; our
+frozen memory set answers this in Section~\ref{sec:method}. Selective
+retention on clean benchmarks finds retention policies indistinguishable
+within Wilson 95\% intervals~\cite{traceretain}, which is expected if no
+memory is harmful. In EvoMemEval's released sample, pooled over its three datasets, the
+\texttt{harmful} label covers 22.0\% of 537 items; we did not validate these
+labels. A learned gate over measurements like ours could build on
+influence-guided context selection~\cite{influence} and pre-generation
+decoding of tool necessity~\cite{when2tool}; we propose none. Leave-one-out
+re-execution is shared with MeClear, UMEM and influence-guided
+selection; context attribution by ablation is developed further in
+ContextCite~\cite{contextcite}, and per-item valuation in data
+Shapley~\cite{datashapley}. What we add is the measurement design around it: profiles across tasks under
+controlled context, formation-cost provenance, and sensitivity checks. Our instability findings also have known causes. Long-context readers are
+sensitive to where relevant text sits~\cite{lostmiddle}, and temperature-0
+inference is not reproducible when serving kernels vary with batch
+composition~\cite{nondeterminism}. What is new is measuring their size on the quantity
+a memory evaluation reports. On
+representation, LongMemEval's original study already varied the granularity
+at which history is stored and retrieved~\cite{lmev1}; our length control
+asks a narrower question, whether a representation's effect comes from what it
+says or from how many tokens it keeps.
+
+\input{figures/fig_pipeline}

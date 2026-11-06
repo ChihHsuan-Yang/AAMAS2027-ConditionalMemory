@@ -1,0 +1,44 @@
+\section{Pre-registration record}
+\label{sec:prereg}
+Each pre-registered analysis was fixed in a pre-commitment document in the code
+repository before the data it governs existed. The documents are released with
+the code. To preserve anonymity we omit their commit identifiers here; the
+release links each one to a commit and its timestamp, so its timing can be
+checked on de-anonymization. Table~\ref{tab:prereg} lists every pre-registered analysis, its
+anchor, and every deviation the run ledgers record. Pre-commitments were not edited after
+the fact; where a result does not match one, the mismatch is reported.
+
+\begin{table}[h]
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\caption{Pre-registered analyses, their anchors, and recorded deviations.}
+\label{tab:prereg}
+\begin{tabular}{@{}p{0.27\columnwidth}p{0.30\columnwidth}p{0.37\columnwidth}@{}}
+\toprule
+analysis & anchor & recorded deviation \\
+\midrule
+screened design and its reduction criterion & criterion fixed in code before the numbers existed & none recorded \\
+reversal rate (headline) & pre-registration, section~5 & comparison with an additive null added later, as a diagnostic \\
+variance decomposition & pre-registration, section~6 & not identifiable here (zero execution floor); in earlier arms the mixed model did not converge and the registered fallback was used \\
+gold-free screens & gold-free screen pre-commitment & none recorded \\
+length control & frozen at a recorded commit, before execution & \lfPrLcMismatch\ of \lfPrLcCompared\ descriptive figures do not re-derive: bearing quartile means by Raw length; none appears in the paper \\
+second reader & written before any design-cell call & cross-session estimate superseded by a session-matched run \\
+session-matched reader run & falsifiers committed before data & none recorded \\
+writer\,$\times$\,reader factorial & factorial pre-commitment & one prose sign error ($-\tfrac12$ for $+\tfrac12$ interaction); replication check fails on sign only \\
+SciCode scale-up & scale-up pre-commitment & none recorded \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The two deviations that bear on results.} The additive-null
+comparison of reversal rates (\main{sec:r0}) was \emph{not} pre-registered;
+the registered headline is the reversal rate itself, and the comparison is a
+diagnostic added afterwards. In the writer\,$\times$\,reader factorial, the
+registered criterion asked the re-measured reader effect to reproduce the
+earlier one in sign and significance. Both estimates are near zero and span
+zero (Summary $\lfPrWfSumOld$ then $\lfPrWfSumNew$, Structured
+$\lfPrWfStrOld$ then $\lfPrWfStrNew$), so the significance verdict reproduces
+and the sign does not; the two intervals contain each other's point estimates.
+The factorial's pre-commitment also states that the same-family effect equals
+$-\tfrac12$ of the interaction; the correct relation, which the analysis code
+checks numerically, is $+\tfrac12$. Every quantity was computed as registered.

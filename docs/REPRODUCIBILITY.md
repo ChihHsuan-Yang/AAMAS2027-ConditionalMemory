@@ -1,7 +1,7 @@
 # Reproducibility
 
-Commands on this page were run against the current public release (18-page manuscript
-including supplement, `website/paper.pdf`; dataset snapshot built 2026-10-02). Last
+Commands on this page were run against the current public release (manuscript `website/paper.pdf`;
+dataset snapshot built 2026-10-02, follow-up runs added to the dataset). Last
 verified **2026-11-02**. Nothing here re-runs model inference.
 
 What can and cannot be reproduced from public artifacts, item by item, is in
@@ -145,5 +145,6 @@ x1 contrast +0.497 [+0.37, +0.63]; x3 recall@10 0.403 for dense chunks.
 
 ## 7. Paper source
 
-The release manuscript is `website/paper.pdf`. The LaTeX under `paper/` is an **older
-single-file snapshot** (see `paper/README.md`); it is not the source of the release PDF.
+The release manuscript source is [`../manuscript/`](../manuscript/) and its PDF is `website/paper.pdf`.
+The macros under `manuscript/macros/` record the numbers; the scripts named in their comments are not in
+this repository. `paper/` is an older snapshot (see `paper/README.md`).

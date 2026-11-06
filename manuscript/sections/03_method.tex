@@ -1,0 +1,157 @@
+\section{Conditional Memory Evaluation}
+\label{sec:method}
+
+\subsection{The measured quantity}
+Figure~\ref{fig:pipeline} shows the protocol end to end. We call the model that answers a future evaluation task the \emph{reader},
+and reserve ``agent'' for the motivating setting. A \emph{memory unit} $u$ is one
+page visit from a past episode; a memory $m$ is the Raw, Summary or Structured
+text written from $u$. For a memory $m$ and a later, distinct future task $t$, the conditional utility of
+$m$ for $t$ is the change in reward that adding $m$ causes, given the context
+filler $F$, the position $p$ at which $m$ is inserted, and the seed $s$:
+\begin{equation}
+\label{eq:du}
+  \Delta U(m, t \mid F, p, s) = R(t \mid F \cup_p m; s) - R(t \mid F; s).
+\end{equation}
+A positive value means the memory helped and a negative value that it hurt; a
+zero difference indicates no measured change in reward, not identical answers
+or absence of useful information. We call these labels \emph{helped},
+\emph{unchanged} and \emph{hurt}; each holds under its evaluation condition. Both arms fix the reader model, serving
+cluster, decoding, prompt scaffold, output-token budget, and scoring function
+and version; they differ only in whether $m$ is present. We call them the
+\emph{with-target-memory} and \emph{without-target-memory} arms (\emph{with $m$} and
+\emph{without $m$}); both contain the filler. Reward stays continuous
+wherever the benchmark gives partial credit; in the screened run it is
+binary. The per-cell estimate is the mean over replicates. We write $\Delta
+U(m,t)$ when $F$, $p$ and $s$ are fixed, and the conditioning matters: a single
+inserted item can change the answer for reasons unrelated to its content. The unit of analysis is the
+\emph{cell}, a memory--task pair $(m,t)$ under one evaluation condition; a memory
+has no single utility here, and its result is its profile across the tasks it
+faced. We compare at three levels: the with-$m$ versus without-$m$ reward
+difference of each pair; within each memory, the mean difference on
+answer-bearing task pairs minus that on matched-control task pairs (the
+headline contrast); and representations written from the same memory unit.
+
+\paragraph{Identical filler, frozen memories.}
+Both arms place the same controlled filler in the reader's context, and the
+\textsc{with} arm adds $m$. The filler is $\lfFillerK$ memory units of
+$\lfFillerLo$--$\lfFillerHi$ tokens each, drawn from $\lfFillerTraj$
+trajectories disjoint from every trajectory that hosts a bearing memory, so it
+never contains another unit that bears on the task. The \textsc{without} arm
+is therefore not an empty-context arm. On LongMemEval's first version~\cite{lmev1} the oracle context is entirely
+evidence, so ablating ``the memory'' there would delete the whole context. The memory set is written once, frozen and content-hashed before any
+pairing exists, and no arm writes, updates or deletes a memory. The arms
+differ by exactly one item from that frozen set, so the divergent-state
+hazard raised by Memory-R2~\cite{memoryrtwo} does not arise. The position of
+the added memory is not neutral: moving only that position changed the answer
+in 8 of 12 cells of a pilot, and $\soPosChgPct\%$ of labels at scale
+(Section~\ref{sec:limitations}). In the main runs we hold position fixed across replicates, vary it
+across cells, and record it on every row (\supp{sec:position}). Every
+contrast we report is therefore conditional on the recorded positions;
+position variance is not inside our intervals.
+
+\paragraph{The writer never sees the future task.}
+Memory formation is a function of the memory unit alone, $m = W(u)$ and
+never $m = W(u,t)$. Without this invariant, $\Delta U > 0$ would only show
+that a model can be told an answer and copy it forward. We enforce it
+structurally rather than by convention: the writer takes a segment and
+nothing else, emits a closed field set, and has a single interpolation point.
+Each of these barriers carries a negative control that plants the defect and requires
+the check to fire (\supp{sec:taskblind}).
+
+\subsection{The answer-bearing screen is an instrument, not a retriever}
+\label{sec:screen}
+To decide which (memory, task) pairs are worth executing, we use an
+\emph{answer-bearing screen}. For each pair it reads three inputs: the memory's text,
+the task's \textbf{gold answer}, and the task's evaluation specification. It
+never reads the question, a reward, or any model output, so the strata it
+defines are not selected on the outcome. A pair is \emph{answer-bearing} (\textsc{bearing}) when the
+benchmark's own scorer would mark the memory text correct against the gold
+answer \emph{and} the test singles this memory out of its domain pool, firing
+on at most eight of the 865--1{,}024 units available to that task.
+
+Answer-bearing is a screening label based on answer containment, not a
+measured positive-utility label: paired evaluation measures the effect, and
+screen-selected pairs can still fail while pairs outside the screen can still
+help. Our sparsity result is a statement about how answers are distributed
+over memories. Because it consumes the gold answer, the screen
+cannot be deployed, and we do not propose it as a retriever. Its role is to define, with the gold answer, the
+answer-bearing pairs; these screen-defined labels, not exhaustive ground truth
+for useful memories, are what we evaluate retrieval against (Section~\ref{sec:similarity}). Every rate we
+report under the screen is conditional on a screened design.
+
+A screen selected on the gold answer invites a second objection: perhaps the
+effect is an artifact of selecting pairs with the answer in hand. We tested
+this with a gold-free screen, pre-registered before execution: the same model
+as the reader (\lfGfJudge), asked whether the memory contains the specific
+information the question asks about, without the gold answer. On $\gfCells$
+cells the gold screen \emph{never} selected, the gold-free picks move the
+reader from $\gfWithoutPct\%$ correct without the memory to $\gfWithPct\%$ with
+it, while $\lfGfCtlCells$ matched-control pairs move from
+$\gfCtlWithoutPct\%$ to $\gfCtlWithPct\%$. The contrast is $\rd{\gfDiff}$, with a
+task-clustered 95\% interval of $[\lfGfTaskLo, \lfGfTaskHi]$ over
+$\lfGfTaskN$ tasks and an episode-clustered one of $[\lfGfEpLo, \lfGfEpHi]$
+over $\lfGfEpN$ episodes. This answers the selection objection, not the
+containment one; because the judge is the reader's own model, its picks may
+favor pairs that model finds easy. Its picks overlap the gold screen little
+(\supp{sec:goldfree}) yet carry an effect of similar size, so benefits also
+occur outside the gold screen. A second, lexical gold-free screen did not
+locate answer-bearing pairs (\supp{sec:goldfree}).
+
+\subsection{Three representations of one experience}
+All three representations derive from the \emph{same} memory unit, so a
+downstream difference is attributable to how the segment is written rather
+than to which content was selected. \textbf{Raw} is deterministic and uses no
+model: the memory is the segment itself. \textbf{Summary} is one writer call
+per segment at pinned decoding and prompt version. \textbf{Structured} is one
+writer call that emits a validated schema (memory type, trigger, action,
+outcome, lesson, scope). A malformed structure is recorded as a failure and
+never repaired.
+
+Formation cost belongs to the representation. Raw makes zero writer calls;
+Summary and Structured make one each per segment. Omitting that cost flatters
+the model-written representations, so we charge each its own, including
+writes that failed after consuming a call.
+
+\subsection{Noise, labels and cost}
+\label{sec:metrics}
+Noise is measured, not assumed. Replicates are separate requests
+($\lfScrCacheHits$ of $\lfScrRealCalls$ calls served from cache), and within a
+session they agree on all 1{,}157 primary cells, so the execution floor is zero
+and a cell's label (helped, unchanged or hurt) is the sign of $\Delta U$; the pre-registered floors and
+label rules are in \supp{sec:floors}. Truncated completions are re-issued, not
+scored. Intervals are over memories, tasks or episodes, never replicates.
+
+A memory shows a \textbf{sign flip} when it helps one task and hurts another. A flip rate is descriptive, not evidence of
+memory\,$\times$\,task interaction: under a purely additive model
+$\Delta U = \mu + a_m + b_t$, simulated over 20 trials of 200 memories
+$\times$ 8 tasks, flip rates range from 53.5\% to 92.0\% with no interaction
+present (\supp{sec:floors}). A flip rate also grows with the number of cells
+per memory, so it can only be compared across groups at matched cell counts.
+
+\paragraph{The perturbation floor.}
+The noise that matters most here is not seed variation but the reader's
+response to inserting \emph{any} item: position alone changes
+$\soPosChgPct\%$ of per-cell labels (Section~\ref{sec:limitations}). We ran no placebo arm of length-matched irrelevant content,
+so per-cell labels include such perturbations. The random-task stratum bounds their size: a memory paired with a randomly
+selected task helps in $\raHelpRateRand\%$ of the pairs where the reader was
+wrong without it and hurts in $\raHurtRateRand\%$ of those where it was right.
+These rates are an upper bound on pure perturbation: the memories are real
+same-domain pages, and where they contain the answer string they help more
+often ($\rvRandFireHelp\%$ against $\rvRandSilentHelp\%$). Irrelevant
+context can distract a reader~\cite{distracted} or even help it~\cite{powernoise}. We therefore report effects as paired contrasts between strata, which reduce
+sensitivity to content-independent perturbation when its mean effect is
+comparable across the contrasted strata, and never as counts of labeled cells;
+without a placebo arm we do not claim to isolate every such effect.
+
+\paragraph{Pre-registered and exploratory analyses.}
+The screened design, both gold-free screens, the length control, the
+second-reader study, the writer\,$\times$\,reader factorial, the reversal rate
+and the variance decomposition were pre-registered; \supp{sec:prereg} lists
+their anchors and every deviation. All other analyses, including the three
+follow-up runs, are exploratory, and their intervals are not adjusted for
+multiplicity.
+
+Every measurement is paired with its cost in seven families, from storage to
+formation; utility per exposed token is reported beside utility per token
+charged, including the writer's (\supp{sec:reuse}).
+

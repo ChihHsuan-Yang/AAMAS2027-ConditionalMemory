@@ -1,0 +1,34 @@
+\section{Data, code and prompt availability}
+\label{sec:repro}
+\label{sec:prompts}
+\paragraph{Public dataset.} The Conditional Memory Utility Dataset is available on
+\href{https://huggingface.co/datasets/AgentsSci/AAMAS2027-ConditionalMemory}{Hugging Face}.
+The frozen \texttt{v0.6-}\allowbreak\texttt{length-control} snapshot contains 16,816 records:
+16,535 from LongMemEval-V2, 154 from SciCode, and 127 from SWE-bench Verified.
+A row describes a memory--task pair under a representation, reader, condition
+and replicate, with the outcome under each arm, available output text and
+cost metadata. Missing or unscorable measurements remain explicitly marked;
+they must not be converted to zero rewards.
+
+\paragraph{Version and reproducibility.} The data file is
+\texttt{data/}\allowbreak\texttt{cells.jsonl}. The repository also provides a manifest with file checksums, schema and validation
+code, and documentation of the included conditions and upstream sources.
+Readers can download the data directly or pin the
+\texttt{v0.6-}\allowbreak\texttt{length-control} revision with the Hugging Face client. The data
+card contains a runnable download example and explains the validation warnings.
+This snapshot was built on 2 October 2026 and does not contain every later
+manuscript analysis; in particular, its condition inventory does not include
+the fixed-total-context experiment. The public Hub package contains schema and
+validation code, not the complete experiment, analysis and prompt bundle.
+The length-control identity arm is an A/A control and must not be pooled with
+Raw as an independent condition. Per-pair utility labels describe the recorded
+evaluation conditions, rather than unconditional training targets.
+
+\paragraph{Withheld and missing text.} The 154 SciCode records contain Raw
+memories; their reader outputs were not retained. SciCode Summary and Structured
+records are absent because their memory text was not persisted. The 127
+SWE-bench records provide identifiers and derived measurements, with restricted
+corpus and output text withheld under the release policy. These are distinct
+from records missing because of a persistence gap. The data card documents the
+sentinels and per-source reuse terms; access to the dataset does not grant a
+new license to withheld upstream content.

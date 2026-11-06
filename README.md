@@ -57,7 +57,8 @@ tests/             Test suite (pytest)
 cluster/sophia/    Scripts for running the experiments on ALCF Sophia
 data/manifests/    Memory-unit, pairing, screen and leakage manifests (small, tracked)
 results/ledgers/   Computed analysis outputs and slim data slices (tracked)
-paper/             Older LaTeX snapshot (superseded; the release PDF is website/paper.pdf)
+manuscript/        LaTeX source of the release paper (the PDF is website/paper.pdf)
+paper/             Older single-file snapshot (superseded)
 website/           Source of the project page
 docs/              Protocol decisions, pre-registrations, results ledgers, defect register
 ```
@@ -213,9 +214,9 @@ the slim slices above.
 
 ## Paper source
 
-The release manuscript is [`website/paper.pdf`](website/paper.pdf) (18 pages including the
-supplement). The LaTeX in `paper/` is an **older single-file snapshot** of the manuscript and
-is not the source of the release PDF; see [`paper/README.md`](paper/README.md).
+The LaTeX source of the release paper is in [`manuscript/`](manuscript/) (build instructions in its
+README); the release PDF is [`website/paper.pdf`](website/paper.pdf). The older single-file snapshot in
+`paper/` is superseded; see [`paper/README.md`](paper/README.md).
 
 ---
 

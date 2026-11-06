@@ -1,7 +1,6 @@
 # Release coverage: paper to artifact
 
-Checked **2 November 2026** against the release manuscript (`website/paper.pdf`, 18 pages
-including the supplement), this repository at the commit that adds this file, and the public
+Checked **2 November 2026** against the release manuscript (`website/paper.pdf`, with the supplement), this repository at the commit that adds this file, and the public
 dataset `AgentsSci/AAMAS2027-ConditionalMemory` (snapshot built 2026-10-02; 29 conditions, listed
 in the dataset's `docs/CONDITIONS.md`).
 
@@ -81,8 +80,8 @@ number; "none public" means no script in this repository produces it.
 ## Figures
 
 The repository's `scripts/make_figures.py` writes `paper/figdata.tex`, the macros of the earlier
-all-TikZ manuscript. The release PDF's figures are drawn by other code that is not in the
-repository, and the figure files are not tracked. So **no command in this repository
+all-TikZ manuscript. The release PDF's figures are drawn by other code that is not in the repository (`manuscript/main.tex`
+names `tools/make_results_figure.py`); the figure PDFs themselves are in `manuscript/figures/`. So **no command in this repository
 regenerates the images of the current release**. The numbers behind most figures are in public
 data (table above). To close this gap, add the figure-drawing scripts, or state that the figures
 are rendered from the numbers listed here.

@@ -1,0 +1,80 @@
+\section{Benchmarks and Setup}
+\label{sec:setup}
+
+\paragraph{LongMemEval-V2 and the page-visit memory unit.}
+Our primary benchmark is the \texttt{small} tier of
+LongMemEval-V2~\cite{lmev2}, where each domain has exactly one haystack, so
+every memory is available to every question in its domain. A whole
+trajectory cannot serve as a memory: its median length is 103{,}886 tokens.
+We segment at the \emph{page visit}, the maximal run of consecutive states
+that share one URL, a boundary drawn by the past agent's own navigation. This
+yields \textbf{1{,}889 memory units} with a median of 7{,}261 tokens. Removing
+one unit removes a median 3.33\% of its trajectory and 0.058\% of the domain
+haystack, and segmentation preserves answerability for 278 of 295
+deterministically scored questions (94.2\%).
+
+\paragraph{Future tasks and the executed design.}
+A future task is one question with its evaluation specification. Of 451
+questions, 295 are deterministically scored; we use the benchmark's scorer
+verbatim, and an LLM-judged task raises an error rather than scoring zero.
+Seeded pairing within domain gives a grid of 15{,}112 memory--task pairs. We
+execute a \emph{screened design} over 60 memories, a floor fixed before
+running by a power study: $\lfMemWeb$ from the web domain and $\lfMemEnt$ from
+the enterprise domain (unit pools of $\lfPoolWeb$ and $\lfPoolEnt$), drawn from
+$\lfScrEpisodes$ source episodes. A content-blind size cap fixed before any
+outcome removed $\lfSizeCapDropped$ candidate memories longer than
+$\lfSizeCap$ tokens. The 60 memories are every memory bearing on two or more
+tasks that passed the cap ($\rvSelMulti$) and $\rvSelSingle$ that bear on one,
+so the design over-samples multi-task memories to give reversal a chance. Each memory is paired with three strata of
+future evaluation tasks: \emph{answer-bearing task pairs} (\textsc{bearing});
+\emph{matched-control task pairs}, tasks of the same family as a bearing task
+(static environment, dynamic environment or procedure) on which the screen does
+not fire for that memory; and the \emph{random-task stratum} (\textsc{random}),
+unscreened tasks drawn at random, over $\lfScrTasks$ tasks in all.
+All three strata contain the identical 60 memories, so contrasts are paired
+within memory rather than against a different set of control memories. The design has $\spCells$ cells (Table~\ref{tab:coverage}).
+
+\paragraph{Secondary benchmarks.}
+We also ran the protocol on SciCode~\cite{scicode} (reusable helper routines,
+$\sciPairs$ donor$\to$recipient pairs) and SWE-bench Verified~\cite{swebench}
+($\sweMatched$ interpretable cells); there memories show no effect even in raw
+form, so we report them in \supp{sec:crossbenchtable}.
+
+\paragraph{Execution.}
+In the primary arms, the reader and the memory writer are both
+\texttt{gpt-oss-120b} on one serving cluster, with low reasoning
+effort, temperature 0 and \texttt{max\_tokens} 512; similarity uses
+SFR-Embedding-\allowbreak Mistral. Section~\ref{sec:readertransfer} changes only the
+reader, to \texttt{gemma-4-31B-it}. An empty or truncated completion raises
+and the cell is re-run, because scoring it as zero would push $\Delta U$
+negative and manufacture harmful memories. The full configuration, caching
+and saturation checks are in \supp{sec:config}.
+
+\begin{table}[t]
+\centering\small
+\caption{Every run a reported number comes from. Counts are memory--task pairs
+times the conditions each pair was evaluated under (representations, arms or
+replicates, as named). A dataset row is one replicate of one pair under one
+condition and records both arms. Excluded rows had no producible reward and are
+dropped, never scored as zero.}
+\label{tab:coverage}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+run & memories & pairs $\times$ conditions & excluded \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{LongMemEval-V2}} \\
+screened design & \spMems & \spCells\ pairs & 0 rows \\
+representations & \frMems & \frCells\ $\times$ 3 representations & 3 memories \\
+length control & \lcMems & \frCells\ $\times$ 8 arms & \lcNullRows\ rows \\
+second reader & \spMems & \rgSmCells\ of \lfSmCellsAll\ pairs & \lfSmNullRows\ rows \\
+gold-free screen & -- & \gfCells\ $+$ \lfGfCtlCells\ pairs & -- \\
+second session & \soXoneMems & \soXoneCells\ $\times$ 3 replicates & \soXoneErr\ rows \\
+fixed context & \soXtwoMems & \soXtwoCells\ $\times$ 5 arms & \soXtwoCollCells\ pairs \\
+retrieval & -- & \soScrDisc\ tasks (screen labels) & -- \\
+\midrule
+SciCode & \sciMems & \covScDone\ of \covScElig\ pair--repr. & \covScExcl\ pair--repr. \\
+SWE-bench & -- & \covSwDone\ of \covSwElig\ pair--repr. & \covSwExcl\ pair--repr. \\
+\bottomrule
+\end{tabular}
+\end{table}

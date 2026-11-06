@@ -1,0 +1,65 @@
+\section{Introduction}
+
+A long-horizon agent has to decide which past experiences to retain, which to
+retrieve for a task, and which to expose to the model that answers it. For
+retention, the relevant quantity is a memory's expected effect over future
+tasks; for exposure, it is the effect on the task at hand. Both depend on how a
+memory's effects vary across tasks: whether it helps many tasks or few, and
+whether a memory that helps one task can hurt another. Memory systems already score items~\cite{multifactor,memoryrone,umem}, and prior
+work observes that value depends on the task~\cite{ember,evomemeval,meclear}. We provide a measurement protocol that jointly holds the filler context
+fixed, keeps the writer blind to the later task, and records the memory's
+cost beside its effect. We apply it to web-agent memory on
+LongMemEval-V2~\cite{lmev2}. The central finding is that usefulness depends
+on the memory--task pair and on whether the representation preserves the
+content needed for that task.
+
+Consider a hypothetical past page visit that shows a project's budget. A
+task-blind writer stores that visit as a memory without seeing any future
+question. A later question asks for the budget, and the same reader answers it
+twice, with the same filler, once with and once without the stored memory; the
+reward difference is that memory's effect on that question. Repeating the
+comparison for other questions and representations yields the memory's
+task-conditioned profile.
+
+The controlled comparisons show that a memory gains more on tasks for
+which it contains answer-bearing information than on matched controls.
+The tested summaries and structured records gain less than Raw, including
+when total context is fixed. These findings make preserved task utility a concrete evaluation target
+for memory compression, alongside its costs: a shorter memory is useful
+only if it still helps the reader answer the relevant question. They also expose two
+practical challenges: generic retrieval misses most screen-defined
+answer-bearing memories, and individual memory--task labels can change
+across measurement conditions. The aggregate bearing--control contrast
+remains positive across the tested sessions, positions and readers;
+that stability does not make each individual label stable.
+
+\paragraph{Scope.}
+Our empirical evidence comes from single-call factual-recall evaluation: the
+memories are page visits from web-agent trajectories, the future evaluation
+tasks are questions with deterministically scored answers, and a reader answers
+each question in one call without acting in an environment. We make no claim
+about procedural memory, acting agents, or a trained retention policy.
+
+\paragraph{Contributions.}
+\textbf{(1) A conditional memory utility protocol} (Section~\ref{sec:method}):
+paired evaluation with identical context filler, a memory writer that never
+observes the future task, and a cost ledger that records formation, storage,
+retrieval and exposure costs beside each measurement.
+\textbf{(2) Bounded findings for factual recall} (Sections~\ref{sec:screened},
+\ref{sec:similarity}, \ref{sec:repr}; Figures~\ref{fig:robust}
+and~\ref{fig:mech}). Within the same memory, answer-bearing task pairs gain
+$\lfHeadD$ $[\lfHeadLo, \lfHeadHi]$ more reward than matched-control pairs. The
+evaluated task-blind compressed representations show smaller gains than Raw at
+their own length and at a fixed total context, consistent with reduced
+retention of answer-bearing text, and generic retrieval recovers only part of
+the screen-defined answer-bearing set ($\soRChkTenPct\%$ in its top ten, against
+about $\soChanceTen\%$ by chance).
+\textbf{(3) Measurement-reliability findings} (Sections~\ref{sec:metrics},
+\ref{sec:readertransfer}, \ref{sec:r0}, \ref{sec:limitations}). The headline
+contrast keeps its direction across a new session with randomized position
+($\soXoneD$) and a second reader ($\rd{\rgBmcRawGem}$), while its magnitude and
+per-pair labels change; sign-flip and harm summaries are confounded by pairs per
+memory and baseline correctness, and we show how to condition both away.
+\textbf{(4) A dataset} (Section~\ref{sec:release}) of per-pair measurements with
+costs, for reproducing the contrasts, evaluating retrieval against
+screen-defined labels, and studying variability.

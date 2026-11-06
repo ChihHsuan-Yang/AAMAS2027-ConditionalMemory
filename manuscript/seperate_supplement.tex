@@ -1,0 +1,131 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Supplementary material for the AAMAS 2027 submission
+%%% "What Is This Memory Useful For?"
+%%%
+%%% Submitted as a SEPARATE file inside the supplementary zip (<= 25 MB).
+%%% It is not part of the eight-page paper. Reviewers are not required to
+%%% read it, so nothing here is needed to understand or evaluate the paper.
+%%% Keep it anonymous: no names, URLs, or repository paths.
+%%% Sections live in sections/supp_*.tex; references to the paper (\main{...})
+%%% resolve through xref/main_labels.tex, refreshed by tools/build.sh.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[sigconf,nonacm]{aamas}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{tikz}
+\usetikzlibrary{positioning,calc,fit,arrows.meta,backgrounds}
+\input{macros/figdata}
+\input{macros/reanalysis}
+\input{macros/lenctl}
+\input{macros/ledgerfacts}
+\input{macros/sophia}
+\input{macros/review}
+
+\definecolor{tealdeep}{HTML}{178A86}
+\definecolor{teallight}{HTML}{3DB5AC}
+\definecolor{coral}{HTML}{E2553F}
+%%% Visible to-do marker; every \todo must be resolved before upload.
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+%%% A title ending in "?" is followed by a period in the ACM bibliography style;
+%%% \qmark prints "?" and absorbs that period (used only in p1refs.bib).
+\makeatletter
+\newif\if@qmtitle
+\newcommand{\qmark}{?\global\@qmtitletrue}
+\def\showarticletitle#1{\global\@qmtitlefalse#1\if@qmtitle\expandafter\@gobbleperiod\fi}
+\def\@gobbleperiod{\@ifnextchar.{\@gobble}{}}
+\makeatother
+
+
+\newcommand{\main}[1]{main paper, Section~\ref*{M-#1}}
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+
+%%% A preprint license will be selected by the authors at deposit time.
+\setcopyright{none}
+\acmConference[Preprint]{Preprint}{October 2026}{Online}{}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{}
+\acmISBN{}
+%%% Public preprint: omit the anonymous submission ID and proceedings claim.
+
+\title{Supplementary Material for: What Is This Memory Useful For?
+Measuring Task-Conditioned Utility in Long-Term Agent Memory}
+\author{Chih-Hsuan Yang}
+\authornote{These authors contributed equally to this work.}
+\correspondingauthor
+\affiliation{\institution{Argonne National Laboratory}\city{Lemont}\state{Illinois}\country{USA}}
+\email{bellayang@anl.gov}
+\author{Anjir Ahmed Chowdhury}
+\authornotemark[1]
+\affiliation{\institution{University of Houston}\city{Houston}\state{Texas}\country{USA}}
+\author{Feng Yan}
+\affiliation{\institution{University of Houston}\city{Houston}\state{Texas}\country{USA}}
+\email{fyan5@uh.edu}
+\author{Rajeev Thakur}
+\affiliation{\institution{Argonne National Laboratory}\city{Lemont}\state{Illinois}\country{USA}}
+\email{thakur@anl.gov}
+
+%%% Labels of main.tex, prefixed M-, so \ref*{M-...} resolves
+%%% without compiling main.tex first (refreshed by tools/build.sh).
+\input{xref/main_labels}
+
+\begin{document}
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10010147.10010178.10010187</concept_id>
+<concept_desc>Computing methodologies~Knowledge representation and reasoning</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010178.10010219.10010221</concept_id>
+<concept_desc>Computing methodologies~Intelligent agents</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010178.10010179</concept_id>
+<concept_desc>Computing methodologies~Natural language processing</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010257</concept_id>
+<concept_desc>Computing methodologies~Machine learning</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Computing methodologies~Knowledge representation and reasoning}
+\ccsdesc[500]{Computing methodologies~Intelligent agents}
+\ccsdesc[300]{Computing methodologies~Natural language processing}
+\ccsdesc[300]{Computing methodologies~Machine learning}
+
+\keywords{agent memory; long-term memory; counterfactual evaluation;
+memory utility; memory representation; efficiency; LLM agents}
+
+\maketitle
+
+\input{sections/supp_00_guide}
+
+\input{sections/supp_01_protocol}
+\input{sections/supp_02_benchmarks}
+\input{sections/supp_03_configuration}
+\input{sections/supp_04_additional_results}
+\input{sections/supp_05_second_reader}
+\input{sections/supp_06_cross_benchmark}
+\input{sections/supp_07_sign_reversal}
+\input{sections/supp_08_release}
+\input{sections/supp_09_limitations}
+\input{sections/supp_11_preregistration}
+\input{sections/supp_12_sophia}
+\input{sections/supp_13_figures}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{p1refs}
+
+
+\end{document}
